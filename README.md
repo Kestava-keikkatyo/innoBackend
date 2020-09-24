@@ -6,7 +6,7 @@ Serveri lähtee pyörimään ```npm start``` komennolla
 
 
 
-###Käyttäjän luonti POST-kutsulla
+### Käyttäjän luonti POST-kutsulla
 
 ```http://localhost:3000/user/signup```
 
@@ -21,7 +21,7 @@ Serveri lähtee pyörimään ```npm start``` komennolla
 
 
 
-###Käyttäjän kirjautminen POST-kutsulla
+### Käyttäjän kirjautminen POST-kutsulla
 
 ```http://localhost:3000/user/login/```
 
@@ -35,7 +35,7 @@ Serveri lähtee pyörimään ```npm start``` komennolla
 
 
 
-###Endpointin-testaus GET-kutsulla
+### Endpointin-testaus GET-kutsulla
 
 ```http://localhost:3000/user/me/```
 
