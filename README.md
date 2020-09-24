@@ -4,6 +4,8 @@ Serveri lähtee pyörimään ```npm start``` komennolla
 
 ## TÄMÄNHETKISET API KUTSUT
 
+
+
 Käyttäjän luonti POST-kutsulla
 
 ```http://localhost:3000/user/signup```
@@ -16,6 +18,9 @@ Käyttäjän luonti POST-kutsulla
 
 (Sessiosta syntyy tokeni)
 
+
+
+
 Käyttjän kirjautminen POST-kutsulla
 
 ```http://localhost:3000/user/login/```
@@ -26,6 +31,9 @@ Käyttjän kirjautminen POST-kutsulla
 }
 
 (Sessiosta syntyy tokeni)
+
+
+
 
 Endpointin-testaus GET-kutsulla
 
