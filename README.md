@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Pullatessa suorita ```npm install``` komento ladataksesi vaadittavat kirjastot
 Serveri lähtee pyörimään ```npm start``` komennolla
 
@@ -24,3 +25,8 @@ Endpointin-testaus GET-kutsulla
 ```http://localhost:3000/user/me/```
 { Headersiin vaaditaan tokeni todennukseksi }
 
+=======
+# innoBackend
+# Testing jenkins by committing...
+# Testing jenkins by committing...
+>>>>>>> 3bd950b9a8efc602e8b044acb02a322635a39970
