@@ -21,7 +21,7 @@ Käyttäjän luonti POST-kutsulla
 
 
 
-Käyttjän kirjautminen POST-kutsulla
+Käyttäjän kirjautminen POST-kutsulla
 
 ```http://localhost:3000/user/login/```
 
