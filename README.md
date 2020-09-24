@@ -2,7 +2,7 @@ Pullatessa suorita ```npm install``` komento ladataksesi vaadittavat kirjastot
 
 Serveri lähtee pyörimään ```npm start``` komennolla
 
-# TÄMÄNHETKISET API KUTSUT
+## TÄMÄNHETKISET API KUTSUT
 
 Käyttäjän luonti POST-kutsulla
 ```http://localhost:3000/user/signup```
