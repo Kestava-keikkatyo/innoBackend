@@ -22,7 +22,7 @@ pipeline {
     stage('Test stage') {
       steps {
         echo 'Test stage'
-        sh 'npm test'
+        //sh 'npm test'
       }
     }
     stage('Deploy stage') {
