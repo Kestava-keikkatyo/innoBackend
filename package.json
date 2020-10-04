@@ -30,7 +30,10 @@
     "mongoose": "^5.10.6"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^5.11.4",
     "eslint": "^7.10.0",
-    "nodemon": "^2.0.4"
+    "jest": "^26.4.2",
+    "nodemon": "^2.0.4",
+    "supertest": "^5.0.0"
   }
 }
