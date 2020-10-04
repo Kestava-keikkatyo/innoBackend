@@ -1,22 +1,9 @@
-const express = require("express");
-const bodyParser = require("body-parser");
-const user = require("./routes/user");
-const InitiateMongoServer = require("./config/server");
+const app = require('./app') 
+const http = require('http')
+const config = require('./utils/config')
 
-InitiateMongoServer();
+const server = http.createServer(app)
 
-const app = express();
-
-const PORT = process.env.PORT || 3000;
-
-app.use(bodyParser.json());
-
-app.get("/", (req, res) => {
-  res.json({ message: "API Working" });
-});
-
-app.use("/user", user);
-
-app.listen(PORT, (req, res) => {
-  console.log(`Server Started at PORT ${PORT}`);
-});
+server.listen(config.PORT, () => {
+  console.log(`Server running on port ${config.PORT}`)
+})
