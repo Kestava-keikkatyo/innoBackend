@@ -8,7 +8,7 @@ Serveri lähtee pyörimään ```npm start``` komennolla
 
 ### Käyttäjän luonti POST-kutsulla
 
-```http://localhost:3000/api/users```
+```http://localhost:3000/api/users/```
 
 {
 	"username": "käyttäjänimi",
@@ -16,14 +16,10 @@ Serveri lähtee pyörimään ```npm start``` komennolla
 	"password": "salasana"
 }
 
-(Sessiosta syntyy tokeni)
 
+### Käyttäjän kirjautuminen POST-kutsulla
 
-
-
-### Käyttäjän kirjautminen POST-kutsulla
-
-```http://localhost:3000/api/login/```
+```http://localhost:3000/api/login```
 
 {
 	"email": "sähköposti@sähköpsti.com",
@@ -31,8 +27,6 @@ Serveri lähtee pyörimään ```npm start``` komennolla
 }
 
 (Sessiosta syntyy tokeni)
-
-
 
 
 ### Endpointin-testaus GET-kutsulla
