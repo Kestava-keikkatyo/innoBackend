@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "cross-env NODE_ENV=production node index.js",
+    "watch": "cross-env NODE_ENV=development nodemon index.js",
+    "test": "cross-env NODE_ENV=test jest --verbose --runInBand"
   },
   "repository": {
     "type": "git",
@@ -30,7 +31,7 @@
     "mongoose": "^5.10.6"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^5.11.4",
+    "cross-env": "^7.0.2",
     "eslint": "^7.10.0",
     "jest": "^26.4.2",
     "nodemon": "^2.0.4",
