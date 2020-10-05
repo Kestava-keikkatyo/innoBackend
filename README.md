@@ -17,7 +17,7 @@ Serveri lähtee pyörimään ```npm start``` komennolla
 }
 
 
-### Käyttäjän kirjautminen POST-kutsulla
+### Käyttäjän kirjautuminen POST-kutsulla
 
 ```http://localhost:3000/api/users/```
 
