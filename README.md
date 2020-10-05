@@ -19,7 +19,7 @@ Serveri lähtee pyörimään ```npm start``` komennolla
 
 ### Käyttäjän kirjautuminen POST-kutsulla
 
-```http://localhost:3000/api/users/```
+```http://localhost:3000/api/login```
 
 {
 	"email": "sähköposti@sähköpsti.com",
