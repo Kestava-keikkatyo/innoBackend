@@ -22,7 +22,7 @@ Serveri lähtee pyörimään ```npm start``` komennolla
 ```http://localhost:3000/api/login```
 
 {
-	"email": "sähköposti@sähköpsti.com",
+	"username": "käyttäjänimi",
 	"password": "salasana"
 }
 
@@ -31,7 +31,7 @@ Serveri lähtee pyörimään ```npm start``` komennolla
 
 ### Endpointin-testaus GET-kutsulla
 
-```http://localhost:3000/user/me/```
+```http://localhost:3000/api/login/```
 
 { Headersiin vaaditaan tokeni todennukseksi }
 
