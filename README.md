@@ -19,6 +19,7 @@ Serveri lähtee pyörimään ```npm start``` komennolla
 ```http://localhost:3000/api/businesses```
 
 ```http://localhost:3000/api/agencies```
+
 {
     "name": "Barona",
     "username": "Barona",
