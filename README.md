@@ -17,6 +17,7 @@ Serveri lähtee pyörimään ```npm start``` komennolla
 }
 ### Yrityksen ja vuokrayrityksen luonti POST-Kutusulla
 ```http://localhost:3000/api/businesses```
+
 ```http://localhost:3000/api/agencies```
 {
     "name": "Barona",
