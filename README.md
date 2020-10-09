@@ -35,9 +35,9 @@ Serveri lähtee pyörimään ```npm start``` komennolla
 
 
 ### Yrityksen ja vuokrayrityksen kirjautuminen
-	```http://localhost:3000/api/login/business```
+```http://localhost:3000/api/login/business```
 
-	```http://localhost:3000/api/login/agency```
+```http://localhost:3000/api/login/agency```
 ```	
 {
 	"username": "käyttäjänimi",
