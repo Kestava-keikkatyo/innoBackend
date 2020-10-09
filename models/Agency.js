@@ -1,7 +1,65 @@
 const mongoose = require("mongoose");
+const uniqueValidator = require("mongoose-unique-validator");
 
-const AgencySchema = mongoose.Schema({
-
+const agencySchema = mongoose.Schema({
+  name: {
+    type: String,
+    required: "Name can't be empty."
+  },
+  username: {
+    type: String,
+    required: "Username can't be empty."
+  },
+  email: {
+    type: String,
+    required: "Email can't be empty."
+  },
+  city: {
+    type: String,
+    required: "City can't be empty."
+  },
+  postnumber: {
+    type: String,
+    required: "Postnumber can't be empty."
+  },
+  address: {
+    type: String,
+    required: "Address can't be empty."
+  },
+  phonenumber: {
+    type: String,
+    required:"Phonenumber can't be empty."
+  },
+  passwordHash: String,
+  createdAt: {
+    type: Date,
+    default: Date.now(),
+  },
+  users: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
+  forms: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Form",
+    },
+  ],
 });
 
-module.exports = mongoose.model("agency", AgencySchema);
+agencySchema.plugin(uniqueValidator);
+
+agencySchema.set("toJSON", {
+  transform: (document, returnedObject) => {
+    returnedObject.id = returnedObject._id.toString();
+    delete returnedObject._id;
+    delete returnedObject.__v;
+    delete returnedObject.passwordHash;
+  },
+});
+
+const Agency= mongoose.model('Agency', agencySchema)
+
+module.exports = Agency;
