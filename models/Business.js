@@ -1,34 +1,34 @@
-const mongoose = require("mongoose");
-const uniqueValidator = require("mongoose-unique-validator");
+const mongoose = require('mongoose')
+const uniqueValidator = require('mongoose-unique-validator')
 
 const businessSchema = mongoose.Schema({
   name: {
     type: String,
-    required: "Name can't be empty."
+    required: 'Name can\'t be empty.'
   },
   username: {
     type: String,
-    required: "Username can't be empty."
+    required: 'Username can\'t be empty.'
   },
   email: {
     type: String,
-    required: "Email can't be empty."
+    required: 'Email can\'t be empty.'
   },
   city: {
     type: String,
-    required: "City can't be empty."
+    required: 'City can\'t be empty.'
   },
   postnumber: {
     type: String,
-    required: "Postnumber can't be empty."
+    required: 'Postnumber can\'t be empty.'
   },
   address: {
     type: String,
-    required: "Address can't be empty."
+    required: 'Address can\'t be empty.'
   },
   phonenumber: {
     type: String,
-    required:"Phonenumber can't be empty."
+    required:'Phonenumber can\'t be empty.'
   },
   passwordHash: String,
   createdAt: {
@@ -38,27 +38,27 @@ const businessSchema = mongoose.Schema({
   users: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
     },
   ],
   forms: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Form",
+      ref: 'Form',
     },
   ],
-});
+})
 
-businessSchema.plugin(uniqueValidator);
+businessSchema.plugin(uniqueValidator)
 
-businessSchema.set("toJSON", {
+businessSchema.set('toJSON', {
   transform: (document, returnedObject) => {
-    returnedObject.id = returnedObject._id.toString();
-    delete returnedObject._id;
-    delete returnedObject.__v;
-    delete returnedObject.passwordHash;
+    returnedObject.id = returnedObject._id.toString()
+    delete returnedObject._id
+    delete returnedObject.__v
+    delete returnedObject.passwordHash
   },
-});
+})
 
 const Business = mongoose.model('Business', businessSchema)
 

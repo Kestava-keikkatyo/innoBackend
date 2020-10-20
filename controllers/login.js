@@ -7,8 +7,7 @@ const Agency = require('../models/User')
 
 loginRouter.post('/worker', async (request, response) => {
   const body = request.body
-
-  const user = await User.findOne({ username: body.username })
+  const user = await User.findOne({ email: body.email })
   const passwordCorrect = user === null
     ? false
     : await bcrypt.compare(body.password, user.passwordHash)
@@ -18,8 +17,9 @@ loginRouter.post('/worker', async (request, response) => {
       error: 'invalid username or password'
     })
   }
+
   const userForToken = {
-    username: user.username,
+    email: user.email,
     id: user._id,
   }
 
@@ -27,7 +27,7 @@ loginRouter.post('/worker', async (request, response) => {
 
   response
     .status(200)
-    .send({ token, username: user.username})
+    .send({ token, username: user.username, email: user.email })
 })
 
 loginRouter.post('/business', async (request, response) => {
@@ -52,7 +52,7 @@ loginRouter.post('/business', async (request, response) => {
 
   response
     .status(200)
-    .send({ token, username: user.username})
+    .send({ token, username: user.username })
 })
 
 loginRouter.post('/agency', async (request, response) => {
@@ -77,7 +77,7 @@ loginRouter.post('/agency', async (request, response) => {
 
   response
     .status(200)
-    .send({ token, username: user.username})
+    .send({ token, username: user.username })
 })
 
 

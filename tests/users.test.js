@@ -8,7 +8,7 @@ const api = supertest(app)
 describe('when there is initially one user at db', () => {
   beforeEach(async () => {
     await User.deleteMany({})
-    const user = new User({ username: 'root', email: "test@adad.com", password: 'sekret' })
+    const user = new User({ username: 'root', email: 'test@adad.com', password: 'sekret' })
     await user.save()
   })
 

@@ -1,42 +1,42 @@
-const usersRouter = require("express").Router();
-const bcrypt = require("bcryptjs");
-const User = require("../models/User");
-const jwt = require("jsonwebtoken");
+const usersRouter = require('express').Router()
+const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
 
-usersRouter.post("/", async (request, response, next) => {
+const User = require('../models/User')
+
+/**
+ * User registration.
+ * Returns a token that is used for user log in.
+ */
+usersRouter.post('/', async (request, response, next) => {
   try {
-    const body = request.body;
-
-    const saltRounds = 10;
-    const passwordHash = await bcrypt.hash(body.password, saltRounds);
-
-    const user = new User({
+    const body = request.body
+    const passwordLength = body.password ? body.password.length : 0
+    if (passwordLength < 3) {
+      return response.status(400).json({ error: 'password length less than 3 characters' })
+    }
+    const saltRounds = 10
+    const passwordHash = await bcrypt.hash(body.password, saltRounds)
+    const userToCreate = new User({
       username: body.username,
       email: body.email,
       passwordHash,
-    });
-    // https://mongoosejs.com/docs/api.html#model_Model.exists
-    // Same as MyModel.exists({ answer: 42 }) is equivalent to MyModel.findOne({ answer: 42 }).select({ _id: 1 }).lean().then(doc => !!doc)
-    const doesUserExist = await User.exists({ username: body.username });
-    const doesEmailExist = await User.exists({ email: body.email });
+    })
+    const user = await userToCreate.save()
 
-    if (doesUserExist) {
-      return response.status(401).json({
-        error: "User exists already",
-      });
+    const userForToken = {
+      email: user.email,
+      id: userToCreate._id,
     }
 
-    if (doesEmailExist) {
-      return response.status(401).json({
-        error: "Email exists already",
-      });
-    }
-    const savedUser = await user.save();
+    const token = jwt.sign(userForToken, process.env.SECRET)
 
-    response.json(savedUser);
+    response
+      .status(200)
+      .send({ token, username: userToCreate.username, email: userToCreate.email })
   } catch (exception) {
-    next(exception);
+    next(exception)
   }
-});
+})
 
-module.exports = usersRouter;
+module.exports = usersRouter
