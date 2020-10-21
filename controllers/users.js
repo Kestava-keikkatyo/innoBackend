@@ -18,7 +18,7 @@ usersRouter.post('/', async (request, response, next) => {
     const saltRounds = 10
     const passwordHash = await bcrypt.hash(body.password, saltRounds)
     const userToCreate = new User({
-      username: body.username,
+      name: body.name,
       email: body.email,
       passwordHash,
     })
@@ -33,7 +33,7 @@ usersRouter.post('/', async (request, response, next) => {
 
     response
       .status(200)
-      .send({ token, username: userToCreate.username, email: userToCreate.email })
+      .send({ token, name: user.name, email: user.email, role: 'worker' })
   } catch (exception) {
     next(exception)
   }

@@ -2,8 +2,8 @@ const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 const loginRouter = require('express').Router()
 const User = require('../models/User')
-const Business = require('../models/User')
-const Agency = require('../models/User')
+const Business = require('../models/Business')
+const Agency = require('../models/Agency')
 
 loginRouter.post('/worker', async (request, response) => {
   const body = request.body
@@ -14,7 +14,7 @@ loginRouter.post('/worker', async (request, response) => {
 
   if (!(user && passwordCorrect)) {
     return response.status(401).json({
-      error: 'invalid username or password'
+      error: 'invalid email or password'
     })
   }
 
@@ -22,12 +22,11 @@ loginRouter.post('/worker', async (request, response) => {
     email: user.email,
     id: user._id,
   }
-
   const token = jwt.sign(userForToken, process.env.SECRET)
 
   response
     .status(200)
-    .send({ token, username: user.username, email: user.email })
+    .send({ token, name: user.name, email: user.email, role: 'worker' })
 })
 
 loginRouter.post('/business', async (request, response) => {
@@ -57,28 +56,26 @@ loginRouter.post('/business', async (request, response) => {
 
 loginRouter.post('/agency', async (request, response) => {
   const body = request.body
-
-  const user = await Agency.findOne({ username: body.username })
-  const passwordCorrect = user === null
+  const agency = await Agency.findOne({ email: body.email })
+  const passwordCorrect = agency === null
     ? false
-    : await bcrypt.compare(body.password, user.passwordHash)
+    : await bcrypt.compare(body.password, agency.passwordHash)
 
-  if (!(user && passwordCorrect)) {
+  if (!(agency && passwordCorrect)) {
     return response.status(401).json({
-      error: 'invalid username or password'
+      error: 'invalid email or password'
     })
   }
-  const userForToken = {
-    username: user.username,
-    id: user._id,
-  }
 
-  const token = jwt.sign(userForToken, process.env.SECRET)
+  const agencyForToken = {
+    email: agency.email,
+    id: agency._id,
+  }
+  const token = jwt.sign(agencyForToken, process.env.SECRET)
 
   response
     .status(200)
-    .send({ token, username: user.username })
+    .send({ token, name: agency.name, email: agency.email, role: 'agency' })
 })
-
 
 module.exports = loginRouter

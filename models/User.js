@@ -4,7 +4,7 @@ const uniqueValidator = require('mongoose-unique-validator')
 //https://mongoosejs.com/docs/validation.html
 //email validator tarkistettava toimiiko halutulla tavalla
 const userSchema = mongoose.Schema({
-  username: {
+  name: {
     type: String,
     minlength: 3,
     required: true
