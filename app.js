@@ -11,6 +11,7 @@ const loginRouter = require('./controllers/login')
 const middleware = require('./utils/middleware')
 const logger = require('./utils/logger')
 
+
 logger.info('connecting to', config.MONGODB_URI)
 
 mongoose.set('useCreateIndex', true)
@@ -32,6 +33,7 @@ app.use('/api/users', usersRouter)
 app.use('/api/businesses', businessRouter)
 app.use('/api/agencies', agencyRouter)
 app.use('/api/login', loginRouter)
+
 
 app.use(middleware.unknownEndpoint)
 app.use(middleware.errorHandler)
