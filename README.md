@@ -35,3 +35,9 @@ Serveri lähtee pyörimään ```npm start``` komennolla
 
 { Headersiin vaaditaan tokeni todennukseksi }
 
+
+## Omat profiilitiedot JSON-muodossa
+
+```http://localhost:3000/api/<role>/me```
+
+{ Headersiin vaaditaan x-access-token muotoinen tokeni todennukseksi }
