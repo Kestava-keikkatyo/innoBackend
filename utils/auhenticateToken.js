@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
-//tarkistetaan onko tokeni tokenia anneja ja onko se oikea tokeni
+//Tarkistetaan onko Tokeania annettu ja onko se oikea Tokeni
 module.exports = (request, response, next) => {
   const token = request.headers["x-access-token"];
   if (!token)
