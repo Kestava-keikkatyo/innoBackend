@@ -52,7 +52,6 @@ agenciesRouter.get("/me", authenticateToken, (request, response, next) => {
       if (err) {
         response.send(err);
       } else {
-        console.log(result);
         response.status(200).send(result);
       }
     });

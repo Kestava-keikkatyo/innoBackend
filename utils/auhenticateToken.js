@@ -15,7 +15,6 @@ module.exports = (request, response, next) => {
         .status(500)
         .send({ auth: false, message: "Failed to authenticate token." });
     } else {
-
       response.locals.decoded = decoded;
       next();
     }
