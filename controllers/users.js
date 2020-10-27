@@ -48,9 +48,9 @@ usersRouter.get("/me", authenticateToken, (request, response, next) => {
     //Decodatun tokenin arvo haetaan middlewarelta
     const decoded = response.locals.decoded;
     //Tokeni pitää sisällään userid jolla etsitään oikean käyttäjän tiedot
-    User.findById({ _id: decoded.id }, function (err, result) {
-      if (err) {
-        response.send(err);
+    User.findById({ _id: decoded.id }, function (error, result) {
+      if (error) {
+        response.send(error);
       } else {
         response.status(200).send(result);
       }
