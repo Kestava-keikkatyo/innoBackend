@@ -59,4 +59,18 @@ usersRouter.get("/me", authenticateToken, (request, response, next) => {
     next(exception);
   }
 });
+
+usersRouter.post("/edit", authenticateToken, function (request, response, next) {
+  try {
+    const decoded = response.locals.decoded;
+    User.update({ _id: decoded.id }, { $set: request.body }, function (error) {
+      if (error) console.log(error);
+      response.render("profile/profile", {
+        user: request.user,
+      });
+    });
+  } catch (exception) {
+    next(exception);
+  }
+});
 module.exports = usersRouter;
