@@ -32,26 +32,26 @@ loginRouter.post('/worker', async (request, response) => {
 loginRouter.post('/business', async (request, response) => {
   const body = request.body
 
-  const user = await Business.findOne({ username: body.username })
-  const passwordCorrect = user === null
+  const business = await Business.findOne({ email: body.email })
+  const passwordCorrect = business === null
     ? false
-    : await bcrypt.compare(body.password, user.passwordHash)
+    : await bcrypt.compare(body.password, business.passwordHash)
 
-  if (!(user && passwordCorrect)) {
+  if (!(business && passwordCorrect)) {
     return response.status(401).json({
-      error: 'invalid username or password'
+      error: 'invalid email or password'
     })
   }
-  const userForToken = {
-    username: user.username,
-    id: user._id,
+  const businessForToken = {
+    email: business.email,
+    id: business._id,
   }
 
-  const token = jwt.sign(userForToken, process.env.SECRET)
+  const token = jwt.sign(businessForToken, process.env.SECRET)
 
   response
     .status(200)
-    .send({ token, username: user.username })
+    .send({ token, name: business.name, email: business.email, role: 'business' })
 })
 
 loginRouter.post('/agency', async (request, response) => {
