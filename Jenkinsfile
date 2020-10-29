@@ -16,6 +16,7 @@ pipeline {
       steps {
         echo 'Build stage'
         sh 'npm install'
+        sh 'printenv'
         sh 'npm run watch'
       }
     }
