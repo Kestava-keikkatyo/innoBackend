@@ -1,5 +1,5 @@
-const mongoose = require('mongoose')
-const uniqueValidator = require('mongoose-unique-validator')
+const mongoose = require("mongoose")
+const uniqueValidator = require("mongoose-unique-validator")
 
 const formSchema = mongoose.Schema({
 
@@ -9,7 +9,7 @@ const formSchema = mongoose.Schema({
 
 formSchema.plugin(uniqueValidator)
 
-formSchema.set('toJSON', {
+formSchema.set("toJSON", {
   transform: (document, returnedObject) => {
     returnedObject.id = returnedObject._id.toString()
     delete returnedObject._id
@@ -19,6 +19,6 @@ formSchema.set('toJSON', {
 })
 
 
-const Form = mongoose.model('Form', formSchema)
+const Form = mongoose.model("Form", formSchema)
 
 module.exports = Form

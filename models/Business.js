@@ -1,5 +1,5 @@
-const mongoose = require('mongoose')
-const uniqueValidator = require('mongoose-unique-validator')
+const mongoose = require("mongoose")
+const uniqueValidator = require("mongoose-unique-validator")
 
 const businessSchema = mongoose.Schema({
   name: {
@@ -38,20 +38,20 @@ const businessSchema = mongoose.Schema({
   users: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
     },
   ],
   forms: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Form',
+      ref: "Form",
     },
   ],
 })
 
 businessSchema.plugin(uniqueValidator)
 
-businessSchema.set('toJSON', {
+businessSchema.set("toJSON", {
   transform: (document, returnedObject) => {
     returnedObject.id = returnedObject._id.toString()
     delete returnedObject._id
@@ -60,6 +60,6 @@ businessSchema.set('toJSON', {
   },
 })
 
-const Business = mongoose.model('Business', businessSchema)
+const Business = mongoose.model("Business", businessSchema)
 
 module.exports = Business
