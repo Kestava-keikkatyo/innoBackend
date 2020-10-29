@@ -84,7 +84,7 @@ usersRouter.post("/edit", authenticateToken, (request, response, next) => {
       user.name = name.trim();
       user.email = email.trim();
 
-      user.save(function (error) {
+      user.save((error) =>{
         if (error) {
           response.send(error);
         }
