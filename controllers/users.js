@@ -48,7 +48,7 @@ usersRouter.get("/me", authenticateToken, (request, response, next) => {
     //Decodatun tokenin arvo haetaan middlewarelta
     const decoded = response.locals.decoded;
     //Tokeni pitää sisällään userid jolla etsitään oikean käyttäjän tiedot
-    User.findById({ _id: decoded.id }, function (error, result) {
+    User.findById({ _id: decoded.id }, (error, result) => {
       if (error) {
         response.send(error);
       } else {
@@ -60,13 +60,37 @@ usersRouter.get("/me", authenticateToken, (request, response, next) => {
   }
 });
 
-usersRouter.post("/edit", authenticateToken, function (request, response, next) {
+usersRouter.post("/edit", authenticateToken, (request, response, next) => {
   try {
     const decoded = response.locals.decoded;
-    User.update({ _id: decoded.id }, { $set: request.body }, function (error) {
-      if (error) console.log(error);
-      response.render("profile/profile", {
-        user: request.user,
+    console.log(decoded.id);
+    User.findById({ _id: decoded.id }, (error, user) => {
+      console.log(user);
+
+      if (error) {
+        response.send(error);
+      }
+      if (!user) {
+        return response.send("User not found.");
+      }
+
+      var name = request.body.name
+      var email = request.body.email
+      
+      if (!name|| !email) {
+        return response.send("Name or email missing.");
+      }
+
+      user.name = name.trim();
+      user.email = email.trim();
+
+      user.save(function (error) {
+        if (error) {
+          response.send(error);
+        }
+        response
+        .status(200)
+        .send("Profile updated");
       });
     });
   } catch (exception) {
