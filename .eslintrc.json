@@ -5,7 +5,9 @@
     "node": true,
     "jest": true
   },
-  "extends":[ "eslint:recommended", "prettier"],
+  "extends": [
+    "eslint:recommended"
+  ],
   "globals": {
     "Atomics": "readonly",
     "SharedArrayBuffer": "readonly"

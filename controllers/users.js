@@ -4,7 +4,6 @@ const jwt = require("jsonwebtoken")
 const authenticateToken = require("../utils/auhenticateToken")
 
 const User = require("../models/User")
-const { request, response } = require("express")
 
 /**
  * User registration.
@@ -77,7 +76,7 @@ usersRouter.post("/edit", authenticateToken, (request, response, next) => {
       var name = request.body.name
       var email = request.body.email
 
-      if (!name|| !email) {
+      if (!name || !email) {
         return response.send("Name or email missing.")
       }
 
