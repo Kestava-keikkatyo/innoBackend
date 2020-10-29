@@ -6,18 +6,19 @@ const authenticateToken = require("../utils/auhenticateToken");
 businessesRouter.post("/", async (request, response, next) => {
   try {
     const body = request.body;
-
+    // This could be separated into a validation middleware
+    const passwordLength = body.password ? body.password.length : 0;
+    if (passwordLength < 3) {
+      return response
+        .status(400)
+        .json({ error: "password length less than 3 characters" });
+    }
     const saltRounds = 10;
     const passwordHash = await bcrypt.hash(body.password, saltRounds);
 
     const business = new Business({
       name: body.name,
-      username: body.username,
       email: body.email,
-      city: body.city,
-      postnumber: body.postnumber,
-      address: body.address,
-      phonenumber: body.phonenumber,
       passwordHash,
     });
     // https://mongoosejs.com/docs/api.html#model_Model.exists
@@ -38,7 +39,18 @@ businessesRouter.post("/", async (request, response, next) => {
     }
     const savedBusiness = await business.save();
 
-    response.json(savedBusiness);
+    const businessForToken = {
+      email: savedBusiness.email,
+      id: savedBusiness._id,
+    }
+
+    const token = jwt.sign(userForToken, process.env.SECRET);
+    
+    console.log("jwt token: " + token)
+    //response.json(savedBusiness);
+    response
+      .status(200)
+      .send({ token, name: savedBusiness.name, email: savedBusiness.email, role: "business" });
   } catch (exception) {
     next(exception);
   }
