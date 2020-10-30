@@ -48,9 +48,10 @@ agenciesRouter.get("/me", authenticateToken, (request, response, next) => {
     //Decodatun tokenin arvo haetaan middlewarelta
     const decoded = response.locals.decoded
     //Tokeni pitää sisällään userid jolla etsitään oikean käyttäjän tiedot
-    Agency.findById({ _id: decoded.id }, function (error, result) {
-      if (error) {
-        response.send(error)
+    Agency.findById({ _id: decoded.id }, (error, result) => {
+      //Jos ei resultia niin käyttäjän tokenilla ei löydy käyttäjää
+      if (!result || error) {
+        response.status(401).send(error || { message: "Not authorized" })
       } else {
         response.status(200).send(result)
       }

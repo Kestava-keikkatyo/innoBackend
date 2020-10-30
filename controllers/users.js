@@ -48,8 +48,9 @@ usersRouter.get("/me", authenticateToken, (request, response, next) => {
     const decoded = response.locals.decoded
     //Tokeni pitää sisällään userid jolla etsitään oikean käyttäjän tiedot
     User.findById({ _id: decoded.id }, (error, result) => {
-      if (error) {
-        response.send(error)
+      //Jos ei resultia niin käyttäjän tokenilla ei löydy käyttäjää
+      if (!result || error) {
+        response.status(401).send(error || { message: "Not authorized" })
       } else {
         response.status(200).send(result)
       }
