@@ -9,12 +9,22 @@ pipeline {
     }
   }
   environment {
+    // EnvFile is the ID of a secret file credential we have uploaded into jenkins credentials.
+    envFile = credentials('EnvFile')
+    SECRET=envFile.SECRET
+    MONGODB_URI = envFile.MONGODB_URI
+    TEST_MONGODB_URI = envFile.TEST_MONGODB_URI
+    PORT = envFile.PORT
+
     CI = 'true' 
   }
+  
   stages {
     stage('Build stage') {
+      
       steps {
         echo 'Build stage'
+        
         sh 'npm install'
         sh 'printenv'
         sh 'npm run watch'
