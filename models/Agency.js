@@ -1,34 +1,36 @@
-const mongoose = require("mongoose");
-const uniqueValidator = require("mongoose-unique-validator");
+const mongoose = require("mongoose")
+const uniqueValidator = require("mongoose-unique-validator")
 
+//https://mongoosejs.com/docs/validation.html
+//email validator tarkistettava toimiiko halutulla tavalla
 const agencySchema = mongoose.Schema({
   name: {
     type: String,
-    required: "Name can't be empty."
-  },
-  username: {
-    type: String,
-    required: "Username can't be empty."
+    minlength: 3,
+    required: true
   },
   email: {
     type: String,
-    required: "Email can't be empty."
+    unique: true,
+    required: true,
+    validate: {
+      validator: value => {
+        return /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(value)
+      },
+      message: props => `${props.value} is not a valid email address`
+    }
   },
   city: {
     type: String,
-    required: "City can't be empty."
   },
   postnumber: {
     type: String,
-    required: "Postnumber can't be empty."
   },
   address: {
     type: String,
-    required: "Address can't be empty."
   },
   phonenumber: {
     type: String,
-    required:"Phonenumber can't be empty."
   },
   passwordHash: String,
   createdAt: {
@@ -47,19 +49,19 @@ const agencySchema = mongoose.Schema({
       ref: "Form",
     },
   ],
-});
+})
 
-agencySchema.plugin(uniqueValidator);
+agencySchema.plugin(uniqueValidator)
 
 agencySchema.set("toJSON", {
   transform: (document, returnedObject) => {
-    returnedObject.id = returnedObject._id.toString();
-    delete returnedObject._id;
-    delete returnedObject.__v;
-    delete returnedObject.passwordHash;
+    returnedObject.id = returnedObject._id.toString()
+    delete returnedObject._id
+    delete returnedObject.__v
+    delete returnedObject.passwordHash
   },
-});
+})
 
-const Agency= mongoose.model('Agency', agencySchema)
+const Agency = mongoose.model("Agency", agencySchema)
 
-module.exports = Agency;
+module.exports = Agency

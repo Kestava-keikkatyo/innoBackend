@@ -1,42 +1,100 @@
-const usersRouter = require("express").Router();
-const bcrypt = require("bcryptjs");
-const User = require("../models/User");
-const jwt = require("jsonwebtoken");
+const usersRouter = require("express").Router()
+const bcrypt = require("bcryptjs")
+const jwt = require("jsonwebtoken")
+const authenticateToken = require("../utils/auhenticateToken")
 
+const User = require("../models/User")
+
+/**
+ * User registration.
+ * Returns a token that is used for user log in.
+ */
 usersRouter.post("/", async (request, response, next) => {
   try {
-    const body = request.body;
-
-    const saltRounds = 10;
-    const passwordHash = await bcrypt.hash(body.password, saltRounds);
-
-    const user = new User({
-      username: body.username,
+    const body = request.body
+    const passwordLength = body.password ? body.password.length : 0
+    if (passwordLength < 3) {
+      return response
+        .status(400)
+        .json({ error: "password length less than 3 characters" })
+    }
+    const saltRounds = 10
+    const passwordHash = await bcrypt.hash(body.password, saltRounds)
+    const userToCreate = new User({
+      name: body.name,
       email: body.email,
       passwordHash,
-    });
-    // https://mongoosejs.com/docs/api.html#model_Model.exists
-    // Same as MyModel.exists({ answer: 42 }) is equivalent to MyModel.findOne({ answer: 42 }).select({ _id: 1 }).lean().then(doc => !!doc)
-    const doesUserExist = await User.exists({ username: body.username });
-    const doesEmailExist = await User.exists({ email: body.email });
+    })
+    const user = await userToCreate.save()
 
-    if (doesUserExist) {
-      return response.status(401).json({
-        error: "User exists already",
-      });
+    const userForToken = {
+      email: user.email,
+      id: userToCreate._id,
     }
 
-    if (doesEmailExist) {
-      return response.status(401).json({
-        error: "Email exists already",
-      });
-    }
-    const savedUser = await user.save();
+    const token = jwt.sign(userForToken, process.env.SECRET)
 
-    response.json(savedUser);
+    response
+      .status(200)
+      .send({ token, name: user.name, email: user.email, role: "worker" })
   } catch (exception) {
-    next(exception);
+    next(exception)
   }
-});
+})
 
-module.exports = usersRouter;
+usersRouter.get("/me", authenticateToken, (request, response, next) => {
+  try {
+    //Decodatun tokenin arvo haetaan middlewarelta
+    const decoded = response.locals.decoded
+    //Tokeni pitää sisällään userid jolla etsitään oikean käyttäjän tiedot
+    User.findById({ _id: decoded.id }, (error, result) => {
+      //Jos ei resultia niin käyttäjän tokenilla ei löydy käyttäjää
+      if (!result || error) {
+        response.status(401).send(error || { message: "Not authorized" })
+      } else {
+        response.status(200).send(result)
+      }
+    })
+  } catch (exception) {
+    next(exception)
+  }
+})
+
+usersRouter.post("/edit", authenticateToken, (request, response, next) => {
+  try {
+    const decoded = response.locals.decoded
+    console.log(decoded.id)
+    User.findById({ _id: decoded.id }, (error, user) => {
+      console.log(user)
+
+      if (error) {
+        response.send(error)
+      }
+      if (!user) {
+        return response.send("User not found.")
+      }
+
+      var name = request.body.name
+      var email = request.body.email
+
+      if (!name || !email) {
+        return response.send("Name or email missing.")
+      }
+
+      user.name = name.trim()
+      user.email = email.trim()
+
+      user.save((error) => {
+        if (error) {
+          response.send(error)
+        }
+        response
+          .status(200)
+          .send("Profile updated")
+      })
+    })
+  } catch (exception) {
+    next(exception)
+  }
+})
+module.exports = usersRouter
