@@ -22,8 +22,6 @@ pipeline {
         echo "MONGODB_URI: ${MONGODB_URI}"
         echo "TEST_MONGODB_URI: ${TEST_MONGODB_URI}"
         sh 'npm install'
-        sh 'printenv'
-        //sh 'npm run start'
       }
     }
     stage('Test stage') {
