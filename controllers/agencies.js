@@ -61,4 +61,40 @@ agenciesRouter.get("/me", authenticateToken, (request, response, next) => {
   }
 })
 
+/**
+ * Path for adding a worker to an Agency's list of workers
+ * Example "http://www.domain.com/api/1/workers/" 
+ * where "1" is the id of the Agency in question.
+ */
+agenciesRouter.post("/:id/workers", authenticateToken, (request, response, next) => {
+  try {
+    var id = parseInt(request.params.id)
+  } catch(exception) {
+    return response
+      .status(400)
+      .json({ error: "Could not parse " + id + " as an Integer ID."})
+  }
+
+  var agency
+  try {
+    Agency.findById({ _id: request.params.id }, (error, result) => {
+      //Jos ei resultia niin käyttäjän tokenilla ei löydy käyttäjää
+      if (!result || error) {
+        response.status(401).send(error || { message: "No Agency found with ID " + id })
+      } else {
+        agency = result
+      }
+    })
+
+    // Add Worker id from request to this Agency's list of workers
+
+    return response
+      .status(400)
+      .json({ error: "Not yet implemented." })
+
+  } catch (exception) {
+    next(exception)
+  }
+})
+
 module.exports = agenciesRouter
