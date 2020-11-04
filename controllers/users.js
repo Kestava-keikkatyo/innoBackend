@@ -60,39 +60,21 @@ usersRouter.get("/me", authenticateToken, (request, response, next) => {
   }
 })
 
-usersRouter.post("/edit", authenticateToken, (request, response, next) => {
+usersRouter.put("/update", authenticateToken, (request, response, next) => {
   try {
     const decoded = response.locals.decoded
-    console.log(decoded.id)
-    User.findById({ _id: decoded.id }, (error, user) => {
-      console.log(user)
 
+    User.updateOne({ _id: decoded.id }, { $set: request.body }, (error) => {
       if (error) {
-        response.send(error)
-      }
-      if (!user) {
-        return response.send("User not found.")
-      }
-
-      var name = request.body.name
-      var email = request.body.email
-
-      if (!name || !email) {
-        return response.send("Name or email missing.")
-      }
-
-      user.name = name.trim()
-      user.email = email.trim()
-
-      user.save((error) => {
-        if (error) {
-          response.send(error)
-        }
         response
-          .status(200)
-          .send("Profile updated")
-      })
+          .status(400)
+          .json({ error: "User not found" })
+      }
+      response
+        .status(200)
+        .json({ message: "User updated" })
     })
+
   } catch (exception) {
     next(exception)
   }
