@@ -60,23 +60,49 @@ usersRouter.get("/me", authenticateToken, (request, response, next) => {
   }
 })
 
-usersRouter.put("/update", authenticateToken, (request, response, next) => {
-  try {
-    const decoded = response.locals.decoded
+usersRouter.put("/", authenticateToken, async (request, response, next) => {
+  const body = request.body
+  const decoded = response.locals.decoded
+  let passwordHash
 
-    User.updateOne({ _id: decoded.id }, { $set: request.body }, (error) => {
-      if (error) {
-        response
+  try {
+    // Salataan uusi salasana
+    if (request.body.password) {
+      const passwordLength = body.password ? body.password.length : 0
+      if (passwordLength < 3) {
+        return response
           .status(400)
-          .json({ error: "User not found" })
+          .json({ error: "password length less than 3 characters" })
       }
-      response
-        .status(200)
-        .json({ message: "User updated" })
-    })
+      const saltRounds = 10
+      passwordHash = await bcrypt.hash(body.password, saltRounds)
+    }
+
+    // Poistetaan passwordHash bodysta
+    // (muuten uusi salasana menee sellaisenaan tietokantaan).
+    // Salattu salasana luodaan ylempänä.
+    delete body.passwordHash
+
+    // päivitetään bodyn kentät (mitä pystytään päivittämään, eli name ja phonenumber).
+    // lisätään passwordHash päivitykseen, jos annetaan uusi salasana.
+    const updateFields = {
+      ...body,
+      passwordHash
+    }
+
+    // https://mongoosejs.com/docs/tutorials/findoneandupdate.html
+    // https://mongoosejs.com/docs/api.html#model_Model.findByIdAndUpdate
+    const updatedUser = await User.findByIdAndUpdate(decoded.id, updateFields,
+      { new: true, omitUndefined: true, runValidators: true })
+
+    if (!updatedUser) {
+      return response.status(400).json({ error: "User not found" })
+    }
+    return response.status(200).json(updatedUser)
 
   } catch (exception) {
-    next(exception)
+    return next(exception)
   }
 })
+
 module.exports = usersRouter
