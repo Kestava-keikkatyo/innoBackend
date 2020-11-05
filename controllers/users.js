@@ -60,41 +60,49 @@ usersRouter.get("/me", authenticateToken, (request, response, next) => {
   }
 })
 
-usersRouter.post("/edit", authenticateToken, (request, response, next) => {
+usersRouter.put("/", authenticateToken, async (request, response, next) => {
+  const body = request.body
+  const decoded = response.locals.decoded
+  let passwordHash
+
   try {
-    const decoded = response.locals.decoded
-    console.log(decoded.id)
-    User.findById({ _id: decoded.id }, (error, user) => {
-      console.log(user)
-
-      if (error) {
-        response.send(error)
+    // Salataan uusi salasana
+    if (request.body.password) {
+      const passwordLength = body.password ? body.password.length : 0
+      if (passwordLength < 3) {
+        return response
+          .status(400)
+          .json({ error: "password length less than 3 characters" })
       }
-      if (!user) {
-        return response.send("User not found.")
-      }
+      const saltRounds = 10
+      passwordHash = await bcrypt.hash(body.password, saltRounds)
+    }
 
-      var name = request.body.name
-      var email = request.body.email
+    // Poistetaan passwordHash bodysta
+    // (muuten uusi salasana menee sellaisenaan tietokantaan).
+    // Salattu salasana luodaan ylempänä.
+    delete body.passwordHash
 
-      if (!name || !email) {
-        return response.send("Name or email missing.")
-      }
+    // päivitetään bodyn kentät (mitä pystytään päivittämään, eli name ja phonenumber).
+    // lisätään passwordHash päivitykseen, jos annetaan uusi salasana.
+    const updateFields = {
+      ...body,
+      passwordHash
+    }
 
-      user.name = name.trim()
-      user.email = email.trim()
+    // https://mongoosejs.com/docs/tutorials/findoneandupdate.html
+    // https://mongoosejs.com/docs/api.html#model_Model.findByIdAndUpdate
+    const updatedUser = await User.findByIdAndUpdate(decoded.id, updateFields,
+      { new: true, omitUndefined: true, runValidators: true })
 
-      user.save((error) => {
-        if (error) {
-          response.send(error)
-        }
-        response
-          .status(200)
-          .send("Profile updated")
-      })
-    })
+    if (!updatedUser) {
+      return response.status(400).json({ error: "User not found" })
+    }
+    return response.status(200).json(updatedUser)
+
   } catch (exception) {
-    next(exception)
+    return next(exception)
   }
 })
+
 module.exports = usersRouter

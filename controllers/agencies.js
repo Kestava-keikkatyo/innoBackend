@@ -61,6 +61,26 @@ agenciesRouter.get("/me", authenticateToken, (request, response, next) => {
   }
 })
 
+agenciesRouter.put("/", authenticateToken, (request, response, next) => {
+  try {
+    const decoded = response.locals.decoded
+
+    Agency.updateOne({ _id: decoded.id }, { $set: request.body }, (error) => {
+      if (error) {
+        response
+          .status(400)
+          .json({ error: "Agency not found" })
+      }
+      response
+        .status(200)
+        .json({ message: "Agency updated" })
+    })
+
+  } catch (exception) {
+    next(exception)
+  }
+})
+
 /**
  * Path for adding a worker to an Agency's list of workers
  * Example "http://www.domain.com/api/1/workers/"

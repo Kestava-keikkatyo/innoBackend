@@ -60,4 +60,25 @@ businessesRouter.get("/me", authenticateToken, (request, response, next) => {
   }
 })
 
+businessesRouter.put("/", authenticateToken, (request, response, next) => {
+  try {
+    const decoded = response.locals.decoded
+
+    Business.updateOne({ _id: decoded.id }, { $set: request.body }, (error) => {
+      if (error) {
+        response
+          .status(400)
+          .json({ error: "Business not found" })
+      }
+      response
+        .status(200)
+        .json({ message: "Business updated" })
+    })
+
+  } catch (exception) {
+    next(exception)
+  }
+})
+
+
 module.exports = businessesRouter
