@@ -59,7 +59,8 @@ businessesRouter.get("/me", authenticateToken, (request, response, next) => {
     next(exception)
   }
 })
-businessesRouter.put("/update", authenticateToken, (request, response, next) => {
+
+businessesRouter.put("/", authenticateToken, (request, response, next) => {
   try {
     const decoded = response.locals.decoded
 

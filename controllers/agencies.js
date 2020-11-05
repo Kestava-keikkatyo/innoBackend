@@ -60,7 +60,8 @@ agenciesRouter.get("/me", authenticateToken, (request, response, next) => {
     next(exception)
   }
 })
-agenciesRouter.put("/update", authenticateToken, (request, response, next) => {
+
+agenciesRouter.put("/", authenticateToken, (request, response, next) => {
   try {
     const decoded = response.locals.decoded
 
