@@ -96,7 +96,7 @@ agenciesRouter.post("/:id/workers", authenticateToken, (request, response, next)
   // The first 3 ifs here might be better off at a middleware later on...
 
   // Check if :id parameter is a legitimate integer
-  var agencyId
+  let agencyId
   try {
     agencyId = parseInt(request.params.id)
   } catch(exception) {
@@ -121,7 +121,7 @@ agenciesRouter.post("/:id/workers", authenticateToken, (request, response, next)
 
     // Adding a single worker
     if (request.body.worker) {
-      var workerId
+      let workerId
       try {
         workerId = parseInt(request.body.worker)
       } catch (exception) {
@@ -196,8 +196,8 @@ function workerExists(id) {
  */
 function workersWhoExist(workerIdArray) {
   try {
-    var existingWorkerIds = []
-    var idInteger
+    let existingWorkerIds = []
+    let idInteger
     if (Array.isArray(workerIdArray)) {
       workerIdArray.forEach( id => {
         try {
