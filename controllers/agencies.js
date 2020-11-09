@@ -2,16 +2,17 @@ const agenciesRouter = require("express").Router()
 const bcrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken")
 const authenticateToken = require("../utils/auhenticateToken")
-
+const utils = require("../utils/common")
 const Agency = require("../models/Agency")
-const User = require("../models/User")
 
-const domainUrl = "http://www.domain.com/"
-const agencyApiPath = "api/agency/"
+const domainUrl = "http://localhost:3000/"
+const agencyApiPath = "api/agencies/"
 
 /**
  * Agency registration.
  * Returns a token that is used for user log in.
+ * Request requirements:
+ * Body.email, Body.name, Body.password
  */
 agenciesRouter.post("/", async (request, response, next) => {
   try {
@@ -86,24 +87,18 @@ agenciesRouter.put("/", authenticateToken, (request, response, next) => {
 })
 
 /**
- * Path for adding a worker to an Agency's list of workers
+ * Path for adding workers to an Agency's list of workers
  * Example "http://www.domain.com/api/1/workers/"
  * where "1" is the id of the Agency in question.
+ * Request requirements: Body.workers / Body.worker
  * Workers are given as a json array of IDs: {"workers": ["id1","id2","id3"...]}
- * A single worker can be given as json: {"worker":"id"}
+ * A single worker can also be given as json: {"worker":"id"}
  */
 agenciesRouter.post("/:id/workers", authenticateToken, (request, response, next) => {
   // The first 3 ifs here might be better off at a middleware later on...
 
   // Check if :id parameter is a legitimate integer
-  let agencyId
-  try {
-    agencyId = parseInt(request.params.id)
-  } catch(exception) {
-    return response
-      .status(400)
-      .json({ error: "Could not parse " + request.params.id + " as an Agency ID." })
-  }
+  let agencyId = request.params.id
 
   // Check if there is an Agency with :id
   Agency.findById({ _id: agencyId }, (error, result) => {
@@ -121,103 +116,60 @@ agenciesRouter.post("/:id/workers", authenticateToken, (request, response, next)
 
     // Adding a single worker
     if (request.body.worker) {
-      let workerId
-      try {
-        workerId = parseInt(request.body.worker)
-      } catch (exception) {
-        return response
-          .status(400)
-          .json({ error: "Could not parse " + request.body.worker + " as a Worker ID." })
-      }
+      let workerId = request.body.worker
       // addToSet operation adds an item to a mongoose array, if that item is not already present.
-      if (workerExists(workerId)) {
-        Agency.findAndUpdateOne({ _id: response.locals.decoded.id }, { $addToSet: { users: [workerId] } }, (error, result) => {
+      if (utils.workerExists(workerId, next)) {
+        Agency.findOneAndUpdate({ _id: response.locals.decoded.id }, { $addToSet: { users: [workerId] } }, (error, result) => {
           if (error || !result) {
             return response
               .status(400)
               .json({ error: "Could not add Worker with ID" + workerId + " into Agency with ID" + agencyId + "." })
           } else {
+            // Added Worker to Agency, return resource URL
             return response
               .status(200)
-              .json({ updated: domainUrl + agencyApiPath + agencyId })
+              .json({ updated: domainUrl + agencyApiPath + agencyId, workersAdded: workerId })
           }
         })
       } else {
         return response
           .status(400)
-          .json({ error: "Could not find Worker with ID" + workerId + "." })
+          .json({ error: "Could not find Worker with ID " + workerId + "." })
       }
-
 
       // Adding several workers
     } else if (request.body.workers) {
-      const workerIdsToAdd = workersWhoExist(request.body.workers)
-      if (workerIdsToAdd) {
-        // $addToSet adds to mongoose array if the item does not already exist, thus eliminating duplicates.
-        Agency.findAndUpdateOne({ _id: response.locals.decoded.id }, { $addToSet: { users: workerIdsToAdd } }, (error, result) => {
-          if (error || !result) {
-            console.log("Could not add worker array to Agency. Error: " + error)
+      let workerIdsToAdd
+      let workerIdsNotOk
+
+      utils.whichWorkersExist(request.body.workers, next, (workerResult) => {
+        workerIdsToAdd = workerResult.existingWorkerIds
+        workerIdsNotOk = workerResult.nonExistingWorkerIds
+
+        if (workerIdsToAdd && workerIdsToAdd.length > 0) {
+          // $addToSet adds to mongoose array if the item does not already exist, thus eliminating duplicates.
+          Agency.findOneAndUpdate({ _id: response.locals.decoded.id }, { $addToSet: { users: workerIdsToAdd } }, (error, result) => {
+            if (error || !result) {
+              console.log("Could not add worker array to Agency. Error: " + error)
+              return response
+                .status(400)
+                .json({ error: "Could not add all Workers to Agency, so added none." })
+            }
+            // There were some ok worker ids to add
             return response
-              .status(400)
-              .json({ error: "Could not add all Workers to Agency, so added none." })
-          }
-        })
-      }
+              .status(200)
+              .json({ updated: domainUrl + agencyApiPath + agencyId, workersAdded: workerIdsToAdd, workersNotAdded: workerIdsNotOk })
+          })
+        } else {
+          return response
+            .status(400)
+            .json({ error: "All of the sent Worker Ids were either erronous or could not be matched with an existing worker." })
+        }
+      } )
     }
   } catch (exception) {
     next(exception)
   }
 })
-
-/**
- * Checks if a worker with param id exists.
- * @param {*} id
- * @returns True, if worker exists. False, if not.
- */
-function workerExists(id) {
-  try {
-    User.findById({ _id: id }, (error, result) => {
-      if (error || !result) {
-        return false
-      } else {
-        return true
-      }
-    })
-
-  } catch (exception) {
-    return false
-  }
-}
-
-/**
- * Checks through an array of worker ids,and returns an array of ids that exist.
- * Returned list may contain duplicates, if the param array had them.
- * @param {Array} workerIdArray
- */
-function workersWhoExist(workerIdArray) {
-  try {
-    let existingWorkerIds = []
-    let idInteger
-    if (Array.isArray(workerIdArray)) {
-      workerIdArray.forEach( id => {
-        try {
-          idInteger = parseInt(id)
-          User.findById(id, (error, result) => {
-            if (result) {
-              existingWorkerIds.push(idInteger)
-            }
-          })
-        } catch (exception) {
-          // nothing happens, parseInt just failed so the id does not get added to existingWorkerIds.
-        }
-      })
-    }
-    return existingWorkerIds
-  } catch (exception) {
-    return null
-  }
-}
-
-
 
 module.exports = agenciesRouter
