@@ -11,6 +11,7 @@ const businessSchema = mongoose.Schema({
     type: String,
     unique: true,
     required: true,
+    immutable: true,
     validate: {
       validator: value => {
         return /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(value)
@@ -20,19 +21,24 @@ const businessSchema = mongoose.Schema({
   },
   city: {
     type: String,
+    required: true
   },
   postnumber: {
     type: String,
+    required: true,
   },
   address: {
     type: String,
+    required: true,
   },
   phonenumber: {
     type: String,
+    required: true,
   },
   passwordHash: String,
   createdAt: {
     type: Date,
+    immutable: true,
     default: Date.now(),
   },
   users: [

@@ -16,7 +16,7 @@ usersRouter.post("/", async (request, response, next) => {
     if (passwordLength < 3) {
       return response
         .status(400)
-        .json({ error: "password length less than 3 characters" })
+        .json({ error: "Password length less than 3 characters" })
     }
     const saltRounds = 10
     const passwordHash = await bcrypt.hash(body.password, saltRounds)
@@ -42,7 +42,7 @@ usersRouter.post("/", async (request, response, next) => {
   }
 })
 
-usersRouter.get("/me", authenticateToken, (request, response, next) => {
+usersRouter.get("/me", authenticateToken, async (request, response, next) => {
   try {
     //Decodatun tokenin arvo haetaan middlewarelta
     const decoded = response.locals.decoded
