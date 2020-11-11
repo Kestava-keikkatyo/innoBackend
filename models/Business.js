@@ -21,21 +21,20 @@ const businessSchema = mongoose.Schema({
   },
   city: {
     type: String,
-    required: true
   },
   postnumber: {
     type: String,
-    required: true,
   },
   address: {
     type: String,
-    required: true,
   },
   phonenumber: {
     type: String,
-    required: true,
   },
-  passwordHash: String,
+  passwordHash: {
+    type: String,
+    required: true
+  },
   createdAt: {
     type: Date,
     immutable: true,

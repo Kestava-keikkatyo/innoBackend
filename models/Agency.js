@@ -33,7 +33,10 @@ const agencySchema = mongoose.Schema({
   phonenumber: {
     type: String,
   },
-  passwordHash: String,
+  passwordHash: {
+    type: String,
+    required: true
+  },
   createdAt: {
     immutable: true,
     type: Date,

@@ -21,7 +21,10 @@ const userSchema = mongoose.Schema({
       message: props => `${props.value} is not a valid email address`
     }
   },
-  passwordHash: String,
+  passwordHash: {
+    type: String,
+    required: true
+  },
   createdAt: {
     type: Date,
     default: Date.now(),
