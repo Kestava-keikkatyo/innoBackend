@@ -39,7 +39,11 @@ const userSchema = mongoose.Schema({
       },
       message: props => `${props.value} is not a valid phone number`
     }
-  }
+  },
+  licenses: [{
+    type: String,
+    minlength: 3
+  }]
 })
 
 userSchema.plugin(uniqueValidator)
