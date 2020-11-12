@@ -31,6 +31,9 @@ const businessSchema = mongoose.Schema({
   phonenumber: {
     type: String,
   },
+  securityOfficer: {
+    type: String,
+  },
   passwordHash: {
     type: String,
     required: true
