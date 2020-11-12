@@ -32,6 +32,13 @@ const agencySchema = mongoose.Schema({
   },
   phonenumber: {
     type: String,
+    validate: {
+      validator: value => {
+        // https://regexr.com/3c53v
+        return /^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s./0-9]*$/g.test(value)
+      },
+      message: props => `${props.value} is not a valid phone number`
+    }
   },
   securityOfficer: {
     type: String,
@@ -57,6 +64,11 @@ const agencySchema = mongoose.Schema({
       ref: "Form",
     },
   ],
+  businessContract: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "bContract",
+  }]
+
 })
 
 agencySchema.plugin(uniqueValidator)
