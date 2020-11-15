@@ -29,6 +29,6 @@ businessContractSchema.set("toJSON", {
   }
 })
 
-const User = mongoose.model("User", businessContractSchema)
+const BusinessContract = mongoose.model("BusinessContract", businessContractSchema)
 
-module.exports = User
+module.exports = BusinessContract

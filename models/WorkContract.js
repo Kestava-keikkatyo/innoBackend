@@ -29,6 +29,6 @@ workContractSchema.set("toJSON", {
   }
 })
 
-const User = mongoose.model("User", workContractSchema)
+const WorkContract = mongoose.model("WorkContract", workContractSchema)
 
-module.exports = User
+module.exports = WorkContract
