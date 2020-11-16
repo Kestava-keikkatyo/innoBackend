@@ -8,6 +8,7 @@ const usersRouter = require("./controllers/users")
 const businessRouter = require("./controllers/businesses")
 const agencyRouter = require("./controllers/agencies")
 const loginRouter = require("./controllers/login")
+const businesscontractsRouter = require("./controllers/businesscontracts")
 const middleware = require("./utils/middleware")
 const logger = require("./utils/logger")
 
@@ -33,7 +34,7 @@ app.use("/api/users", usersRouter)
 app.use("/api/businesses", businessRouter)
 app.use("/api/agencies", agencyRouter)
 app.use("/api/login", loginRouter)
-
+app.use("/api/businesscontracts", businesscontractsRouter)
 
 app.use(middleware.unknownEndpoint)
 app.use(middleware.errorHandler)

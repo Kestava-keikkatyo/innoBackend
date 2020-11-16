@@ -64,7 +64,7 @@ const agencySchema = mongoose.Schema({
       ref: "Form",
     },
   ],
-  businessContract: [{
+  businessContracts: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: "bContract",
   }]

@@ -1,12 +1,17 @@
 const agenciesRouter = require("express").Router()
+const logger = require("../utils/logger")
 const bcrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken")
 const authenticateToken = require("../utils/auhenticateToken")
 const utils = require("../utils/common")
 const Agency = require("../models/Agency")
-
+const { bodyBusinessExists, agencyExists, needsToBeAgency } = require("../utils/middleware")
+const BusinessContract = require("../models/BusinessContract")
+const Promise = require("bluebird")
 const domainUrl = "http://localhost:3000/"
 const agencyApiPath = "api/agencies/"
+const businessContractsPath = "businesscontracts/"
+const workersPath = "workers/"
 
 /**
  * Agency registration.
@@ -66,6 +71,28 @@ agenciesRouter.get("/me", authenticateToken, (request, response, next) => {
   }
 })
 
+agenciesRouter.get("/workerIds", authenticateToken, needsToBeAgency, (request, response, next) => {
+  try {
+    logger.info("Agency users: " + request.agency.users)
+    return response
+      .status(200)
+      .json(request.agency.users)
+  } catch (exception) {
+    next(exception)
+  }
+})
+
+agenciesRouter.get("/workers", authenticateToken, needsToBeAgency, (request, response, next) => {
+  try {
+    logger.info("Agency users: " + request.agency.users)
+    return response
+      .status(200)
+      .json(request.agency.users)
+  } catch (exception) {
+    next(exception)
+  }
+})
+
 agenciesRouter.put("/", authenticateToken, async (request, response, next) => {
   const body = request.body
   const decoded = response.locals.decoded
@@ -112,25 +139,19 @@ agenciesRouter.put("/", authenticateToken, async (request, response, next) => {
 })
 
 /**
- * Path for adding workers to an Agency's list of workers
+ * Route for adding workers to an Agency's list of workers
  * Example "http://www.domain.com/api/1/workers/"
  * where "1" is the id of the Agency in question.
  * Request requirements: Body.workers / Body.worker
  * Workers are given as a json array of IDs: {"workers": ["id1","id2","id3"...]}
  * A single worker can also be given as json: {"worker":"id"}
+ * Successful response.body: { success: true, workersAdded: [workerId1, id2...], workersNotAdded: [workerId1, id2...] }
+ * response.header.Location: Url to this agency's workers resource
  */
-agenciesRouter.post("/:id/workers", authenticateToken, (request, response, next) => {
+agenciesRouter.post("/:id/workers", authenticateToken, agencyExists, (request, response, next) => {
   // The first 3 ifs here might be better off at a middleware later on...
 
-  // Check if :id parameter is a legitimate integer
-  let agencyId = request.params.id
-
-  // Check if there is an Agency with :id
-  Agency.findById({ _id: agencyId }, (error, result) => {
-    if (!result || error) {
-      response.status(401).send(error || { message: "No Agency found with ID " + agencyId + "." })
-    }
-  })
+  let agencyId = request.agency._id
 
   // Check if the user has a token with the same id as this Agency.
   try {
@@ -175,7 +196,6 @@ agenciesRouter.post("/:id/workers", authenticateToken, (request, response, next)
           // $addToSet adds to mongoose array if the item does not already exist, thus eliminating duplicates.
           Agency.findOneAndUpdate({ _id: response.locals.decoded.id }, { $addToSet: { users: workerIdsToAdd } }, (error, result) => {
             if (error || !result) {
-              console.log("Could not add worker array to Agency. Error: " + error)
               return response
                 .status(400)
                 .json({ error: "Could not add all Workers to Agency, so added none." })
@@ -183,7 +203,8 @@ agenciesRouter.post("/:id/workers", authenticateToken, (request, response, next)
             // There were some ok worker ids to add
             return response
               .status(200)
-              .json({ updated: domainUrl + agencyApiPath + agencyId, workersAdded: workerIdsToAdd, workersNotAdded: workerIdsNotOk })
+              .header({ Location: domainUrl + agencyApiPath + agencyId + workersPath })
+              .json({ success: true, workersAdded: workerIdsToAdd, workersNotAdded: workerIdsNotOk })
           })
         } else {
           return response
@@ -196,5 +217,86 @@ agenciesRouter.post("/:id/workers", authenticateToken, (request, response, next)
     next(exception)
   }
 })
+
+/**
+ * Route for initiating a connection between Agency and Business.
+ * The BusinessContract is created and the url to the contract resource is returned so that it can be sent to the Business.
+ * body: {businessId: "businessId"}
+ * agencyId from jwt-token
+ * Successful response.body: {success: true}
+ * response.header.Location: created businesscontract url api/agencies/businesscontracts/:businessContractId
+ */
+agenciesRouter.post("/businesscontracts", authenticateToken, bodyBusinessExists, needsToBeAgency, (request, response, next) => {
+  try {
+    const agencyId = request.agency._id
+    const businessId = request.body.businessId
+    // Check if businessContract between this Agency and the Business already exists
+    if (request.agency.businessContracts) {
+      let commonContractId = null
+      // Using Promise.map:
+      Promise.map(request.agency.businessContracts, (contract) => {
+        // Promise.map awaits for returned promises as well.
+        return BusinessContract.findById({ _id: contract._id }, (error, result) => {
+          if (!result || error) {
+            response.status(500).send(error || { message: "Agency with ID " + agencyId + " has a BusinessContract with ID " + contract._id + " but it does not exist!" })
+          }
+
+          let contractBusinessId = result.business.toString()
+          if (contractBusinessId === businessId) {
+            commonContractId = contract._id
+          }
+        })
+      }).then( () => {
+        // If there was no BusinessContract between this Agency and the Business, create a new one
+        if (commonContractId === null) {
+          createBusinessContract(agencyId, businessId, response)
+        } else {
+          return response.status(400)
+            .json({ message: "Agency (ID " + agencyId + ") already has a BusinessContract with Business (ID " + businessId + ").",
+              existingContract: domainUrl + agencyApiPath + businessContractsPath + commonContractId })
+        }
+
+      })
+    } else { // Agency had no BusinessContracts yet
+      createBusinessContract(agencyId, businessId, response)
+    }
+  } catch (exception) {
+    console.log(exception.message)
+    next(exception)
+  }
+})
+
+const createBusinessContract = (agencyId, businessId, response) => {
+  const businessContract = new BusinessContract({
+    contractMade: false,
+    business: businessId
+  })
+
+  businessContract.save((error, result) => {
+    if (error || !result) {
+      return response
+        .status(500)
+        .json({ error: "Could not save BusinessContract instance to database. Possible error message: " + error })
+    }
+
+    logger.info("BusinessContract created with ID " + businessContract._id)
+
+    // $addToSet adds to mongoose array if the item does not already exist, thus eliminating duplicates.
+    Agency.findOneAndUpdate({ _id: agencyId }, { $addToSet: { businessContracts: [result._id] } }, (error2, result2) => {
+      if (error2 || !result2) {
+        return response
+          .status(500)
+          .json({ error: "Could not add created BusinessContract to Agency. Possible error message: " + error2 })
+      }
+
+      // Create-operation successful
+      // Return a response with the created BusinessContract resource uri
+      return response
+        .status(201)
+        .header({ Location: domainUrl + agencyApiPath + businessContractsPath + result._id })
+        .json({ success: true })
+    })
+  })
+}
 
 module.exports = agenciesRouter
