@@ -12,10 +12,10 @@ const businessContractsApiPath = "api/businesscontracts/"
  */
 businesscontractsRouter.put("/:businessContractId", authenticateToken, businessContractExists, needsToBeBusiness, async (request, response, next) => {
   try {
-    if (request.businessContract.business !== request.business._id) {
+    if (request.businessContract.business.toString() !== request.business._id.toString()) {
       return response
         .status(401)
-        .json({ message: "Business with ID " + request.business._id + " not authorized to accept this BusinessContract." })
+        .json({ message: "Business with ID " + request.business._id + " not authorized to accept this BusinessContract. Required: " + request.businessContract.business })
     } else {
       BusinessContract.findByIdAndUpdate(request.businessContract._id, { contractMade: true },
         { new: true }, (error, result) => {

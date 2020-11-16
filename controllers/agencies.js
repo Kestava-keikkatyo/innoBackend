@@ -8,6 +8,7 @@ const Agency = require("../models/Agency")
 const { bodyBusinessExists, agencyExists, needsToBeAgency } = require("../utils/middleware")
 const BusinessContract = require("../models/BusinessContract")
 const Promise = require("bluebird")
+const User = require("../models/User")
 const domainUrl = "http://localhost:3000/"
 const agencyApiPath = "api/agencies/"
 const businessContractsPath = "businesscontracts/"
@@ -71,6 +72,9 @@ agenciesRouter.get("/me", authenticateToken, (request, response, next) => {
   }
 })
 
+/**
+ * Return just an array of workerIds who belong to this Agency.
+ */
 agenciesRouter.get("/workerIds", authenticateToken, needsToBeAgency, (request, response, next) => {
   try {
     logger.info("Agency users: " + request.agency.users)
@@ -82,12 +86,27 @@ agenciesRouter.get("/workerIds", authenticateToken, needsToBeAgency, (request, r
   }
 })
 
+/**
+ * Return an array of full worker objects who belong to this Agency
+ */
 agenciesRouter.get("/workers", authenticateToken, needsToBeAgency, (request, response, next) => {
   try {
-    logger.info("Agency users: " + request.agency.users)
-    return response
-      .status(200)
-      .json(request.agency.users)
+    let workerArray = []
+    logger.info("Populating array with " + request.agency.users.length + " workers.")
+    Promise.map(request.agency.users, (worker) => {
+      // Promise.map awaits for returned promises as well.
+      return User.findById({ _id: worker }, (error, result) => {
+        if (!result || error) {
+          response.status(500).send(error || { message: "Agency with ID " + agencyId + " has a Worker with ID " + contract._id + " but it does not exist!" })
+        } else {
+          workerArray.push(result)
+        }
+      })
+    }).then( () => {
+      response
+        .status(200)
+        .json({ workers: workerArray })
+    })
   } catch (exception) {
     next(exception)
   }
