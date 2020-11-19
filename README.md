@@ -59,6 +59,51 @@ Serveri lähtee pyörimään ```npm start``` komennolla
 ```
 (Sessiosta syntyy tokeni)
 
+### Lisää Työntekijä Vuokrayritykselle ###
+```http://localhost:3000/api/agencies/:id/workers```
+```
+:id = vuokrayrityksen id
+{ "worker": "<työntekijän id>" }
+    tai
+{ "workers": ["<työntekijäId1>", "<työntekijäId2>"...] }
+
+header
+{ "x-access-token": "<vuokrayrityksen kirjautumistoken>" }
+
+Status 200 (success): 
+response.updated: <päivitetyn vuokrayrityksen url>
+response.workersAdded: [workerId1, workerdId2...] (requestin työntekijät, jotka löytyivät ja lisättiin)
+response.workersNotAdded: [workerId1, workerId2...] (requestin työntekijät joita ei löytynyt ja ei lisätty )
+
+Status 400 (failure):
+response.error: <virheviesti>
+
+Status 401 (not authorized)
+response.error: <virheviesti>
+```
+
+### Lisää Työntekijä Vuokrayritykselle ###
+```http://localhost:3000/api/agencies/:id/workers```
+```
+:id = yrityksen id
+{ "worker": "<työntekijän id>" }
+    tai
+{ "workers": ["<työntekijäId1>", "<työntekijäId2>"...] }
+
+header
+{ "x-access-token": "<yrityksen kirjautumistoken>" }
+
+Status 200 (success): 
+response.updated: <päivitetyn vuokrayrityksen url>
+response.workersAdded: [workerId1, workerdId2...] (requestin työntekijät, jotka löytyivät ja lisättiin)
+response.workersNotAdded: [workerId1, workerId2...] (requestin työntekijät joita ei löytynyt ja ei lisätty )
+
+Status 400 (failure):
+response.error: <virheviesti>
+
+Status 401 (not authorized)
+response.error: <virheviesti>
+```
 
 ### Endpointin-testaus GET-kutsulla
 

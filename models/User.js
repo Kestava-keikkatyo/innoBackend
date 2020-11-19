@@ -2,7 +2,7 @@ const mongoose = require("mongoose")
 const uniqueValidator = require("mongoose-unique-validator")
 
 //https://mongoosejs.com/docs/validation.html
-//email validator tarkistettava toimiiko halutulla tavalla
+//email validator tarkistettava toimiiko halutulla tavalla, samoin phonenumber validator
 const userSchema = mongoose.Schema({
   name: {
     type: String,
@@ -13,6 +13,7 @@ const userSchema = mongoose.Schema({
     type: String,
     unique: true,
     required: true,
+    immutable: true,
     validate: {
       validator: value => {
         return /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(value)
@@ -20,11 +21,29 @@ const userSchema = mongoose.Schema({
       message: props => `${props.value} is not a valid email address`
     }
   },
-  passwordHash: String,
+  passwordHash: {
+    type: String,
+    required: true
+  },
   createdAt: {
     type: Date,
-    default: Date.now()
-  }
+    default: Date.now(),
+    immutable: true
+  },
+  phonenumber: {
+    type: String,
+    validate: {
+      validator: value => {
+        // https://regexr.com/3c53v
+        return /^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s./0-9]*$/g.test(value)
+      },
+      message: props => `${props.value} is not a valid phone number`
+    }
+  },
+  licenses: [{
+    type: String,
+    minlength: 3
+  }]
 })
 
 userSchema.plugin(uniqueValidator)
