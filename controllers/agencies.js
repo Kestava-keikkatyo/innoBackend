@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken")
 const authenticateToken = require("../utils/auhenticateToken")
 const utils = require("../utils/common")
 const Agency = require("../models/Agency")
-const { bodyBusinessExists, agencyExists, needsToBeAgency } = require("../utils/middleware")
+const { bodyBusinessExists, needsToBeAgency } = require("../utils/middleware")
 const BusinessContract = require("../models/BusinessContract")
 const Promise = require("bluebird")
 const User = require("../models/User")
@@ -93,11 +93,11 @@ agenciesRouter.get("/workers", authenticateToken, needsToBeAgency, (request, res
   try {
     let workerArray = []
     logger.info("Populating array with " + request.agency.users.length + " workers.")
-    Promise.map(request.agency.users, (worker) => {
+    Promise.map(request.agency.users, (workerId) => {
       // Promise.map awaits for returned promises as well.
-      return User.findById({ _id: worker }, (error, result) => {
+      return User.findById({ _id: workerId }, (error, result) => {
         if (!result || error) {
-          response.status(500).send(error || { message: "Agency with ID " + agencyId + " has a Worker with ID " + contract._id + " but it does not exist!" })
+          response.status(500).send(error || { message: "Agency with ID " + request.agency._id + " has a Worker with ID " + result._id + " but it does not exist!" })
         } else {
           workerArray.push(result)
         }
@@ -159,32 +159,24 @@ agenciesRouter.put("/", authenticateToken, async (request, response, next) => {
 
 /**
  * Route for adding workers to an Agency's list of workers
- * Example "http://www.domain.com/api/1/workers/"
- * where "1" is the id of the Agency in question.
+ * Example "http://www.domain.com/api/agencies/workers/" while logged in as an Agency
  * Request requirements: Body.workers / Body.worker
  * Workers are given as a json array of IDs: {"workers": ["id1","id2","id3"...]}
  * A single worker can also be given as json: {"worker":"id"}
  * Successful response.body: { success: true, workersAdded: [workerId1, id2...], workersNotAdded: [workerId1, id2...] }
  * response.header.Location: Url to this agency's workers resource
  */
-agenciesRouter.post("/:id/workers", authenticateToken, agencyExists, (request, response, next) => {
-  // The first 3 ifs here might be better off at a middleware later on...
-
+agenciesRouter.post("/workers", authenticateToken, needsToBeAgency, (request, response, next) => {
+  // needsToBeAgency middleware saves Agency object to request.agency
   let agencyId = request.agency._id
 
-  // Check if the user has a token with the same id as this Agency.
   try {
-    // Get decoded token from middleware
-    if (response.locals.decoded.id !== agencyId) {
-      response.status(401).send({ message: "Not authorized to POST to Agency with ID " + agencyId + "." })
-    }
-
     // Adding a single worker
     if (request.body.worker) {
       let workerId = request.body.worker
       // addToSet operation adds an item to a mongoose array, if that item is not already present.
       if (utils.workerExists(workerId, next)) {
-        Agency.findOneAndUpdate({ _id: response.locals.decoded.id }, { $addToSet: { users: [workerId] } }, (error, result) => {
+        Agency.findOneAndUpdate({ _id: agencyId }, { $addToSet: { users: [workerId] } }, (error, result) => {
           if (error || !result) {
             return response
               .status(400)
