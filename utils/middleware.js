@@ -1,6 +1,7 @@
 const logger = require("./logger")
 const Business = require("../models/Business")
 const Agency = require("../models/Agency")
+const User = require("../models/User")
 const BusinessContract = require("../models/BusinessContract")
 
 const requestLogger = (request, response, next) => {
@@ -146,6 +147,21 @@ const needsToBeBusiness = (request, response, next) => {
   })
 }
 
+/**
+ * Checks if the logged in user is a Worker.
+ * Business object from database is populated to request.worker
+*/
+const needsToBeWorker = (request, response, next) => {
+  User.findById({ _id: response.locals.decoded.id }, (error, result) => {
+    if (error || !result) {
+      response.status(401).send(error || { message: "This route only available to Worker users. The logged in user with ID " + response.locals.decoded.id + " is not one." })
+    } else {
+      request.worker = result
+      return next()
+    }
+  })
+}
+
 
 module.exports = {
   requestLogger,
@@ -156,5 +172,6 @@ module.exports = {
   agencyExists,
   businessContractExists,
   needsToBeAgency,
-  needsToBeBusiness
+  needsToBeBusiness,
+  needsToBeWorker
 }
