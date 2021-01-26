@@ -1,0 +1,38 @@
+{
+  "worker": [
+    {
+        "email": "jarmo@test.com",
+        "name": "jarmo-worker",
+        "password": "jarmo123"
+    },
+    {
+      "email": "mirka@test.com",
+      "name": "mirka-worker",
+      "password": "jarmo123"
+    }
+  ],
+  "business": [
+    {
+      "email": "jarmo@test.com",
+      "name": "jarmo-business",
+      "password": "jarmo123"
+    },
+    {
+      "email": "mirka@test.com",
+      "name": "mirka-business",
+      "password": "jarmo123"
+    }
+  ],
+  "agency": [
+    {
+      "email": "jarmo@test.com",
+      "name": "jarmo-agency",
+      "password": "jarmo123"
+    },
+    {
+      "email": "mirka@test.com",
+      "name": "mirka-agency",
+      "password": "jarmo123"
+    }
+  ]
+}
