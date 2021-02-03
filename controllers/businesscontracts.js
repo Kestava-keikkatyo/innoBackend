@@ -102,7 +102,7 @@ businesscontractsRouter.post("/", authenticateToken, needsToBeAgency, async (req
         .json({ message: "A BusinessContract can only have EITHER a businessId or a workerId, not both." })
     }
 
-    const agencyId = request.agency._id
+    const agencyId = response.locals.decoded.id
     const businessId = request.body.businessId
     const workerId = request.body.workerId
     let contractToCreate = null
@@ -188,7 +188,7 @@ const createBusinessContractCallBack = (error, contract, response) => {
         // check error.needToBeCleanedUp to see which participants need have the contract id removed.
         return response
           .status(500)
-          .json({ message: "Unable to add created BusinessContract to participants. Possible Error message: " + error })
+          .json({ message: "Unable to add created BusinessContract to participants. Possible Error message: " + error.message })
       } else {
         // Create-operation successful
         // Return a response with the created BusinessContract resource uri
@@ -332,9 +332,12 @@ const createBusinessContract = (contractToCreate, response, callback) => {
     callback(new Error("Both businessId and workerId given to createBusinessContract(), can take only either one."), null, response)
   }
 
-  const businessContract = new BusinessContract({
-    ...contractToCreate
-  })
+  const businessContract = new BusinessContract(
+    {
+      agency: contractToCreate.agency,
+      user: contractToCreate.user
+    }
+  )
 
   businessContract.save((error, contract) => {
     if (error || !contract) {
