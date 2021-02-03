@@ -267,7 +267,7 @@ agenciesRouter.get("/businesscontracts", authenticateToken, needsToBeAgency, asy
   let contracts = []
   let temp = null
   try {
-    if (contractIds) {
+    if (contractIds) { // TODO contractIds is not undefined since there is an empty array in db, so code'll get stuck here
       logger.info("Searching database for BusinessContracts: " + contractIds)
       contractIds.forEach(async (contractId, index, contractIds) => { // Go through every contractId and, find contract data and push it to array "contracts".
         temp = await BusinessContract.findById(contractId).exec()
@@ -312,7 +312,7 @@ agenciesRouter.get("/:agencyId/businesscontracts", authenticateToken, async (req
         const contractIds = agency.businessContracts
         let temp = null
         let contracts = []
-        if (contractIds) {
+        if (contractIds) { // TODO contractIds is not undefined since there is an empty array in db, so code'll get stuck here
           logger.info("Searching database for BusinessContracts: " + contractIds)
           contractIds.forEach(async (contractId, index, contractIds) => { // Go through every contractId and, find contract data and push it to array "contracts".
             temp = await BusinessContract.findById(contractId).exec()

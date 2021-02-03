@@ -139,7 +139,7 @@ const needsToBeAgency = (request, response, next) => {
 const needsToBeBusiness = (request, response, next) => {
   Business.findById({ _id: response.locals.decoded.id }, (error, result) => {
     if (error || !result) {
-      response.status(401).send(error || { message: "This route only available to Business users. The logged in user with ID " + request.locals.decoded.id + " is not one." })
+      response.status(401).send(error || { message: "This route only available to Business users. The logged in user with ID " + request.locals.decoded.id + " is not one." }) // TODO App crashes if trying to get for example business contracts before logging in (as business)
     } else {
       request.business = result
       return next()
