@@ -28,9 +28,8 @@ sudo docker run hello-world
 https://docs.docker.com/engine/install/linux-postinstall/
 Create docker group
 sudo groupadd docker
-Add your user to the docker group
+Add your user to the docker group(adduser username & passwd username)
 sudo usermod -aG docker $USER
-Tehty käyttäjille esa, hannu, mika, toni
 
 ----------Start docker on boot
 sudo systemctl enable docker
@@ -50,19 +49,17 @@ docker container run --name jenkins-docker --rm --detach \
   --volume jenkins-data:/var/jenkins_home \
   --publish 2376:2376 docker:dind
 
----------Download the jenkinsci/blueocean image and run it as a container in Docker 
-docker container run --name jenkins-blueocean --rm --detach \
+---------Build a new docker image from this Dockerfile and assign the image a meaningful name
+docker build -t myjenkins-blueocean:1.1 https://github.com/Kestava-keikkatyo/innoBackend.git#dev:dockerfiles
+
+---------Run your own myjenkins-blueocean:1.1 image as a container in Docker using the following docker run command:
+docker run --name jenkins-blueocean --rm --detach \
   --network jenkins --env DOCKER_HOST=tcp://docker:2376 \
   --env DOCKER_CERT_PATH=/certs/client --env DOCKER_TLS_VERIFY=1 \
+  --publish 8080:8080 --publish 50000:50000 \
   --volume jenkins-data:/var/jenkins_home \
   --volume jenkins-docker-certs:/certs/client:ro \
-  --publish 8080:8080 --publish 50000:50000 jenkinsci/blueocean
+  myjenkins-blueocean:1.1
 
 ---------Jenkins setup wizard
 https://www.jenkins.io/doc/book/installing/#setup-wizard
-
-http://10.114.34.10:8080/ 
-
----------Jenkins admin user
-user: inno
-passw: kestavakeikkatyo
