@@ -14,6 +14,14 @@ const businessContractSchema = mongoose.Schema({
   business: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "business",
+  },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "user"
+  },
+  agency: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "agency"
   }
 })
 

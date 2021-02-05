@@ -1,5 +1,5 @@
 const User = require("../models/User")
-
+const Business = require("../models/Business")
 /**
  * Checks if a worker with param id exists.
  * @param {*} id
@@ -51,6 +51,25 @@ const whichWorkersExist = (workerIdArray, next, callback) => {
   }
 }
 
+/**
+ * Checks if a business with param id exists.
+ * @param {*} id
+ * @returns True, if worker exists. False, if not.
+*/
+const businessExists = (id, next) => {
+  try {
+    return Business.findById({ _id: id }, (error, result) => {
+      if (error || !result) {
+        return
+      } else {
+        return result
+      }
+    })
+  } catch (exception) {
+    next(exception)
+  }
+}
+
 module.exports = {
-  workerExists, whichWorkersExist
+  workerExists, whichWorkersExist, businessExists
 }

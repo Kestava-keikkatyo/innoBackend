@@ -334,10 +334,15 @@ const createBusinessContract = (contractToCreate, response, callback) => {
 
   const businessContract = new BusinessContract(
     {
-      agency: contractToCreate.agency,
-      user: contractToCreate.user
+      agency: contractToCreate.agency
     }
   )
+  //Checks which contract is made  a) Agency and Worker or b) Agency and Business.
+  if (contractToCreate.user && !contractToCreate.business) {
+    businessContract.user = contractToCreate.user
+  } else {
+    businessContract.business = contractToCreate.business
+  }
 
   businessContract.save((error, contract) => {
     if (error || !contract) {
