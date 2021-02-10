@@ -65,6 +65,10 @@ const businessSchema = mongoose.Schema({
   workContract: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: "wContract",
+  }],
+  businessContracts: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "bContract",
   }]
 })
 

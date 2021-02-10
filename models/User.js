@@ -12,14 +12,14 @@ const userSchema = mongoose.Schema({
   email: {
     type: String,
     unique: true,
-    required: true,
     immutable: true,
     validate: {
       validator: value => {
         return /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(value)
       },
       message: props => `${props.value} is not a valid email address`
-    }
+    },
+    required: [true, "User email required"]
   },
   passwordHash: {
     type: String,
@@ -43,6 +43,26 @@ const userSchema = mongoose.Schema({
   licenses: [{
     type: String,
     minlength: 3
+  }],
+  businessContracts: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "bContract",
+  }],
+  feelings: [{
+    value: {
+      type: Number,
+      required: true,
+      min: [0, "Feelings can't go below 0"],
+      max: [3, "Feelings can't be above 3"]
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now(),
+      immutable: true
+    },
+    note: {
+      type: String
+    }
   }]
 })
 
@@ -51,6 +71,8 @@ userSchema.plugin(uniqueValidator)
 userSchema.set("toJSON", {
   transform: (document, returnedObject) => {
     returnedObject.id = returnedObject._id.toString()
+    returnedObject.feelings.forEach(feeling => feeling.id = feeling._id)
+    returnedObject.feelings.forEach(feeling => delete feeling._id)
     delete returnedObject._id
     delete returnedObject.__v
     delete returnedObject.passwordHash

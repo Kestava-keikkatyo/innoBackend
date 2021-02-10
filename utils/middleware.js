@@ -124,7 +124,7 @@ const businessContractExists = (request, response, next) => {
 const needsToBeAgency = (request, response, next) => {
   Agency.findById({ _id: response.locals.decoded.id }, (error, result) => {
     if (error || !result) {
-      response.status(401).send(error || { message: "This route only available to Agency users. The logged in user with ID " + request.locals.decoded.id + " is not one." })
+      response.status(401).send(error || { message: "This route only available to Agency users. The logged in user with ID " + request.locals.decoded.id + " is not one." }) //TODO app crashes if trying to create businesscontract as worker
     } else {
       request.agency = result
       return next()

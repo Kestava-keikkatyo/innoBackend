@@ -288,7 +288,7 @@ businesscontractsRouter.delete("/:businessContractId", authenticateToken, busine
 
     // Ok to delete
     logger.info("Deleting...")
-    const success = await utils.deleteTracesOfBusinessContract(request.businessContract, next)
+    const success = await utils.deleteTracesOfBusinessContract(request.businessContract, next) // TODO function doesn't exist
 
     if (!success) {
       logger.error("Unable to delete all references to BusinessContract with ID " + businessContractId +". Check Agency ID " + request.businessContract.agency + ", Business ID " + request.businessContract.business + ", Worker ID " + request.businessContract.user + ".")
