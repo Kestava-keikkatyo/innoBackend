@@ -62,7 +62,7 @@ const businessSchema = mongoose.Schema({
       ref: "Form",
     },
   ],
-  workContract: [{
+  workContracts: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: "wContract",
   }],

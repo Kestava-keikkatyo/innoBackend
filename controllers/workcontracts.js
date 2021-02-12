@@ -15,6 +15,7 @@ const Agency = require("../models/Agency")
 const Business = require("../models/Business")
 const WorkContract = require("../models/WorkContract")
 const User = require("../models/User")
+const BusinessContract = require("../models/BusinessContract")
 const authenticateToken = require("../utils/auhenticateToken")
 const { needsToBeAgency, bodyBusinessExists } = require("../utils/middleware")
 const { workerExists, deleteTracesOfFailedWorkContract } = require("../utils/common")
@@ -65,7 +66,7 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
     const workerId = request.body.workerId
     const validityPeriod = new Date(request.body.validityPeriod)
     const processStatus = request.body.processStatus
-    const agencyId = request.agencyId
+    const agencyId = response.locals.decoded.id
 
 
     // Check contract between business and agency
@@ -77,9 +78,19 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
     // Go through the contracts from this agency and check if the required :businessId can be found from any of them
     let commonContractIndex = -1
     if (request.agency.businessContracts || request.agency.businessContracts.length > 0) {
-      commonContractIndex = request.agency.businessContracts.findIndex((contract) => {
-        return contract.toString() === businessId.toString()
+      commonContractIndex = await request.agency.businessContracts.findIndex((contract) => {
+        return BusinessContract.findById(contract._id,"business", (err,docs) => {
+          if (err) {
+            console.log(err);
+          } else {
+            console.log("Result:", docs)
+            if (docs.business == businessId) { //and contractMade = true
+              return +1
+            }
+          }
+        }) 
       })
+      console.log(commonContractIndex)
     }
     // If a common contract is found,
     let commonContractId = null
@@ -107,7 +118,7 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
     const contractToCreate = new WorkContract(createFields)
 
     // Add the contract id to the business, agency and worker
-    await Business.findOneAndUpdate({ _id: businessId }, { $addToSet: { workcontracts: contractToCreate._id } }, (error, result) => {
+    await Business.findOneAndUpdate( { _id: businessId }, { $addToSet: { workContracts: contractToCreate._id } }, (error, result) => {
       if (!result || error) {
         // Adding the WorkContract to Business failed, no contract saved
         response
@@ -117,8 +128,7 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
     })
 
     let errorInDelete = null
-
-    await Agency.findOneAndUpdate({ _id: agencyId }, { $addToSet: { workcontracts: contractToCreate._id } }, (error, result) => {
+    await Agency.findOneAndUpdate({ _id: agencyId }, { $addToSet: { workContracts: contractToCreate._id } }, (error, result) => {
       if (!result || error) {
         console.log("Adding the WorkContract to Agency failed, no contract saved. Running deleteTracesOfFailedWorkContract()")
         // Adding the WorkContract to Agency failed, no contract saved
@@ -142,7 +152,7 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
     })
 
     errorInDelete = null
-    await User.findOneAndUpdate({ _id: workerId }, { $addToSet: { workcontracts: contractToCreate._id } }, (error, result) => {
+    await User.findOneAndUpdate({ _id: workerId }, { $addToSet: { workContracts: contractToCreate._id } }, (error, result) => {
       if (!result || error) {
         // Adding the WorkContract to Worker failed, no contract saved
         errorInDelete = deleteTracesOfFailedWorkContract(workerId, businessId, agencyId, contractToCreate._id, next)
@@ -185,10 +195,9 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
                 + "Check  with ID " + agencyId + " and Business with ID " + businessId + " and Worker with ID " + workerId + "." })
       }
     } else {
-      return response
+      response
         .status(201)
-        .json({ created: domainUrl + workContractsApiPath + contract._id })
-
+        .send({ created: domainUrl + workContractsApiPath + contract._id })
     }
   } catch (exception) {
     next(exception)

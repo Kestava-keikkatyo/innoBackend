@@ -69,7 +69,17 @@ const businessExists = (id, next) => {
     next(exception)
   }
 }
+/**
+ * TODO:this function is depended on workcontracts.js post call.
+ */
+const deleteTracesOfFailedWorkContract = (workerId, businessId, agencyId, contractToCreateid, next) => {
+  try {
+
+  } catch (exception) {
+    next(exception)
+  }
+}
 
 module.exports = {
-  workerExists, whichWorkersExist, businessExists
+  workerExists, whichWorkersExist, businessExists, deleteTracesOfFailedWorkContract
 }

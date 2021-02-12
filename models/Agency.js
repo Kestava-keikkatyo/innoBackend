@@ -67,8 +67,13 @@ const agencySchema = mongoose.Schema({
   businessContracts: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: "bContract",
-  }]
-
+  },
+],
+  workContracts: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "wContract",
+  },
+],
 })
 
 agencySchema.plugin(uniqueValidator)

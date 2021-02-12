@@ -63,6 +63,10 @@ const userSchema = mongoose.Schema({
     note: {
       type: String
     }
+  }],
+  workContracts: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "wContract",
   }]
 })
 
