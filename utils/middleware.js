@@ -162,6 +162,27 @@ const needsToBeWorker = (request, response, next) => {
   })
 }
 
+const needsToBeAgencyOrBusiness = (request, response, next) => {
+  Agency.findById( { _id: response.locals.decoded.id }, (error, result) => {
+    if (!error) {
+      if (!result) {
+        Business.findById({ _id: response.locals.decoded.id }, (error, result) => {
+          if (error || !result) {
+            response.status(401).send(error || { message: "This route only available to Agency or Business users. The logged in user with ID " + request.locals.decoded.id + " is not one." })
+          } else {
+            request.business = result
+            return next()
+          }
+        })
+      } else {
+        request.agency = result
+        return next()
+      }
+    } else {
+      response.status(401).send(error)
+    }
+  })
+}
 
 module.exports = {
   requestLogger,
@@ -173,5 +194,6 @@ module.exports = {
   businessContractExists,
   needsToBeAgency,
   needsToBeBusiness,
-  needsToBeWorker
+  needsToBeWorker,
+  needsToBeAgencyOrBusiness
 }
