@@ -1,6 +1,9 @@
 const User = require("../models/User")
 const Business = require("../models/Business")
 const logger = require("../utils/logger")
+const { db } = require("../models/Business")
+const Agency = require("../models/Agency")
+const BusinessContract = require("../models/BusinessContract")
 /**
  * Checks if a worker with param id exists.
  * @param {*} id
@@ -102,12 +105,91 @@ const businessExists = (id, next, callback) => {
  */
 const deleteTracesOfFailedWorkContract = (workerId, businessId, agencyId, contractToCreateid, next) => {
   try {
+    //if business
+    Business.update(
+      { _id: businessId },
+      { $pull: { "workContracts" : { _id: contractToCreateid } } },
+      false,
+      true
+    );
+    Business.deleteOne(
+      { _id: businessId},
+      { $pull: { "workContracts" : { _id: contractToCreateid } } },
+      false,
+      true
+    );
+    //if agency
+    Agency.update(
+      { _id: agencyId },
+      { $pull: { "workContracts" : { _id: contractToCreateid } } },
+      false,
+      true
+    );
+    //if user
+    User.update(
+      { _id: workerId },
+      { $pull: { "workContracts" : { _id: contractToCreateid } } },
+      false,
+      true
+    );
+  } catch (exception) {
+    next(exception)
+  }
+}
 
+/**
+ * TODO:this function is depended on businesscontract.js post call.
+ * Needs to delete contract that is given to this function as a parameter.
+ */
+const deleteTracesOfBusinessContract = async (contract,next,callback) => {
+  try {
+    //check which businesscontract is in question 
+    if (contract.contractType.toString() == "Worker") 
+    {
+      await User.findByIdAndUpdate(
+        contract.user._id,
+        { $pull: { businessContracts : { $in: [contract._id.toString()] } } },
+        { multi: false },
+        (error,result) => {
+          if (error || !result) {
+            return callback({success:false,errormsg:"Could not find and update User with ID"})
+          } 
+        }
+      )
+    } 
+    else if (contract.contractType.toString() == "Business") 
+    {
+      await Business.findByIdAndUpdate(
+        contract.business._id,
+        { $pull: { businessContracts :  { $in : [contract._id.toString()] } } },
+        { multi: false },
+        (error,result) => {
+          if (error || !result) {
+            return callback({success:false,errormsg:"Could not find and update Business with ID"})
+          }
+        }
+      )
+    }
+    else {
+      callback({success:false,errormsg:"ContractType not worker or business"})
+    }
+    await Agency.findByIdAndUpdate(
+        contract.agency._id,
+        { $pull: { businessContracts :  { $in : [contract._id.toString()] } } },
+        { multi: false },
+        (error,result) => {
+          if (error || !result) {
+            return callback({success:false,errormsg:"Could not find and update Agency with ID"})
+          } else {
+            return callback({success:true})
+          }
+        }
+    )
   } catch (exception) {
     next(exception)
   }
 }
 
 module.exports = {
-  workerExists, whichWorkersExist, businessExists, deleteTracesOfFailedWorkContract, workerExistsInContracts
+  workerExists, whichWorkersExist, businessExists, deleteTracesOfFailedWorkContract, workerExistsInContracts, deleteTracesOfBusinessContract
 }

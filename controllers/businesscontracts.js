@@ -133,6 +133,7 @@ businesscontractsRouter.post(
           contractToCreate = {
             agency: agencyId,
             user: workerId,
+            contractType: "Worker"
           }
         }
       } else if (businessId) {
@@ -146,6 +147,7 @@ businesscontractsRouter.post(
           contractToCreate = {
             agency: agencyId,
             business: businessId,
+            contractType: "Business"
           }
         }
       } else {
@@ -400,10 +402,15 @@ businesscontractsRouter.delete(
 
       // Ok to delete
       logger.info("Deleting...")
-      const success = await utils.deleteTracesOfBusinessContract(
-        request.businessContract,
-        next
-      )
+      const success = async (request) => {
+        await utils.deleteTracesOfBusinessContract(
+          request.businessContract,
+          next,
+          (result) => {
+            return result.success
+          } 
+        )
+      }
 
       if (!success) {
         logger.error(
@@ -435,7 +442,7 @@ businesscontractsRouter.delete(
                   error,
               })
             } else {
-              return response.status(200)
+              return response.status(200).json({ result })
             }
           }
         )
@@ -475,8 +482,10 @@ const createBusinessContract = (contractToCreate, response, callback) => {
   //Checks which contract is made  a) Agency and Worker or b) Agency and Business.
   if (contractToCreate.user && !contractToCreate.business) {
     businessContract.user = contractToCreate.user
+    businessContract.contractType = contractToCreate.contractType
   } else {
     businessContract.business = contractToCreate.business
+    businessContract.contractType = contractToCreate.contractType
   }
 
   businessContract.save((error, contract) => {

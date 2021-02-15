@@ -262,32 +262,16 @@ agenciesRouter.post("/workers", authenticateToken, needsToBeAgency, (request, re
  * @memberof module:controllers/agencies~agenciesRouter
  * @inner
  */
-agenciesRouter.get("/businesscontracts", authenticateToken, needsToBeAgency, async (request, response, next) => {
-  const contractIds = request.agency.businessContracts
-  let contracts = []
-  let temp = null
+agenciesRouter.get("/businesscontracts", authenticateToken, needsToBeAgency, async (req, res, next) => {
+  const agency = req.agency
   try {
-    if (contractIds) { // TODO contractIds is not undefined since there is an empty array in db, so code'll get stuck here
-      logger.info("Searching database for BusinessContracts: " + contractIds)
-      contractIds.forEach(async (contractId, index, contractIds) => { // Go through every contractId and, find contract data and push it to array "contracts".
-        temp = await BusinessContract.findById(contractId).exec()
-        if (temp) {
-          contracts.push(temp)
-          temp = null
-        }
+    if (!agency && !agency._id) return res.status(401) // No ID or Agency, respond with Unauthorized
 
-        if (index === contractIds.length-1) { // If this was the last contract to find, send response
-          logger.info("BusinessContracts to Response: " + contracts)
-          return response
-            .status(200)
-            .json(contracts)
-        }
-      })
-    } else { // No contractIds in Agency, respond with empty array
-      return response
-        .status(200)
-        .json(contracts)
-    }
+    // TODO agencyId is not undefined since there is an empty array in db, so code'll get stuck here
+    logger.info("Searching database for BusinessContracts: " + agency._id)
+    const populatedAgency = await Agency.findById(agency._id).populate('businessContracts').exec()
+    return res.status(200).json(populatedAgency.businessContracts)
+
   } catch (exception) {
     logger.error(exception)
     next(exception)

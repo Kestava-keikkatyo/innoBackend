@@ -22,6 +22,10 @@ const businessContractSchema = mongoose.Schema({
   agency: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "agency"
+  },
+  contractType: {
+    type: String,
+    ref: "ContractType"
   }
 })
 

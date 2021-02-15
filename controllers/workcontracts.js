@@ -84,7 +84,7 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
             console.log(err);
           } else {
             console.log("Result:", docs)
-            if (docs.business == businessId) { //and contractMade = true
+            if (docs != null && docs.business == businessId) { //and contractMade = true
               return +1
             }
           }
@@ -175,10 +175,15 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
         }
       }
     })
-
+    let contract = undefined
     // Updating Agency, Business, Worker successful
-    const contract = await contractToCreate.save()
-    console.log(contract.toString)
+    const wcs = WorkContract.find({business: businessId, user: workerId})
+    if (!wcs) {
+      contract = await contractToCreate.save()
+    } else {
+      contract = null;
+    }
+    //console.log(contract.toString)
     if (!contract) {
       errorInDelete = deleteTracesOfFailedWorkContract(workerId, businessId, agencyId, contractToCreate._id, next)
       // Deleting the id of the new WorkContract from agency, business, worker was successful
