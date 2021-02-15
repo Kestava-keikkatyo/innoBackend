@@ -1,0 +1,54 @@
+# docker-compose.yml
+version: '3.8'
+services:
+  dind:
+    image: docker:dind
+    user: root
+    privileged: true
+    container_name: dind
+    expose:
+      - 2376
+    volumes:
+      - ~/jenkins-data:/var/jenkins_home
+      - ~/jenkins-docker-certs:/certs/client
+    networks:
+      - jenkins_dind
+    environment:
+      DOCKER_TLS_CERTDIR: "/certs"
+
+  jenkins:
+    image: jenkins/jenkins:lts-jdk11
+    user: root
+    container_name: jenkins
+    depends_on:
+      - dind
+    ports:
+      - 8080:8080
+      - 50000:50000
+    volumes:
+      - ~/jenkins-data:/var/jenkins_home
+      - ~/jenkins-docker-certs:/certs/client:ro
+      - /usr/bin/docker:/usr/bin/docker
+    environment:
+      DOCKER_HOST: "tcp://dind:2376"
+    networks:
+      - jenkins_dind
+
+  portainer:
+    image: portainer/portainer-ce
+    command: -H unix:///var/run/docker.sock
+    restart: always
+    ports:
+      - 9000:9000
+      - 8000:8000
+    container_name: portainer
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+
+networks:
+  jenkins_dind:
+    driver: bridge
+
+volumes:
+  portainer_data:
