@@ -88,7 +88,7 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
               return +1
             }
           }
-        }) 
+        })
       })
       console.log(commonContractIndex)
     }
@@ -101,9 +101,11 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
       commonContractId = arr[commonContractIndex]
     }
 
-    if (!workerExists(body.workerId)) {
-      response.status(404).json({ success: false, message: "Couldn't find Worker with ID " + body.workerId })
-    }
+    workerExists(body.workerId, next, (worker) => {
+      if(!worker) {
+        response.status(404).json({ success: false, message: "Couldn't find Worker with ID " + body.workerId })
+      }
+    })
 
     let createFields = {
       business: businessId,

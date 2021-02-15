@@ -1,17 +1,18 @@
 const User = require("../models/User")
 const Business = require("../models/Business")
+const logger = require("../utils/logger")
 /**
  * Checks if a worker with param id exists.
  * @param {*} id
  * @returns True, if worker exists. False, if not.
 */
-const workerExists = (id, next) => {
+const workerExists = (id, next, callback) => {
   try {
     return User.findById({ _id: id }, (error, result) => {
       if (error || !result) {
-        return
+        callback(false)
       } else {
-        return result
+        callback(result)
       }
     })
   } catch (exception) {
@@ -52,17 +53,44 @@ const whichWorkersExist = (workerIdArray, next, callback) => {
 }
 
 /**
+ * Checks if the given worker is in a business/work contract in the given array.
+ * Gives all matching contracts to callback
+ * @param {BusinessContract||WorkContract} contractType
+ * @param {Array} contracts
+ * @param {*} workerId
+ */
+const workerExistsInContracts = (contractType, contracts, workerId, next, callback) => {
+  try {
+    let counter = 0
+    let contractsArray = []
+    contracts.forEach((contractId, index, array) => {
+      contractType.findById(contractId, (error, result) => {
+        if (result && !error) {
+          contractsArray.push(result)
+        }
+        counter++
+        if (counter === array.length) {
+          callback(contractsArray)
+        }
+      })
+    })
+  } catch (exception) {
+    next(exception)
+  }
+}
+
+/**
  * Checks if a business with param id exists.
  * @param {*} id
  * @returns True, if worker exists. False, if not.
 */
-const businessExists = (id, next) => {
+const businessExists = (id, next, callback) => {
   try {
     return Business.findById({ _id: id }, (error, result) => {
       if (error || !result) {
-        return
+        callback(false)
       } else {
-        return result
+        callback(result)
       }
     })
   } catch (exception) {
@@ -81,5 +109,5 @@ const deleteTracesOfFailedWorkContract = (workerId, businessId, agencyId, contra
 }
 
 module.exports = {
-  workerExists, whichWorkersExist, businessExists, deleteTracesOfFailedWorkContract
+  workerExists, whichWorkersExist, businessExists, deleteTracesOfFailedWorkContract, workerExistsInContracts
 }

@@ -6,8 +6,10 @@ const authenticateToken = require("../utils/auhenticateToken")
 const User = require("../models/User")
 const Agency = require("../models/Agency")
 const Business = require("../models/Business")
+const BusinessContract = require("../models/BusinessContract")
+const WorkContract = require("../models/WorkContract")
 const { needsToBeWorker, needsToBeAgencyOrBusiness } = require("../utils/middleware")
-const { workerExists } = require("../utils/common")
+const { workerExists, workerExistsInContracts } = require("../utils/common")
 
 /**
  * Returns response.body: { The updated Worker object }
@@ -26,13 +28,13 @@ feelingsRouter.post("/", authenticateToken, needsToBeWorker, async (request, res
         { new: true, omitUndefined: true, runValidators: true },
         (error, result) => {
           if (!result || error) {
-            return response.status(401).send(error || { message: "Not authorized" })
+            response.status(401).send(error || { message: "Not authorized" })
           } else {
-            return response.status(200).send(result)
+            response.status(200).send(result)
           }
         })
     } else {
-      return response.status(400).send({ error: "Request body must include 'value' field" })
+      response.status(400).send({ error: "Request body must include 'value' field" })
     }
 
   } catch (exception) {
@@ -48,7 +50,7 @@ feelingsRouter.post("/", authenticateToken, needsToBeWorker, async (request, res
 feelingsRouter.get("/", authenticateToken, needsToBeWorker, async (request, response, next) => {
   try {
     // needsToBeWorker middleware function populates found worker into request.worker
-    return response.status(200).send(request.worker.feelings)
+    response.status(200).send(request.worker.feelings)
   } catch (exception) {
     next(exception)
   }
@@ -60,16 +62,55 @@ feelingsRouter.get("/", authenticateToken, needsToBeWorker, async (request, resp
 feelingsRouter.get("/:workerId", authenticateToken, needsToBeAgencyOrBusiness, async (request, response, next) => {
   try {
     const workerId = request.params.workerId
-    const worker = workerExists(workerId)
-    if (!worker) {
-      response.status(404).send( { message: "Worker with ID " + workerId + " not found" })
-    } else {
-      if (request.agency) {
-        // Check if agency has business contract with worker. (Business vai work contract???)
-      } else if (request.business) {
-        // Check is businesss has a work contract with worker. (Business vai work contract???)
+    workerExists(workerId, next, (worker) => {
+      if (!worker) {
+        response.status(404).send( { message: "Worker with ID " + workerId + " not found" })
+      } else {
+        if (request.agency) {
+          // Check if agency has business contract with worker.
+          const contractIds = request.agency.businessContracts
+          workerExistsInContracts(BusinessContract, contractIds, workerId, next, (contracts) => {
+            // In callback
+            for (let i = 0; i < contracts.length; i++) {
+              if (contracts[i].user && contracts[i].user.equals(workerId)) {
+                if (contracts[i].contractMade) {
+                  // Contract with worker found, so agency is allowed to see worker feelings.
+                  return response.status(200).send(worker.feelings)
+                } else {
+                  // Contract found, but contractMade is false, so worker hasn't approved it yet.
+                  return response.status(403).send( { message: "Worker has yet to approve contract." })
+                }
+              }
+            }
+            // Contract with worker was not found. Not allowed to see feelings.
+            response.status(403).send( { message: "Not allowed to see worker feelings if no contract has been made with them." })
+          })
+
+        } else if (request.business) {
+          // Check is businesss has a work contract with worker.
+          const contractIds = request.business.workContracts
+          workerExistsInContracts(WorkContract, contractIds, workerId, next, (contracts) => {
+            // In callback
+            for (let i = 0; i < contracts.length; i++) {
+              if (contracts[i].user && contracts[i].user.equals(workerId)) {
+                if (Date.now() > contracts[i].validityPeriod.getTime()) {
+                  // Contract with worker found, so business is allowed to see worker feelings.
+                  return response.status(200).send(worker.feelings)
+                } else {
+                  // Contract found, but validityPeriod has passed, so contract is no longer valid.
+                  return response.status(403).send( { message: "Contract with worker has expired." })
+                }
+              }
+            }
+            // Contract with worker was not found. Not allowed to see feelings.
+            response.status(403).send( { message: "Not allowed to see worker feelings if no contract has been made with them." })
+          })
+
+        } else {
+          response.status(401).send( { message: "Not authorized" })
+        }
       }
-    }
+    })
   } catch (exception) {
     next(exception)
   }

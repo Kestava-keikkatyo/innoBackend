@@ -168,7 +168,7 @@ const needsToBeAgencyOrBusiness = (request, response, next) => {
       if (!result) {
         Business.findById({ _id: response.locals.decoded.id }, (error, result) => {
           if (error || !result) {
-            response.status(401).send(error || { message: "This route only available to Agency or Business users. The logged in user with ID " + request.locals.decoded.id + " is not one." })
+            response.status(401).send(error || { message: "This route is only available to Agency or Business users." })
           } else {
             request.business = result
             return next()
