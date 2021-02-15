@@ -11,16 +11,26 @@
 */
 const workcontractsRouter = require("express").Router()
 const { body } = require("express-validator")
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'Agency'.
 const Agency = require("../models/Agency")
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'Business'.
 const Business = require("../models/Business")
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'WorkContra... Remove this comment to see the full error message
 const WorkContract = require("../models/WorkContract")
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'User'.
 const User = require("../models/User")
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'BusinessCo... Remove this comment to see the full error message
 const BusinessContract = require("../models/BusinessContract")
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'authentica... Remove this comment to see the full error message
 const authenticateToken = require("../utils/auhenticateToken")
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'needsToBeA... Remove this comment to see the full error message
 const { needsToBeAgency, bodyBusinessExists } = require("../utils/middleware")
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'workerExis... Remove this comment to see the full error message
 const { workerExists, deleteTracesOfFailedWorkContract } = require("../utils/common")
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'logger'.
 const logger = require("../utils/logger")
 
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'domainUrl'... Remove this comment to see the full error message
 const domainUrl = "http://localhost:8000/"
 const workContractsApiPath = "workcontracts/"
 
@@ -32,10 +42,10 @@ const workContractsApiPath = "workcontracts/"
  * @memberof module:controllers/workcontracts~workcontractsRouter
  * @inner
 */
-workcontractsRouter.get("/:contractId", authenticateToken, (request, response, next) => {
+workcontractsRouter.get("/:contractId", authenticateToken, (request: any, response: any, next: any) => {
   // TODO: Validate the id for malicious inputs
   try {
-    WorkContract.findById({ _id: request.params.contractId }, (error, result) => {
+    WorkContract.findById({ _id: request.params.contractId }, (error: any, result: any) => {
       if (!result || error) {
         response.status(400).send(error || { success: false, error: "Could not find WorkContract with id " + request.params.contractId })
       } else {
@@ -58,7 +68,7 @@ workcontractsRouter.get("/:contractId", authenticateToken, (request, response, n
  * @memberof module:controllers/workcontracts~workcontractsRouter
  * @inner
  */
-workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessExists, async (request, response, next) => {
+workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessExists, async (request: any, response: any, next: any) => {
   try {
     // TODO: Validate body objects for malicious code, and the validate the validityPeriod date object and processStatus for correctness
     const businessId = request.body.businessId
@@ -78,8 +88,8 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
     // Go through the contracts from this agency and check if the required :businessId can be found from any of them
     let commonContractIndex = -1
     if (request.agency.businessContracts || request.agency.businessContracts.length > 0) {
-      commonContractIndex = await request.agency.businessContracts.findIndex((contract) => {
-        return BusinessContract.findById(contract._id,"business", (err,docs) => {
+      commonContractIndex = await request.agency.businessContracts.findIndex((contract: any) => {
+        return BusinessContract.findById(contract._id,"business", (err: any,docs: any) => {
           if (err) {
             console.log(err);
           } else {
@@ -88,7 +98,7 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
               return +1
             }
           }
-        }) 
+        }); 
       })
       console.log(commonContractIndex)
     }
@@ -118,7 +128,7 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
     const contractToCreate = new WorkContract(createFields)
 
     // Add the contract id to the business, agency and worker
-    await Business.findOneAndUpdate( { _id: businessId }, { $addToSet: { workContracts: contractToCreate._id } }, (error, result) => {
+    await Business.findOneAndUpdate( { _id: businessId }, { $addToSet: { workContracts: contractToCreate._id } }, (error: any, result: any) => {
       if (!result || error) {
         // Adding the WorkContract to Business failed, no contract saved
         response
@@ -128,7 +138,7 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
     })
 
     let errorInDelete = null
-    await Agency.findOneAndUpdate({ _id: agencyId }, { $addToSet: { workContracts: contractToCreate._id } }, (error, result) => {
+    await Agency.findOneAndUpdate({ _id: agencyId }, { $addToSet: { workContracts: contractToCreate._id } }, (error: any, result: any) => {
       if (!result || error) {
         console.log("Adding the WorkContract to Agency failed, no contract saved. Running deleteTracesOfFailedWorkContract()")
         // Adding the WorkContract to Agency failed, no contract saved
@@ -152,7 +162,7 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
     })
 
     errorInDelete = null
-    await User.findOneAndUpdate({ _id: workerId }, { $addToSet: { workContracts: contractToCreate._id } }, (error, result) => {
+    await User.findOneAndUpdate({ _id: workerId }, { $addToSet: { workContracts: contractToCreate._id } }, (error: any, result: any) => {
       if (!result || error) {
         // Adding the WorkContract to Worker failed, no contract saved
         errorInDelete = deleteTracesOfFailedWorkContract(workerId, businessId, agencyId, contractToCreate._id, next)
@@ -216,7 +226,7 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
  * @memberof module:controllers/workcontracts~workcontractsRouter
  * @inner
  */
-workcontractsRouter.put("/:contractId", authenticateToken, (request, response, next) => {
+workcontractsRouter.put("/:contractId", authenticateToken, (request: any, response: any, next: any) => {
   // TODO: Validate the id, check that the logged in user is authored for this
   // TODO: What form the end date need to be?
   try {
@@ -224,7 +234,7 @@ workcontractsRouter.put("/:contractId", authenticateToken, (request, response, n
       ...request.body
     }
 
-    WorkContract.findByIdAndUpdate(request.params.contractId, updateFields, { new: false, omitUndefined: true, runValidators: true }, (error, result) => {
+    WorkContract.findByIdAndUpdate(request.params.contractId, updateFields, { new: false, omitUndefined: true, runValidators: true }, (error: any, result: any) => {
       if (!result || error) {
         response.status(400).send(error || { success: false, error: "Could not update WorkContract with id " + request.params.contractId })
       } else {

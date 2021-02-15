@@ -1,16 +1,27 @@
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'businessco... Remove this comment to see the full error message
 const businesscontractsRouter = require("express").Router()
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'authentica... Remove this comment to see the full error message
 const authenticateToken = require("../utils/auhenticateToken")
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'BusinessCo... Remove this comment to see the full error message
 const BusinessContract = require("../models/BusinessContract")
 const {
+  // @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'businessCo... Remove this comment to see the full error message
   businessContractExists,
+  // @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'needsToBeA... Remove this comment to see the full error message
   needsToBeAgency,
 } = require("../utils/middleware")
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'utils'.
 const utils = require("../utils/common")
 const businessContractsApiPath = "api/businesscontracts/"
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'logger'.
 const logger = require("../utils/logger")
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'domainUrl'... Remove this comment to see the full error message
 const domainUrl = "http://localhost:3000/"
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'Agency'.
 const Agency = require("../models/Agency")
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'User'.
 const User = require("../models/User")
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'Business'.
 const Business = require("../models/Business")
 
 /**
@@ -26,7 +37,7 @@ businesscontractsRouter.get(
   "/:businessContractId",
   authenticateToken,
   businessContractExists,
-  async (request, response, next) => {
+  async (request: any, response: any, next: any) => {
     try {
       if (!request.body.role) {
         return response.status(400).json({
@@ -108,7 +119,7 @@ businesscontractsRouter.post(
   "/",
   authenticateToken,
   needsToBeAgency,
-  async (request, response, next) => {
+  async (request: any, response: any, next: any) => {
     try {
       if (request.body.businessId && request.body.workerId) {
         response.status(400).json({
@@ -223,7 +234,7 @@ businesscontractsRouter.post(
   }
 )
 
-const createBusinessContractCallBack = (error, contract, response) => {
+const createBusinessContractCallBack = (error: any, contract: any, response: any) => {
   logger.info("In createBusinessContractCallBack...")
   if (error || !contract) {
     return response.status(500).json({
@@ -235,7 +246,7 @@ const createBusinessContractCallBack = (error, contract, response) => {
     // add to participants
     logger.info("Adding created contract to participants...")
     logger.info(contract)
-    addBusinessContractToParticipants(contract, (error, result) => {
+    addBusinessContractToParticipants(contract, (error: any, result: any) => {
       if (error || !result) {
         // Couldn't add the contract to a participant, rollback everything
         // check error.needToBeCleanedUp to see which participants need have the contract id removed.
@@ -272,7 +283,7 @@ businesscontractsRouter.put(
   "/:businessContractId",
   authenticateToken,
   businessContractExists,
-  async (request, response, next) => {
+  async (request: any, response: any, next: any) => {
     try {
       const business = await Business.findById({
         _id: response.locals.decoded.id,
@@ -299,7 +310,7 @@ businesscontractsRouter.put(
             request.businessContract._id,
             { contractMade: true },
             { new: true },
-            (error, result) => {
+            (error: any, result: any) => {
               if (error || !result) {
                 return response.status(400).send(
                   error || {
@@ -325,7 +336,7 @@ businesscontractsRouter.put(
           request.businessContract._id,
           { contractMade: true },
           { new: true },
-          (error, result) => {
+          (error: any, result: any) => {
             if (error || !result) {
               return response.status(400).send(
                 error || {
@@ -372,7 +383,7 @@ businesscontractsRouter.delete(
   authenticateToken,
   businessContractExists,
   needsToBeAgency,
-  async (request, response, next) => {
+  async (request: any, response: any, next: any) => {
     try {
       // Check whether the logged in Agency is a participant
       if (
@@ -425,7 +436,7 @@ businesscontractsRouter.delete(
       } else {
         BusinessContract.findByIdAndDelete(
           businessContractId,
-          (error, result) => {
+          (error: any, result: any) => {
             if (error || !result) {
               return response.status(500).json({
                 message:
@@ -458,7 +469,7 @@ businesscontractsRouter.delete(
  * @param {String} participants.businessId - Business to be saved to the BusinessContract
  * @param {String} participants.workerId - Worker to be saved to the BusinessContract
  */
-const createBusinessContract = (contractToCreate, response, callback) => {
+const createBusinessContract = (contractToCreate: any, response: any, callback: any) => {
   if (contractToCreate.business && contractToCreate.user) {
     callback(
       new Error(
@@ -479,7 +490,7 @@ const createBusinessContract = (contractToCreate, response, callback) => {
     businessContract.business = contractToCreate.business
   }
 
-  businessContract.save((error, contract) => {
+  businessContract.save((error: any, contract: any) => {
     if (error || !contract) {
       callback(error, null, response)
     } else {
@@ -499,7 +510,7 @@ const createBusinessContract = (contractToCreate, response, callback) => {
  * @param {BusinessContract} contract The created BusinessContract to be added to participants.
  * @param {Function} callback A function(error, result) which will handle the outcome of this function.
  */
-const addBusinessContractToParticipants = async (contract, callback) => {
+const addBusinessContractToParticipants = async (contract: any, callback: any) => {
   // $addToSet adds to mongoose array if the item does not already exist, thus eliminating duplicates.
   const agency = await Agency.findOneAndUpdate(
     { _id: contract.agency },
@@ -508,6 +519,7 @@ const addBusinessContractToParticipants = async (contract, callback) => {
   if (!agency) {
     // No agency found or error happened.
     callback(
+      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ reason: string; message: strin... Remove this comment to see the full error message
       new Error({
         reason: "agency",
         message:
@@ -527,6 +539,7 @@ const addBusinessContractToParticipants = async (contract, callback) => {
       if (!worker) {
         // No worker found or error happened
         callback(
+          // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ needToCleanUp: { agency: any; ... Remove this comment to see the full error message
           new Error({
             needToCleanUp: { agency: contract.agency },
             message:
@@ -548,6 +561,7 @@ const addBusinessContractToParticipants = async (contract, callback) => {
       if (!business) {
         // No business found or error happened
         callback(
+          // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ needToCleanUp: { agency: any; ... Remove this comment to see the full error message
           new Error({
             needToCleanUp: { agency: contract.agency, worker: contract.user },
             message:

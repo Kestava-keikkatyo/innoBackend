@@ -9,15 +9,24 @@
  * @const
  * @namespace usersRouter
 */
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'usersRoute... Remove this comment to see the full error message
 const usersRouter = require("express").Router()
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'bcrypt'.
 const bcrypt = require("bcryptjs")
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'jwt'.
 const jwt = require("jsonwebtoken")
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'logger'.
 const logger = require("../utils/logger")
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'authentica... Remove this comment to see the full error message
 const authenticateToken = require("../utils/auhenticateToken")
 
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'User'.
 const User = require("../models/User")
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'Agency'.
 const Agency = require("../models/Agency")
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'BusinessCo... Remove this comment to see the full error message
 const BusinessContract = require("../models/BusinessContract")
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'needsToBeW... Remove this comment to see the full error message
 const { needsToBeWorker } = require("../utils/middleware")
 
 /**
@@ -30,7 +39,7 @@ const { needsToBeWorker } = require("../utils/middleware")
  * @memberof module:controllers/users~usersRouter
  * @inner
  */
-usersRouter.post("/", async (request, response, next) => {
+usersRouter.post("/", async (request: any, response: any, next: any) => {
   try {
     const body = request.body
     const passwordLength = body.password ? body.password.length : 0
@@ -71,12 +80,12 @@ usersRouter.post("/", async (request, response, next) => {
  * @memberof module:controllers/users~usersRouter
  * @inner
  */
-usersRouter.get("/me", authenticateToken, async (request, response, next) => {
+usersRouter.get("/me", authenticateToken, async (request: any, response: any, next: any) => {
   try {
     //Decodatun tokenin arvo haetaan middlewarelta
     const decoded = response.locals.decoded
     //Tokeni pitää sisällään userid jolla etsitään oikean käyttäjän tiedot
-    User.findById({ _id: decoded.id }, (error, result) => {
+    User.findById({ _id: decoded.id }, (error: any, result: any) => {
       //Jos ei resultia niin käyttäjän tokenilla ei löydy käyttäjää
       if (!result || error) {
         response.status(401).send(error || { message: "Not authorized" })
@@ -97,7 +106,7 @@ usersRouter.get("/me", authenticateToken, async (request, response, next) => {
  * @memberof module:controllers/users~usersRouter
  * @inner
  */
-usersRouter.put("/", authenticateToken, async (request, response, next) => {
+usersRouter.put("/", authenticateToken, async (request: any, response: any, next: any) => {
   const body = request.body
   const decoded = response.locals.decoded
   let passwordHash
@@ -153,7 +162,7 @@ usersRouter.put("/", authenticateToken, async (request, response, next) => {
  * @memberof module:controllers/users~usersRouter
  * @inner
  */
-usersRouter.get("/", authenticateToken, async (request, response, next) => {
+usersRouter.get("/", authenticateToken, async (request: any, response: any, next: any) => {
   const decoded = response.locals.decoded
   const name = request.query.name
 
@@ -182,14 +191,14 @@ usersRouter.get("/", authenticateToken, async (request, response, next) => {
  * @memberof module:controllers/users~usersRouter
  * @inner
  */
-usersRouter.get("/businesscontracts", authenticateToken, needsToBeWorker, async (request, response, next) => {
+usersRouter.get("/businesscontracts", authenticateToken, needsToBeWorker, async (request: any, response: any, next: any) => {
   const contractIds = request.worker.businessContracts
-  let contracts = []
+  let contracts: any = []
   let temp = null
   try {
     if (contractIds) {
       logger.info("Searching database for BusinessContracts: " + contractIds)
-      contractIds.forEach(async (contractId, index, contractIds) => { // Go through every contractId and, find contract data and push it to array "contracts".
+      contractIds.forEach(async (contractId: any, index: any, contractIds: any) => { // Go through every contractId and, find contract data and push it to array "contracts".
         temp = await BusinessContract.findById(contractId).exec()
         if (temp) {
           contracts.push(temp)

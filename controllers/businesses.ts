@@ -11,13 +11,21 @@
 */
 const businessesRouter = require("express").Router()
 
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'bcrypt'.
 const bcrypt = require("bcryptjs")
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'jwt'.
 const jwt = require("jsonwebtoken")
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'logger'.
 const logger = require("../utils/logger")
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'Agency'.
 const Agency = require("../models/Agency")
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'Business'.
 const Business = require("../models/Business")
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'BusinessCo... Remove this comment to see the full error message
 const BusinessContract = require("../models/BusinessContract")
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'authentica... Remove this comment to see the full error message
 const authenticateToken = require("../utils/auhenticateToken")
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'needsToBeB... Remove this comment to see the full error message
 const { needsToBeBusiness } = require("../utils/middleware")
 
 /**
@@ -29,7 +37,7 @@ const { needsToBeBusiness } = require("../utils/middleware")
  * @memberof module:controllers/businesses~businessesRouter
  * @inner
  */
-businessesRouter.post("/", async (request, response, next) => {
+businessesRouter.post("/", async (request: any, response: any, next: any) => {
   try {
     const body = request.body
     // This could be separated into a validation middleware
@@ -76,12 +84,12 @@ businessesRouter.post("/", async (request, response, next) => {
  * @memberof module:controllers/businesses~businessesRouter
  * @inner
  */
-businessesRouter.get("/me", authenticateToken, (request, response, next) => {
+businessesRouter.get("/me", authenticateToken, (request: any, response: any, next: any) => {
   try {
     //Decodatun tokenin arvo haetaan middlewarelta
     const decoded = response.locals.decoded
     //Tokeni pitää sisällään userid jolla etsitään oikean käyttäjän tiedot
-    Business.findById({ _id: decoded.id }, (error, result) => {
+    Business.findById({ _id: decoded.id }, (error: any, result: any) => {
       //Jos ei resultia niin käyttäjän tokenilla ei löydy käyttäjää
       if (!result || error) {
         response.status(401).send(error || { message: "Not authorized" })
@@ -103,7 +111,7 @@ businessesRouter.get("/me", authenticateToken, (request, response, next) => {
  * @memberof module:controllers/businesses~businessesRouter
  * @inner
  */
-businessesRouter.put("/", authenticateToken, async (request, response, next) => {
+businessesRouter.put("/", authenticateToken, async (request: any, response: any, next: any) => {
   const body = request.body
   const decoded = response.locals.decoded
   let passwordHash
@@ -149,7 +157,7 @@ businessesRouter.put("/", authenticateToken, async (request, response, next) => 
 })
 
 
-businessesRouter.get("/", authenticateToken, async (request, response, next) => {
+businessesRouter.get("/", authenticateToken, async (request: any, response: any, next: any) => {
   const decoded = response.locals.decoded
   const name = request.query.name
 
@@ -177,15 +185,15 @@ businessesRouter.get("/", authenticateToken, async (request, response, next) => 
  * @memberof module:controllers/businesses~businessesRouter
  * @inner
  */
-businessesRouter.get("/businesscontracts", authenticateToken, needsToBeBusiness, async (request, response, next) => {
+businessesRouter.get("/businesscontracts", authenticateToken, needsToBeBusiness, async (request: any, response: any, next: any) => {
   const contractIds = request.business.businessContracts
   logger.info("ContractIds of this Business: " + contractIds)
-  let contracts = []
+  let contracts: any = []
   let temp = null
   try {
     if (contractIds) {
       logger.info("Searching database for BusinessContracts: " + contractIds)
-      contractIds.forEach(async (contractId, index, contractIds) => { // Go through every contractId and, find contract data and push it to array "contracts".
+      contractIds.forEach(async (contractId: any, index: any, contractIds: any) => { // Go through every contractId and, find contract data and push it to array "contracts".
         temp = await BusinessContract.findById(contractId).exec()
         if (temp) {
           contracts.push(temp)

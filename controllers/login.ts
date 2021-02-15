@@ -1,11 +1,17 @@
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'jwt'.
 const jwt = require("jsonwebtoken")
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'bcrypt'.
 const bcrypt = require("bcryptjs")
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'loginRoute... Remove this comment to see the full error message
 const loginRouter = require("express").Router()
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'User'.
 const User = require("../models/User")
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'Business'.
 const Business = require("../models/Business")
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'Agency'.
 const Agency = require("../models/Agency")
 
-loginRouter.post("/worker", async (request, response) => {
+loginRouter.post("/worker", async (request: any, response: any) => {
   const body = request.body
   const user = await User.findOne({ email: body.email })
   const passwordCorrect = user === null
@@ -29,7 +35,7 @@ loginRouter.post("/worker", async (request, response) => {
     .send({ token, name: user.name, email: user.email, role: "worker" })
 })
 
-loginRouter.post("/business", async (request, response) => {
+loginRouter.post("/business", async (request: any, response: any) => {
   const body = request.body
 
   const business = await Business.findOne({ email: body.email })
@@ -54,7 +60,7 @@ loginRouter.post("/business", async (request, response) => {
     .send({ token, name: business.name, email: business.email, role: "business" })
 })
 
-loginRouter.post("/agency", async (request, response) => {
+loginRouter.post("/agency", async (request: any, response: any) => {
   const body = request.body
   const agency = await Agency.findOne({ email: body.email })
   const passwordCorrect = agency === null

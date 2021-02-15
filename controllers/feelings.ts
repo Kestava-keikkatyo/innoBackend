@@ -1,11 +1,18 @@
 
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'feelingsRo... Remove this comment to see the full error message
 const feelingsRouter = require("express").Router()
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'logger'.
 const logger = require("../utils/logger")
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'authentica... Remove this comment to see the full error message
 const authenticateToken = require("../utils/auhenticateToken")
 
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'User'.
 const User = require("../models/User")
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'Agency'.
 const Agency = require("../models/Agency")
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'Business'.
 const Business = require("../models/Business")
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'needsToBeW... Remove this comment to see the full error message
 const { needsToBeWorker, needsToBeAgency, needsToBeBusiness } = require("../utils/middleware")
 
 /**
@@ -14,7 +21,7 @@ const { needsToBeWorker, needsToBeAgency, needsToBeBusiness } = require("../util
  * request.body requirements: {value: Int}. That is the minimum, can also be {value: Int, note: "note"}
  * Must be logged in as user
  */
-feelingsRouter.post("/", authenticateToken, needsToBeWorker, async (request, response, next) => {
+feelingsRouter.post("/", authenticateToken, needsToBeWorker, async (request: any, response: any, next: any) => {
   try {
     const body = request.body
     if (body.value !== undefined) {
@@ -23,7 +30,7 @@ feelingsRouter.post("/", authenticateToken, needsToBeWorker, async (request, res
         response.locals.decoded.id,
         { $addToSet: { feelings: [{ value: body.value, note: body.note }] } },
         { new: true, omitUndefined: true, runValidators: true },
-        (error, result) => {
+        (error: any, result: any) => {
           if (!result || error) {
             return response.status(401).send(error || { message: "Not authorized" })
           } else {
@@ -39,7 +46,7 @@ feelingsRouter.post("/", authenticateToken, needsToBeWorker, async (request, res
   }
 })
 
-feelingsRouter.get("/", authenticateToken, async (request, response, next) => {
+feelingsRouter.get("/", authenticateToken, async (request: any, response: any, next: any) => {
   try {
 
   } catch (exception) {
