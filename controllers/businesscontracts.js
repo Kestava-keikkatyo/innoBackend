@@ -123,7 +123,9 @@ businesscontractsRouter.post(
       let contractToCreate = null
 
       if (workerId) {
-        const worker = await utils.workerExists(workerId)
+        const worker = await utils.workerExists(workerId,next,(result) => {
+          return result;
+        })
         if (!worker) {
           return response.status(400).json({
             message: "Could not find given Worker (ID " + workerId + ").",
@@ -137,7 +139,9 @@ businesscontractsRouter.post(
           }
         }
       } else if (businessId) {
-        const business = await utils.businessExists(businessId)
+        const business = await utils.businessExists(businessId,next,(result) => {
+          return result;
+        })
 
         if (!business) {
           return response.status(400).json({

@@ -101,7 +101,7 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
       commonContractId = arr[commonContractIndex]
     }
 
-    workerExists(body.workerId, next, (worker) => {
+    workerExists(workerId, next, (worker) => {
       if(!worker) {
         response.status(404).json({ success: false, message: "Couldn't find Worker with ID " + body.workerId })
       }
@@ -177,11 +177,14 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
     })
     let contract = undefined
     // Updating Agency, Business, Worker successful
-    const wcs = WorkContract.find({business: businessId, user: workerId})
-    if (!wcs) {
-      contract = await contractToCreate.save()
+    const commonWorkContractArray = await WorkContract.find({
+      business: businessId,
+      user: workerId
+    })
+    if (commonWorkContractArray[0]) {
+      contract = null
     } else {
-      contract = null;
+      contract = await contractToCreate.save()
     }
     //console.log(contract.toString)
     if (!contract) {

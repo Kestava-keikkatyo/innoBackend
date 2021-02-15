@@ -101,36 +101,47 @@ const businessExists = (id, next, callback) => {
   }
 }
 /**
- * TODO:this function is depended on workcontracts.js post call.
+ * Deletes traces of failed WorkContract from business, agency and user collection.
+ * This function is used in workcontract.js in POST workcontract route.
+ * @param workerId User/Workers Id - used to find right worker
+ * @param businessId Business Id - used to find right business
+ * @param agencyId Agency ObjecId - used to find right agency
+ * @param contractToCreateid ContractId - contract that failed save to db
  */
-const deleteTracesOfFailedWorkContract = (workerId, businessId, agencyId, contractToCreateid, next) => {
+const deleteTracesOfFailedWorkContract = (workerId, businessId, agencyId, contractToCreateid, next, callback) => {
   try {
     //if business
-    Business.update(
-      { _id: businessId },
-      { $pull: { "workContracts" : { _id: contractToCreateid } } },
-      false,
-      true
-    );
-    Business.deleteOne(
+    Business.findByIdAndUpdate(
       { _id: businessId},
-      { $pull: { "workContracts" : { _id: contractToCreateid } } },
-      false,
-      true
+      { $pull: { workContracts : { $in: [contractToCreateid.toString()] } } },
+      { multi: false },
+      (err,result) => {
+        if (err || !result) {
+          callback(false)
+        }
+      }
     );
     //if agency
-    Agency.update(
+    Agency.findByIdAndUpdate(
       { _id: agencyId },
-      { $pull: { "workContracts" : { _id: contractToCreateid } } },
-      false,
-      true
+      { $pull: { workContracts : { $in: [contractToCreateid.toString()] } } },
+      { multi: false },
+      (err,result) => {
+        if (err || !result) {
+          callback(false)
+        }
+      }
     );
     //if user
-    User.update(
+    User.findByIdAndUpdate(
       { _id: workerId },
-      { $pull: { "workContracts" : { _id: contractToCreateid } } },
-      false,
-      true
+      { $pull: { workContracts : { $in: [contractToCreateid.toString()] } } },
+      { multi: false },
+      (err,result) => {
+        if (err || !result) {
+          callback(false)
+        }
+      }
     );
   } catch (exception) {
     next(exception)
@@ -138,8 +149,9 @@ const deleteTracesOfFailedWorkContract = (workerId, businessId, agencyId, contra
 }
 
 /**
- * TODO:this function is depended on businesscontract.js post call.
- * Needs to delete contract that is given to this function as a parameter.
+ * Deletes traces of business contract. Used businesscontract.delete route is used.
+ * @param {Array} contract
+ * @returns true if, delete of traces was succesfull, false if not.
  */
 const deleteTracesOfBusinessContract = async (contract,next,callback) => {
   try {
