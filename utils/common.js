@@ -108,38 +108,40 @@ const businessExists = (id, next, callback) => {
  * @param agencyId Agency ObjecId - used to find right agency
  * @param contractToCreateid ContractId - contract that failed save to db
  */
-const deleteTracesOfFailedWorkContract = (workerId, businessId, agencyId, contractToCreateid, next, callback) => {
+const deleteTracesOfFailedWorkContract = async (workerId, businessId, agencyId, contractToCreateid, next, callback) => {
   try {
     //if business
-    Business.findByIdAndUpdate(
+    await Business.findByIdAndUpdate(
       { _id: businessId},
       { $pull: { workContracts : { $in: [contractToCreateid.toString()] } } },
       { multi: false },
       (err,result) => {
         if (err || !result) {
-          callback(false)
+          return callback({success:false})
         }
       }
     );
     //if agency
-    Agency.findByIdAndUpdate(
+    await Agency.findByIdAndUpdate(
       { _id: agencyId },
       { $pull: { workContracts : { $in: [contractToCreateid.toString()] } } },
       { multi: false },
       (err,result) => {
         if (err || !result) {
-          callback(false)
+          return callback({success:false})
         }
       }
     );
     //if user
-    User.findByIdAndUpdate(
+    await User.findByIdAndUpdate(
       { _id: workerId },
       { $pull: { workContracts : { $in: [contractToCreateid.toString()] } } },
       { multi: false },
       (err,result) => {
         if (err || !result) {
-          callback(false)
+          return callback({success:false})
+        } else {
+          return callback({success:true})
         }
       }
     );

@@ -3,6 +3,8 @@ const Business = require("../models/Business")
 const Agency = require("../models/Agency")
 const User = require("../models/User")
 const BusinessContract = require("../models/BusinessContract")
+const { request, response } = require("express")
+const WorkContract = require("../models/WorkContract")
 
 const requestLogger = (request, response, next) => {
   logger.info("Method:", request.method)
@@ -118,6 +120,28 @@ const businessContractExists = (request, response, next) => {
 }
 
 /**
+ * Checks if a WorkContract with url param :contractId exists.
+*/
+const workContractExists = (request,response, next) => {
+  try {
+    if (request.params.contractId) {
+      return WorkContract.findById({_id: request.params.contractId}, (error,result) => {
+        if (error || !result) {
+          response.status(404).send({ error: "No WorkContract found with the request :contractId."})
+        } else {
+          request.workContract = result
+          return next()
+        }
+      })
+    } else {
+      response.status(400).send({ error: "No :contractId in url."})
+    }
+  } catch (exception) {
+    next(exception)
+  }
+}
+
+/**
  * Checks if the logged in user is an Agency.
  * Agency object from database is populated to request.agency
 */
@@ -139,7 +163,7 @@ const needsToBeAgency = (request, response, next) => {
 const needsToBeBusiness = (request, response, next) => {
   Business.findById({ _id: response.locals.decoded.id }, (error, result) => {
     if (error || !result) {
-      response.status(401).send(error || { message: "This route only available to Business users. The logged in user with ID " + request.locals.decoded.id + " is not one." }) // TODO App crashes if trying to get for example business contracts before logging in (as business)
+      response.status(401).send(error || { message: "This route only available to Business users." }) // TODO App crashes if trying to get for example business contracts before logging in (as business)
     } else {
       request.business = result
       return next()
@@ -154,7 +178,7 @@ const needsToBeBusiness = (request, response, next) => {
 const needsToBeWorker = (request, response, next) => {
   User.findById({ _id: response.locals.decoded.id }, (error, result) => {
     if (error || !result) {
-      response.status(401).send(error || { message: "This route only available to Worker users. The logged in user with ID " + response.locals.decoded.id + " is not one." })
+      response.status(401).send(error || { message: "This route only available to Worker users." })
     } else {
       request.worker = result
       return next()
@@ -192,6 +216,7 @@ module.exports = {
   businessExists,
   agencyExists,
   businessContractExists,
+  workContractExists,
   needsToBeAgency,
   needsToBeBusiness,
   needsToBeWorker,

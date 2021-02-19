@@ -290,43 +290,67 @@ businesscontractsRouter.put(
         request.business = business
 
         if (
-          request.businessContract.business.toString() !==
-          request.business._id.toString()
+          request.businessContract.business == undefined
         ) {
           return response.status(401).json({
             message:
               "Business with ID " +
               request.business._id +
-              " not authorized to accept this BusinessContract. Required: " +
-              request.businessContract.business,
+              " not authorized to accept this BusinessContract."
           })
         } else {
-          BusinessContract.findByIdAndUpdate(
-            request.businessContract._id,
-            { contractMade: true },
-            { new: true },
-            (error, result) => {
-              if (error || !result) {
-                return response.status(400).send(
-                  error || {
-                    message:
-                      "Could not find and update BusinessContract with ID " +
-                      request.businessContract._id,
-                  }
-                )
-              } else {
-                response
-                  .header({
-                    Location:
-                      businessContractsApiPath + request.businessContract._id,
-                  })
-                  .status(200)
-                  .json(request.businessContract)
-              }
-            }
-          )
+          if (request.businessContract.business.toString() != request.business._id.toString()) {
+            return response.status(401).json({
+              message: "Business with ID " + request.business._id +
+              "is not same business that is authorized to accept this BusinessContract."
+            })
+          }
         }
+        BusinessContract.findByIdAndUpdate(
+          request.businessContract._id,
+          { contractMade: true },
+          { new: true },
+          (error, result) => {
+            if (error || !result) {
+              return response.status(400).send(
+                error || {
+                  message:
+                    "Could not find and update BusinessContract with ID " +
+                    request.businessContract._id,
+                }
+              )
+            } else {
+              response
+                .header({
+                  Location:
+                    businessContractsApiPath + request.businessContract._id,
+                })
+                .status(200)
+                .json(request.businessContract)
+            }
+          }
+        )
       } else if (worker) {
+        logger.info("Worker: " + worker)
+        request.worker = worker
+
+        if ( request.businessContract.worker == undefined ) {
+          return response.status(401).json({
+            message:
+              "User with ID " +
+              request.worker._id +
+              " not authorized to accept this BusinessContract."
+          })
+        } else {
+          if (request.businessContract.worker.toString() != request.worker._id.toString()) {
+            return response.status(401).json({
+              message:
+                "User with ID " +
+                request.worker._id +
+                "is not same agency that is authorized to accept this BusinessContract."
+            })
+          }
+        }
         BusinessContract.findByIdAndUpdate(
           request.businessContract._id,
           { contractMade: true },
@@ -406,15 +430,14 @@ businesscontractsRouter.delete(
 
       // Ok to delete
       logger.info("Deleting...")
-      const success = async (request) => {
-        await utils.deleteTracesOfBusinessContract(
-          request.businessContract,
-          next,
-          (result) => {
-            return result.success
-          } 
-        )
-      }
+      let success = null
+      await utils.deleteTracesOfBusinessContract(
+        request.businessContract,
+        next,
+        (result) => {
+          success = result.success
+        } 
+      )
 
       if (!success) {
         logger.error(

@@ -67,7 +67,11 @@ const userSchema = mongoose.Schema({
   workContracts: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: "wContract",
-  }]
+  }],
+  userType: {
+    type: String,
+    default: "Worker"
+  }
 })
 
 userSchema.plugin(uniqueValidator)

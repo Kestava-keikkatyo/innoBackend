@@ -69,7 +69,11 @@ const businessSchema = mongoose.Schema({
   businessContracts: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: "bContract",
-  }]
+  }],
+  userType: {
+    type: String,
+    default: "Business"
+  }
 })
 
 businessSchema.plugin(uniqueValidator)
