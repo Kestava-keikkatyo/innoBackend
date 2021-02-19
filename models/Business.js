@@ -48,7 +48,7 @@ const businessSchema = mongoose.Schema({
   createdAt: {
     type: Date,
     immutable: true,
-    default: Date.now(),
+    default: Date.now,
   },
   users: [
     {

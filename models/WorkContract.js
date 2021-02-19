@@ -5,7 +5,7 @@ const uniqueValidator = require("mongoose-unique-validator")
 const workContractSchema = mongoose.Schema({
   createdAt: {
     type: Date,
-    default: Date.now(),
+    default: Date.now,
     immutable: true
   },
   validityPeriod: {

@@ -27,7 +27,7 @@ const userSchema = mongoose.Schema({
   },
   createdAt: {
     type: Date,
-    default: Date.now(),
+    default: Date.now,
     immutable: true
   },
   phonenumber: {
@@ -57,7 +57,7 @@ const userSchema = mongoose.Schema({
     },
     createdAt: {
       type: Date,
-      default: Date.now(),
+      default: Date.now,
       immutable: true
     },
     note: {

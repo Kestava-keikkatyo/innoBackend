@@ -50,7 +50,7 @@ const agencySchema = mongoose.Schema({
   createdAt: {
     immutable: true,
     type: Date,
-    default: Date.now(),
+    default: Date.now,
   },
   users: [
     {
