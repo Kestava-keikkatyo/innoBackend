@@ -18,6 +18,10 @@ const workContractSchema = mongoose.Schema({
   business: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "business"
+  },
+  agency: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "agency"
   }
 })
 

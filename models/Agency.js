@@ -74,6 +74,10 @@ const agencySchema = mongoose.Schema({
     ref: "wContract",
   },
 ],
+  userType: {
+    type: String,
+    default: "Agency"
+  }
 })
 
 agencySchema.plugin(uniqueValidator)
