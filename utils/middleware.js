@@ -3,7 +3,6 @@ const Business = require("../models/Business")
 const Agency = require("../models/Agency")
 const User = require("../models/User")
 const BusinessContract = require("../models/BusinessContract")
-const { request, response } = require("express")
 const WorkContract = require("../models/WorkContract")
 
 const requestLogger = (request, response, next) => {
@@ -125,16 +124,16 @@ const businessContractExists = (request, response, next) => {
 const workContractExists = (request,response, next) => {
   try {
     if (request.params.contractId) {
-      return WorkContract.findById({_id: request.params.contractId}, (error,result) => {
+      return WorkContract.findById({ _id: request.params.contractId }, (error,result) => {
         if (error || !result) {
-          response.status(404).send({ error: "No WorkContract found with the request :contractId."})
+          response.status(404).send({ error: "No WorkContract found with the request :contractId." })
         } else {
           request.workContract = result
           return next()
         }
       })
     } else {
-      response.status(400).send({ error: "No :contractId in url."})
+      response.status(400).send({ error: "No :contractId in url." })
     }
   } catch (exception) {
     next(exception)
@@ -148,7 +147,7 @@ const workContractExists = (request,response, next) => {
 const needsToBeAgency = (request, response, next) => {
   Agency.findById({ _id: response.locals.decoded.id }, (error, result) => {
     if (error || !result) {
-      response.status(401).send(error || { message: "This route is only available to Agency users." }) 
+      response.status(401).send(error || { message: "This route is only available to Agency users." })
     } else {
       request.agency = result
       return next()

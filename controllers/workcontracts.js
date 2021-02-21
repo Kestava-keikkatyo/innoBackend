@@ -35,16 +35,20 @@ const workContractsApiPath = "workcontracts/"
 workcontractsRouter.get("/:contractId", authenticateToken, (request, response, next) => {
   // TODO: Validate the id for malicious inputs
   try {
-    const contract = WorkContract.findById({ _id: request.params.contractId }, (error, result) => {
+    WorkContract.findById({ _id: request.params.contractId }, (error, result) => {
       if (!result || error) {
-        response.status(400).send(error || { success: false, error: "Could not find WorkContract with id " + request.params.contractId })
-      } 
+        return response.status(400).send({ success: false, error: "Could not find WorkContract with id " + request.params.contractId })
+      }
+      if (result.business !== undefined && result.user !== undefined && result.agency !== undefined) {
+        if (result.business.toString() === response.locals.decoded.id.toString() ||
+        result.user.toString() === response.locals.decoded.id.toString() ||
+        result.agency.toString() === response.locals.decoded.id.toString()) {
+          return response.status(200).send(result)
+        }
+      } else {
+        return response.status(400).send( { message: "Business, Contract and agency are undefined" })
+      }
     })
-    if (contract.business == response.locals.decoded.id ||
-      contract.user == response.locals.decoded.id || 
-      contract.agency == response.locals.decoded.id) {
-        return response.status(200).send(result)
-    }
   } catch (exception) {
     next(exception)
   }
@@ -73,40 +77,36 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
 
 
     // Check contract between business and agency
-    if (!request.agency.businessContracts || request.agency.businessContracts.length <= 0) {
-      response.status(400).send({ message: "The logged in Agency has no BusinessContracts." })
-    }
     // request.agency.businessContracts
-    const arr = request.agency.businessContracts
     // Go through the contracts from this agency and check if the required :businessId can be found from any of them
     let commonContractIndex = -1
     if (request.agency.businessContracts || request.agency.businessContracts.length > 0) {
-      commonContractIndex = await request.agency.businessContracts.findIndex((contract) => {
-        return BusinessContract.findById(contract._id,"business", (err,docs) => {
+      await Promise.all(request.agency.businessContracts.map(async (element) => {
+        await BusinessContract.findById(element._id,"business",  (err, contract) => {
           if (err) {
-            console.log(err);
+            commonContractIndex = -1
           } else {
-            console.log("Result:", docs)
-            if (docs != null && docs.business == businessId) { //and contractMade = true
-              return +1
+            console.log("Result:", contract)
+            if (contract === null || contract.business === undefined) {
+              commonContractIndex = -1
+            } else {
+              if (contract.business._id.toString() === businessId.toString() ) {
+                commonContractIndex++
+              }
             }
           }
         })
-      })
+      }))
       console.log(commonContractIndex)
     }
-    // If a common contract is found,
-    let commonContractId = null
     console.log("commoncontractindex: " + commonContractIndex)
     if (commonContractIndex === -1) {
-      response.status(400).send({ message: "The logged in Agency has no BusinessContracts with Business with ID " + businessId })
-    } else {
-      commonContractId = arr[commonContractIndex]
+      return response.status(400).json({ message: "The logged in Agency has no BusinessContracts with Business with ID " + businessId }).end()
     }
 
     workerExists(workerId, next, (worker) => {
       if(!worker) {
-        response.status(404).json({ success: false, message: "Couldn't find Worker with ID " + body.workerId })
+        return response.status(404).json({ success: false, message: "Couldn't find Worker with ID " + body.workerId })
       }
     })
 
@@ -127,7 +127,7 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
     await Business.findOneAndUpdate( { _id: businessId }, { $addToSet: { workContracts: contractToCreate._id } }, (error, result) => {
       if (!result || error) {
         // Adding the WorkContract to Business failed, no contract saved
-        response
+        return response
           .status(500)
           .send(error || { message: "Could not add WorkContract to Business  with ID" + businessId + ". No WorkContract created." })
       }
@@ -144,14 +144,14 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
         // Deleting the id of the new WorkContract from agency, business, worker was successful
         if (!errorInDelete) {
           logger.error("Could not add WorkContract to Agency  with ID" + agencyId + ". No WorkContract created.")
-          response
+          return response
             .status(500)
             .send(error || { message: "Could not add WorkContract to Agency  with ID" + agencyId + ". No WorkContract created." })
         } else if (errorInDelete) {
           // Deleting the id references for the nonexisting WorkContract was not successful, log the result.
           logger.error("Could not add WorkContract to Agency  with ID" + agencyId + ". No WorkContract created, but references to the nonexisting workContract ID " + contractToCreate._id+" could not be removed. \n"
             + "Check Agency with ID " + agencyId + " and Business with ID " + businessId + ".")
-          response
+          return response
             .status(500)
             .send(error || { message: "Could not add WorkContract to Agency  with ID" + agencyId + ". No WorkContract created." })
         }
@@ -168,14 +168,14 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
 
         if (!errorInDelete) {   // Deleting the id of the new WorkContract from agency, business, worker was successful
           logger.error("Could not add WorkContract to Worker  with ID" + workerId + ". No WorkContract created.")
-          response
+          return response
             .status(500)
             .send(error || { message: "Could not add WorkContract to Worker  with ID" + workerId + ". No WorkContract created." })
         } else if (errorInDelete) {
           // Deleting the id references for the nonexisting WorkContract was not successful, log the result.
           logger.error("Could not add WorkContract to Worker  with ID" + workerId + ". No WorkContract created, but references to the nonexisting workContract ID " + contractToCreate._id+" could not be removed. \n"
             + "Check  with ID " + agencyId + " and Business with ID " + businessId + " and Worker with ID " + workerId + ".")
-          response
+          return response
             .status(500)
             .send(error || { message: "Could not add WorkContract to Worker  with ID" + agencyId + ". No WorkContract created, but references to the nonexisting workContract ID " + contractToCreate._id+" could not be removed. \n"
                 + "Check  with ID " + agencyId + " and Business with ID " + businessId + " and Worker with ID " + workerId + "." })
@@ -201,20 +201,20 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
       // Deleting the id of the new WorkContract from agency, business, worker was successful
       if (!errorInDelete) {
         logger.error("Could not save WorkContract with ID" + contractToCreate._id + ". No WorkContract created.")
-        response
+        return response
           .status(500)
           .send( { message: "Could not save WorkContract with ID" + contractToCreate._id + ". No WorkContract created." })
       } else if (errorInDelete) {
         // Deleting the id references for the nonexisting WorkContract was not successful, log the result.
         logger.error("Could not save WorkContract with ID" + contractToCreate._id + ". No WorkContract created, but references to the nonexisting workContract could not be removed. \n"
             + "Check  with ID " + agencyId + " and Business with ID " + businessId + " and Worker with ID " + workerId + ".")
-        response
+        return response
           .status(500)
           .send( { message: "Could not save WorkContract with ID" + contractToCreate._id + ". No WorkContract created, but references to the nonexisting workContract could not be removed. \n"
                 + "Check  with ID " + agencyId + " and Business with ID " + businessId + " and Worker with ID " + workerId + "." })
       }
     } else {
-      response
+      return response
         .status(201)
         .send({ created: domainUrl + workContractsApiPath + contract._id })
     }
@@ -263,46 +263,46 @@ workcontractsRouter.put("/:contractId", authenticateToken, (request, response, n
  * @inner
  */
 workcontractsRouter.delete("/:contractId", authenticateToken, workContractExists, needsToBeAgency, async (request, response, next) => {
-    try {
-      const businessId = request.workContract.business
-      const workerId = request.workContract.user
-      const agencyId = request.workContract.agency
-      const workcontractId = request.params.contractId
-      if (response.locals.decoded.id.toString() != agencyId.toString()) {
-        return response.status(500).json({
-          message: "Agency is not same agency that workcontract has."
-        })
-      } 
-      let success = null 
-      await deleteTracesOfFailedWorkContract(workerId,businessId,agencyId,workcontractId,next, (result) => {
-        if (result) {
-          success = result.success 
-        }
-      })  
-      if (!success) {
-        return response.status(500).json({
-          message:
+  try {
+    const businessId = request.workContract.business
+    const workerId = request.workContract.user
+    const agencyId = request.workContract.agency
+    const workcontractId = request.params.contractId
+    if (response.locals.decoded.id.toString() !== agencyId.toString()) {
+      return response.status(500).json({
+        message: "Agency is not same agency that workcontract has."
+      })
+    }
+    let success = null
+    await deleteTracesOfFailedWorkContract(workerId,businessId,agencyId,workcontractId,next, (result) => {
+      if (result) {
+        success = result.success
+      }
+    })
+    if (!success) {
+      return response.status(500).json({
+        message:
             "Couldn't delete references to WorkContract with ID"
       })} else {
-        WorkContract.findByIdAndDelete(
-          workcontractId,
-          (error, result) => {
-            if (error || !result) {
-              return response.status(500).json({
-                message:
+      WorkContract.findByIdAndDelete(
+        workcontractId,
+        (error, result) => {
+          if (error || !result) {
+            return response.status(500).json({
+              message:
                   "Deleted references to WorkContract with ID " +
                    +
-                  " but could not remove the contract itself. Possible error: " +
+                   " but could not remove the contract itself. Possible error: " +
                   error,
-              })
-            } else {
-              return response.status(200).json({ result })
-            }
+            })
+          } else {
+            return response.status(200).json({ result })
           }
-        )
-      }
-    } catch (exception) {
-      next(exception)
+        }
+      )
     }
+  } catch (exception) {
+    next(exception)
+  }
 })
 module.exports = workcontractsRouter

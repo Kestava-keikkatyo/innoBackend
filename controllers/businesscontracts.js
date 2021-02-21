@@ -124,7 +124,7 @@ businesscontractsRouter.post(
 
       if (workerId) {
         const worker = await utils.workerExists(workerId,next,(result) => {
-          return result;
+          return result
         })
         if (!worker) {
           return response.status(400).json({
@@ -140,7 +140,7 @@ businesscontractsRouter.post(
         }
       } else if (businessId) {
         const business = await utils.businessExists(businessId,next,(result) => {
-          return result;
+          return result
         })
 
         if (!business) {
@@ -290,7 +290,7 @@ businesscontractsRouter.put(
         request.business = business
 
         if (
-          request.businessContract.business == undefined
+          request.businessContract.business === undefined
         ) {
           return response.status(401).json({
             message:
@@ -299,7 +299,7 @@ businesscontractsRouter.put(
               " not authorized to accept this BusinessContract."
           })
         } else {
-          if (request.businessContract.business.toString() != request.business._id.toString()) {
+          if (request.businessContract.business.toString() !== request.business._id.toString()) {
             return response.status(401).json({
               message: "Business with ID " + request.business._id +
               "is not same business that is authorized to accept this BusinessContract."
@@ -334,7 +334,7 @@ businesscontractsRouter.put(
         logger.info("Worker: " + worker)
         request.worker = worker
 
-        if ( request.businessContract.worker == undefined ) {
+        if ( request.businessContract.worker === undefined ) {
           return response.status(401).json({
             message:
               "User with ID " +
@@ -342,7 +342,7 @@ businesscontractsRouter.put(
               " not authorized to accept this BusinessContract."
           })
         } else {
-          if (request.businessContract.worker.toString() != request.worker._id.toString()) {
+          if (request.businessContract.worker.toString() !== request.worker._id.toString()) {
             return response.status(401).json({
               message:
                 "User with ID " +
@@ -436,7 +436,7 @@ businesscontractsRouter.delete(
         next,
         (result) => {
           success = result.success
-        } 
+        }
       )
 
       if (!success) {
