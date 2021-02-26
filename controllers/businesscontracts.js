@@ -4,6 +4,8 @@ const BusinessContract = require("../models/BusinessContract")
 const {
   businessContractExists,
   needsToBeAgency,
+  businessContractIncludesUser,
+  needsToBeAgencyBusinessOrWorker
 } = require("../utils/middleware")
 const utils = require("../utils/common")
 const businessContractsApiPath = "api/businesscontracts/"
@@ -15,76 +17,20 @@ const Business = require("../models/Business")
 
 /**
  * Returns response.body: { businessContract: TheWholeBusinessContractObject }
- * Requires user logged in as a participant of this specific BusinessContract. body requirements: body.role = "agency" / "business" / "worker"
- * Route for getting one specific businessContract
+ * Requires user logged in as a participant of this specific BusinessContract.
+ * Route for getting one specific businessContract.
  * @name GET /businesscontracts/:businessContractId
  * @function
  * @memberof module:controllers/agencies~agenciesRouter
  * @inner
  */
-businesscontractsRouter.get(
-  "/:businessContractId",
-  authenticateToken,
-  businessContractExists,
+businesscontractsRouter.get("/:businessContractId",authenticateToken,businessContractExists,businessContractIncludesUser,
   async (request, response, next) => {
     try {
-      if (!request.body.role) {
-        return response.status(400).json({
-          message:
-            "This route requires request to have body.role = agency / business / worker ",
-        })
-      }
-
-      const role = request.body.role
-      const contract = request.businessContract
-      const loggedId = response.locals.decoded.id
-
-      logger.info(
-        "Contract info: " + contract.user,
-        contract.agency,
-        contract.business
-      )
-      if (contract.user) {
-        logger.info("Undefined is enough to be true")
-      }
-
-      if (role.toString() === "agency") {
-        // Check if the Agency is part of this contract
-        if (contract.agency && contract.agency.toString() === loggedId) {
-          return response.status(200).json({ businessContract: contract })
-        } else {
-          return response.status(401).json({
-            message:
-              "Not authorized to view BusinessContract ID " +
-              request.params.businessContractId,
-          })
-        }
-      } else if (role.toString() === "business") {
-        // Check if the Business is part of this contract
-        if (contract.business && contract.business.toString() === loggedId) {
-          return response.status(200).json({ businessContract: contract })
-        } else {
-          return response.status(401).json({
-            message:
-              "Not authorized to view BusinessContract ID " +
-              request.params.businessContractId,
-          })
-        }
-      } else if (role.toString() === "worker") {
-        // Check if the Worker is part of this contract
-        if (contract.user && contract.user.toString() === loggedId) {
-          return response.status(200).json({ businessContract: contract })
-        } else {
-          return response.status(401).json({
-            message:
-              "Not authorized to view BusinessContract ID " +
-              request.params.businessContractId,
-          })
-        }
+      if (request.userInBusinessContract === true) {
+        return response.status(200).send(request.businessContract)
       } else {
-        return response.status(400).json({
-          message: "Request body.role needs to be agency / business / worker.",
-        })
+        return response.status(400).send({ message:"User who is trying to use this route is not in workcontract" })
       }
     } catch (exception) {
       console.log(exception.message)
@@ -92,6 +38,41 @@ businesscontractsRouter.get(
     }
   }
 )
+
+/**
+ * Returns response.body: {  }
+ * Requires token for use.
+ * Route for getting all users businessContract.
+ * @name GET /businesscontracts/:businessContractId
+ * @function
+ * @memberof module:controllers/agencies~agenciesRouter
+ * @inner
+ */
+businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWorker,
+  async (request, response, next) => {
+    try {
+      if (request.agency !== undefined) {
+        const populatedUser = await Agency.findById(request.agency.id).populate({
+          path:"businessContracts", model: "BusinessContract" }).exec()
+        return response.status(200).send(populatedUser.businessContracts)
+      }
+      else if (request.business !== undefined) {
+        const populatedUser = await Business.findById(request.business.id).populate({
+          path:"businessContracts", model: "BusinessContract" }).exec()
+        return response.status(200).send(populatedUser.businessContracts)
+      }
+      else if (request.user !== undefined) {
+        const populatedUser = await User.findById(request.user.id).populate({
+          path:"businessContracts", model: "BusinessContract" }).exec()
+        return response.status(200).send(populatedUser.businessContracts)
+      }
+      else {
+        return response.status(400).send({ message:"Token didn't have any users." })
+      }
+    } catch (exception) {
+      next(exception)
+    }
+  })
 
 /**
  * Returns response.body: { The created businessContract object }, response.header.Location: created businesscontract url api/businesscontracts/:businessContractId
@@ -124,7 +105,7 @@ businesscontractsRouter.post(
 
       if (workerId) {
         const worker = await utils.workerExists(workerId,next,(result) => {
-          return result;
+          return result
         })
         if (!worker) {
           return response.status(400).json({
@@ -140,7 +121,7 @@ businesscontractsRouter.post(
         }
       } else if (businessId) {
         const business = await utils.businessExists(businessId,next,(result) => {
-          return result;
+          return result
         })
 
         if (!business) {
@@ -290,7 +271,7 @@ businesscontractsRouter.put(
         request.business = business
 
         if (
-          request.businessContract.business == undefined
+          request.businessContract.business === undefined
         ) {
           return response.status(401).json({
             message:
@@ -299,7 +280,7 @@ businesscontractsRouter.put(
               " not authorized to accept this BusinessContract."
           })
         } else {
-          if (request.businessContract.business.toString() != request.business._id.toString()) {
+          if (request.businessContract.business.toString() !== request.business._id.toString()) {
             return response.status(401).json({
               message: "Business with ID " + request.business._id +
               "is not same business that is authorized to accept this BusinessContract."
@@ -332,9 +313,9 @@ businesscontractsRouter.put(
         )
       } else if (worker) {
         logger.info("Worker: " + worker)
-        request.worker = worker
+        request.user = worker
 
-        if ( request.businessContract.worker == undefined ) {
+        if ( request.businessContract.user === undefined ) {
           return response.status(401).json({
             message:
               "User with ID " +
@@ -342,7 +323,7 @@ businesscontractsRouter.put(
               " not authorized to accept this BusinessContract."
           })
         } else {
-          if (request.businessContract.worker.toString() != request.worker._id.toString()) {
+          if (request.businessContract.user.toString() !== request.user._id.toString()) {
             return response.status(401).json({
               message:
                 "User with ID " +
@@ -436,7 +417,7 @@ businesscontractsRouter.delete(
         next,
         (result) => {
           success = result.success
-        } 
+        }
       )
 
       if (!success) {

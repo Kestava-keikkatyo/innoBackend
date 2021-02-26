@@ -68,12 +68,12 @@ const agencySchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "BusinessContract",
   },
-],
+  ],
   workContracts: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: "wContract",
   },
-],
+  ],
   userType: {
     type: String,
     default: "Agency"

@@ -3,7 +3,6 @@ const Business = require("../models/Business")
 const Agency = require("../models/Agency")
 const User = require("../models/User")
 const BusinessContract = require("../models/BusinessContract")
-const { request, response } = require("express")
 const WorkContract = require("../models/WorkContract")
 
 const requestLogger = (request, response, next) => {
@@ -120,21 +119,77 @@ const businessContractExists = (request, response, next) => {
 }
 
 /**
+ * Checks if BusinessContract includes user that is trying to get it.
+ */
+const businessContractIncludesUser = (request,response,next) => {
+  try {
+    if (request.businessContract !== undefined) {
+      if (request.businessContract.agency._id.toString() === response.locals.decoded.id.toString()) {
+        request.userInBusinessContract = true
+      } else {
+        switch (request.businessContract.user) {
+        case undefined:
+          if (request.businessContract.business._id.toString() === response.locals.decoded.id.toString()) {
+            request.userInBusinessContract = true
+          }
+          break
+        default:
+          if (request.businessContract.user._id.toString() === response.locals.decoded.id.toString()) {
+            request.userInBusinessContract = true
+          }
+          break
+        }
+      }
+      return next()
+    }
+  } catch (exception) {
+    next(exception)
+  }
+}
+
+/**
  * Checks if a WorkContract with url param :contractId exists.
 */
 const workContractExists = (request,response, next) => {
   try {
     if (request.params.contractId) {
-      return WorkContract.findById({_id: request.params.contractId}, (error,result) => {
+      return WorkContract.findById({ _id: request.params.contractId }, (error,result) => {
         if (error || !result) {
-          response.status(404).send({ error: "No WorkContract found with the request :contractId."})
+          response.status(404).send({ error: "No WorkContract found with the request :contractId." })
         } else {
           request.workContract = result
           return next()
         }
       })
     } else {
-      response.status(400).send({ error: "No :contractId in url."})
+      response.status(400).send({ error: "No :contractId in url." })
+    }
+  } catch (exception) {
+    next(exception)
+  }
+}
+
+/**
+ *Checks if user who is using route is in workcontract.
+ *For this to work token must be authenticated with authenticateToken function and workContract must exist use workContractExists function.
+ */
+const workContractIncludesUser = (request, response, next) => {
+  try {
+    if (request.workContract !== undefined) {
+      if (request.workContract.user._id.toString() === response.locals.decoded.id.toString()) {
+        request.userInWorkContract = true
+      }
+      else if (request.workContract.business._id.toString() === response.locals.decoded.id.toString()) {
+        request.userInWorkContract = true
+      }
+      else if (request.workContract.agency._id.toString() === response.locals.decoded.id.toString()) {
+        request.userInWorkContract = true
+      }
+      else {
+        request.userInWorkContract = false
+        return next()
+      }
+      return next()
     }
   } catch (exception) {
     next(exception)
@@ -148,7 +203,7 @@ const workContractExists = (request,response, next) => {
 const needsToBeAgency = (request, response, next) => {
   Agency.findById({ _id: response.locals.decoded.id }, (error, result) => {
     if (error || !result) {
-      response.status(401).send(error || { message: "This route is only available to Agency users." }) 
+      response.status(401).send(error || { message: "This route is only available to Agency users." })
     } else {
       request.agency = result
       return next()
@@ -186,6 +241,9 @@ const needsToBeWorker = (request, response, next) => {
   })
 }
 
+/**
+ * Checks if the logged in user is a Agency or Business
+ */
 const needsToBeAgencyOrBusiness = (request, response, next) => {
   Agency.findById( { _id: response.locals.decoded.id }, (error, result) => {
     if (!error) {
@@ -208,6 +266,39 @@ const needsToBeAgencyOrBusiness = (request, response, next) => {
   })
 }
 
+/**
+ * Checks if the logged in user is Agency, Business or Worker.
+ */
+const needsToBeAgencyBusinessOrWorker = (request,response, next) => {
+  Agency.findById({ _id:response.locals.decoded.id }, (error,result) => {
+    if (!error) {
+      if (!result) {
+        Business.findById({ _id: response.locals.decoded.id }, (error, result) => {
+          if (!error) {
+            if (!result) {
+              User.findById({ _id: response.locals.decoded.id }, (error, result) => {
+                if (error || !result) {
+                  response.status(401).send(error || { message: "This route is only available to Agency, Business or Worker users." })
+                } else {
+                  request.user = result
+                  return next()
+                }
+              })
+            } else {
+              request.business = result
+              return next()
+            }
+          }
+        })
+      } else {
+        request.agency = result
+        return next()
+      }
+    } else {
+      response.status(401).send(error)
+    }
+  } )
+}
 module.exports = {
   requestLogger,
   unknownEndpoint,
@@ -216,9 +307,12 @@ module.exports = {
   businessExists,
   agencyExists,
   businessContractExists,
+  businessContractIncludesUser,
   workContractExists,
+  workContractIncludesUser,
   needsToBeAgency,
   needsToBeBusiness,
   needsToBeWorker,
-  needsToBeAgencyOrBusiness
+  needsToBeAgencyOrBusiness,
+  needsToBeAgencyBusinessOrWorker
 }

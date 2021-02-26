@@ -1,9 +1,7 @@
 const User = require("../models/User")
 const Business = require("../models/Business")
-const logger = require("../utils/logger")
-const { db } = require("../models/Business")
 const Agency = require("../models/Agency")
-const BusinessContract = require("../models/BusinessContract")
+
 /**
  * Checks if a worker with param id exists.
  * @param {*} id
@@ -112,15 +110,15 @@ const deleteTracesOfFailedWorkContract = async (workerId, businessId, agencyId, 
   try {
     //if business
     await Business.findByIdAndUpdate(
-      { _id: businessId},
+      { _id: businessId },
       { $pull: { workContracts : { $in: [contractToCreateid.toString()] } } },
       { multi: false },
       (err,result) => {
         if (err || !result) {
-          return callback({success:false})
+          return callback( { success:false } )
         }
       }
-    );
+    )
     //if agency
     await Agency.findByIdAndUpdate(
       { _id: agencyId },
@@ -128,10 +126,10 @@ const deleteTracesOfFailedWorkContract = async (workerId, businessId, agencyId, 
       { multi: false },
       (err,result) => {
         if (err || !result) {
-          return callback({success:false})
+          return callback( { success:false } )
         }
       }
-    );
+    )
     //if user
     await User.findByIdAndUpdate(
       { _id: workerId },
@@ -139,12 +137,12 @@ const deleteTracesOfFailedWorkContract = async (workerId, businessId, agencyId, 
       { multi: false },
       (err,result) => {
         if (err || !result) {
-          return callback({success:false})
+          return callback( { success:false } )
         } else {
-          return callback({success:true})
+          return callback( { success:true } )
         }
       }
-    );
+    )
   } catch (exception) {
     next(exception)
   }
@@ -157,8 +155,8 @@ const deleteTracesOfFailedWorkContract = async (workerId, businessId, agencyId, 
  */
 const deleteTracesOfBusinessContract = async (contract,next,callback) => {
   try {
-    //check which businesscontract is in question 
-    if (contract.contractType.toString() == "Worker") 
+    //check which businesscontract is in question
+    if (contract.contractType.toString() === "Worker")
     {
       await User.findByIdAndUpdate(
         contract.user._id,
@@ -166,12 +164,12 @@ const deleteTracesOfBusinessContract = async (contract,next,callback) => {
         { multi: false },
         (error,result) => {
           if (error || !result) {
-            return callback({success:false,errormsg:"Could not find and update User with ID"})
-          } 
+            return callback( { success:false,errormsg:"Could not find and update User with ID" } )
+          }
         }
       )
-    } 
-    else if (contract.contractType.toString() == "Business") 
+    }
+    else if (contract.contractType.toString() === "Business")
     {
       await Business.findByIdAndUpdate(
         contract.business._id,
@@ -179,25 +177,25 @@ const deleteTracesOfBusinessContract = async (contract,next,callback) => {
         { multi: false },
         (error,result) => {
           if (error || !result) {
-            return callback({success:false,errormsg:"Could not find and update Business with ID"})
+            return callback( { success:false,errormsg:"Could not find and update Business with ID" } )
           }
         }
       )
     }
     else {
-      callback({success:false,errormsg:"ContractType not worker or business"})
+      callback( { success:false,errormsg:"ContractType not worker or business" } )
     }
     await Agency.findByIdAndUpdate(
-        contract.agency._id,
-        { $pull: { businessContracts :  { $in : [contract._id.toString()] } } },
-        { multi: false },
-        (error,result) => {
-          if (error || !result) {
-            return callback({success:false,errormsg:"Could not find and update Agency with ID"})
-          } else {
-            return callback({success:true})
-          }
+      contract.agency._id,
+      { $pull: { businessContracts :  { $in : [contract._id.toString()] } } },
+      { multi: false },
+      (error,result) => {
+        if (error || !result) {
+          return callback( { success:false,errormsg:"Could not find and update Agency with ID" } )
+        } else {
+          return callback( { success:true } )
         }
+      }
     )
   } catch (exception) {
     next(exception)

@@ -270,19 +270,19 @@ agenciesRouter.get("/businesscontracts", authenticateToken, needsToBeAgency, asy
     // TODO agencyId is not undefined since there is an empty array in db, so code'll get stuck here
     logger.info("Searching database for BusinessContracts: " + agency._id)
     const populatedAgency = await Agency.findById(agency._id).populate({
-      path:'businessContracts', model: 'BusinessContract',
-      populate: 
+      path:"businessContracts", model: "BusinessContract",
+      populate:
       [{
-        path: 'user',
-        model: 'User',
-        select: 'name email feelings'
+        path: "user",
+        model: "User",
+        select: "name email feelings"
       },
       {
-        path: 'business',
-        model: 'Business',
-        select: 'name email feelings'
+        path: "business",
+        model: "Business",
+        select: "name email feelings"
       }]
-      }).exec()
+    }).exec()
     return res.status(200).json(populatedAgency.businessContracts)
 
   } catch (exception) {
