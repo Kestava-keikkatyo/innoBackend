@@ -17,7 +17,7 @@ const WorkContract = require("../models/WorkContract")
 const User = require("../models/User")
 const BusinessContract = require("../models/BusinessContract")
 const authenticateToken = require("../utils/auhenticateToken")
-const { needsToBeAgency, bodyBusinessExists, workContractExists } = require("../utils/middleware")
+const { needsToBeAgency, bodyBusinessExists, workContractExists, needsToBeAgencyBusinessOrWorker, workContractIncludesUser } = require("../utils/middleware")
 const { workerExists, deleteTracesOfFailedWorkContract } = require("../utils/common")
 const logger = require("../utils/logger")
 
@@ -32,23 +32,46 @@ const workContractsApiPath = "workcontracts/"
  * @memberof module:controllers/workcontracts~workcontractsRouter
  * @inner
 */
-workcontractsRouter.get("/:contractId", authenticateToken, (request, response, next) => {
-  // TODO: Validate the id for malicious inputs
+workcontractsRouter.get("/:contractId", authenticateToken, needsToBeAgencyBusinessOrWorker, workContractExists, workContractIncludesUser, (request, response, next) => {
   try {
-    WorkContract.findById({ _id: request.params.contractId }, (error, result) => {
-      if (!result || error) {
-        return response.status(400).send({ success: false, error: "Could not find WorkContract with id " + request.params.contractId })
-      }
-      if (result.business !== undefined && result.user !== undefined && result.agency !== undefined) {
-        if (result.business.toString() === response.locals.decoded.id.toString() ||
-        result.user.toString() === response.locals.decoded.id.toString() ||
-        result.agency.toString() === response.locals.decoded.id.toString()) {
-          return response.status(200).send(result)
-        }
-      } else {
-        return response.status(400).send( { message: "Business, Contract and agency are undefined" })
-      }
-    })
+    if (request.userInWorkContract === true) {
+      return response.status(200).send(request.workContract)
+    } else {
+      return response.status(400).send({ message:"User who is trying to use this route is not in workcontract" })
+    }
+  } catch (exception) {
+    next(exception)
+  }
+})
+
+/**
+ * Returns response.body: { All users WorkContract objects }
+ * Requires that logged in user is agency, business or worker.
+ * @name GET /workcontracts
+ * @function
+ * @memberof module:controllers/workcontracts~workcontractsRouter
+ * @inner
+ */
+workcontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWorker, async (request, response, next) => {
+  try {
+    if (request.agency !== undefined) {
+      const populatedUser = await Agency.findById(request.agency.id).populate({
+        path:"workContracts", model: "WorkContract" }).exec()
+      return response.status(200).send(populatedUser.workContracts)
+    }
+    else if (request.business !== undefined) {
+      const populatedUser = await Business.findById(request.business.id).populate({
+        path:"workContracts", model: "WorkContract" }).exec()
+      return response.status(200).send(populatedUser.workContracts)
+    }
+    else if (request.user !== undefined) {
+      const populatedUser = await User.findById(request.user.id).populate({
+        path:"workContracts", model: "WorkContract" }).exec()
+      return response.status(200).send(populatedUser.workContracts)
+    }
+    else {
+      return response.status(400).send({ message:"Token didn't have any users." })
+    }
   } catch (exception) {
     next(exception)
   }
@@ -76,23 +99,28 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
     const agencyId = response.locals.decoded.id
 
 
-    // Check contract between business and agency
+    // Check contract between business and agency, and user and agency
     // request.agency.businessContracts
-    // Go through the contracts from this agency and check if the required :businessId can be found from any of them
+    // Go through the contracts from this agency and check if the required :businessId and :workerId can be found from any of them
     let commonContractIndex = -1
     if (request.agency.businessContracts || request.agency.businessContracts.length > 0) {
       await Promise.all(request.agency.businessContracts.map(async (element) => {
-        await BusinessContract.findById(element._id,"business",  (err, contract) => {
+        await BusinessContract.findById(element._id,{ business:1,user:1,contractMade:1  },  (err, contract) => {
           if (err) {
             commonContractIndex = -1
           } else {
             console.log("Result:", contract)
-            if (contract === null || contract.business === undefined) {
-              commonContractIndex = -1
-            } else {
-              if (contract.business._id.toString() === businessId.toString() ) {
+            switch (contract.business) {
+            case undefined:
+              if (contract.user._id.toString() === workerId.toString() && contract.contractMade === true) {
                 commonContractIndex++
               }
+              break
+            default:
+              if (contract.business._id.toString() === businessId.toString() && contract.contractMade === true) {
+                commonContractIndex++
+              }
+              break
             }
           }
         })
@@ -101,7 +129,9 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
     }
     console.log("commoncontractindex: " + commonContractIndex)
     if (commonContractIndex === -1) {
-      return response.status(400).json({ message: "The logged in Agency has no BusinessContracts with Business with ID " + businessId }).end()
+      return response.status(400).json({ message: "The logged in Agency has no BusinessContracts with Business or Agency" }).end()
+    } else if (commonContractIndex === 0) {
+      return response.status(400).json({ message: "The logged in Agency has BusinessContract with Business or Worker but not for both" })
     }
 
     workerExists(workerId, next, (worker) => {
@@ -115,7 +145,7 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
       user: workerId,
       agency: agencyId,
       validityPeriod: validityPeriod,
-      processStatus: processStatus
+      processStatus: processStatus //Mihin tätä tarvitaan? Workcontractin hyväksymiseen? Täytyy lisätä workcontractiin kyseinen field
     }
     if (body.processStatus) {
       createFields.processStatus = body.processStatus
@@ -235,15 +265,18 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
  * @memberof module:controllers/workcontracts~workcontractsRouter
  * @inner
  */
-workcontractsRouter.put("/:contractId", authenticateToken, (request, response, next) => {
+workcontractsRouter.put("/:contractId", authenticateToken, needsToBeAgencyBusinessOrWorker, workContractExists, workContractIncludesUser, (request, response, next) => {
   // TODO: Validate the id, check that the logged in user is authored for this
   // TODO: What form the end date need to be?
   try {
+    if (request.userInWorkContract !== true) {
+      return response.status(401).send({ message: "This route is only available to Agency,Business and Worker who are in this contract." })
+    }
     const updateFields = {
       ...request.body
     }
 
-    WorkContract.findByIdAndUpdate(request.params.contractId, updateFields, { new: false, omitUndefined: true, runValidators: true }, (error, result) => {
+    WorkContract.findByIdAndUpdate(request.params.contractId, updateFields, { new: false, omitUndefined: true, runValidators: false }, (error, result) => {
       if (!result || error) {
         response.status(400).send(error || { success: false, error: "Could not update WorkContract with id " + request.params.contractId })
       } else {
@@ -255,8 +288,10 @@ workcontractsRouter.put("/:contractId", authenticateToken, (request, response, n
   }
 })
 
-// TODO: DELETE WORKCONTRACT
+
 /**
+ * Route for agency to delete workcontract. For this route to work, user must be logged in as a agency and workcontract must exist.
+ * Body must include contractId. Example { "contractId": "workcontractid" }
  * @name DELETE /workcontracts/:contractId
  * @function
  * @memberof module:controllers/workcontracts~workcontractsRouter
