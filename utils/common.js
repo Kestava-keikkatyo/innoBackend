@@ -149,6 +149,31 @@ const deleteTracesOfFailedWorkContract = async (workerId, businessId, agencyId, 
 }
 
 /**
+ * Deletes leftover traces in agencys businessContracts array list
+ * @param {*} contract
+ * @param {*} next
+ * @param {*} callback
+ */
+const deleteAgencyTracesOfBusinessContract = async (agencyid,contractid,next,callback) => {
+  try {
+    await Agency.findByIdAndUpdate(
+      agencyid,
+      { $pull: { businessContracts :  { $in : [contractid.toString()] } } },
+      { multi: false },
+      (error,result) => {
+        if (error || !result) {
+          return callback( { success:false,errormsg:"Could not find and update Agency with ID" } )
+        } else {
+          return callback( { success:true } )
+        }
+      }
+    )
+  } catch (exception) {
+    next(exception)
+  }
+}
+
+/**
  * Deletes traces of business contract. Used businesscontract.delete route is used.
  * @param {Array} contract
  * @returns true if, delete of traces was succesfull, false if not.
@@ -203,5 +228,5 @@ const deleteTracesOfBusinessContract = async (contract,next,callback) => {
 }
 
 module.exports = {
-  workerExists, whichWorkersExist, businessExists, deleteTracesOfFailedWorkContract, workerExistsInContracts, deleteTracesOfBusinessContract
+  workerExists, whichWorkersExist, businessExists, deleteTracesOfFailedWorkContract, workerExistsInContracts,deleteAgencyTracesOfBusinessContract, deleteTracesOfBusinessContract,
 }
