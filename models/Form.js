@@ -2,103 +2,201 @@ const mongoose = require("mongoose")
 const uniqueValidator = require("mongoose-unique-validator")
 
 const formSchema = mongoose.Schema({
-  title: String,
-  questions: [{
-    questionType: "comment",
-    questionTitle: {
-      type: String,
-      minLength: 0,
-      maxLength: 1000
-    }
-  }, {
-    questionType: "text",
-    questionTitle: {
-      type: String,
-      minLength: 0,
-      maxLength: 200
-    },
-    questionSubTitle: {
-      type: String,
-      minLength: 0,
-      maxLength: 500
-    },
-    optional: Boolean
-  }, {
-    questionType: "textarea",
-    questionTitle: {
-      type: String,
-      minLength: 0,
-      maxLength: 1000
-    },
-    questionSubTitle: {
-      type: String,
-      minLength: 0,
-      maxLength: 500
-    },
-    optional: Boolean
-  }, {
-    questionType: "checkbox",
-    questionTitle: {
-      type: String,
-      minLength: 0,
-      maxLength: 200
-    },
-    questionSubTitle: {
-      type: String,
-      minLength: 0,
-      maxLength: 500
-    },
-    optional: Boolean
-  }, {
-    questionType: "checkbox-group",
-    questionTitle: {
-      type: String,
-      minLength: 0,
-      maxLength: 200
-    },
-    options: [{
-      name: String,
-      value: String
+  title: {
+    type: String,
+    minLength: 0,
+    maxLength: 100,
+    required: true
+  },
+  isPublic: {
+    type: Boolean,
+    required: true
+  },
+  description: {
+    type: String,
+    minLength: 0,
+    maxLength: 500
+  },
+  questions: {
+    comment: [{
+      ordering: {
+        type: Number,
+        min: 0,
+        max: 99,
+        required: true
+      },
+      questionTitle: {
+        type: String,
+        minLength: 0,
+        maxLength: 1000,
+        required: true
+      }
     }],
-    questionSubTitle: {
-      type: String,
-      minLength: 0,
-      maxLength: 500
-    },
-    optional: Boolean
-  }, {
-    questionType: "radiobutton-group",
-    questionTitle: {
-      type: String,
-      minLength: 0,
-      maxLength: 200
-    },
-    options: [{
-      name: String,
-      value: String
+    text: [{
+      ordering: {
+        type: Number,
+        min: 0,
+        max: 99,
+        required: true
+      },
+      questionTitle: {
+        type: String,
+        minLength: 0,
+        maxLength: 200,
+        required: true
+      },
+      questionSubTitle: {
+        type: String,
+        minLength: 0,
+        maxLength: 500
+      },
+      optional: {
+        type:Boolean,
+        required: true
+      },
+      answerMaxLength: {
+        type: Number,
+        required: true
+      },
+      answerMinLength: {
+        type: Number,
+        required: true
+      }
     }],
-    questionSubTitle: {
-      type: String,
-      minLength: 0,
-      maxLength: 500
-    },
-    optional: Boolean
-  }, {
-    questionType: "radiobutton-group-horizontal",
-    questionTitle: {
-      type: String,
-      minLength: 0,
-      maxLength: 200
-    },
-    scale: Number,
-    scaleOptionTitles: [String],
-    questionSubTitle: {
-      type: String,
-      minLength: 0,
-      maxLength: 500
-    },
-    optional: Boolean
-  }],
+    textarea: [{
+      ordering: {
+        type: Number,
+        min: 0,
+        max: 99,
+        required: true
+      },
+      questionTitle: {
+        type: String,
+        minLength: 0,
+        maxLength: 200,
+        required: true
+      },
+      questionSubTitle: {
+        type: String,
+        minLength: 0,
+        maxLength: 500
+      },
+      optional: {
+        type:Boolean,
+        required: true
+      },
+      answerMaxLength: {
+        type: Number,
+        required: true
+      },
+      answerMinLength: {
+        type: Number,
+        required: true
+      }
+    }],
+    checkbox: [{
+      ordering: {
+        type: Number,
+        min: 0,
+        max: 99,
+        required: true
+      },
+      questionTitle: {
+        type: String,
+        minLength: 0,
+        maxLength: 200,
+        required: true
+      },
+      questionSubTitle: {
+        type: String,
+        minLength: 0,
+        maxLength: 500
+      },
+      optional: {
+        type: Boolean,
+        required: true
+      }
+    }],
+    checkbox_group: [{
+      ordering: {
+        type: Number,
+        min: 0,
+        max: 99,
+        required: true
+      },
+      questionTitle: {
+        type: String,
+        minLength: 0,
+        maxLength: 200,
+        required: true
+      },
+      questionSubTitle: {
+        type: String,
+        minLength: 0,
+        maxLength: 500
+      },
+      optional: {
+        type: Boolean,
+        required: true
+      },
+      options: [String]
+    }],
+    radiobutton_group: [{
+      ordering: {
+        type: Number,
+        min: 0,
+        max: 99,
+        required: true
+      },
+      questionTitle: {
+        type: String,
+        minLength: 0,
+        maxLength: 200,
+        required: true
+      },
+      questionSubTitle: {
+        type: String,
+        minLength: 0,
+        maxLength: 500
+      },
+      optional: {
+        type: Boolean,
+        required: true
+      },
+      options: [String]
+    }],
+    radiobutton_group_horizontal: [{
+      ordering: {
+        type: Number,
+        min: 0,
+        max: 99,
+        required: true
+      },
+      questionTitle: {
+        type: String,
+        minLength: 0,
+        maxLength: 200,
+        required: true
+      },
+      questionSubTitle: {
+        type: String,
+        minLength: 0,
+        maxLength: 500
+      },
+      optional: {
+        type: Boolean,
+        required: true
+      },
+      options: [String],
+      scale: {
+        type: Number,
+        required: true
+      },
+      scaleOptionTitleLeft: String,
+      scaleOptionTitleCenter: String,
+      scaleOptionTitleRight: String
+    }]
+  },
   createdAt: {
     type: Date,
     default: Date.now,

@@ -25,9 +25,9 @@ feelingsRouter.post("/", authenticateToken, needsToBeWorker, async (request, res
         { new: true, omitUndefined: true, runValidators: true },
         (error, result) => {
           if (!result || error) {
-            response.status(401).send(error || { message: "Not authorized" })
+            response.status(401).send(error || { message: "Received no result when updating user" })
           } else {
-            response.status(200).send(result)
+            response.status(200).send({ value: body.value, note: body.note })
           }
         })
     } else {
@@ -112,5 +112,7 @@ feelingsRouter.get("/:workerId", authenticateToken, needsToBeAgencyOrBusiness, a
     next(exception)
   }
 })
+
+// Update route?
 
 module.exports = feelingsRouter
