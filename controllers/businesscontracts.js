@@ -5,7 +5,8 @@ const {
   businessContractExists,
   needsToBeAgency,
   businessContractIncludesUser,
-  needsToBeAgencyBusinessOrWorker
+  needsToBeAgencyBusinessOrWorker,
+  needsToBeBusinessOrWorker
 } = require("../utils/middleware")
 const utils = require("../utils/common")
 const businessContractsApiPath = "api/businesscontracts/"
@@ -255,112 +256,19 @@ const createBusinessContractCallBack = (error, contract, response) => {
  * @memberof module:controllers/agencies~agenciesRouter
  * @inner
  */
-businesscontractsRouter.put(
-  "/:businessContractId",
-  authenticateToken,
-  businessContractExists,
+businesscontractsRouter.put("/:businessContractId",authenticateToken,needsToBeBusinessOrWorker,businessContractExists,businessContractIncludesUser,
   async (request, response, next) => {
     try {
-      const business = await Business.findById({
-        _id: response.locals.decoded.id,
-      })
-      const worker = await User.findById({ _id: response.locals.decoded.id })
-
-      if (business) {
-        logger.info("Business: " + business)
-        request.business = business
-
-        if (
-          request.businessContract.business === undefined
-        ) {
-          return response.status(401).json({
-            message:
-              "Business with ID " +
-              request.business._id +
-              " not authorized to accept this BusinessContract."
-          })
-        } else {
-          if (request.businessContract.business.toString() !== request.business._id.toString()) {
-            return response.status(401).json({
-              message: "Business with ID " + request.business._id +
-              "is not same business that is authorized to accept this BusinessContract."
-            })
-          }
-        }
-        BusinessContract.findByIdAndUpdate(
-          request.businessContract._id,
-          { contractMade: true },
-          { new: true },
-          (error, result) => {
-            if (error || !result) {
-              return response.status(400).send(
-                error || {
-                  message:
-                    "Could not find and update BusinessContract with ID " +
-                    request.businessContract._id,
-                }
-              )
-            } else {
-              response
-                .header({
-                  Location:
-                    businessContractsApiPath + request.businessContract._id,
-                })
-                .status(200)
-                .json(request.businessContract)
-            }
-          }
-        )
-      } else if (worker) {
-        logger.info("Worker: " + worker)
-        request.user = worker
-
-        if ( request.businessContract.user === undefined ) {
-          return response.status(401).json({
-            message:
-              "User with ID " +
-              request.worker._id +
-              " not authorized to accept this BusinessContract."
-          })
-        } else {
-          if (request.businessContract.user.toString() !== request.user._id.toString()) {
-            return response.status(401).json({
-              message:
-                "User with ID " +
-                request.worker._id +
-                "is not same agency that is authorized to accept this BusinessContract."
-            })
-          }
-        }
-        BusinessContract.findByIdAndUpdate(
-          request.businessContract._id,
-          { contractMade: true },
-          { new: true },
-          (error, result) => {
-            if (error || !result) {
-              return response.status(400).send(
-                error || {
-                  message:
-                    "Could not find and update BusinessContract with ID " +
-                    request.businessContract._id,
-                }
-              )
-            } else {
-              response
-                .header({
-                  Location:
-                    businessContractsApiPath + request.businessContract._id,
-                })
-                .status(200)
-                .json(request.businessContract)
-            }
-          }
-        )
-      } else {
-        return response
-          .status(400)
-          .send({ message: "Logged in user must be Worker or Business." })
+      if (request.userInBusinessContract !== true) {
+        return response.status(401).send({ message: "This route is only available to Business and Worker who are in this contract." })
       }
+      await BusinessContract.findByIdAndUpdate(request.params.businessContractId, { contractMade: true }, { new: false, omitUndefined: true, runValidators: false }, (error, result) => {
+        if (!result || error) {
+          response.status(400).send(error || { success: false, error: "Could not update BusinessContract with id " + request.params.businessContractId })
+        } else {
+          return response.status(200).send(result)
+        }
+      })
     } catch (exception) {
       next(exception)
     }
@@ -378,83 +286,35 @@ businesscontractsRouter.put(
  * @memberof module:controllers/agencies~agenciesRouter
  * @inner
  */
-businesscontractsRouter.delete(
-  "/:businessContractId",
-  authenticateToken,
-  businessContractExists,
-  needsToBeAgency,
+businesscontractsRouter.delete("/:businessContractId",authenticateToken,needsToBeAgency,businessContractExists,businessContractIncludesUser,
   async (request, response, next) => {
     try {
-      // Check whether the logged in Agency is a participant
-      if (
-        request.businessContract.agency.toString() !==
-        request.agency._id.toString()
-      ) {
-        logger.info(
-          "Agency with ID " +
-            request.agency._id +
-            " is not authorized to delete BusinessContract with ID " +
-            request.businessContract._id +
-            "."
-        )
-        return response.status(401).json({
-          message:
-            "Agency with ID " +
-            request.agency._id +
-            " is not authorized to delete BusinessContract with ID " +
-            request.businessContract._id +
-            ".",
-        })
+      if (request.userInBusinessContract !== true) {
+        return response.status(401).send({ message: "This route is only available to agency who is in this contract " } )
       }
-
-      const businessContractId = request.businessContract._id
-
-      // Ok to delete
-      logger.info("Deleting...")
-      let success = null
-      await utils.deleteTracesOfBusinessContract(
-        request.businessContract,
-        next,
-        (result) => {
-          success = result.success
-        }
-      )
-
-      if (!success) {
-        logger.error(
-          "Unable to delete all references to BusinessContract with ID " +
-            businessContractId +
-            ". Check Agency ID " +
-            request.businessContract.agency +
-            ", Business ID " +
-            request.businessContract.business +
-            ", Worker ID " +
-            request.businessContract.user +
-            "."
-        )
-        return response.status(500).json({
-          message:
-            "Unable to delete all references to BusinessContract with ID " +
-            businessContractId,
-        })
-      } else {
-        BusinessContract.findByIdAndDelete(
-          businessContractId,
-          (error, result) => {
-            if (error || !result) {
-              return response.status(500).json({
-                message:
-                  "Deleted references to BusinessContract with ID " +
-                  businessContractId +
-                  " but could not remove the contract itself. Possible error: " +
-                  error,
-              })
-            } else {
-              return response.status(200).json({ result })
-            }
+      utils.deleteTracesOfBusinessContract(request.businessContract,next,
+        async (result) => {
+          if (result.success) {
+            await BusinessContract.findByIdAndDelete(
+              request.businessContract._id,
+              (error, result) => {
+                if (error || !result) {
+                  return response.status(500).json({
+                    message:
+                    "Deleted references to BusinessContract with ID " +
+                    request.businessContract._id +
+                    " but could not remove the contract itself. Possible error: " +
+                    error,
+                  })
+                } else {
+                  return response.status(200).json({ result })
+                }
+              }
+            )
+          } else {
+            return response.status(500).json( { message: "Couldn't delete references of this BusinessContract" } )
           }
-        )
-      }
+        })
     } catch (exception) {
       next(exception)
     }

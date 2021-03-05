@@ -18,7 +18,7 @@ const User = require("../models/User")
 const BusinessContract = require("../models/BusinessContract")
 const authenticateToken = require("../utils/auhenticateToken")
 const { needsToBeAgency, bodyBusinessExists, workContractExists, needsToBeAgencyBusinessOrWorker, workContractIncludesUser } = require("../utils/middleware")
-const { workerExists, deleteTracesOfFailedWorkContract } = require("../utils/common")
+const { workerExists, deleteTracesOfFailedWorkContract, deleteAgencyTracesOfBusinessContract } = require("../utils/common")
 const logger = require("../utils/logger")
 
 const domainUrl = "http://localhost:8000/"
@@ -105,10 +105,20 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
     let commonContractIndex = -1
     if (request.agency.businessContracts || request.agency.businessContracts.length > 0) {
       await Promise.all(request.agency.businessContracts.map(async (element) => {
-        await BusinessContract.findById(element._id,{ business:1,user:1,contractMade:1  },  (err, contract) => {
+        await BusinessContract.findById(element._id,{ business:1,user:1,contractMade:1  },  async (err, contract) => {
           if (err) {
             commonContractIndex = -1
           } else {
+            console.log("Element:", element)
+            if (!contract) {
+              return await deleteAgencyTracesOfBusinessContract(agencyId,element,next, (result) => {
+                if (!result.success) {
+                  return logger.error("Contract link could not be deleted")
+                } else {
+                  return logger.info("Contract link deleted")
+                }
+              })
+            }
             console.log("Result:", contract)
             switch (contract.business) {
             case undefined:
@@ -275,7 +285,6 @@ workcontractsRouter.put("/:contractId", authenticateToken, needsToBeAgencyBusine
     const updateFields = {
       ...request.body
     }
-
     WorkContract.findByIdAndUpdate(request.params.contractId, updateFields, { new: false, omitUndefined: true, runValidators: false }, (error, result) => {
       if (!result || error) {
         response.status(400).send(error || { success: false, error: "Could not update WorkContract with id " + request.params.contractId })
@@ -297,45 +306,40 @@ workcontractsRouter.put("/:contractId", authenticateToken, needsToBeAgencyBusine
  * @memberof module:controllers/workcontracts~workcontractsRouter
  * @inner
  */
-workcontractsRouter.delete("/:contractId", authenticateToken, workContractExists, needsToBeAgency, async (request, response, next) => {
+workcontractsRouter.delete("/:contractId",authenticateToken,needsToBeAgency,workContractExists,workContractIncludesUser, async (request, response, next) => {
   try {
-    const businessId = request.workContract.business
-    const workerId = request.workContract.user
-    const agencyId = request.workContract.agency
-    const workcontractId = request.params.contractId
-    if (response.locals.decoded.id.toString() !== agencyId.toString()) {
-      return response.status(500).json({
-        message: "Agency is not same agency that workcontract has."
-      })
+    if (request.userInWorkContract !== true) {
+      return response.status(401).send( { message: "This route is only available to Agency who is in this contract." })
     }
-    let success = null
-    await deleteTracesOfFailedWorkContract(workerId,businessId,agencyId,workcontractId,next, (result) => {
-      if (result) {
-        success = result.success
-      }
-    })
-    if (!success) {
-      return response.status(500).json({
-        message:
-            "Couldn't delete references to WorkContract with ID"
-      })} else {
-      WorkContract.findByIdAndDelete(
-        workcontractId,
-        (error, result) => {
-          if (error || !result) {
-            return response.status(500).json({
-              message:
-                  "Deleted references to WorkContract with ID " +
-                   +
-                   " but could not remove the contract itself. Possible error: " +
-                  error,
-            })
-          } else {
-            return response.status(200).json({ result })
-          }
+    deleteTracesOfFailedWorkContract(
+      request.workContract.user,
+      request.workContract.business,
+      request.workContract.agency,
+      request.params.contractId,next,
+      async (result) => {
+        if (result.success) {
+          await WorkContract.findByIdAndDelete(
+            request.workContract._id,
+            (error, result) => {
+              if (error || !result) {
+                return response.status(500).json({
+                  message:
+                    "Deleted references to WorkContract with ID " +
+                    request.workContract._id +
+                    " but could not remove the contract itself. Possible error: " +
+                    error,
+                })
+              } else {
+                return response.status(200).json({ result })
+              }
+            }
+          )
+        } else {
+          return response.status(500).json({
+            message: "Couldn't delete references of this WorkContract"
+          })
         }
-      )
-    }
+      })
   } catch (exception) {
     next(exception)
   }

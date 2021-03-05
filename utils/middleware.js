@@ -141,6 +141,9 @@ const businessContractIncludesUser = (request,response,next) => {
         }
       }
       return next()
+    } else {
+      request.userInBusinessContract = false
+      return next()
     }
   } catch (exception) {
     next(exception)
@@ -187,8 +190,10 @@ const workContractIncludesUser = (request, response, next) => {
       }
       else {
         request.userInWorkContract = false
-        return next()
       }
+      return next()
+    } else {
+      request.userInWorkContract = false
       return next()
     }
   } catch (exception) {
@@ -267,6 +272,34 @@ const needsToBeAgencyOrBusiness = (request, response, next) => {
 }
 
 /**
+ * Checks if the logged in user is Business or Worker
+ * @param {*} request
+ * @param {*} response
+ * @param {*} next
+ */
+const needsToBeBusinessOrWorker = (request, response, next) => {
+  Business.findById( { _id: response.locals.decoded.id }, (error, result) => {
+    if (!error) {
+      if (!result) {
+        User.findById( { _id: response.locals.decoded.id }, (error, result) => {
+          if (error || !result) {
+            response.status(401).send( error || { message: "This route is only available to Business or Worker users" })
+          } else {
+            request.worker = result
+            return next()
+          }
+        })
+      } else {
+        request.business = result
+        return next()
+      }
+    } else {
+      response.status(401).send(error)
+    }
+  })
+}
+
+/**
  * Checks if the logged in user is Agency, Business or Worker.
  */
 const needsToBeAgencyBusinessOrWorker = (request,response, next) => {
@@ -314,5 +347,6 @@ module.exports = {
   needsToBeBusiness,
   needsToBeWorker,
   needsToBeAgencyOrBusiness,
+  needsToBeBusinessOrWorker,
   needsToBeAgencyBusinessOrWorker
 }
