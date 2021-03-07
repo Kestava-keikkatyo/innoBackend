@@ -21,14 +21,14 @@ const BusinessContract = require("../models/BusinessContract")
 const { needsToBeWorker } = require("../utils/middleware")
 
 /**
- * Returns response.body: { token, name: user.name, email: user.email, role: "worker" }
  * request.body requirements: {name: "name", email: "email", password: "password"}
- * User registration.
+ * Route used for User registration.
  * Returns a token that is used for user log in.
  * @name POST /users
  * @function
  * @memberof module:controllers/users~usersRouter
  * @inner
+ * @returns response.body: { token, name: user.name, email: user.email, role: "worker" }
  */
 usersRouter.post("/", async (request, response, next) => {
   try {
@@ -64,12 +64,13 @@ usersRouter.post("/", async (request, response, next) => {
 })
 
 /**
- * Returns response.body: { The found Worker object }
+ * Route used to find user with decoded authenticateToken.
  * Requires user logged in as a Worker
  * @name GET /users/me
  * @function
  * @memberof module:controllers/users~usersRouter
  * @inner
+ * @returns response.body: { The found Worker object }
  */
 usersRouter.get("/me", authenticateToken, async (request, response, next) => {
   try {
@@ -90,12 +91,13 @@ usersRouter.get("/me", authenticateToken, async (request, response, next) => {
 })
 
 /**
- * Returns response.body: { The found Worker object }
+ * Route used to update users password.
  * Requires User logged in as a Worker. request.body OPTIONAL: Properties as per User model.
  * @name PUT /users
  * @function
  * @memberof module:controllers/users~usersRouter
  * @inner
+ * @returns response.body: { The found Worker object }
  */
 usersRouter.put("/", authenticateToken, async (request, response, next) => {
   const body = request.body
@@ -143,7 +145,6 @@ usersRouter.put("/", authenticateToken, async (request, response, next) => {
 })
 
 /**
- * Returns response.body: { List of users }
  * Requires User logged in as an Agency. request.query.name: Worker name to be searched
  * Retrieves all workers that have a matching name pattern.
  * @example
@@ -152,6 +153,7 @@ usersRouter.put("/", authenticateToken, async (request, response, next) => {
  * @function
  * @memberof module:controllers/users~usersRouter
  * @inner
+ * @returns response.body: { List of users }
  */
 usersRouter.get("/", authenticateToken, async (request, response, next) => {
   const decoded = response.locals.decoded
@@ -174,13 +176,13 @@ usersRouter.get("/", authenticateToken, async (request, response, next) => {
 })
 
 /**
- * Returns response.body: { [{businessContract1}, {businessContract2},...] }
  * Requires User logged in as an Worker.
  * Route for getting full data of all BusinessContracts that the logged in Worker has.
  * @name GET /users/businesscontracts
  * @function
  * @memberof module:controllers/users~usersRouter
  * @inner
+ * @returns response.body: { [{businessContract1}, {businessContract2},...] }
  */
 usersRouter.get("/businesscontracts", authenticateToken, needsToBeWorker, async (request, response, next) => {
   const contractIds = request.worker.businessContracts

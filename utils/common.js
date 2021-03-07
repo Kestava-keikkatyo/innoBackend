@@ -4,8 +4,8 @@ const Agency = require("../models/Agency")
 
 /**
  * Checks if a worker with param id exists.
- * @param {*} id
- * @returns True, if worker exists. False, if not.
+ * @param {ObjectID} id
+ * @returns Worker Object, if worker exists. False, if not.
 */
 const workerExists = (id, next, callback) => {
   try {
@@ -82,8 +82,8 @@ const workerExistsInContracts = (contractType, contracts, workerId, next, callba
 
 /**
  * Checks if a business with param id exists.
- * @param {*} id
- * @returns True, if worker exists. False, if not.
+ * @param {ObjectId} id
+ * @returns Business Object, if worker exists. False, if not.
 */
 const businessExists = (id, next, callback) => {
   try {
@@ -100,49 +100,65 @@ const businessExists = (id, next, callback) => {
 }
 /**
  * Deletes traces of failed WorkContract from business, agency and user collection.
+ * If you don't wanna delete some references you can leave id value ass null.
  * This function is used in workcontract.js in POST workcontract route.
- * @param workerId User/Workers Id - used to find right worker
- * @param businessId Business Id - used to find right business
- * @param agencyId Agency ObjecId - used to find right agency
- * @param contractToCreateid ContractId - contract that failed save to db
+ * @param {ObjectId} workerId User/Workers Id - used to find right worker / can be null
+ * @param {ObjectId} businessId Business Id - used to find right business / can be null
+ * @param {ObjectId} agencyId Agency ObjecId - used to find right agency / can be null
+ * @param {ObjectId} contractToCreateid ContractId - contract that failed save to db
+ * @returns int filtersRemoved / filtersRemoved is null if no traces were removed
  */
 const deleteTracesOfFailedWorkContract = async (workerId, businessId, agencyId, contractToCreateid, next, callback) => {
-  try {
+  try { //Needs somekind of check
+    let workerTraceRemoved = undefined
+    let businessTraceRemoved = undefined
+    let agencyTraceRemoved = undefined
     //if business
-    await Business.findByIdAndUpdate(
-      { _id: businessId },
-      { $pull: { workContracts : { $in: [contractToCreateid.toString()] } } },
-      { multi: false },
-      (err,result) => {
-        if (err || !result) {
-          return callback( { success:false } )
+    if (businessId !== null) {
+      await Business.findByIdAndUpdate(
+        { _id: businessId },
+        { $pull: { workContracts : { $in: [contractToCreateid.toString()] } } },
+        { multi: false },
+        (err,result) => {
+          if (err || !result) {
+            businessTraceRemoved = false
+          } else {
+            businessTraceRemoved = true
+          }
         }
-      }
-    )
+      )
+    }
     //if agency
-    await Agency.findByIdAndUpdate(
-      { _id: agencyId },
-      { $pull: { workContracts : { $in: [contractToCreateid.toString()] } } },
-      { multi: false },
-      (err,result) => {
-        if (err || !result) {
-          return callback( { success:false } )
+    if (agencyId !== null) {
+      await Agency.findByIdAndUpdate(
+        { _id: agencyId },
+        { $pull: { workContracts : { $in: [contractToCreateid.toString()] } } },
+        { multi: false },
+        (err,result) => {
+          if (err || !result) {
+            agencyTraceRemoved = false
+          } else {
+            agencyTraceRemoved = true
+          }
         }
-      }
-    )
+      )
+    }
     //if user
-    await User.findByIdAndUpdate(
-      { _id: workerId },
-      { $pull: { workContracts : { $in: [contractToCreateid.toString()] } } },
-      { multi: false },
-      (err,result) => {
-        if (err || !result) {
-          return callback( { success:false } )
-        } else {
-          return callback( { success:true } )
+    if (workerId !== null) {
+      await User.findByIdAndUpdate(
+        { _id: workerId },
+        { $pull: { workContracts : { $in: [contractToCreateid.toString()] } } },
+        { multi: false },
+        (err,result) => {
+          if (err || !result) {
+            workerTraceRemoved = false
+          } else {
+            workerTraceRemoved = true
+          }
         }
-      }
-    )
+      )
+    }
+    return callback({ workerTraceRemoved,businessTraceRemoved,agencyTraceRemoved })
   } catch (exception) {
     next(exception)
   }
@@ -150,9 +166,11 @@ const deleteTracesOfFailedWorkContract = async (workerId, businessId, agencyId, 
 
 /**
  * Deletes leftover traces in agencys businessContracts array list
- * @param {*} contract
+ * @param {ObjectId} agencyid AgencyId - used to findAndUpdate Agency
+ * @param {ObjectId} contractid BusinessContractId - used to pull correct from Agency
  * @param {*} next
  * @param {*} callback
+ * @return request.success = true/false
  */
 const deleteAgencyTracesOfBusinessContract = async (agencyid,contractid,next,callback) => {
   try {
@@ -175,11 +193,17 @@ const deleteAgencyTracesOfBusinessContract = async (agencyid,contractid,next,cal
 
 /**
  * Deletes traces of business contract. Used businesscontract.delete route is used.
+ * If trace is deleted adds boolean true to variable.
+ * One of the returned values workerTraceRemoved or businessTraceRemoved is undefined.
  * @param {Array} contract
- * @returns true if, delete of traces was succesfull, false if not.
+ * @param {*} next
+ * @param {*} callback
+ * @returns boolean workerTraceRemoved, boolean businessTraceRemoved, boolean agencyTraceRemoved
  */
 const deleteTracesOfBusinessContract = async (contract,next,callback) => {
   try {
+    let workerTraceRemoved = undefined
+    let businessTraceRemoved = undefined
     //check which businesscontract is in question
     if (contract.contractType.toString() === "Worker")
     {
@@ -189,7 +213,9 @@ const deleteTracesOfBusinessContract = async (contract,next,callback) => {
         { multi: false },
         (error,result) => {
           if (error || !result) {
-            return callback( { success:false,errormsg:"Could not find and update User with ID" } )
+            workerTraceRemoved = false
+          } else {
+            workerTraceRemoved = true
           }
         }
       )
@@ -202,7 +228,9 @@ const deleteTracesOfBusinessContract = async (contract,next,callback) => {
         { multi: false },
         (error,result) => {
           if (error || !result) {
-            return callback( { success:false,errormsg:"Could not find and update Business with ID" } )
+            businessTraceRemoved = false
+          } else {
+            businessTraceRemoved = true
           }
         }
       )
@@ -216,9 +244,9 @@ const deleteTracesOfBusinessContract = async (contract,next,callback) => {
       { multi: false },
       (error,result) => {
         if (error || !result) {
-          return callback( { success:false,errormsg:"Could not find and update Agency with ID" } )
+          return callback( { workerTraceRemoved,businessTraceRemoved,agencyTraceRemoved:false,errormsg:"Could not find and update Agency with ID" } )
         } else {
-          return callback( { success:true } )
+          return callback( { workerTraceRemoved,businessTraceRemoved,agencyTraceRemoved:true } )
         }
       }
     )
@@ -228,5 +256,11 @@ const deleteTracesOfBusinessContract = async (contract,next,callback) => {
 }
 
 module.exports = {
-  workerExists, whichWorkersExist, businessExists, deleteTracesOfFailedWorkContract, workerExistsInContracts,deleteAgencyTracesOfBusinessContract, deleteTracesOfBusinessContract,
+  workerExists,
+  whichWorkersExist,
+  businessExists,
+  deleteTracesOfFailedWorkContract,
+  workerExistsInContracts,
+  deleteAgencyTracesOfBusinessContract,
+  deleteTracesOfBusinessContract,
 }

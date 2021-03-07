@@ -94,7 +94,9 @@ agenciesRouter.get("/me", authenticateToken, (request, response, next) => {
 })
 
 /**
+ * Get route for agency to get all agencys Workers.
  * Return just an array of workerIds who belong to this Agency.
+ * @returns Array of WorkerIds
  */
 agenciesRouter.get("/workerIds", authenticateToken, needsToBeAgency, (request, response, next) => {
   try {
@@ -134,6 +136,13 @@ agenciesRouter.get("/workers", authenticateToken, needsToBeAgency, (request, res
   }
 })
 
+/**
+ * Route used to update agency new password.
+ * @name PUT /agencies
+ * @function
+ * @memberof module:controllers/agencies~agenciesRouter
+ * @inner
+ */
 agenciesRouter.put("/", authenticateToken, async (request, response, next) => {
   const body = request.body
   const decoded = response.locals.decoded
