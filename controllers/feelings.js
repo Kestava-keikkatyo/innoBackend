@@ -113,6 +113,33 @@ feelingsRouter.get("/:workerId", authenticateToken, needsToBeAgencyOrBusiness, a
   }
 })
 
-// Update route?
+/**
+ * Route for worker to delete one of their own feelings by providing an id of that feeling as a parameter.
+ */
+feelingsRouter.delete("/:feelingId", authenticateToken, needsToBeWorker, async (request, response, next) => {
+  try {
+    let found = false
+    for (const feeling of request.worker.feelings) {
+      if (feeling._id.equals(request.params.feelingId)) {
+        found = true
+        User.findByIdAndUpdate(
+          request.worker.id,
+          { $pull: { feelings: { _id: request.params.feelingId } } },
+          (error, result) => {
+            if (!result || error) {
+              return response.status(500).send(error || { message: "Did not receive any result from database" })
+            } else {
+              return response.status(204).send()
+            }
+          })
+      }
+    }
+    if (!found) {
+      response.status(404).send({ message: `Could not find feeling with id ${request.params.feelingId}` })
+    }
+  } catch (exception) {
+    next(exception)
+  }
+})
 
 module.exports = feelingsRouter

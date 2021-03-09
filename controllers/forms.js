@@ -9,7 +9,8 @@ const Business = require("../models/Business")
 const { needsToBeAgencyOrBusiness } = require("../utils/middleware")
 
 /**
- * Add form
+ * Returns the added form.
+ * Route for agency/business to add a form. Form given in body according to its schema model.
  */
 formsRouter.post("/", authenticateToken, needsToBeAgencyOrBusiness, async (request, response, next) => {
   try {
@@ -59,7 +60,7 @@ const addFormToAgencyOrBusiness = (AgencyOrBusiness, id, form, response, next) =
       { new: true, omitUndefined: true, runValidators: true },
       (error, result) => {
         if (!result || error) {
-          response.status(401).send(error || { message: "Received no result when updating user" })
+          response.status(500).send(error || { message: "Received no result when updating user" })
         } else {
           response.status(200).send(form)
         }
@@ -70,7 +71,8 @@ const addFormToAgencyOrBusiness = (AgencyOrBusiness, id, form, response, next) =
 }
 
 /**
- * For getting your own forms
+ * Route for agency/business to get their own forms
+ * returns an array of form objects. response.body: [{form object}, {form object}, ...]
  */
 formsRouter.get("/me", authenticateToken, needsToBeAgencyOrBusiness, async (request, response, next) => {
   try {
@@ -95,7 +97,8 @@ formsRouter.get("/me", authenticateToken, needsToBeAgencyOrBusiness, async (requ
 })
 
 /**
- * For getting all public forms, except your own
+ * Route for agency/business to get all public forms, excluding their own forms.
+ * returns an array of form objects. response.body: [{form object}, {form object}, ...]
  */
 formsRouter.get("/", authenticateToken, needsToBeAgencyOrBusiness, async (request, response, next) => {
   try {
@@ -107,8 +110,8 @@ formsRouter.get("/", authenticateToken, needsToBeAgencyOrBusiness, async (reques
     } else {
       return response.status(500).send( { error: "Error determining whether user is agency or business" })
     }
-    // Get all forms, except forms with ids that are in myForms
-    Form.find({ _id: { $nin: myForms } }, (error, forms) => {
+    // Get all public forms, except forms with ids that are in myForms
+    Form.find({ _id: { $nin: myForms }, isPublic: true }, (error, forms) => {
       if (error || !forms || forms.length === 0) {
         response.status(404).send( error || { message: "Could not find any public forms not made by you" })
       } else {
@@ -119,5 +122,130 @@ formsRouter.get("/", authenticateToken, needsToBeAgencyOrBusiness, async (reques
     next(exception)
   }
 })
+
+/**
+ * Route for agency/business to update a single form.
+ * Send updated form in body according to schema model
+ * If you only need to update title, isPublic, or description field, you can just give that in the body, like: { "isPublic": false }
+ * When updating any questions, give the full form object or the full questions object in it, in the body.
+ */
+formsRouter.put("/:formId", authenticateToken, needsToBeAgencyOrBusiness, async (request, response, next) => {
+  try {
+    if (request.agency) {
+      updateForm(request.agency, request, response, next)
+    } else if (request.business) {
+      updateForm(request.business, request, response, next)
+    } else {
+      return response.status(500).send( { error: "Error determining whether user is agency or business" })
+    }
+  } catch (exception) {
+    next(exception)
+  }
+})
+
+/**
+ * Helper function for updating the form. Helps reduce duplicate code.
+ * @param agencyOrBusinessObject request.agency or request.business. Depending on which one is trying to update the form
+ * @param request
+ * @param response
+ * @param next
+ * @returns {*}
+ */
+const updateForm = (agencyOrBusinessObject, request, response, next) => {
+  try {
+    const formId = request.params.formId
+    let found = false
+    if (agencyOrBusinessObject.forms.length === 0) {
+      return response.status(403).send({ message: "You are not authorized to update this form" })
+    }
+    for (const form of agencyOrBusinessObject.forms) {
+      if (form.equals(formId)) {
+        found = true
+        Form.findByIdAndUpdate(
+          formId,
+          { ...request.body }, // Give the full form object or the full questions object in it, in body when updating questions. Otherwise all other questions are deleted.
+          { new: true, runValidators: true },
+          (error, result) => {
+            if (error || !result) {
+              return response.status(500).send(error || { message: "Didn't get a result from database while updating form" })
+            } else {
+              return response.status(200).send(result)
+            }
+          }
+        )
+      }
+    }
+    if (!found) {
+      return response.status(404).send({ message: `Could not find form with id ${formId}` })
+    }
+  } catch (exception) {
+    next(exception)
+  }
+}
+
+/**
+ * Route for agency/business to delete a single form. Has to be their own form, cannot delete public forms.
+ */
+formsRouter.delete("/:formId", authenticateToken, needsToBeAgencyOrBusiness, async (request, response, next) => {
+  try {
+    if (request.agency) {
+      deleteForm(Agency, request.agency, request.params.formId, response, next)
+    } else if (request.business) {
+      deleteForm(Business, request.business, request.params.formId, response, next)
+    } else {
+      return response.status(500).send( { error: "Error determining whether user is agency or business" })
+    }
+  } catch (exception) {
+    next(exception)
+  }
+})
+
+/**
+ * Helper function for deleting the form. Helps reduce duplicate code.
+ * @param agencyOrBusiness Agency or Business model
+ * @param agencyOrBusinessObject request.agency or request.business. Depending on which one is trying to delete the form
+ * @param formId request.params.formId. The id of the form that you want to delete
+ * @param response
+ * @param next
+ * @returns {*}
+ */
+const deleteForm = (agencyOrBusiness, agencyOrBusinessObject, formId, response, next) => {
+  try {
+    let found = false
+    if (agencyOrBusinessObject.forms.length === 0) {
+      return response.status(403).send({ message: "You are not authorized to delete this form" })
+    }
+    for (const form of agencyOrBusinessObject.forms) {
+      if (form.equals(formId)) {
+        found = true
+        Form.findByIdAndDelete(
+          formId,
+          (error, result) => {
+            if (!result || error) {
+              return response.status(500).send(error || { message: "Did not receive any result from database when deleting form" })
+            } else {
+              agencyOrBusiness.findByIdAndUpdate( // Once form is deleted, it also needs to be deleted from agency's or business' forms array
+                agencyOrBusinessObject.id,
+                { $pull: { forms: { $in: [formId] } } },
+                (error, result) => {
+                  if (error || !result) {
+                    return response.status(500).send(error || { message: "Did not receive any result from database when deleting form's id from array" })
+                  } else {
+                    return response.status(204).send()
+                  }
+                }
+              )
+            }
+          }
+        )
+      }
+    }
+    if (!found) {
+      return response.status(404).send({ message: `Could not find form with id ${formId}` })
+    }
+  } catch (exception) {
+    next(exception)
+  }
+}
 
 module.exports = formsRouter

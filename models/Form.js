@@ -4,8 +4,8 @@ const uniqueValidator = require("mongoose-unique-validator")
 const formSchema = mongoose.Schema({
   title: {
     type: String,
-    minLength: 0,
-    maxLength: 100,
+    minlength: 0,
+    maxlength: 100,
     required: true
   },
   isPublic: {
@@ -14,8 +14,8 @@ const formSchema = mongoose.Schema({
   },
   description: {
     type: String,
-    minLength: 0,
-    maxLength: 500
+    minlength: 0,
+    maxlength: 500
   },
   questions: {
     comment: [{
@@ -27,8 +27,8 @@ const formSchema = mongoose.Schema({
       },
       questionTitle: {
         type: String,
-        minLength: 0,
-        maxLength: 1000,
+        minlength: 0,
+        maxlength: 1000,
         required: true
       }
     }],
@@ -41,14 +41,14 @@ const formSchema = mongoose.Schema({
       },
       questionTitle: {
         type: String,
-        minLength: 0,
-        maxLength: 200,
+        minlength: 0,
+        maxlength: 200,
         required: true
       },
       questionSubTitle: {
         type: String,
-        minLength: 0,
-        maxLength: 500
+        minlength: 0,
+        maxlength: 500
       },
       optional: {
         type:Boolean,
@@ -72,14 +72,14 @@ const formSchema = mongoose.Schema({
       },
       questionTitle: {
         type: String,
-        minLength: 0,
-        maxLength: 200,
+        minlength: 0,
+        maxlength: 200,
         required: true
       },
       questionSubTitle: {
         type: String,
-        minLength: 0,
-        maxLength: 500
+        minlength: 0,
+        maxlength: 500
       },
       optional: {
         type:Boolean,
@@ -103,14 +103,14 @@ const formSchema = mongoose.Schema({
       },
       questionTitle: {
         type: String,
-        minLength: 0,
-        maxLength: 200,
+        minlength: 0,
+        maxlength: 200,
         required: true
       },
       questionSubTitle: {
         type: String,
-        minLength: 0,
-        maxLength: 500
+        minlength: 0,
+        maxlength: 500
       },
       optional: {
         type: Boolean,
@@ -126,14 +126,14 @@ const formSchema = mongoose.Schema({
       },
       questionTitle: {
         type: String,
-        minLength: 0,
-        maxLength: 200,
+        minlength: 0,
+        maxlength: 200,
         required: true
       },
       questionSubTitle: {
         type: String,
-        minLength: 0,
-        maxLength: 500
+        minlength: 0,
+        maxlength: 500
       },
       optional: {
         type: Boolean,
@@ -150,14 +150,14 @@ const formSchema = mongoose.Schema({
       },
       questionTitle: {
         type: String,
-        minLength: 0,
-        maxLength: 200,
+        minlength: 0,
+        maxlength: 200,
         required: true
       },
       questionSubTitle: {
         type: String,
-        minLength: 0,
-        maxLength: 500
+        minlength: 0,
+        maxlength: 500
       },
       optional: {
         type: Boolean,
@@ -174,14 +174,14 @@ const formSchema = mongoose.Schema({
       },
       questionTitle: {
         type: String,
-        minLength: 0,
-        maxLength: 200,
+        minlength: 0,
+        maxlength: 200,
         required: true
       },
       questionSubTitle: {
         type: String,
-        minLength: 0,
-        maxLength: 500
+        minlength: 0,
+        maxlength: 500
       },
       optional: {
         type: Boolean,
@@ -195,6 +195,81 @@ const formSchema = mongoose.Schema({
       scaleOptionTitleLeft: String,
       scaleOptionTitleCenter: String,
       scaleOptionTitleRight: String
+    }],
+    contactInformation: [{
+      ordering: {
+        type: Number,
+        min: 0,
+        max: 99,
+        required: true
+      },
+      name: {
+        type: String,
+        required: true
+      },
+      email: {
+        type: String,
+        required: true
+      },
+      phoneNumber: {
+        type: String,
+        required: true
+      },
+      questionSubTitle: {
+        type: String,
+        minlength: 0,
+        maxlength: 500
+      },
+      optional: {
+        type: Boolean,
+        required: true
+      }
+    }],
+    datePicker: [{
+      ordering: {
+        type: Number,
+        min: 0,
+        max: 99,
+        required: true
+      },
+      questionTitle: {
+        type: String,
+        minlength: 0,
+        maxlength: 200,
+        required: true
+      },
+      questionSubTitle: {
+        type: String,
+        minlength: 0,
+        maxlength: 500
+      },
+      isClosedTimeFrame: {
+        type: Boolean,
+        required: true
+      }
+    }],
+    timePicker: [{
+      ordering: {
+        type: Number,
+        min: 0,
+        max: 99,
+        required: true
+      },
+      questionTitle: {
+        type: String,
+        minlength: 0,
+        maxlength: 200,
+        required: true
+      },
+      questionSubTitle: {
+        type: String,
+        minlength: 0,
+        maxlength: 500
+      },
+      isClosedTimeFrame: {
+        type: Boolean,
+        required: true
+      }
     }]
   },
   createdAt: {
