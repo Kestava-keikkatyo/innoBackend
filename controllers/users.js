@@ -28,7 +28,7 @@ const { needsToBeWorker } = require("../utils/middleware")
  * @function
  * @memberof module:controllers/users~usersRouter
  * @inner
- * @returns response.body: { token, name: user.name, email: user.email, role: "worker" }
+ * @returns {JSON} response.body: { token, name: user.name, email: user.email, role: "worker" }
  */
 usersRouter.post("/", async (request, response, next) => {
   try {
@@ -70,7 +70,7 @@ usersRouter.post("/", async (request, response, next) => {
  * @function
  * @memberof module:controllers/users~usersRouter
  * @inner
- * @returns response.body: { The found Worker object }
+ * @returns {JSON} response.body: { The found Worker object }
  */
 usersRouter.get("/me", authenticateToken, async (request, response, next) => {
   try {
@@ -97,7 +97,7 @@ usersRouter.get("/me", authenticateToken, async (request, response, next) => {
  * @function
  * @memberof module:controllers/users~usersRouter
  * @inner
- * @returns response.body: { The found Worker object }
+ * @returns {JSON} response.body: { The found Worker object }
  */
 usersRouter.put("/", authenticateToken, async (request, response, next) => {
   const body = request.body
@@ -153,7 +153,7 @@ usersRouter.put("/", authenticateToken, async (request, response, next) => {
  * @function
  * @memberof module:controllers/users~usersRouter
  * @inner
- * @returns response.body: { List of users }
+ * @returns {JSON} response.body: { List of users }
  */
 usersRouter.get("/", authenticateToken, async (request, response, next) => {
   const decoded = response.locals.decoded
@@ -182,7 +182,7 @@ usersRouter.get("/", authenticateToken, async (request, response, next) => {
  * @function
  * @memberof module:controllers/users~usersRouter
  * @inner
- * @returns response.body: { [{businessContract1}, {businessContract2},...] }
+ * @returns {JSON} response.body: { [{businessContract1}, {businessContract2},...] }
  */
 usersRouter.get("/businesscontracts", authenticateToken, needsToBeWorker, async (request, response, next) => {
   const contractIds = request.worker.businessContracts

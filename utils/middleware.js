@@ -1,3 +1,13 @@
+/** Contains all middleware functions that are used in routes.
+ * @module utils/middleware
+ * @requires logger
+ * @requires User
+ * @requires Business
+ * @requires Agency
+ * @requires BusinessContract
+ * @requires WorkContract
+ * @requires utils/common
+ */
 const logger = require("./logger")
 const Business = require("../models/Business")
 const Agency = require("../models/Agency")
@@ -32,7 +42,14 @@ const errorHandler = (error, request, response, next) => {
 
 /**
  * Checks if a Business with request.body.businessId exists.
-*/
+ * @param {ObjectId} request.body.businessId - BusinessId from body.
+ * @param {request} request
+ * @param {response} response
+ * @param {next} next
+ * @throws {JSON} Status 404 - response.body: { error: "No business found with the request businessId." }
+ * @throws {JSON} Status 400 - response.body: { error: "No businessId in request body." }
+ * @returns {next} next()
+ */
 const bodyBusinessExists = (request, response, next) => {
   try {
     if (request.body.businessId) {
@@ -52,6 +69,13 @@ const bodyBusinessExists = (request, response, next) => {
 }
 /**
  * Checks if a Worker with request.body.workerId exists.
+ * @param {ObjectId} request.body.workerId - WorkerId from body.
+ * @param {request} request
+ * @param {response} response
+ * @param {next} next
+ * @throws {JSON} Status 404 - response.body: { error: "No worker found with the request workerId." }
+ * @throws {JSON} Status 400 - response.body: { error: "No workerId in request body." }
+ * @returns {next} next()
 */
 const bodyWorkerExists = (request, response, next) => {
   try {
@@ -72,7 +96,18 @@ const bodyWorkerExists = (request, response, next) => {
 }
 
 /**
- * Checks if a Business or Worker with request.body.workerId exists.
+ * Checks if a Business with request.body.businessId or Worker with request.body.workerId exists.
+ * IF Worker exists populate Worker Object to request.worker and populates request.contractType with "Worker" String.
+ * IF Business exists populate Business Object to request.business and populates request.contractType with "Business" String.
+ * @param {ObjectId} request.body.workerId - WorkerId from body.
+ * @param {ObjectId} request.body.businessId - BusinessId from body.
+ * @param {request} request
+ * @param {response} response
+ * @param {next} next
+ * @throws {JSON} Status 404 - response.body: { error: "No worker found with the request workerId." }
+ * @throws {JSON} Status 404 - response.body: { error: "No business found with the request businessId." }
+ * @throws {JSON} Status 404 - response.body: { error: "Body doesn't include workerId or businessId" }
+ * @returns {next} next()
 */
 const bodyWorkerOrBusinessExists = (request, response, next) => {
   try {
@@ -106,7 +141,14 @@ const bodyWorkerOrBusinessExists = (request, response, next) => {
 
 /**
  * Checks if an Agency with url param :agencyId exists.
- * Returned Agency object from database is put to request.agency
+ * Returned Agency object from database is populated to request.agency.
+ * @param {ObjectId} request.params.agencyId - AgencyId from parameter (url).
+ * @param {request} request
+ * @param {response} response
+ * @param {next} next
+ * @throws {JSON} Status 404 - response.body: { error: "No Agency found with the request :agencyId." }
+ * @throws {JSON} Status 400 - response.body: { error: "No :agencyId in url." }
+ * @returns {next} next()
 */
 const agencyExists = (request, response, next) => {
   try {
@@ -129,7 +171,14 @@ const agencyExists = (request, response, next) => {
 
 /**
  * Checks if an Business with url param :businessId exists.
- * Returned Business object from database is put to request.business
+ * Returned Business object from database is populated to request.business.
+ * @param {ObjectId} request.param.businessId - BusinessId from parameter (url).
+ * @param {request} request
+ * @param {response} response
+ * @param {next} next
+ * @throws {JSON} Status 404 - response.body: { error: "No Business found with the request :businessId." }
+ * @throws {JSON} Status 400 - response.body: { error: "No :businessId in url." }
+ * @returns {next} next()
 */
 const businessExists = (request, response, next) => {
   try {
@@ -153,6 +202,13 @@ const businessExists = (request, response, next) => {
 /**
  * Checks if a BusinessContract with url param :businessContractId exists.
  * BusinessContract object from database is populated to request.businessContract.
+ * @param {ObjectId} request.params.businessContractId - BusinessContractId from parameter (url).
+ * @param {request} request
+ * @param {response} response
+ * @param {next} next
+ * @throws {JSON} Status 404 - request.body: { error: "No BusinessContract found with the request :businessContractId." }
+ * @throws {JSON} Status 400 - request.body: { error: "No :businessContractId in url." }
+ * @returns {next} next()
 */
 const businessContractExists = (request, response, next) => {
   try {
@@ -176,6 +232,11 @@ const businessContractExists = (request, response, next) => {
 /**
  * Checks if BusinessContract includes user that is trying to get it.
  * Saves to request.userInBusinessContract true if user is in contract and false if not.
+ * @param {BusinessContract} request.businessContract - BusinessContract.
+ * @param {request} request
+ * @param {response} response
+ * @param {next} next
+ * @returns {next} next()
  */
 const businessContractIncludesUser = (request,response,next) => {
   try {
@@ -209,9 +270,12 @@ const businessContractIncludesUser = (request,response,next) => {
 /**
  * Checks if a WorkContract with url param :contractId exists.
  * Saves found WorkContract to request.workContract if workContract exists.
- * @param {*} request
- * @param {*} response
- * @param {*} next
+ * @param {ObjectId} request.params.contractId - ContractId from parameters (url).
+ * @param {request} request
+ * @param {response} response
+ * @param {next} next
+ * @throws {JSON} Status 404 - response.body: { error: "No WorkContract found with the request :contractId." }
+ * @throws {JSON} Status 400 - response.body: { error: "No :contractId in url." }
 */
 const workContractExists = (request,response, next) => {
   try {
@@ -233,12 +297,14 @@ const workContractExists = (request,response, next) => {
 }
 
 /**
- *Checks if user who is using route is in workcontract.
- *For this to work token must be authenticated with authenticateToken function and workContract must exist use workContractExists function.
- *Saves to request.userInWorkContract true if workContract includes user.
- * @param {*} request
- * @param {*} response
- * @param {*} next
+ * Checks if user who is using route is in workcontract.
+ * For this to work token must be authenticated with authenticateToken function and workContract must exist use workContractExists function.
+ * Saves to request.userInWorkContract true if workContract includes user.
+ * @param {WorkContract} request.workContract - WorkContract
+ * @param {request} request
+ * @param {response} response
+ * @param {next} next
+ * @returns {next} next()
  */
 const workContractIncludesUser = (request, response, next) => {
   try {
@@ -268,9 +334,12 @@ const workContractIncludesUser = (request, response, next) => {
 /**
  * Checks if the logged in user is an Agency.
  * Agency object from database is populated to request.agency
- * @param {*} request
- * @param {*} response
- * @param {*} next
+ * @param {ObjectId} response.locals.decoded.id - UsersId (AgencyId) from token.
+ * @param {request} request
+ * @param {response} response
+ * @param {next} next
+ * @throws {JSON} Status 404 - response.body: { message: "This route is only available to Agency users." }
+ * @returns {next} next()
 */
 const needsToBeAgency = (request, response, next) => {
   Agency.findById({ _id: response.locals.decoded.id }, (error, result) => {
@@ -286,14 +355,17 @@ const needsToBeAgency = (request, response, next) => {
 /**
  * Checks if the logged in user is a Business.
  * Business object from database is populated to request.business
- * @param {*} request
- * @param {*} response
- * @param {*} next
+ * @param {ObjectId} request.locals.decoded.id - UsersId (AgencyId) from token.
+ * @param {request} request
+ * @param {response} response
+ * @param {next} next
+ * @throws {JSON} Status 401 - response.body: { message: "This route only available to Business users." }
+ * @returns {next} next()
 */
 const needsToBeBusiness = (request, response, next) => {
   Business.findById({ _id: response.locals.decoded.id }, (error, result) => {
     if (error || !result) {
-      response.status(401).send(error || { message: "This route only available to Business users." }) // TODO App crashes if trying to get for example business contracts before logging in (as business)
+      response.status(401).send(error || { message: "This route only available to Business users." })
     } else {
       request.business = result
       return next()
@@ -304,9 +376,12 @@ const needsToBeBusiness = (request, response, next) => {
 /**
  * Checks if the logged in user is a Worker.
  * Worker object from database is populated to request.worker.
- * @param {*} request
- * @param {*} response
- * @param {*} next
+ * @param {ObjectId} request.locals.decoded.id - UsersId (AgencyId) from token.
+ * @param {request} request
+ * @param {response} response
+ * @param {next} next
+ * @throws {JSON} Status 401 - response.body: { message: "This route only available to Worker users." }
+ * @returns {next} next()
 */
 const needsToBeWorker = (request, response, next) => {
   User.findById({ _id: response.locals.decoded.id }, (error, result) => {
@@ -323,9 +398,13 @@ const needsToBeWorker = (request, response, next) => {
  * Checks if the logged in user is a Agency or Business
  * If user is business, Business object from database is populated to request.business.
  * if not user is agency, Agency object from database is populated to request.agency.
- * @param {*} request
- * @param {*} response
- * @param {*} next
+ * @param {ObjectId} response.locals.decoded.id - UsersId (AgencyId or BusinessId) from token.
+ * @param {request} request
+ * @param {response} response
+ * @param {next} next
+ * @throws {JSON} Status 401 - response.body: { message: "This route is only available to Agency or Business users." }
+ * @throws {JSON} Status 401 - response.body: { error }
+ * @returns {next} next()
  */
 const needsToBeAgencyOrBusiness = (request, response, next) => {
   Agency.findById( { _id: response.locals.decoded.id }, (error, result) => {
@@ -345,6 +424,7 @@ const needsToBeAgencyOrBusiness = (request, response, next) => {
       }
     } else {
       response.status(401).send(error)
+      return next()
     }
   })
 }
@@ -353,9 +433,13 @@ const needsToBeAgencyOrBusiness = (request, response, next) => {
  * Checks if the logged in user is Business or Worker
  * If user is worker, Worker object from database is populated to request.worker.
  * If not user is business, Business object from database is populated to request.business
- * @param {*} request
- * @param {*} response
- * @param {*} next
+ * @param {ObjectId} response.locals.decoded.id - UsersId (BusinessId or WorkerId) from token.
+ * @param {request} request
+ * @param {response} response
+ * @param {next} next
+ * @throws {JSON} Status 401 - response.body: { message: "This route is only available to Business or Worker users" }
+ * @throws {JSON} Status 401 - response.body: { error }
+ * @returns {next} next()
  */
 const needsToBeBusinessOrWorker = (request, response, next) => {
   Business.findById( { _id: response.locals.decoded.id }, (error, result) => {
@@ -375,6 +459,7 @@ const needsToBeBusinessOrWorker = (request, response, next) => {
       }
     } else {
       response.status(401).send(error)
+      return next()
     }
   })
 }
@@ -384,9 +469,12 @@ const needsToBeBusinessOrWorker = (request, response, next) => {
  * If user is worker, Worker object from database is populated to request.worker.
  * If user is business, Business object from database is populated to request.business.
  * If user is agency, Agency object from database is populated to request.agency.
- * @param {*} request
- * @param {*} response
- * @param {*} next
+ * @param {ObjectId} response.locals.decoded.id - UserId (AgencyId or BusinessId) from token.
+ * @param {request} request
+ * @param {response} response
+ * @param {next} next
+ * @throws {JSON} Status 401 - response.body: { message: "This route is only available to Agency, Business or Worker users." }
+ * @returns {next} next()
  */
 const needsToBeAgencyBusinessOrWorker = (request,response, next) => {
   Agency.findById({ _id:response.locals.decoded.id }, (error,result) => {
@@ -415,15 +503,18 @@ const needsToBeAgencyBusinessOrWorker = (request,response, next) => {
       }
     } else {
       response.status(401).send(error)
+      return next()
     }
   } )
 }
 /**
  * Used to go through agency businessContracts and check if correct Business and Worker are found.
  * Saves to request.commonContractIndex value, if value is 1 both Business And Worker have BusinessContract with agency.
- * @param {*} request
- * @param {*} next
- * @returns true or false
+ * @param {Array} request.agency.businessContracts - Agency array of businessContract ID:s.
+ * @param {request} request
+ * @param {response} response
+ * @param {next} next
+ * @returns {next} next()
  */
 const checkAgencyBusinessContracts = async (request,response,next) => {
   try {

@@ -1,3 +1,9 @@
+/** Contains all callback functions that use callback.
+ * @module utils/common
+ * @requires User
+ * @requires Business
+ * @requires Agency
+ */
 const User = require("../models/User")
 const Business = require("../models/Business")
 const Agency = require("../models/Agency")
@@ -5,6 +11,8 @@ const Agency = require("../models/Agency")
 /**
  * Checks if a worker with param id exists.
  * @param {ObjectID} id
+ * @param {next} next
+ * @param {callback} callback
  * @returns Worker Object, if worker exists. False, if not.
 */
 const workerExists = (id, next, callback) => {
@@ -25,6 +33,9 @@ const workerExists = (id, next, callback) => {
  * Checks through an array of worker ids,and returns an array of ids that exist.
  * Returned list may contain duplicates, if the param array had them.
  * @param {Array} workerIdArray
+ * @param {next} next
+ * @param {callback} callback
+ * @returns {JSON} {existingWorkerIds: existingWorkerIds, nonExistingWorkerIds: nonExistingWorkerIds}
  */
 const whichWorkersExist = (workerIdArray, next, callback) => {
   try {
@@ -56,9 +67,12 @@ const whichWorkersExist = (workerIdArray, next, callback) => {
 /**
  * Checks if the given worker is in a business/work contract in the given array.
  * Gives all matching contracts to callback
- * @param {BusinessContract||WorkContract} contractType
+ * @param {BusinessContract|WorkContract} contractType
  * @param {Array} contracts
- * @param {*} workerId
+ * @param {ObjectId} workerId
+ * @param {next} next
+ * @param {callback} callback
+ * @returns {Array} contractsArray
  */
 const workerExistsInContracts = (contractType, contracts, workerId, next, callback) => {
   try {
@@ -83,7 +97,9 @@ const workerExistsInContracts = (contractType, contracts, workerId, next, callba
 /**
  * Checks if a business with param id exists.
  * @param {ObjectId} id
- * @returns Business Object, if worker exists. False, if not.
+ * @param {next} next
+ * @param {callback} callback
+ * @returns {Business|Boolean} Business Object, if worker exists. False, if not.
 */
 const businessExists = (id, next, callback) => {
   try {
@@ -106,7 +122,9 @@ const businessExists = (id, next, callback) => {
  * @param {ObjectId} businessId Business Id - used to find right business / can be null
  * @param {ObjectId} agencyId Agency ObjecId - used to find right agency / can be null
  * @param {ObjectId} contractToCreateid ContractId - contract that failed save to db
- * @returns int filtersRemoved / filtersRemoved is null if no traces were removed
+ * @param {next} next
+ * @param {callback} callback
+ * @returns {Boolean} {workerTraceRemoved,businessTraceRemoved,agencyTraceRemoved}
  */
 const deleteTracesOfFailedWorkContract = async (workerId, businessId, agencyId, contractToCreateid, next, callback) => {
   try { //Needs somekind of check
@@ -168,9 +186,9 @@ const deleteTracesOfFailedWorkContract = async (workerId, businessId, agencyId, 
  * Deletes leftover traces in agencys businessContracts array list
  * @param {ObjectId} agencyid AgencyId - used to findAndUpdate Agency
  * @param {ObjectId} contractid BusinessContractId - used to pull correct from Agency
- * @param {*} next
- * @param {*} callback
- * @return request.success = true/false
+ * @param {next} next
+ * @param {callback} callback
+ * @return {Boolean} request.success = true/false
  */
 const deleteAgencyTracesOfBusinessContract = async (agencyid,contractid,next,callback) => {
   try {
@@ -195,10 +213,10 @@ const deleteAgencyTracesOfBusinessContract = async (agencyid,contractid,next,cal
  * Deletes traces of business contract. Used businesscontract.delete route is used.
  * If trace is deleted adds boolean true to variable.
  * One of the returned values workerTraceRemoved or businessTraceRemoved is undefined.
- * @param {Array} contract
- * @param {*} next
- * @param {*} callback
- * @returns boolean workerTraceRemoved, boolean businessTraceRemoved, boolean agencyTraceRemoved
+ * @param {BusinessContract} contract
+ * @param {next} next
+ * @param {callback} callback
+ * @returns {Boolean} workerTraceRemoved, boolean businessTraceRemoved, boolean agencyTraceRemoved
  */
 const deleteTracesOfBusinessContract = async (contract,next,callback) => {
   try {

@@ -29,15 +29,24 @@ const User = require("../models/User")
 const Business = require("../models/Business")
 
 /**
- * Requires user logged in as a participant of this specific BusinessContract.
  * Route for getting one specific businessContract.
+ * Requires user logged in as a participant of this specific BusinessContract.
  * @name GET /businesscontracts/:businessContractId
  * @function
  * @memberof module:controllers/businesscontracts~businesscontractsRouter
  * @inner
- * @returns response.body: { businessContract: TheWholeBusinessContractObject }
+ * @param {String} path - Express path.
+ * @param {callback} authenticateToken - Decodes token.
+ * @param {callback} businessContractExists -
+ * Checks if a BusinessContract with url param :businessContractId exists.
+ * <pre>Full description: {@link businessContractExists}</pre>
+ * @param {callback} businessContractIncludesUser -
+ * Checks if BusinessContract includes user that is trying to get it.
+ * <pre>Full description: {@link businessContractIncludesUser}</pre>
+ * @throws {JSON} Status 400 - response.body: { message: "User who is trying to use this route is not in workcontract" }
+ * @returns {JSON} Status 200 - response.body: { businessContract: TheWholeBusinessContractObject }
  */
-businesscontractsRouter.get("/:businessContractId",authenticateToken,businessContractExists,businessContractIncludesUser,
+businesscontractsRouter.get("/:businessContractId", authenticateToken, businessContractExists, businessContractIncludesUser,
   async (request, response, next) => {
     try {
       if (request.userInBusinessContract === true) {
@@ -53,13 +62,18 @@ businesscontractsRouter.get("/:businessContractId",authenticateToken,businessCon
 )
 
 /**
- * Requires token for use.
  * Route for getting all users businessContract.
+ * Requires token for use.
  * @name GET /businesscontracts/:businessContractId
  * @function
  * @memberof module:controllers/businesscontracts~businesscontractsRouter
  * @inner
- * @returns response.body: { All users BusinessContract objects }
+ * @param {String} path - Express path.
+ * @param {callback} authenticateToken - Decodes token.
+ * @param {callback} needsToBeAgencyBusinessOrWorker - Checks if the logged in user is Agency, Business or Worker.
+ * <pre>Full description: {@link needsToBeAgencyBusinessOrWorker}</pre>
+ * @throws {JSON} Status 400 - response.body: { message:"Token didn't have any users." }
+ * @returns {JSON} Status 200 - response.body: { All users BusinessContract objects }
  */
 businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWorker,
   async (request, response, next) => {
@@ -88,15 +102,28 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
   })
 
 /**
- * Requires User logged in as an Agency. body requirements: {businessId: "businessId" OR workerId: "workerId"}
  * Route for initiating a connection between Agency and Business or Worker.
+ * Requires User logged in as an Agency. body requirements: {businessId: "businessId" OR workerId: "workerId"}.
  * The BusinessContract is created and the url to the contract resource is returned so that it can be sent to the Business or Worker.
- * agencyId from jwt-token
+ * Gets agencyId from jwt-token.
  * @name POST /businesscontracts
  * @function
  * @memberof module:controllers/businesscontracts~businesscontractsRouter
  * @inner
- * @returns response.body: { The created businessContract object }, response.header.Location: created businesscontract url api/businesscontracts/:businessContractId
+ * @param {String} path - Express path.
+ * @param {callback} authenticateToken - Decodes token.
+ * @param {callback} needsToBeAgency - Checks if the logged in user is an Agency.
+ * <pre>Full description: {@link needsToBeAgency}</pre>
+ * @param {callback} bodyWorkerOrBusinessExists - Checks if a Business or Worker exists.
+ * <pre>Full description: {@link bodyWorkerOrBusinessExists }</pre>
+ * @see {@link createBusinessContract}
+ * @see {@link createBusinessContractCallBack}
+ * @see {@link addBusinessContractToParticipants}
+ * @throws {JSON} Status 400 - response.body:
+ * { message:"Agency (ID response.locals.decoded.id) already has a BusinessContract with Worker (ID request.body.workerId).", existingContract: commonContractsArray[0] }
+ * @throws {JSON} Status 400 - response.body:
+ * { message:"Agency (ID response.locals.decoded.id) already has a BusinessContract with Worker (ID request.body.businessId).", existingContract: commonContractsArray[0] }
+ * @returns {JSON} Status 201 - response.body: { The created businessContract object }, response.header.Location: created businesscontract url api/businesscontracts/:businessContractId
  */
 businesscontractsRouter.post("/test",authenticateToken,needsToBeAgency,bodyWorkerOrBusinessExists,
   async (request,response,next) => {
@@ -159,14 +186,27 @@ businesscontractsRouter.post("/test",authenticateToken,needsToBeAgency,bodyWorke
   }
 )
 /**
+ * Route for a Business/Worker to accept a BusinessContract created by an Agency.
  * Requires user logged in as a Business/Worker taking part in this specific BusinessContract.
- * Route for a Business/Worker to accept a BusinessContract created by an Agency
- * businessContractId is read from url param and the matching BusinessContract is put to request.businessContract by businessContractExists-middleware
+ * businessContractId is read from url param and the matching BusinessContract is put to request.businessContract by businessContractExists-middleware.
  * @name PUT /businesscontracts/:businessContractId
  * @function
  * @memberof module:controllers/businesscontracts~businesscontractsRouter
  * @inner
- * @returns response.body: { The updated BusinessContract object }, response.header.Location: The updated businesscontract url api/businesscontracts/:businessContractId
+ * @param {String} path - Express path.
+ * @param {callback} authenticateToken - Decodes token.
+ * @param {callback} needsToBeBusinessOrWorker -
+ * Checks if the logged in user is Business or Worker
+ * <pre>Full description: {@link needsToBeBusinessOrWorker}</pre>
+ * @param {callback} businessContractExists -
+ * Checks if a BusinessContract with url param :businessContractId exists.
+ * <pre>{@link businessContractExists}</pre>
+ * @param {callback} businessContractIncludesUser -
+ * Checks if BusinessContract includes user that is trying to get it.
+ * <pre>{@link businessContractIncludesUser}</pre>
+ * @throws {JSON} Status 401 - response.body: { message: "This route is only available to Business and Worker who are in this contract." }
+ * @throws {JSON} Status 400 - response.body: { success: false, error: "Could not update BusinessContract with id " + request.params.businessContractId }
+ * @returns {JSON} Status 200 - response.body: { The updated BusinessContract object }, response.header.Location: The updated businesscontract url api/businesscontracts/:businessContractId
  */
 businesscontractsRouter.put("/:businessContractId",authenticateToken,needsToBeBusinessOrWorker,businessContractExists,businessContractIncludesUser,
   async (request, response, next) => {
@@ -188,15 +228,34 @@ businesscontractsRouter.put("/:businessContractId",authenticateToken,needsToBeBu
 )
 
 /**
+ * Route for an Agency to delete an existing BusinessContract and remove its references from its participants.
  * Requires user logged in as an Agency taking part in this specific BusinessContract.
- * Route for an Agency to delete an existing BusinessContract and remove its references from its participants
  * businessContractId is read from url param and the matching BusinessContract is put to request.businessContract by businessContractExists-middleware
  * The logged in Agency object is in request.agency by needsToBeAgency-middleware
  * @name DELETE /businesscontracts/:businessContractId
  * @function
  * @memberof module:controllers/businesscontracts~businesscontractsRouter
  * @inner
- * @returns response.body: { The updated BusinessContract object }, response.header.Location: The updated businesscontract url api/businesscontracts/:businessContractId
+ * @param {String} path - Express path.
+ * @param {callback} authenticateToken - Decodes token.
+ * @param {callback} needsToBeAgency -
+ * Checks if the logged in user is an Agency.
+ * <pre>Full description: {@link needsToBeAgency}</pre>
+ * @param {callback} businessContractExists -
+ * Checks if a BusinessContract with url param :businessContractId exists.
+ * <pre>Full description: {@link businessContractExists}</pre>
+ * @param {callback} businessContractIncludesUser -
+ * Checks if BusinessContract includes user that is trying to get it.
+ * <pre>Full description: {@link businessContractIncludesUser}</pre>
+ * @throws {JSON} Status 401 - response.body: { message: "This route is only available to agency who is in this contract" }
+ * @throws {JSON} Status 500 - response.body: { message: "Couldn't delete references of this BusinessContract
+ * , WorkerTraceRemoved:  result.workerTraceRemoved
+ * , businessTraceRemoved: result.businessTraceRemoved
+ * , agencyTraceRemoved:  result.agencyTraceRemoved"  }
+ * @throws {JSON} Status 500 - response.body { message:
+ * "Deleted references to BusinessContract with ID request.businessContract._id but could not remove the contract itself.
+ *  Possible error:" error }
+ * @returns {JSON} Status 200 - response.body: { The updated BusinessContract object }, response.header.Location: The updated businesscontract url api/businesscontracts/:businessContractId
  */
 businesscontractsRouter.delete("/:businessContractId",authenticateToken,needsToBeAgency,businessContractExists,businessContractIncludesUser,
   async (request, response, next) => {
@@ -284,12 +343,16 @@ const createBusinessContract = (contractToCreate, response, callback) => {
 }
 
 /**
- * Callback function.
+ * Callback function. Adds BusinessContract to participants with addBusinessContractToParticipants function.
  * Used in createBusinessContract() function as a callback.
- * Adds BusinessContract to participants with addBusinessContractToParticipants function.
+ * @name createBusinessContractCallBack
+ * @function
+ * @memberof module:controllers/businesscontracts~businesscontractsRouter
+ * @inner
  * @param {*} error
  * @param {*} contract
  * @param {*} response
+ * @see {@link addBusinessContractToParticipants}
  */
 const createBusinessContractCallBack = (error, contract, response) => {
   logger.info("In createBusinessContractCallBack...")
