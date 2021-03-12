@@ -125,7 +125,7 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
  * { message:"Agency (ID response.locals.decoded.id) already has a BusinessContract with Worker (ID request.body.businessId).", existingContract: commonContractsArray[0] }
  * @returns {JSON} Status 201 - response.body: { The created businessContract object }, response.header.Location: created businesscontract url api/businesscontracts/:businessContractId
  */
-businesscontractsRouter.post("/test",authenticateToken,needsToBeAgency,bodyWorkerOrBusinessExists,
+businesscontractsRouter.post("/",authenticateToken,needsToBeAgency,bodyWorkerOrBusinessExists,
   async (request,response,next) => {
     try {
       let contractToCreate = undefined
@@ -263,7 +263,7 @@ businesscontractsRouter.delete("/:businessContractId",authenticateToken,needsToB
       if (request.userInBusinessContract !== true) {
         return response.status(401).send({ message: "This route is only available to agency who is in this contract " } )
       }
-      utils.deleteTracesOfBusinessContract(request.businessContract,next,
+      utils.deleteTracesOfBusinessContract(request.businessContract,
         async (result) => {
           if ((result.workerTraceRemoved === true && result.businessTraceRemoved === undefined && result.agencyTraceRemoved === true) ||
           (result.workerTraceRemoved === undefined && result.businessTraceRemoved === true && result.agencyTraceRemoved === true) ) {

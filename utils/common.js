@@ -11,11 +11,10 @@ const Agency = require("../models/Agency")
 /**
  * Checks if a worker with param id exists.
  * @param {ObjectID} id
- * @param {next} next
  * @param {callback} callback
  * @returns Worker Object, if worker exists. False, if not.
 */
-const workerExists = (id, next, callback) => {
+const workerExists = (id, callback) => {
   try {
     return User.findById({ _id: id }, (error, result) => {
       if (error || !result) {
@@ -25,7 +24,7 @@ const workerExists = (id, next, callback) => {
       }
     })
   } catch (exception) {
-    next(exception)
+    callback(exception)
   }
 }
 
@@ -33,11 +32,10 @@ const workerExists = (id, next, callback) => {
  * Checks through an array of worker ids,and returns an array of ids that exist.
  * Returned list may contain duplicates, if the param array had them.
  * @param {Array} workerIdArray
- * @param {next} next
  * @param {callback} callback
  * @returns {JSON} {existingWorkerIds: existingWorkerIds, nonExistingWorkerIds: nonExistingWorkerIds}
  */
-const whichWorkersExist = (workerIdArray, next, callback) => {
+const whichWorkersExist = (workerIdArray,callback) => {
   try {
     let existingWorkerIds = []
     let nonExistingWorkerIds = []
@@ -60,7 +58,7 @@ const whichWorkersExist = (workerIdArray, next, callback) => {
       }
     }
   } catch (exception) {
-    next(exception)
+    callback(exception)
   }
 }
 
@@ -70,11 +68,10 @@ const whichWorkersExist = (workerIdArray, next, callback) => {
  * @param {BusinessContract|WorkContract} contractType
  * @param {Array} contracts
  * @param {ObjectId} workerId
- * @param {next} next
  * @param {callback} callback
  * @returns {Array} contractsArray
  */
-const workerExistsInContracts = (contractType, contracts, workerId, next, callback) => {
+const workerExistsInContracts = (contractType, contracts, workerId,callback) => {
   try {
     let counter = 0
     let contractsArray = []
@@ -90,18 +87,17 @@ const workerExistsInContracts = (contractType, contracts, workerId, next, callba
       })
     })
   } catch (exception) {
-    next(exception)
+    callback(exception)
   }
 }
 
 /**
  * Checks if a business with param id exists.
  * @param {ObjectId} id
- * @param {next} next
  * @param {callback} callback
  * @returns {Business|Boolean} Business Object, if worker exists. False, if not.
 */
-const businessExists = (id, next, callback) => {
+const businessExists = (id,callback) => {
   try {
     return Business.findById({ _id: id }, (error, result) => {
       if (error || !result) {
@@ -111,7 +107,7 @@ const businessExists = (id, next, callback) => {
       }
     })
   } catch (exception) {
-    next(exception)
+    callback(exception)
   }
 }
 /**
@@ -122,11 +118,10 @@ const businessExists = (id, next, callback) => {
  * @param {ObjectId} businessId Business Id - used to find right business / can be null
  * @param {ObjectId} agencyId Agency ObjecId - used to find right agency / can be null
  * @param {ObjectId} contractToCreateid ContractId - contract that failed save to db
- * @param {next} next
  * @param {callback} callback
  * @returns {Boolean} {workerTraceRemoved,businessTraceRemoved,agencyTraceRemoved}
  */
-const deleteTracesOfFailedWorkContract = async (workerId, businessId, agencyId, contractToCreateid, next, callback) => {
+const deleteTracesOfFailedWorkContract = async (workerId, businessId, agencyId, contractToCreateid,callback) => {
   try { //Needs somekind of check
     let workerTraceRemoved = undefined
     let businessTraceRemoved = undefined
@@ -178,7 +173,7 @@ const deleteTracesOfFailedWorkContract = async (workerId, businessId, agencyId, 
     }
     return callback({ workerTraceRemoved,businessTraceRemoved,agencyTraceRemoved })
   } catch (exception) {
-    next(exception)
+    callback(exception)
   }
 }
 
@@ -186,11 +181,10 @@ const deleteTracesOfFailedWorkContract = async (workerId, businessId, agencyId, 
  * Deletes leftover traces in agencys businessContracts array list
  * @param {ObjectId} agencyid AgencyId - used to findAndUpdate Agency
  * @param {ObjectId} contractid BusinessContractId - used to pull correct from Agency
- * @param {next} next
  * @param {callback} callback
  * @return {Boolean} request.success = true/false
  */
-const deleteAgencyTracesOfBusinessContract = async (agencyid,contractid,next,callback) => {
+const deleteAgencyTracesOfBusinessContract = async (agencyid,contractid,callback) => {
   try {
     await Agency.findByIdAndUpdate(
       agencyid,
@@ -205,7 +199,7 @@ const deleteAgencyTracesOfBusinessContract = async (agencyid,contractid,next,cal
       }
     )
   } catch (exception) {
-    next(exception)
+    callback(exception)
   }
 }
 
@@ -214,11 +208,10 @@ const deleteAgencyTracesOfBusinessContract = async (agencyid,contractid,next,cal
  * If trace is deleted adds boolean true to variable.
  * One of the returned values workerTraceRemoved or businessTraceRemoved is undefined.
  * @param {BusinessContract} contract
- * @param {next} next
  * @param {callback} callback
  * @returns {Boolean} workerTraceRemoved, boolean businessTraceRemoved, boolean agencyTraceRemoved
  */
-const deleteTracesOfBusinessContract = async (contract,next,callback) => {
+const deleteTracesOfBusinessContract = async (contract,callback) => {
   try {
     let workerTraceRemoved = undefined
     let businessTraceRemoved = undefined
@@ -269,7 +262,7 @@ const deleteTracesOfBusinessContract = async (contract,next,callback) => {
       }
     )
   } catch (exception) {
-    next(exception)
+    callback(exception)
   }
 }
 

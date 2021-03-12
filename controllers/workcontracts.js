@@ -135,10 +135,10 @@ workcontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWorker,
  * @throws {JSON} Status 500 - reponse.body: {
  * message: "Could not make WorkContract because agency,business and worker allready have WorkContract. No WorkContract created but references were deleted." }
  * @throws {JSON} Status 500 - reponse.body: {
- * message: "Could not make WorkContract. No WorkContract created and references were not deleted."}
+ * message: "Could not make WorkContract. No WorkContract created and references were not deleted. WorkContract allready exist"}
  * @returns {JSON} Status 201 - response.body: { created: domainUrl + workContractsApiPath + contract._id }
  */
-workcontractsRouter.post("/test", authenticateToken, needsToBeAgency, bodyBusinessExists, bodyWorkerExists, checkAgencyBusinessContracts, async (request, response, next) => {
+workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessExists, bodyWorkerExists, checkAgencyBusinessContracts, async (request, response, next) => {
   try {
     //checkAgencyBusinessContracts function checks commonContractIndex
     if (request.commonContractIndex === -1) {
@@ -169,7 +169,7 @@ workcontractsRouter.post("/test", authenticateToken, needsToBeAgency, bodyBusine
     let noErrorInDelete = null
     await Agency.findOneAndUpdate( { _id: response.locals.decoded.id }, { $addToSet: { workContracts: contractToCreate._id } }, async (error, result) => {
       if (error || !result) {
-        await deleteTracesOfFailedWorkContract(null, request.body.businessId, response.locals.decoded.id, contractToCreate._id, next,
+        await deleteTracesOfFailedWorkContract(null, request.body.businessId, response.locals.decoded.id, contractToCreate._id,
           (result) => {
             noErrorInDelete = result.success
           })
@@ -189,7 +189,7 @@ workcontractsRouter.post("/test", authenticateToken, needsToBeAgency, bodyBusine
     noErrorInDelete = null
     await User.findOneAndUpdate( { _id: request.body.workerId }, { $addToSet: { workContracts: contractToCreate._id } }, async (error, result) => {
       if (error || !result) {
-        await deleteTracesOfFailedWorkContract(request.body.workerId, request.body.businessId, response.locals.decoded.id, contractToCreate._id, next,
+        await deleteTracesOfFailedWorkContract(request.body.workerId, request.body.businessId, response.locals.decoded.id, contractToCreate._id,
           (result) => {
             noErrorInDelete = result.success
           })
@@ -219,7 +219,7 @@ workcontractsRouter.post("/test", authenticateToken, needsToBeAgency, bodyBusine
     }
     //If contract allready exist deleteTraces, if not return response url.
     if (!contract) {
-      await deleteTracesOfFailedWorkContract(request.body.workerId, request.body.businessId, response.locals.decoded.id, contractToCreate._id, next,
+      await deleteTracesOfFailedWorkContract(request.body.workerId, request.body.businessId, response.locals.decoded.id, contractToCreate._id,
         (result) => {
           noErrorInDelete = result.success
         })
@@ -230,7 +230,7 @@ workcontractsRouter.post("/test", authenticateToken, needsToBeAgency, bodyBusine
       } else {
         return response
           .status(500)
-          .send({ message: "Could not make WorkContract. No WorkContract created and references were not deleted." })
+          .send({ message: "Could not make WorkContract. No WorkContract created and references were not deleted. WorkContract allready exist" })
       }
     } else {
       return response
@@ -320,7 +320,7 @@ workcontractsRouter.delete("/:contractId",authenticateToken,needsToBeAgency,work
       request.workContract.user,
       request.workContract.business,
       request.workContract.agency,
-      request.params.contractId,next,
+      request.params.contractId,
       async (result) => {
         if (result.workerTraceRemoved === true && result.businessTraceRemoved === true && result.agencyTraceRemoved === true) {
           await WorkContract.findByIdAndDelete(
