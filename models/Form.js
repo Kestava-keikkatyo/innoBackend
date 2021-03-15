@@ -1,5 +1,6 @@
 const mongoose = require("mongoose")
-const uniqueValidator = require("mongoose-unique-validator")
+//const uniqueValidator = require("mongoose-unique-validator")
+const mongoosePaginate = require('mongoose-paginate-v2');
 
 const formSchema = mongoose.Schema({
   title: {
@@ -272,6 +273,11 @@ const formSchema = mongoose.Schema({
       }
     }]
   },
+  tags: [{
+    type: String,
+    minlength: 0,
+    maxlength: 20
+  }],
   createdAt: {
     type: Date,
     default: Date.now,
@@ -279,7 +285,7 @@ const formSchema = mongoose.Schema({
   }
 })
 
-formSchema.plugin(uniqueValidator)
+formSchema.plugin(mongoosePaginate)
 
 formSchema.set("toJSON", {
   transform: (document, returnedObject) => {

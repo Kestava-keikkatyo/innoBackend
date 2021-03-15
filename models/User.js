@@ -78,7 +78,7 @@ userSchema.plugin(uniqueValidator)
 
 userSchema.set("toJSON", {
   transform: (document, returnedObject) => {
-    returnedObject.id = returnedObject._id.toString()
+    if (returnedObject._id) returnedObject.id = returnedObject._id.toString() // TODO do this in other models as well, and for other fields. if _id field is excluded, it will be undefined and trying to call toString on it will crash
     returnedObject.feelings.forEach(feeling => feeling.id = feeling._id)
     returnedObject.feelings.forEach(feeling => delete feeling._id)
     delete returnedObject._id

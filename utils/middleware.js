@@ -388,7 +388,7 @@ const needsToBeBusiness = (request, response, next) => {
 /**
  * Checks if the logged in user is a Worker.
  * Worker object from database is populated to request.worker.
- * @param {String} request.locals.decoded.id - UsersId (AgencyId) from token.
+ * @param {String} request.locals.decoded.id - UsersId (AgencyId) from token. // TODO response.locals...
  * @param {Object} request
  * @param {Object} response
  * @param {Function} next

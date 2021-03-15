@@ -72,10 +72,13 @@ const addFormToAgencyOrBusiness = (AgencyOrBusiness, id, form, response, next) =
 
 /**
  * Route for agency/business to get their own forms
- * returns an array of form objects. response.body: [{form object}, {form object}, ...]
+ * returns an array. response.body: [{tags: [], title: "title", description: "description", id: "id"}, {...}, ...] //TODO update return in docs
  */
 formsRouter.get("/me", authenticateToken, needsToBeAgencyOrBusiness, async (request, response, next) => {
   try {
+    const page = request.query.page
+    const limit = request.query.limit
+
     let formIds = null
     if (request.agency) {
       formIds = request.agency.forms
@@ -84,13 +87,25 @@ formsRouter.get("/me", authenticateToken, needsToBeAgencyOrBusiness, async (requ
     } else {
       return response.status(500).send( { error: "Error determining whether user is agency or business" })
     }
-    let temp = null
-    let forms = []
-    for (const id of formIds) {
-      temp = await Form.findById(id).exec()
-      forms.push(temp)
+    if (page < 1 || !page) {
+      return response.status(400).send({ message: "Missing or incorrect page parameter" })
     }
-    response.status(200).json(forms)
+    if (limit < 1 || !limit) {
+      return response.status(400).send({ message: "Missing or incorrect limit parameter" })
+    }
+    // Get limit's amount of own forms in specified page
+    Form.paginate({ _id: { $in: formIds } },
+      { projection: "title description tags", page: page, limit: limit },
+      (error, result) => {
+        if (error || !result) {
+          response.status(500).send( error || { message: "Did not receive a result from database" })
+        } else {
+          if (result.docs.length === 0) {
+            return response.status(404).send( error || { message: "Could not find any forms made by you" })
+          }
+          response.status(200).send(result)
+        }
+      })
   } catch (exception) {
     next(exception)
   }
@@ -98,10 +113,13 @@ formsRouter.get("/me", authenticateToken, needsToBeAgencyOrBusiness, async (requ
 
 /**
  * Route for agency/business to get all public forms, excluding their own forms.
- * returns an array of form objects. response.body: [{form object}, {form object}, ...]
+ * returns an array. response.body: [{tags: [], title: "title", description: "description", id: "id"}, {...}, ...]
  */
 formsRouter.get("/", authenticateToken, needsToBeAgencyOrBusiness, async (request, response, next) => {
   try {
+    const page = request.query.page
+    const limit = request.query.limit
+
     let myForms = null
     if (request.agency) {
       myForms = request.agency.forms
@@ -110,13 +128,41 @@ formsRouter.get("/", authenticateToken, needsToBeAgencyOrBusiness, async (reques
     } else {
       return response.status(500).send( { error: "Error determining whether user is agency or business" })
     }
-    // Get all public forms, except forms with ids that are in myForms
-    Form.find({ _id: { $nin: myForms }, isPublic: true }, (error, forms) => {
-      if (error || !forms || forms.length === 0) {
-        response.status(404).send( error || { message: "Could not find any public forms not made by you" })
-      } else {
-        response.status(200).json(forms)
+    if (page < 1 || !page) {
+      return response.status(400).send({ message: "Missing or incorrect page parameter" })
+    }
+    if (limit < 1 || !limit) {
+      return response.status(400).send({ message: "Missing or incorrect limit parameter" })
+    }
+    // Get limit's amount of public forms in specified page, except forms with ids that are in myForms
+    Form.paginate({ _id: { $nin: myForms }, isPublic: true },
+      { projection: "title description tags", page: page, limit: limit },
+      (error, result) => {
+        if (error || !result) {
+          response.status(500).send( error || { message: "Did not receive a result from database" })
+        } else {
+          if (result.docs.length === 0) {
+            return response.status(404).send( error || { message: "Could not find any public forms not made by you" })
+          }
+          response.status(200).json(result)
+        }
+      })
+  } catch (exception) {
+    next(exception)
+  }
+})
+
+/** TODO Should probably check if the form is either public or their own. Otherwise able to get private forms by knowing the id
+ * Route for agency/business to get the full form object by its id.
+ * Returns the form object according to the Form model.
+ */
+formsRouter.get("/:formId", authenticateToken, needsToBeAgencyOrBusiness, async (request, response, next) => {
+  try {
+    Form.findById(request.params.formId, (error, form) => {
+      if (error || !form) {
+        return response.status(404).send(error || { message: `Could not find form with id ${request.params.formId}` })
       }
+      response.status(200).send(form)
     })
   } catch (exception) {
     next(exception)

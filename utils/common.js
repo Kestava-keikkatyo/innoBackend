@@ -8,10 +8,11 @@ const User = require("../models/User")
 const Business = require("../models/Business")
 const Agency = require("../models/Agency")
 
+const logger = require("../utils/logger")
 /**
  * Checks if a worker with param id exists.
- * @param {ObjectID} id
- * @param {callback} callback
+ * @param {string} id
+ * @param {Function} callback
  * @returns Worker Object, if worker exists. False, if not.
 */
 const workerExists = (id, callback) => {
@@ -24,7 +25,8 @@ const workerExists = (id, callback) => {
       }
     })
   } catch (exception) {
-    callback(exception)
+    logger.error(exception)
+    callback(false)
   }
 }
 
@@ -32,7 +34,7 @@ const workerExists = (id, callback) => {
  * Checks through an array of worker ids,and returns an array of ids that exist.
  * Returned list may contain duplicates, if the param array had them.
  * @param {Array} workerIdArray
- * @param {callback} callback
+ * @param {Function} callback
  * @returns {JSON} {existingWorkerIds: existingWorkerIds, nonExistingWorkerIds: nonExistingWorkerIds}
  */
 const whichWorkersExist = (workerIdArray,callback) => {
@@ -67,24 +69,17 @@ const whichWorkersExist = (workerIdArray,callback) => {
  * Gives all matching contracts to callback
  * @param {BusinessContract|WorkContract} contractType
  * @param {Array} contracts
- * @param {ObjectId} workerId
- * @param {callback} callback
+ * @param {string} workerId
+ * @param {Function} callback
  * @returns {Array} contractsArray
  */
 const workerExistsInContracts = (contractType, contracts, workerId,callback) => {
   try {
-    let counter = 0
-    let contractsArray = []
-    contracts.forEach((contractId, index, array) => {
-      contractType.findById(contractId, (error, result) => {
-        if (result && !error) {
-          contractsArray.push(result)
-        }
-        counter++
-        if (counter === array.length) {
-          callback(contractsArray)
-        }
-      })
+    contractType.find({ _id: { $in: contracts } }, (error, result) => {
+      if (error) {
+        logger.error(`error message: ${error.message}\n${error}`)
+      }
+      callback(result)
     })
   } catch (exception) {
     callback(exception)
@@ -93,8 +88,8 @@ const workerExistsInContracts = (contractType, contracts, workerId,callback) => 
 
 /**
  * Checks if a business with param id exists.
- * @param {ObjectId} id
- * @param {callback} callback
+ * @param {string} id
+ * @param {Function} callback
  * @returns {Business|Boolean} Business Object, if worker exists. False, if not.
 */
 const businessExists = (id,callback) => {
@@ -114,11 +109,11 @@ const businessExists = (id,callback) => {
  * Deletes traces of failed WorkContract from business, agency and user collection.
  * If you don't wanna delete some references you can leave id value ass null.
  * This function is used in workcontract.js in POST workcontract route.
- * @param {ObjectId} workerId User/Workers Id - used to find right worker / can be null
- * @param {ObjectId} businessId Business Id - used to find right business / can be null
- * @param {ObjectId} agencyId Agency ObjecId - used to find right agency / can be null
- * @param {ObjectId} contractToCreateid ContractId - contract that failed save to db
- * @param {callback} callback
+ * @param {string} workerId User/Workers Id - used to find right worker / can be null
+ * @param {string} businessId Business Id - used to find right business / can be null
+ * @param {string} agencyId Agency ObjecId - used to find right agency / can be null
+ * @param {string} contractToCreateid ContractId - contract that failed save to db
+ * @param {Function} callback
  * @returns {Boolean} {workerTraceRemoved,businessTraceRemoved,agencyTraceRemoved}
  */
 const deleteTracesOfFailedWorkContract = async (workerId, businessId, agencyId, contractToCreateid,callback) => {
@@ -179,9 +174,9 @@ const deleteTracesOfFailedWorkContract = async (workerId, businessId, agencyId, 
 
 /**
  * Deletes leftover traces in agencys businessContracts array list
- * @param {ObjectId} agencyid AgencyId - used to findAndUpdate Agency
- * @param {ObjectId} contractid BusinessContractId - used to pull correct from Agency
- * @param {callback} callback
+ * @param {string} agencyid AgencyId - used to findAndUpdate Agency
+ * @param {string} contractid BusinessContractId - used to pull correct from Agency
+ * @param {Function} callback
  * @return {Boolean} request.success = true/false
  */
 const deleteAgencyTracesOfBusinessContract = async (agencyid,contractid,callback) => {
@@ -208,7 +203,7 @@ const deleteAgencyTracesOfBusinessContract = async (agencyid,contractid,callback
  * If trace is deleted adds boolean true to variable.
  * One of the returned values workerTraceRemoved or businessTraceRemoved is undefined.
  * @param {BusinessContract} contract
- * @param {callback} callback
+ * @param {Function} callback
  * @returns {Boolean} workerTraceRemoved, boolean businessTraceRemoved, boolean agencyTraceRemoved
  */
 const deleteTracesOfBusinessContract = async (contract,callback) => {
