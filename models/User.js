@@ -1,6 +1,6 @@
 const mongoose = require("mongoose")
-const uniqueValidator = require("mongoose-unique-validator")
-
+//const uniqueValidator = require("mongoose-unique-validator")
+const mongoosePaginate = require('mongoose-paginate-v2');
 //https://mongoosejs.com/docs/validation.html
 //email validator tarkistettava toimiiko halutulla tavalla, samoin phonenumber validator
 const userSchema = mongoose.Schema({
@@ -74,13 +74,15 @@ const userSchema = mongoose.Schema({
   }
 })
 
-userSchema.plugin(uniqueValidator)
+userSchema.plugin(mongoosePaginate)
 
 userSchema.set("toJSON", {
   transform: (document, returnedObject) => {
     if (returnedObject._id) returnedObject.id = returnedObject._id.toString() // TODO do this in other models as well, and for other fields. if _id field is excluded, it will be undefined and trying to call toString on it will crash
-    returnedObject.feelings.forEach(feeling => feeling.id = feeling._id)
-    returnedObject.feelings.forEach(feeling => delete feeling._id)
+    if (returnedObject.feelings !== undefined) {
+      returnedObject.feelings.forEach(feeling => feeling.id = feeling._id)
+      returnedObject.feelings.forEach(feeling => delete feeling._id)
+    }
     delete returnedObject._id
     delete returnedObject.__v
     delete returnedObject.passwordHash

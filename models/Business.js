@@ -1,6 +1,6 @@
 const mongoose = require("mongoose")
-const uniqueValidator = require("mongoose-unique-validator")
-
+//const uniqueValidator = require("mongoose-unique-validator")
+const mongoosePaginate = require('mongoose-paginate-v2');
 const businessSchema = mongoose.Schema({
   name: {
     type: String,
@@ -76,7 +76,7 @@ const businessSchema = mongoose.Schema({
   }
 })
 
-businessSchema.plugin(uniqueValidator)
+businessSchema.plugin(mongoosePaginate)
 
 businessSchema.set("toJSON", {
   transform: (document, returnedObject) => {

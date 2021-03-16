@@ -1,6 +1,6 @@
 const mongoose = require("mongoose")
-const uniqueValidator = require("mongoose-unique-validator")
-
+//const uniqueValidator = require("mongoose-unique-validator")
+const mongoosePaginate = require('mongoose-paginate-v2');
 //https://mongoosejs.com/docs/validation.html
 //email validator tarkistettava toimiiko halutulla tavalla
 const agencySchema = mongoose.Schema({
@@ -80,7 +80,7 @@ const agencySchema = mongoose.Schema({
   }
 })
 
-agencySchema.plugin(uniqueValidator)
+agencySchema.plugin(mongoosePaginate)
 
 agencySchema.set("toJSON", {
   transform: (document, returnedObject) => {

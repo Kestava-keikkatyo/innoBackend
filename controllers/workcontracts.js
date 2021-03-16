@@ -76,24 +76,47 @@ workcontractsRouter.get("/:contractId", authenticateToken, needsToBeAgencyBusine
  */
 workcontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWorker, async (request, response, next) => {
   try {
+    //Initialise page,limit,myId,model
+    const page = request.query.page
+    const limit = request.query.limit
+    let myId = null
+    let model = null
+    //Check that page and limit exist and are not bellow 1
+    if (page < 1 || !page) {
+      return response.status(400).send({ message: "Missing or incorrect page parameter" })
+    }
+    if (limit < 1 || !limit) {
+      return response.status(400).send({ message: "Missing or incorrect limit parameter" })
+    }
+    //Which id is in question
     if (request.agency !== undefined) {
-      const populatedUser = await Agency.findById(request.agency.id).populate({
-        path:"workContracts", model: "WorkContract" }).exec()
-      return response.status(200).send(populatedUser.workContracts)
+      myId = request.agency.id
+      model = Agency
     }
     else if (request.business !== undefined) {
-      const populatedUser = await Business.findById(request.business.id).populate({
-        path:"workContracts", model: "WorkContract" }).exec()
-      return response.status(200).send(populatedUser.workContracts)
+      myId = request.business.id
+      model = Business
     }
     else if (request.worker !== undefined) {
-      const populatedUser = await User.findById(request.worker.id).populate({
-        path:"workContracts", model: "WorkContract" }).exec()
-      return response.status(200).send(populatedUser.workContracts)
+      myId = request.worker.id
+      model = User
     }
     else {
       return response.status(400).send({ message:"Token didn't have any users." })
     }
+    //Do the pagination
+    model.paginate({ _id: { $in: myId } },
+      { projection:"workContracts", populate: {path:"workContracts", model: "WorkContract", page: page, limit: limit} },
+      (error, result) => {
+        if (error || !result) {
+          response.status(500).send( error.message || { message: "Did not receive a result from database." })
+        } else {
+          if (result.docs.length === 0) {
+            return response.status(404).send( { message: "Could not find any WorkContracts." })
+          }
+          response.status(200).json(result)
+        }
+      })
   } catch (exception) {
     next(exception)
   }

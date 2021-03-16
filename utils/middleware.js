@@ -368,7 +368,7 @@ const needsToBeAgency = (request, response, next) => {
  * @param {Function} next
  * @throws {JSON} Status 401 - response.body: { message: "This route only available to Business users." }
  * @throws {JSON} Status 500 - response.body: { exception }
- * @returns {e.NextFunction} next()
+ * @returns {Function} next()
 */
 const needsToBeBusiness = (request, response, next) => {
   try {
