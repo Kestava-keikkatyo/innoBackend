@@ -1,8 +1,15 @@
-const mongoose = require("mongoose")
-const uniqueValidator = require("mongoose-unique-validator")
+import mongoose, {Schema, Document} from "mongoose"
+import uniqueValidator from "mongoose-unique-validator"
 
+export interface IWorkContract extends Document {
+  createdAt: any,
+  validityPeriod: Date,
+  user: any,
+  business: any,
+  agency: any
+}
 
-const workContractSchema = mongoose.Schema({
+const workContractSchema = new Schema({
   createdAt: {
     type: Date,
     default: Date.now,
@@ -29,7 +36,7 @@ const workContractSchema = mongoose.Schema({
 workContractSchema.plugin(uniqueValidator)
 
 workContractSchema.set("toJSON", {
-  transform: (document, returnedObject) => {
+  transform: (_doc: any, returnedObject: any) => {
     returnedObject.id = returnedObject._id.toString()
     delete returnedObject._id
     delete returnedObject.__v
@@ -37,6 +44,4 @@ workContractSchema.set("toJSON", {
   }
 })
 
-const WorkContract = mongoose.model("WorkContract", workContractSchema)
-
-module.exports = WorkContract
+export default mongoose.model<IWorkContract>("WorkContract", workContractSchema)

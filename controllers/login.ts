@@ -1,9 +1,11 @@
-const jwt = require("jsonwebtoken")
-const bcrypt = require("bcryptjs")
-const loginRouter = require("express").Router()
-const User = require("../models/User")
-const Business = require("../models/Business")
-const Agency = require("../models/Agency")
+import express from "express"
+import jwt from "jsonwebtoken"
+import bcrypt from "bcryptjs"
+import User from "../models/User"
+import Business from "../models/Business"
+import Agency from "../models/Agency"
+
+const loginRouter = express.Router()
 
 loginRouter.post("/worker", async (request, response) => {
   const body = request.body
@@ -22,7 +24,7 @@ loginRouter.post("/worker", async (request, response) => {
     email: user.email,
     id: user._id,
   }
-  const token = jwt.sign(userForToken, process.env.SECRET)
+  const token = jwt.sign(userForToken, process.env.SECRET || '')
 
   response
     .status(200)
@@ -47,7 +49,7 @@ loginRouter.post("/business", async (request, response) => {
     id: business._id,
   }
 
-  const token = jwt.sign(businessForToken, process.env.SECRET)
+  const token = jwt.sign(businessForToken, process.env.SECRET || '')
 
   response
     .status(200)
@@ -71,7 +73,7 @@ loginRouter.post("/agency", async (request, response) => {
     email: agency.email,
     id: agency._id,
   }
-  const token = jwt.sign(agencyForToken, process.env.SECRET)
+  const token = jwt.sign(agencyForToken, process.env.SECRET || '')
 
   response
     .status(200)

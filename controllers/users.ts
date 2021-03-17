@@ -9,16 +9,19 @@
  * @const
  * @namespace usersRouter
 */
-const usersRouter = require("express").Router()
-const bcrypt = require("bcryptjs")
-const jwt = require("jsonwebtoken")
-const logger = require("../utils/logger")
-const authenticateToken = require("../utils/auhenticateToken")
+import express from "express"
+import { hash } from "bcryptjs"
+import { sign } from "jsonwebtoken"
+import { info, error as _error } from "../utils/logger"
+import authenticateToken from "../utils/auhenticateToken"
 
-const User = require("../models/User")
-const Agency = require("../models/Agency")
-const BusinessContract = require("../models/BusinessContract")
-const { needsToBeWorker } = require("../utils/middleware")
+import User from "../models/User"
+import Agency from "../models/Agency"
+import BusinessContract from "../models/BusinessContract"
+import { needsToBeWorker } from "../utils/middleware"
+
+
+const usersRouter = express.Router()
 
 /**
  * request.body requirements: {name: "name", email: "email", password: "password"}
@@ -40,7 +43,7 @@ usersRouter.post("/", async (request, response, next) => {
         .json({ error: "Password length less than 3 characters" })
     }
     const saltRounds = 10
-    const passwordHash = await bcrypt.hash(body.password, saltRounds)
+    const passwordHash = await hash(body.password, saltRounds)
     const userToCreate = new User({
       name: body.name,
       email: body.email,
@@ -53,7 +56,7 @@ usersRouter.post("/", async (request, response, next) => {
       id: userToCreate._id,
     }
 
-    const token = jwt.sign(userForToken, process.env.SECRET)
+    const token = sign(userForToken, process.env.SECRET || '')
 
     response
       .status(200)
@@ -72,12 +75,12 @@ usersRouter.post("/", async (request, response, next) => {
  * @inner
  * @returns {JSON} response.body: { The found Worker object }
  */
-usersRouter.get("/me", authenticateToken, async (request, response, next) => {
+usersRouter.get("/me", authenticateToken, async (_request, response, next) => {
   try {
     //Decodatun tokenin arvo haetaan middlewarelta
     const decoded = response.locals.decoded
     //Tokeni pitää sisällään userid jolla etsitään oikean käyttäjän tiedot
-    User.findById({ _id: decoded.id }, (error, result) => {
+    User.findById({ _id: decoded.id }, (error: any, result: any) => {
       //Jos ei resultia niin käyttäjän tokenilla ei löydy käyttäjää
       if (!result || error) {
         response.status(401).send(error || { message: "Not authorized" })
@@ -114,7 +117,7 @@ usersRouter.put("/", authenticateToken, async (request, response, next) => {
           .json({ error: "password length less than 3 characters" })
       }
       const saltRounds = 10
-      passwordHash = await bcrypt.hash(body.password, saltRounds)
+      passwordHash = await hash(body.password, saltRounds)
     }
 
     // Poistetaan passwordHash bodysta
@@ -190,7 +193,7 @@ usersRouter.get("/businesscontracts", authenticateToken, needsToBeWorker, async 
   let temp = null
   try {
     if (contractIds) {
-      logger.info("Searching database for BusinessContracts: " + contractIds)
+      info("Searching database for BusinessContracts: " + contractIds)
       contractIds.forEach(async (contractId, index, contractIds) => { // Go through every contractId and, find contract data and push it to array "contracts".
         temp = await BusinessContract.findById(contractId).exec()
         if (temp) {
@@ -199,7 +202,7 @@ usersRouter.get("/businesscontracts", authenticateToken, needsToBeWorker, async 
         }
 
         if (index === contractIds.length-1) { // If this was the last contract to find, send response
-          logger.info("BusinessContracts to Response: " + contracts)
+          info("BusinessContracts to Response: " + contracts)
           return response
             .status(200)
             .json(contracts)
@@ -211,9 +214,9 @@ usersRouter.get("/businesscontracts", authenticateToken, needsToBeWorker, async 
         .json(contracts)
     }
   } catch (exception) {
-    logger.error(exception)
+    _error(exception)
     next(exception)
   }
 })
 
-module.exports = usersRouter
+export default usersRouter

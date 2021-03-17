@@ -1,12 +1,13 @@
+import express from 'express'
+import authenticateToken from "../utils/auhenticateToken"
 
-const formsRouter = require("express").Router()
-const authenticateToken = require("../utils/auhenticateToken")
+import { error as _error } from "../utils/logger"
+import Form from "../models/Form"
+import Business from "../models/Business"
+import Agency from "../models/Agency"
+import { needsToBeAgencyOrBusiness } from "../utils/middleware"
 
-const logger = require("../utils/logger")
-const Form = require("../models/Form")
-const Agency = require("../models/Agency")
-const Business = require("../models/Business")
-const { needsToBeAgencyOrBusiness } = require("../utils/middleware")
+const formsRouter = express.Router()
 
 /**
  * Returns the added form.
@@ -35,7 +36,7 @@ formsRouter.post("/", authenticateToken, needsToBeAgencyOrBusiness, async (reque
       } else if (request.business) {
         addFormToAgencyOrBusiness( Business, response.locals.decoded.id, result, response, next)
       } else {
-        logger.error("Could not determine whether user is agency or business")
+        _error("Could not determine whether user is agency or business")
         response.status(500).send( { error: "Could not determine whether user is agency or business" })
       }
     })

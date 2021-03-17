@@ -16,7 +16,7 @@ const BusinessContract = require("../models/BusinessContract")
 const WorkContract = require("../models/WorkContract")
 const  { deleteAgencyTracesOfBusinessContract } = require("../utils/common")
 
-const requestLogger = (request, response, next) => {
+export const requestLogger = (request, _response, next) => {
   logger.info("Method:", request.method)
   logger.info("Path:  ", request.path)
   logger.info("Body:  ", request.body)
@@ -24,11 +24,11 @@ const requestLogger = (request, response, next) => {
   next()
 }
 
-const unknownEndpoint = (request, response) => {
+export const unknownEndpoint = (_request, response) => {
   response.status(404).send({ error: "unknown endpoint" })
 }
 
-const errorHandler = (error, request, response, next) => {
+export const errorHandler = (error, _request, response, next) => {
   logger.error(error.message)
 
   if (error.name === "CastError" && error.kind === "ObjectId") {
@@ -50,7 +50,7 @@ const errorHandler = (error, request, response, next) => {
  * @throws {JSON} Status 400 - response.body: { error: "No businessId in request body." }
  * @returns {Function} next()
  */
-const bodyBusinessExists = (request, response, next) => {
+export const bodyBusinessExists = (request, response, next) => {
   try {
     if (request.body.businessId) {
       return Business.findById({ _id: request.body.businessId }, (error, result) => {
@@ -77,7 +77,7 @@ const bodyBusinessExists = (request, response, next) => {
  * @throws {JSON} Status 400 - response.body: { error: "No workerId in request body." }
  * @returns {Function} next()
 */
-const bodyWorkerExists = (request, response, next) => {
+export const bodyWorkerExists = (request, response, next) => {
   try {
     if (request.body.workerId) {
       return User.findById({ _id: request.body.workerId }, (error, result) => {
@@ -109,7 +109,7 @@ const bodyWorkerExists = (request, response, next) => {
  * @throws {JSON} Status 404 - response.body: { error: "Body doesn't include workerId or businessId" }
  * @returns {Function} next()
 */
-const bodyWorkerOrBusinessExists = (request, response, next) => {
+export const bodyWorkerOrBusinessExists = (request, response, next) => {
   try {
     if (request.body.workerId && !request.body.businessId) {
       return User.findById({ _id: request.body.workerId }, (error, result) => {
@@ -150,7 +150,7 @@ const bodyWorkerOrBusinessExists = (request, response, next) => {
  * @throws {JSON} Status 400 - response.body: { error: "No :agencyId in url." }
  * @returns {Function} next()
 */
-const agencyExists = (request, response, next) => {
+export const agencyExists = (request, response, next) => {
   try {
     if (request.params.agencyId) {
       return Agency.findById({ _id: request.params.agencyId }, (error, result) => {
@@ -180,7 +180,7 @@ const agencyExists = (request, response, next) => {
  * @throws {JSON} Status 400 - response.body: { error: "No :businessId in url." }
  * @returns {Function} next()
 */
-const businessExists = (request, response, next) => {
+export const businessExists = (request, response, next) => {
   try {
     if (request.params.businessId) {
       return Business.findById({ _id: request.params.businessId }, (error, result) => {
@@ -210,7 +210,7 @@ const businessExists = (request, response, next) => {
  * @throws {JSON} Status 400 - request.body: { error: "No :businessContractId in url." }
  * @returns {Function} next()
 */
-const businessContractExists = (request, response, next) => {
+export const businessContractExists = (request, response, next) => {
   try {
     if (request.params.businessContractId) {
       return BusinessContract.findById({ _id: request.params.businessContractId }, (error, result) => {
@@ -239,7 +239,7 @@ const businessContractExists = (request, response, next) => {
  * @throws {JSON} Status 500 - response.body: { exception }
  * @returns {Function} next()
  */
-const businessContractIncludesUser = (request,response,next) => {
+export const businessContractIncludesUser = (request,response,next) => {
   try {
     if (request.businessContract !== undefined) {
       if (request.businessContract.agency._id.toString() === response.locals.decoded.id.toString()) {
@@ -279,7 +279,7 @@ const businessContractIncludesUser = (request,response,next) => {
  * @throws {JSON} Status 500 - response.body: { exception }
  * @returns {Function} next()
 */
-const workContractExists = (request,response, next) => {
+export const workContractExists = (request,response, next) => {
   try {
     if (request.params.contractId) {
       return WorkContract.findById({ _id: request.params.contractId }, (error,result) => {
@@ -309,7 +309,7 @@ const workContractExists = (request,response, next) => {
  * @throws {JSON} Status 500 - response.body: { exception }
  * @returns {Function} next()
  */
-const workContractIncludesUser = (request, response, next) => {
+export const workContractIncludesUser = (request, response, next) => {
   try {
     if (request.workContract !== undefined) {
       if (request.workContract.user._id.toString() === response.locals.decoded.id.toString()) {
@@ -344,7 +344,7 @@ const workContractIncludesUser = (request, response, next) => {
  * @throws {JSON} Status 500 - response.body: { exception }
  * @returns {Function} next()
 */
-const needsToBeAgency = (request, response, next) => {
+export const needsToBeAgency = (request, response, next) => {
   try {
     return Agency.findById({ _id: response.locals.decoded.id }, (error, result) => {
       if (error || !result) {
@@ -370,7 +370,7 @@ const needsToBeAgency = (request, response, next) => {
  * @throws {JSON} Status 500 - response.body: { exception }
  * @returns {Function} next()
 */
-const needsToBeBusiness = (request, response, next) => {
+export const needsToBeBusiness = (request, response, next) => {
   try {
     return Business.findById({ _id: response.locals.decoded.id }, (error, result) => {
       if (error || !result) {
@@ -396,7 +396,7 @@ const needsToBeBusiness = (request, response, next) => {
  * @throws {JSON} Status 500 - response.body: { exception }
  * @returns {Function} next()
 */
-const needsToBeWorker = (request, response, next) => {
+export const needsToBeWorker = (request, response, next) => {
   try {
     return User.findById({ _id: response.locals.decoded.id }, (error, result) => {
       if (error || !result) {
@@ -424,7 +424,7 @@ const needsToBeWorker = (request, response, next) => {
  * @throws {JSON} Status 500 - response.body: { exception }
  * @returns {Function} next()
  */
-const needsToBeAgencyOrBusiness = (request, response, next) => {
+export const needsToBeAgencyOrBusiness = (request, response, next) => {
   try {
     Agency.findById( { _id: response.locals.decoded.id }, (error, result) => {
       if (!error) {
@@ -464,7 +464,7 @@ const needsToBeAgencyOrBusiness = (request, response, next) => {
  * @throws {JSON} Status 500 - response.body: { exception }
  * @returns {Function} next()
  */
-const needsToBeBusinessOrWorker = (request, response, next) => {
+export const needsToBeBusinessOrWorker = (request, response, next) => {
   try {
     Business.findById( { _id: response.locals.decoded.id }, (error, result) => {
       if (!error) {
@@ -504,7 +504,7 @@ const needsToBeBusinessOrWorker = (request, response, next) => {
  * @throws {JSON} Status 500 - response.body: { exception }
  * @returns {Function} next()
  */
-const needsToBeAgencyBusinessOrWorker = (request,response, next) => {
+export const needsToBeAgencyBusinessOrWorker = (request,response, next) => {
   try {
     Agency.findById({ _id:response.locals.decoded.id }, (error,result) => {
       if (!error) {
@@ -550,7 +550,7 @@ const needsToBeAgencyBusinessOrWorker = (request,response, next) => {
  * @throws {JSON} Status 500 - response.body: { exception }
  * @returns {Function} next()
  */
-const checkAgencyBusinessContracts = async (request,response,next) => {
+export const checkAgencyBusinessContracts = async (request,response,next) => {
   try {
     request.commonContractIndex = -1
     if (request.agency.businessContracts || request.agency.businessContracts.length > 0) {
@@ -593,25 +593,4 @@ const checkAgencyBusinessContracts = async (request,response,next) => {
   } catch (exception) {
     return response.status(500).send({ exception })
   }
-}
-module.exports = {
-  requestLogger,
-  unknownEndpoint,
-  errorHandler,
-  bodyBusinessExists,
-  bodyWorkerExists,
-  bodyWorkerOrBusinessExists,
-  businessExists,
-  agencyExists,
-  businessContractExists,
-  businessContractIncludesUser,
-  workContractExists,
-  workContractIncludesUser,
-  needsToBeAgency,
-  needsToBeBusiness,
-  needsToBeWorker,
-  needsToBeAgencyOrBusiness,
-  needsToBeBusinessOrWorker,
-  needsToBeAgencyBusinessOrWorker,
-  checkAgencyBusinessContracts
 }

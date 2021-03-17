@@ -1,7 +1,15 @@
-const mongoose = require("mongoose")
-const uniqueValidator = require("mongoose-unique-validator")
+import mongoose, {Schema, Document} from "mongoose"
+import uniqueValidator from "mongoose-unique-validator"
 
-const businessContractSchema = mongoose.Schema({
+export interface IBusinessContract extends Document {
+  createdAt: any,
+  validityPeriod: Date,
+  user: any,
+  business: any,
+  agency: any
+}
+
+const businessContractSchema = new Schema({
   contractMade: {
     default: false,
     type: Boolean
@@ -33,7 +41,7 @@ const businessContractSchema = mongoose.Schema({
 businessContractSchema.plugin(uniqueValidator)
 
 businessContractSchema.set("toJSON", {
-  transform: (document, returnedObject) => {
+  transform: (_doc: any, returnedObject: any) => {
     returnedObject.id = returnedObject._id.toString()
     delete returnedObject._id
     delete returnedObject.__v
@@ -41,6 +49,4 @@ businessContractSchema.set("toJSON", {
   }
 })
 
-const BusinessContract = mongoose.model("BusinessContract", businessContractSchema)
-
-module.exports = BusinessContract
+export default mongoose.model<IBusinessContract>("BusinessContract", businessContractSchema)

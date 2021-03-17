@@ -1,8 +1,12 @@
-const mongoose = require("mongoose")
+import mongoose, {Schema, Document} from "mongoose";
 //const uniqueValidator = require("mongoose-unique-validator")
-const mongoosePaginate = require('mongoose-paginate-v2');
+import mongoosePaginate from 'mongoose-paginate-v2';
 
-const formSchema = mongoose.Schema({
+export interface IForm extends Document {
+  //tähän tyypitys
+}
+
+const formSchema = new Schema({
   title: {
     type: String,
     minlength: 0,
@@ -288,7 +292,7 @@ const formSchema = mongoose.Schema({
 formSchema.plugin(mongoosePaginate)
 
 formSchema.set("toJSON", {
-  transform: (document, returnedObject) => {
+  transform: (_doc: any, returnedObject: any) => {
     returnedObject.id = returnedObject._id.toString()
     delete returnedObject._id
     delete returnedObject.__v
@@ -296,7 +300,4 @@ formSchema.set("toJSON", {
   }
 })
 
-
-const Form = mongoose.model("Form", formSchema)
-
-module.exports = Form
+export default mongoose.model<IForm>("Form", formSchema)

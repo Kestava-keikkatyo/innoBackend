@@ -1,9 +1,21 @@
-const mongoose = require("mongoose")
+import mongoose, {Schema, Document} from "mongoose"
 //const uniqueValidator = require("mongoose-unique-validator")
-const mongoosePaginate = require('mongoose-paginate-v2');
-//https://mongoosejs.com/docs/validation.html
-//email validator tarkistettava toimiiko halutulla tavalla
-const agencySchema = mongoose.Schema({
+import mongoosePaginate from 'mongoose-paginate-v2';
+
+export interface IBusiness extends Document {
+  name: any,
+  email: any,
+  passwordHash?: any,
+  createdAt: any,
+  phonenumber: any,
+  lisences: any,
+  businessContracts: any,
+  workContracts: any,
+  feelings: any,
+  userType: any
+}
+
+const businessSchema = new Schema<any>({
   name: {
     type: String,
     minlength: 3,
@@ -15,10 +27,10 @@ const agencySchema = mongoose.Schema({
     required: true,
     immutable: true,
     validate: {
-      validator: value => {
+      validator: (value: any) => {
         return /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(value)
       },
-      message: props => `${props.value} is not a valid email address`
+      message: (props: any) => `${props.value} is not a valid email address`
     }
   },
   city: {
@@ -33,11 +45,11 @@ const agencySchema = mongoose.Schema({
   phonenumber: {
     type: String,
     validate: {
-      validator: value => {
+      validator: (value: any) => {
         // https://regexr.com/3c53v
         return /^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s./0-9]*$/g.test(value)
       },
-      message: props => `${props.value} is not a valid phone number`
+      message: (props: any) => `${props.value} is not a valid phone number`
     }
   },
   securityOfficer: {
@@ -48,8 +60,8 @@ const agencySchema = mongoose.Schema({
     required: true
   },
   createdAt: {
-    immutable: true,
     type: Date,
+    immutable: true,
     default: Date.now,
   },
   users: [
@@ -64,26 +76,24 @@ const agencySchema = mongoose.Schema({
       ref: "Form",
     },
   ],
-  businessContracts: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "BusinessContract",
-  },
-  ],
   workContracts: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: "wContract",
-  },
-  ],
+  }],
+  businessContracts: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "bContract",
+  }],
   userType: {
     type: String,
-    default: "Agency"
+    default: "Business"
   }
 })
 
-agencySchema.plugin(mongoosePaginate)
+businessSchema.plugin(mongoosePaginate)
 
-agencySchema.set("toJSON", {
-  transform: (document, returnedObject) => {
+businessSchema.set("toJSON", {
+  transform: (_doc: any, returnedObject: any) => {
     returnedObject.id = returnedObject._id.toString()
     delete returnedObject._id
     delete returnedObject.__v
@@ -91,6 +101,4 @@ agencySchema.set("toJSON", {
   },
 })
 
-const Agency = mongoose.model("Agency", agencySchema)
-
-module.exports = Agency
+export default mongoose.model<IBusiness>("Business", businessSchema)
