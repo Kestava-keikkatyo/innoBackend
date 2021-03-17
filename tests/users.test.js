@@ -1,8 +1,8 @@
-import User, { deleteMany } from "../models/User"
-import supertest from "supertest"
-import { connection } from "mongoose"
-import { usersInDb } from "./test_helper"
-import app from "../app"
+const User = require("../models/user")
+const supertest = require("supertest")
+const mongoose = require("mongoose")
+const helper = require("./test_helper")
+const app = require("../app")
 const api = supertest(app)
 
 describe("when there is initially one user at db", () => {
