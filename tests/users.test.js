@@ -1,8 +1,8 @@
-const User = require("../models/User")
-const supertest = require("supertest")
-const mongoose = require("mongoose")
-const helper = require("./test_helper")
-const app = require("../app")
+import User, { deleteMany } from "../models/User"
+import supertest from "supertest"
+import { connection } from "mongoose"
+import { usersInDb } from "./test_helper"
+import app from "../app"
 const api = supertest(app)
 
 
