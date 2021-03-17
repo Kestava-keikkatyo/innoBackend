@@ -1,4 +1,4 @@
-const User = require("../models/user")
+const User = require("../models/User")
 const supertest = require("supertest")
 const mongoose = require("mongoose")
 const helper = require("./test_helper")
