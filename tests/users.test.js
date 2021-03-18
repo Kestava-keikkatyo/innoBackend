@@ -5,6 +5,9 @@ const helper = require("./test_helper")
 const app = require("../app")
 const api = supertest(app)
 
+
+
+
 describe("when there is initially one user at db", () => {
   beforeEach(async () => {
     await deleteMany({})
@@ -39,6 +42,7 @@ describe("when there is initially one user at db", () => {
     expect(usernames).toContain(newUser.name)
   })
 })
+
 afterAll(() => {
   connection.close()
 })
