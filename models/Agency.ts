@@ -18,7 +18,7 @@ export interface IAgency extends Document {
   userType: any
 }
 
-const agencySchema = new Schema({
+const agencySchema = new Schema<any>({
   name: {
     type: String,
     minlength: 3,

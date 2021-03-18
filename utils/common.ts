@@ -4,20 +4,20 @@
  * @requires Business
  * @requires Agency
  */
-const User = require("../models/User")
-const Business = require("../models/Business")
-const Agency = require("../models/Agency")
+import User from "../models/User"
+import Business from "../models/Business"
+import Agency from "../models/Agency"
 
-const logger = require("../utils/logger")
+import { error as _error } from "../utils/logger"
 /**
  * Checks if a worker with param id exists.
  * @param {string} id
  * @param {Function} callback
  * @returns Worker Object, if worker exists. False, if not.
 */
-const workerExists = (id, callback) => {
+export const workerExists = (id:String, callback:Function) => {
   try {
-    return User.findById({ _id: id }, (error, result) => {
+    return User.findById({ _id: id }, (error:Error, result:any) => {
       if (error || !result) {
         callback(false)
       } else {
@@ -25,8 +25,9 @@ const workerExists = (id, callback) => {
       }
     })
   } catch (exception) {
-    logger.error(exception)
+    _error(exception)
     callback(false)
+    return
   }
 }
 
@@ -37,7 +38,7 @@ const workerExists = (id, callback) => {
  * @param {Function} callback
  * @returns {JSON} {existingWorkerIds: existingWorkerIds, nonExistingWorkerIds: nonExistingWorkerIds}
  */
-const whichWorkersExist = (workerIdArray,callback) => {
+export const whichWorkersExist = (workerIdArray,callback) => {
   try {
     let existingWorkerIds = []
     let nonExistingWorkerIds = []
@@ -73,11 +74,11 @@ const whichWorkersExist = (workerIdArray,callback) => {
  * @param {Function} callback
  * @returns {Array} contractsArray
  */
-const workerExistsInContracts = (contractType, contracts, workerId,callback) => {
+export const workerExistsInContracts = (contractType, contracts, workerId,callback) => {
   try {
-    contractType.find({ _id: { $in: contracts } }, (error, result) => {
+    contractType.find({ _id: { $in: contracts } }, (error:Error, result:any) => {
       if (error) {
-        logger.error(`error message: ${error.message}\n${error}`)
+        _error(`error message: ${error.message}\n${error}`)
       }
       callback(result)
     })
@@ -88,13 +89,13 @@ const workerExistsInContracts = (contractType, contracts, workerId,callback) => 
 
 /**
  * Checks if a business with param id exists.
- * @param {string} id
+ * @param {String} id
  * @param {Function} callback
- * @returns {Business|Boolean} Business Object, if worker exists. False, if not.
+ * @returns {IBusiness|Boolean} Business Object, if worker exists. False, if not.
 */
-const businessExists = (id,callback) => {
+export const businessExists = (id:String,callback:Function): any => {
   try {
-    return Business.findById({ _id: id }, (error, result) => {
+    return Business.findById({ _id: id }, (error:Error, result:any) => {
       if (error || !result) {
         callback(false)
       } else {
@@ -103,6 +104,7 @@ const businessExists = (id,callback) => {
     })
   } catch (exception) {
     callback(exception)
+    return
   }
 }
 /**
@@ -116,7 +118,7 @@ const businessExists = (id,callback) => {
  * @param {Function} callback
  * @returns {Boolean} {workerTraceRemoved,businessTraceRemoved,agencyTraceRemoved}
  */
-const deleteTracesOfFailedWorkContract = async (workerId, businessId, agencyId, contractToCreateid,callback) => {
+export const deleteTracesOfFailedWorkContract = async (workerId, businessId, agencyId, contractToCreateid,callback) => {
   try { //Needs somekind of check
     let workerTraceRemoved = undefined
     let businessTraceRemoved = undefined
@@ -179,7 +181,7 @@ const deleteTracesOfFailedWorkContract = async (workerId, businessId, agencyId, 
  * @param {Function} callback
  * @return {Boolean} request.success = true/false
  */
-const deleteAgencyTracesOfBusinessContract = async (agencyid,contractid,callback) => {
+export const deleteAgencyTracesOfBusinessContract = async (agencyid,contractid,callback) => {
   try {
     await Agency.findByIdAndUpdate(
       agencyid,
@@ -206,7 +208,7 @@ const deleteAgencyTracesOfBusinessContract = async (agencyid,contractid,callback
  * @param {Function} callback
  * @returns {Boolean} workerTraceRemoved, boolean businessTraceRemoved, boolean agencyTraceRemoved
  */
-const deleteTracesOfBusinessContract = async (contract,callback) => {
+export const deleteTracesOfBusinessContract = async (contract,callback) => {
   try {
     let workerTraceRemoved = undefined
     let businessTraceRemoved = undefined
@@ -261,12 +263,3 @@ const deleteTracesOfBusinessContract = async (contract,callback) => {
   }
 }
 
-module.exports = {
-  workerExists,
-  whichWorkersExist,
-  businessExists,
-  deleteTracesOfFailedWorkContract,
-  workerExistsInContracts,
-  deleteAgencyTracesOfBusinessContract,
-  deleteTracesOfBusinessContract,
-}

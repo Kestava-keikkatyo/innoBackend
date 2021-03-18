@@ -9,22 +9,23 @@
  * @const
  * @namespace workcontractsRouter
 */
-const workcontractsRouter = require("express").Router()
-const { body } = require("express-validator")
-const Agency = require("../models/Agency")
-const Business = require("../models/Business")
-const WorkContract = require("../models/WorkContract")
-const User = require("../models/User")
-const authenticateToken = require("../utils/auhenticateToken")
-const {
-  needsToBeAgency,
+import express from "express"
+import { body } from "express-validator"
+import Agency from "../models/Agency"
+import Business from "../models/Business"
+import WorkContract from "../models/WorkContract"
+import User from "../models/User"
+import authenticateToken from "../utils/auhenticateToken"
+import { 
+  needsToBeAgency, 
   bodyBusinessExists,
   workContractExists,
   needsToBeAgencyBusinessOrWorker,
   workContractIncludesUser,
   bodyWorkerExists,
-  checkAgencyBusinessContracts } = require("../utils/middleware")
-const { deleteTracesOfFailedWorkContract } = require("../utils/common")
+  checkAgencyBusinessContracts } from "../utils/middleware"
+import { deleteTracesOfFailedWorkContract } from "../utils/common"
+const workcontractsRouter = express.Router() 
 
 const domainUrl = "http://localhost:8000/"
 const workContractsApiPath = "workcontracts/"
@@ -56,6 +57,7 @@ workcontractsRouter.get("/:contractId", authenticateToken, needsToBeAgencyBusine
     }
   } catch (exception) {
     next(exception)
+    return response.status(500).send({ message:"OOPS SERVER ISSUE" })
   }
 })
 
@@ -107,7 +109,7 @@ workcontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWorker,
     //Do the pagination
     model.paginate({ _id: { $in: myId } },
       { projection:"workContracts", populate: {path:"workContracts", model: "WorkContract", page: page, limit: limit} },
-      (error, result) => {
+      (error:Error, result:any) => {
         if (error || !result) {
           response.status(500).send( error.message || { message: "Did not receive a result from database." })
         } else {
