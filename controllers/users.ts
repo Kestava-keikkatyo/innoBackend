@@ -24,7 +24,7 @@ import { needsToBeWorker } from "../utils/middleware"
 const usersRouter = express.Router()
 
 /**
- * request.body requirements: {name: "name", email: "email", password: "password"}
+ * req.body requirements: {name: "name", email: "email", password: "password"}
  * Route used for User registration.
  * Returns a token that is used for user log in.
  * @name POST /users
@@ -33,12 +33,12 @@ const usersRouter = express.Router()
  * @inner
  * @returns {JSON} response.body: { token, name: user.name, email: user.email, role: "worker" }
  */
-usersRouter.post("/", async (request, response, next) => {
+usersRouter.post("/", async (req, res, next) => {
   try {
-    const body = request.body
+    const body = req.body
     const passwordLength = body.password ? body.password.length : 0
     if (passwordLength < 3) {
-      return response
+      return res
         .status(400)
         .json({ error: "Password length less than 3 characters" })
     }
@@ -58,7 +58,7 @@ usersRouter.post("/", async (request, response, next) => {
 
     const token = sign(userForToken, process.env.SECRET || '')
 
-    response
+    res
       .status(200)
       .send({ token, name: user.name, email: user.email, role: "worker" })
   } catch (exception) {
@@ -73,19 +73,19 @@ usersRouter.post("/", async (request, response, next) => {
  * @function
  * @memberof module:controllers/users~usersRouter
  * @inner
- * @returns {JSON} response.body: { The found Worker object }
+ * @returns {JSON} res.body: { The found Worker object }
  */
-usersRouter.get("/me", authenticateToken, async (_request, response, next) => {
+usersRouter.get("/me", authenticateToken, async (_req, res, next) => {
   try {
     //Decodatun tokenin arvo haetaan middlewarelta
-    const decoded = response.locals.decoded
+    const decoded = res.locals.decoded
     //Tokeni pitää sisällään userid jolla etsitään oikean käyttäjän tiedot
     User.findById({ _id: decoded.id }, (error: any, result: any) => {
       //Jos ei resultia niin käyttäjän tokenilla ei löydy käyttäjää
       if (!result || error) {
-        response.status(401).send(error || { message: "Not authorized" })
+        res.status(401).send(error || { message: "Not authorized" })
       } else {
-        response.status(200).send(result)
+        res.status(200).send(result)
       }
     })
   } catch (exception) {
@@ -95,24 +95,24 @@ usersRouter.get("/me", authenticateToken, async (_request, response, next) => {
 
 /**
  * Route used to update users password.
- * Requires User logged in as a Worker. request.body OPTIONAL: Properties as per User model.
+ * Requires User logged in as a Worker. req.body OPTIONAL: Properties as per User model.
  * @name PUT /users
  * @function
  * @memberof module:controllers/users~usersRouter
  * @inner
- * @returns {JSON} response.body: { The found Worker object }
+ * @returns {JSON} res.body: { The found Worker object }
  */
-usersRouter.put("/", authenticateToken, async (request, response, next) => {
-  const body = request.body
-  const decoded = response.locals.decoded
+usersRouter.put("/", authenticateToken, async (req, res, next) => {
+  const body = req.body
+  const decoded = res.locals.decoded
   let passwordHash
 
   try {
     // Salataan uusi salasana
-    if (request.body.password) {
+    if (req.body.password) {
       const passwordLength = body.password ? body.password.length : 0
       if (passwordLength < 3) {
-        return response
+        return res
           .status(400)
           .json({ error: "password length less than 3 characters" })
       }
@@ -138,9 +138,9 @@ usersRouter.put("/", authenticateToken, async (request, response, next) => {
       { new: true, omitUndefined: true, runValidators: true })
 
     if (!updatedUser) {
-      return response.status(400).json({ error: "User not found" })
+      return res.status(400).json({ error: "User not found" })
     }
-    return response.status(200).json(updatedUser)
+    return res.status(200).json(updatedUser)
 
   } catch (exception) {
     return next(exception)
@@ -148,7 +148,7 @@ usersRouter.put("/", authenticateToken, async (request, response, next) => {
 })
 
 /**
- * Requires User logged in as an Agency. request.query.name: Worker name to be searched
+ * Requires User logged in as an Agency. req.query.name: Worker name to be searched
  * Retrieves all workers that have a matching name pattern.
  * @example
  * http://localhost:3001/api/users?name=jarmo
@@ -156,11 +156,11 @@ usersRouter.put("/", authenticateToken, async (request, response, next) => {
  * @function
  * @memberof module:controllers/users~usersRouter
  * @inner
- * @returns {JSON} response.body: { List of users }
+ * @returns {JSON} res.body: { List of users }
  */
-usersRouter.get("/", authenticateToken, async (request, response, next) => {
-  const decoded = response.locals.decoded
-  const name = request.query.name
+usersRouter.get("/", authenticateToken, async (req, res, next) => {
+  const decoded = res.locals.decoded
+  const name = req.query.name
 
   try {
     const agency = await Agency.findById(decoded.id)
@@ -169,10 +169,10 @@ usersRouter.get("/", authenticateToken, async (request, response, next) => {
       // Työpassit jätetään hausta pois
       const users = await User.find({ name: { $regex: name, $options: "i" } }, { licenses: 0 })
       if (users) {
-        return response.status(200).json(users)
+        return res.status(200).json(users)
       }
     }
-    return response.status(400).json({ error: "Users not found" })
+    return res.status(400).json({ error: "Users not found" })
   } catch (exception) {
     return next(exception)
   }
@@ -187,35 +187,37 @@ usersRouter.get("/", authenticateToken, async (request, response, next) => {
  * @inner
  * @returns {JSON} response.body: { [{businessContract1}, {businessContract2},...] }
  */
-usersRouter.get("/businesscontracts", authenticateToken, needsToBeWorker, async (request, response, next) => {
-  const contractIds = request.worker.businessContracts
-  let contracts = []
-  let temp = null
+usersRouter.get("/businesscontracts", authenticateToken, needsToBeWorker, async (req, res, next) => {
+  const { body } = req
+  const contractIds = body.worker.businessContracts
+  let contracts: any = []
+  let temp: any;
   try {
     if (contractIds) {
       info("Searching database for BusinessContracts: " + contractIds)
-      contractIds.forEach(async (contractId, index, contractIds) => { // Go through every contractId and, find contract data and push it to array "contracts".
+      // Go through every contractId and, find contract data and push it to array "contracts".
+      contractIds.forEach(async (contractId: string, index: number, contractIds: string[]) => {
         temp = await BusinessContract.findById(contractId).exec()
         if (temp) {
           contracts.push(temp)
           temp = null
         }
 
-        if (index === contractIds.length-1) { // If this was the last contract to find, send response
+        if (index === contractIds.length-1) { // If this was the last contract to find, send res
           info("BusinessContracts to Response: " + contracts)
-          return response
+          return res
             .status(200)
             .json(contracts)
         }
       })
     } else { // No contractIds in Worker, respond with empty array
-      return response
+      return res
         .status(200)
         .json(contracts)
     }
   } catch (exception) {
     _error(exception)
-    next(exception)
+    return next(exception)
   }
 })
 

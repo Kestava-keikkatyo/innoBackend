@@ -9,24 +9,24 @@
  * @const
  * @namespace businesscontractsRouter
 */
-const businesscontractsRouter = require("express").Router()
-const authenticateToken = require("../utils/auhenticateToken")
-const BusinessContract = require("../models/BusinessContract")
-const {
-  businessContractExists,
+import express, { Response } from "express"
+import authenticateToken from "../utils/auhenticateToken"
+import BusinessContract from "../models/BusinessContract"
+import { businessContractExists,
   needsToBeAgency,
   businessContractIncludesUser,
   needsToBeAgencyBusinessOrWorker,
   needsToBeBusinessOrWorker,
-  bodyWorkerOrBusinessExists
-} = require("../utils/middleware")
-const utils = require("../utils/common")
-const businessContractsApiPath = "api/businesscontracts/"
-const logger = require("../utils/logger")
+  bodyWorkerOrBusinessExists } from "../utils/middleware"
+import utils from "../utils/common"
+import { error as _error, info } from "../utils/logger"
+import Agency from "../models/Agency"
+import User from "../models/User"
+import Business from "../models/Business"
+
+const businesscontractsRouter = express.Router()
 const domainUrl = "http://localhost:3000/"
-const Agency = require("../models/Agency")
-const User = require("../models/User")
-const Business = require("../models/Business")
+const businessContractsApiPath = "api/businesscontracts/"
 
 /**
  * Route for getting one specific businessContract.
@@ -46,17 +46,22 @@ const Business = require("../models/Business")
  * @throws {JSON} Status 400 - response.body: { message: "User who is trying to use this route is not in workcontract" }
  * @returns {JSON} Status 200 - response.body: { businessContract: TheWholeBusinessContractObject }
  */
-businesscontractsRouter.get("/:businessContractId", authenticateToken, businessContractExists, businessContractIncludesUser,
-  async (request, response, next) => {
+businesscontractsRouter.get(
+  "/:businessContractId",
+  authenticateToken,
+  businessContractExists,
+  businessContractIncludesUser,
+  async (req, res, next) => {
+    const { body } = req
     try {
-      if (request.userInBusinessContract === true) {
-        return response.status(200).send(request.businessContract)
+      if (body.userInBusinessContract) {
+        return res.status(200).send(body.businessContract)
       } else {
-        return response.status(400).send({ message:"User who is trying to use this route is not in workcontract" })
+        return res.status(400).send({ message:"User who is trying to use this route is not in workcontract" })
       }
     } catch (exception) {
       console.log(exception.message)
-      next(exception)
+      return next(exception)
     }
   }
 )
@@ -75,52 +80,57 @@ businesscontractsRouter.get("/:businessContractId", authenticateToken, businessC
  * @throws {JSON} Status 400 - response.body: { message:"Token didn't have any users." }
  * @returns {JSON} Status 200 - response.body: { All users BusinessContract objects }
  */
-businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWorker,
-  async (request, response, next) => {
+businesscontractsRouter.get("/",
+  
+  authenticateToken,
+  
+    needsToBeAgencyBusinessOrWorker,
+  async (req, res, next) => {
+    const { query, body } = req
     try {
       //Initialise page,limit,myId,model
-      const page = request.query.page
-      const limit = request.query.limit
+      const page: any = query.page
+      const limit: any = query.limit
       let myId = null
       let model = null
       //Check that page and limit exist and are not bellow 1
       if (page < 1 || !page) {
-        return response.status(400).send({ message: "Missing or incorrect page parameter" })
+        return res.status(400).send({ message: "Missing or incorrect page parameter" })
       }
       if (limit < 1 || !limit) {
-        return response.status(400).send({ message: "Missing or incorrect limit parameter" })
+        return res.status(400).send({ message: "Missing or incorrect limit parameter" })
       }
       //Which id is in question
-      if (request.agency !== undefined) {
-        myId = request.agency.id
+      if (body.agency !== undefined) {
+        myId = body.agency.id
         model = Agency
       }
-      else if (request.business !== undefined) {
-        myId = request.business.id
+      else if (body.business !== undefined) {
+        myId = body.business.id
         model = Business
       }
-      else if (request.worker !== undefined) {
-        myId = request.worker.id
+      else if (body.worker !== undefined) {
+        myId = body.worker.id
         model = User
       }
       else {
-        return response.status(400).send({ message:"Token didn't have any users." })
+        return res.status(400).send({ message:"Token didn't have any users." })
       }
       //Do the pagination
       model.paginate({ _id: { $in: myId } },
         { projection:"businessContracts", populate: {path:"businessContracts", model: "BusinessContract", page: page, limit: limit} },
-        (error, result) => {
+        (error: any, result: any) => {
           if (error || !result) {
-            response.status(500).send( { error: error } || { message: "Did not receive a result from database." })
+            return res.status(500).send( { error: error } || { message: "Did not receive a result from database." })
           } else {
             if (result.docs.length === 0) {
-              return response.status(404).send( { message: "Could not find any BusinessContracts." })
+              return res.status(404).send( { message: "Could not find any BusinessContracts." })
             }
-            return response.status(200).send(result)
+            return res.status(200).send(result)
           }
         })
     } catch (exception) {
-      next(exception)
+      return next(exception)
     }
   })
 
@@ -148,66 +158,71 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
  * { message:"Agency (ID response.locals.decoded.id) already has a BusinessContract with Worker (ID request.body.businessId).", existingContract: commonContractsArray[0] }
  * @returns {JSON} Status 201 - response.body: { The created businessContract object }, response.header.Location: created businesscontract url api/businesscontracts/:businessContractId
  */
-businesscontractsRouter.post("/",authenticateToken,needsToBeAgency,bodyWorkerOrBusinessExists,
-  async (request,response,next) => {
-    try {
-      let contractToCreate = undefined
-      if (request.contractType === "Worker") { //request.contractType is from bodyWorkerOrBusinessExists() middleware
-        contractToCreate = {
-          agency: response.locals.decoded.id,
-          user: request.body.workerId,
-          contractType: "Worker"
-        }
-        const commonContractsArray = await BusinessContract.find({ // Check if worker has allready businessContract with agency.
-          agency: contractToCreate.agency,
-          user: contractToCreate.user,
-        })
-        if (commonContractsArray[0]) {
-          // The Agency already has a businessContract with the Worker
-          return response.status(400).json({
-            message:
-              "Agency (ID " +
-              response.locals.decoded.id +
-              ") already has a BusinessContract with Worker (ID " +
-              request.body.workerId +
-              ").",
-            existingContract: commonContractsArray[0],
-          })
-        }
-      } else if (request.contractType === "Business") { //request.contractType is from bodyWorkerOrBusinessExists() middleware
-        contractToCreate = {
-          agency: response.locals.decoded.id,
-          business: request.body.businessId,
-          contractType: "Business"
-        }
-        const commonContractsArray = await BusinessContract.find({ // Check if Business has allready businessContract with agency.
-          agency: response.locals.decoded.id,
-          business: request.body.businessId,
-        })
-        if (commonContractsArray[0]) {
-          // The Agency already has a businessContract with the Business
-          return response.status(400).json({
-            message:
-              "Agency (ID " +
-              response.locals.decoded.id +
-              ") already has a BusinessContract with Business (ID " +
-              request.body.businessId +
-              ").",
-            existingContract: commonContractsArray[0],
-          })
-        }
+businesscontractsRouter.post("/",
+authenticateToken,
+needsToBeAgency,
+bodyWorkerOrBusinessExists,
+async (req, res, next) => {
+  const { body } = req
+
+  try {
+    let contractToCreate = undefined
+    if (body.contractType === "Worker") { //request.contractType is from bodyWorkerOrBusinessExists() middleware
+      contractToCreate = {
+        agency: res.locals.decoded.id,
+        user: body.workerId,
+        contractType: "Worker"
       }
-      //Now we can make new businessContract
-      createBusinessContract(
-        contractToCreate,
-        response,
-        createBusinessContractCallBack
-      )
-    } catch (exception) {
-      next(exception)
+      const commonContractsArray = await BusinessContract.find({ // Check if worker has allready businessContract with agency.
+        agency: contractToCreate.agency,
+        user: contractToCreate.user,
+      })
+      if (commonContractsArray[0]) {
+        // The Agency already has a businessContract with the Worker
+        return res.status(400).json({
+          message:
+            "Agency (ID " +
+            res.locals.decoded.id +
+            ") already has a BusinessContract with Worker (ID " +
+            body.workerId +
+            ").",
+          existingContract: commonContractsArray[0],
+        })
+      }
+    } else if (body.contractType === "Business") { //request.contractType is from bodyWorkerOrBusinessExists() middleware
+      contractToCreate = {
+        agency: res.locals.decoded.id,
+        business: body.businessId,
+        contractType: "Business"
+      }
+      const commonContractsArray = await BusinessContract.find({ // Check if Business has allready businessContract with agency.
+        agency: res.locals.decoded.id,
+        business: body.businessId,
+      })
+      if (commonContractsArray[0]) {
+        // The Agency already has a businessContract with the Business
+        return res.status(400).json({
+          message:
+            "Agency (ID " +
+            res.locals.decoded.id +
+            ") already has a BusinessContract with Business (ID " +
+            body.businessId +
+            ").",
+          existingContract: commonContractsArray[0],
+        })
+      }
     }
+    //Now we can make new businessContract
+    createBusinessContract(
+      contractToCreate,
+      res,
+      createBusinessContractCallBack
+    )
+  } catch (exception) {
+    return next(exception)
   }
-)
+})
+
 /**
  * Route for a Business/Worker to accept a BusinessContract created by an Agency.
  * Requires user logged in as a Business/Worker taking part in this specific BusinessContract.
@@ -231,24 +246,32 @@ businesscontractsRouter.post("/",authenticateToken,needsToBeAgency,bodyWorkerOrB
  * @throws {JSON} Status 400 - response.body: { success: false, error: "Could not update BusinessContract with id " + request.params.businessContractId }
  * @returns {JSON} Status 200 - response.body: { The updated BusinessContract object }, response.header.Location: The updated businesscontract url api/businesscontracts/:businessContractId
  */
-businesscontractsRouter.put("/:businessContractId",authenticateToken,needsToBeBusinessOrWorker,businessContractExists,businessContractIncludesUser,
-  async (request, response, next) => {
-    try {
-      if (request.userInBusinessContract !== true) {
-        return response.status(401).send({ message: "This route is only available to Business and Worker who are in this contract." })
-      }
-      await BusinessContract.findByIdAndUpdate(request.params.businessContractId, { contractMade: true }, { new: false, omitUndefined: true, runValidators: false }, (error, result) => {
+businesscontractsRouter.put("/:businessContractId",
+authenticateToken,
+needsToBeBusinessOrWorker,
+businessContractExists,
+businessContractIncludesUser,
+async (req, res, next) => {
+  const { body, params } = req
+  try {
+    if (body.userInBusinessContract !== true) {
+      return res.status(401).send({ message: "This route is only available to Business and Worker who are in this contract." })
+    }
+    await BusinessContract.findByIdAndUpdate(
+      params.businessContractId,
+      { contractMade: true },
+      { new: false, omitUndefined: true, runValidators: false },
+      (error: Error, result: any) => {
         if (!result || error) {
-          response.status(400).send(error || { success: false, error: "Could not update BusinessContract with id " + request.params.businessContractId })
+          return res.status(400).send(error || { success: false, error: "Could not update BusinessContract with id " + params.businessContractId })
         } else {
-          return response.status(200).header({ Location: domainUrl + businessContractsApiPath + result._id, }).send(result)
+          return res.status(200).header({ Location: domainUrl + businessContractsApiPath + result._id, }).send(result)
         }
       })
-    } catch (exception) {
-      next(exception)
-    }
+  } catch (exception) {
+    return next(exception)
   }
-)
+})
 
 /**
  * Route for an Agency to delete an existing BusinessContract and remove its references from its participants.
@@ -280,45 +303,52 @@ businesscontractsRouter.put("/:businessContractId",authenticateToken,needsToBeBu
  *  Possible error:" error }
  * @returns {JSON} Status 200 - response.body: { The updated BusinessContract object }, response.header.Location: The updated businesscontract url api/businesscontracts/:businessContractId
  */
-businesscontractsRouter.delete("/:businessContractId",authenticateToken,needsToBeAgency,businessContractExists,businessContractIncludesUser,
-  async (request, response, next) => {
-    try {
-      if (request.userInBusinessContract !== true) {
-        return response.status(401).send({ message: "This route is only available to agency who is in this contract " } )
-      }
-      utils.deleteTracesOfBusinessContract(request.businessContract,
-        async (result) => {
-          if ((result.workerTraceRemoved === true && result.businessTraceRemoved === undefined && result.agencyTraceRemoved === true) ||
-          (result.workerTraceRemoved === undefined && result.businessTraceRemoved === true && result.agencyTraceRemoved === true) ) {
-            await BusinessContract.findByIdAndDelete(
-              request.businessContract._id,
-              (error, result) => {
-                if (error || !result) {
-                  return response.status(500).json({
-                    message:
-                    "Deleted references to BusinessContract with ID " +
-                    request.businessContract._id +
-                    " but could not remove the contract itself. Possible error: " +
-                    error,
-                  })
-                } else {
-                  return response.status(200).header({ Location: domainUrl + businessContractsApiPath + result._id, }).json({ result })
-                }
-              }
-            )
-          } else {
-            return response.status(500).json( {
-              message: "Couldn't delete references of this BusinessContract"+
-              ", WorkerTraceRemoved: "+result.workerTraceRemoved+
-              ", businessTraceRemoved: "+result.businessTraceRemoved+
-              ", agencyTraceRemoved: "+result.agencyTraceRemoved } )
-          }
-        })
-    } catch (exception) {
-      next(exception)
+businesscontractsRouter.delete(
+"/:businessContractId",
+authenticateToken,
+needsToBeAgency,
+businessContractExists,
+businessContractIncludesUser,
+async (req, res, next) => {
+  const { body, params } = req
+
+  try {
+    if (body.userInBusinessContract !== true) {
+      return res.status(401).send({ message: "This route is only available to agency who is in this contract " } )
     }
+    utils.deleteTracesOfBusinessContract(body.businessContract,
+      async (result: any) => {
+        if ((result.workerTraceRemoved === true && result.businessTraceRemoved === undefined && result.agencyTraceRemoved === true) ||
+        (result.workerTraceRemoved === undefined && result.businessTraceRemoved === true && result.agencyTraceRemoved === true) ) {
+          await BusinessContract.findByIdAndDelete(
+            body.businessContract._id,
+            undefined,
+            (error: Error, result: any) => {
+              if (error || !result) {
+                return res.status(500).json({
+                  message:
+                  "Deleted references to BusinessContract with ID " +
+                  body.businessContract._id +
+                  " but could not remove the contract itself. Possible error: " +
+                  error,
+                })
+              } else {
+                return res.status(200).header({ Location: domainUrl + businessContractsApiPath + result._id, }).json({ result })
+              }
+            }
+          )
+        } else {
+          return res.status(500).json( {
+            message: "Couldn't delete references of this BusinessContract"+
+            ", WorkerTraceRemoved: "+result.workerTraceRemoved+
+            ", businessTraceRemoved: "+result.businessTraceRemoved+
+            ", agencyTraceRemoved: "+result.agencyTraceRemoved } )
+        }
+      })
+  } catch (exception) {
+    return next(exception)
   }
-)
+})
 /**
  * Helper function to avoid duplicate code. Function creates the businessContract and saves it to database.
  * Note: ONLY workerId OR businessId should be present in participants. Otherwise will return an error.
@@ -332,7 +362,7 @@ businesscontractsRouter.delete("/:businessContractId",authenticateToken,needsToB
  * @param {String} participants.businessId - Business to be saved to the BusinessContract
  * @param {String} participants.workerId - Worker to be saved to the BusinessContract
  */
-const createBusinessContract = (contractToCreate, response, callback) => {
+const createBusinessContract = (contractToCreate: any, response: Response, callback: Function) => {
   if (contractToCreate.business && contractToCreate.user) {
     callback(
       new Error(
@@ -343,7 +373,7 @@ const createBusinessContract = (contractToCreate, response, callback) => {
     )
   }
 
-  const businessContract = new BusinessContract({
+  const businessContract: any = new BusinessContract({
     agency: contractToCreate.agency,
   })
   //Checks which contract is made  a) Agency and Worker or b) Agency and Business.
@@ -355,11 +385,11 @@ const createBusinessContract = (contractToCreate, response, callback) => {
     businessContract.contractType = contractToCreate.contractType
   }
 
-  businessContract.save((error, contract) => {
+  businessContract.save((error: Error, contract: any) => {
     if (error || !contract) {
       callback(error, null, response)
     } else {
-      logger.info("BusinessContract created with ID " + businessContract._id)
+      info("BusinessContract created with ID " + businessContract._id)
       callback(null, contract, response)
     }
   })
@@ -377,8 +407,8 @@ const createBusinessContract = (contractToCreate, response, callback) => {
  * @param {*} response
  * @see {@link addBusinessContractToParticipants}
  */
-const createBusinessContractCallBack = (error, contract, response) => {
-  logger.info("In createBusinessContractCallBack...")
+const createBusinessContractCallBack = (error: Error, contract: any, response: Response) => {
+  info("In createBusinessContractCallBack...")
   if (error || !contract) {
     return response.status(500).json({
       error:
@@ -387,9 +417,9 @@ const createBusinessContractCallBack = (error, contract, response) => {
     })
   } else {
     // add to participants
-    logger.info("Adding created contract to participants...")
-    logger.info(contract)
-    addBusinessContractToParticipants(contract, (error, result) => {
+    info("Adding created contract to participants...")
+    info(contract)
+    addBusinessContractToParticipants(contract, (error: Error, result: any) => {
       if (error || !result) {
         // Couldn't add the contract to a participant, rollback everything
         // check error.needToBeCleanedUp to see which participants need have the contract id removed.
@@ -423,22 +453,21 @@ const createBusinessContractCallBack = (error, contract, response) => {
  * @param {BusinessContract} contract The created BusinessContract to be added to participants.
  * @param {Function} callback A function(error, result) which will handle the outcome of this function.
  */
-const addBusinessContractToParticipants = async (contract, callback) => {
+const addBusinessContractToParticipants = async (contract: any, callback: Function) => {
+  const field: any = { businessContracts: [contract._id] }
   // $addToSet adds to mongoose array if the item does not already exist, thus eliminating duplicates.
   const agency = await Agency.findOneAndUpdate(
     { _id: contract.agency },
-    { $addToSet: { businessContracts: [contract._id] } }
+    { $addToSet: field }
   )
   if (!agency) {
+    const error: any = {
+      reason: "agency",
+      message: `Could not add the BusinessContract to Agency with ID ${contract.agency}.`,
+    }
     // No agency found or error happened.
     callback(
-      new Error({
-        reason: "agency",
-        message:
-          "Could not add the BusinessContract to Agency with ID " +
-          contract.agency +
-          ".",
-      }),
+      new Error(error),
       null
     )
   } else {
@@ -446,18 +475,16 @@ const addBusinessContractToParticipants = async (contract, callback) => {
       // add to worker
       const worker = await User.findOneAndUpdate(
         { _id: contract.user },
-        { $addToSet: { businessContracts: [contract._id] } }
+        { $addToSet: field }
       )
       if (!worker) {
+        const error: any = {
+          needToCleanUp: { agency: contract.agency },
+          message: `Could not add the BusinessContract to Worker with ID ${contract.user}.`,
+        }
         // No worker found or error happened
         callback(
-          new Error({
-            needToCleanUp: { agency: contract.agency },
-            message:
-              "Could not add created BusinessContract to Worker with ID " +
-              contract.user +
-              ".",
-          }),
+          new Error(error),
           null
         )
       } else {
@@ -467,18 +494,16 @@ const addBusinessContractToParticipants = async (contract, callback) => {
       // add to business
       const business = await Business.findOneAndUpdate(
         { _id: contract.business },
-        { $addToSet: { businessContracts: [contract._id] } }
+        { $addToSet: field }
       )
       if (!business) {
+        const error: any = {
+          needToCleanUp: { agency: contract.agency, worker: contract.user },
+          message: `Could not add the BusinessContract to Business with ID ${contract.business}.`,
+        }
         // No business found or error happened
         callback(
-          new Error({
-            needToCleanUp: { agency: contract.agency, worker: contract.user },
-            message:
-              "Could not add created BusinessContract to Business with ID " +
-              contract.business +
-              ".",
-          }),
+          new Error(error),
           null
         )
       } else {
@@ -488,4 +513,4 @@ const addBusinessContractToParticipants = async (contract, callback) => {
   }
 }
 
-module.exports = businesscontractsRouter
+export default businesscontractsRouter

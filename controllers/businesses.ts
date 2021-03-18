@@ -9,17 +9,17 @@
  * @const
  * @namespace businessesRouter
 */
-const businessesRouter = require("express").Router()
+import express from "express"
+import bcrypt from "bcryptjs"
+import jwt from "jsonwebtoken"
+import { error as _error, info } from "../utils/logger"
+import Agency from "../models/Agency"
+import Business from "../models/Business"
+import BusinessContract from "../models/BusinessContract"
+import authenticateToken from "../utils/auhenticateToken"
+import { needsToBeBusiness } from "../utils/middleware"
 
-const bcrypt = require("bcryptjs")
-const jwt = require("jsonwebtoken")
-const logger = require("../utils/logger")
-const Agency = require("../models/Agency")
-const Business = require("../models/Business")
-const BusinessContract = require("../models/BusinessContract")
-const authenticateToken = require("../utils/auhenticateToken")
-const { needsToBeBusiness } = require("../utils/middleware")
-
+const businessesRouter = express.Router()
 /**
  * Returns response.body: { token, name: savedBusiness.name, email: savedBusiness.email, role: "business" }
  * request.body requirements: {name: "name", email: "email", password: "password"}
@@ -29,13 +29,14 @@ const { needsToBeBusiness } = require("../utils/middleware")
  * @memberof module:controllers/businesses~businessesRouter
  * @inner
  */
-businessesRouter.post("/", async (request, response, next) => {
+businessesRouter.post("/", async (req, res, next) => {
+  const { body } = req
+
   try {
-    const body = request.body
     // This could be separated into a validation middleware
     const passwordLength = body.password ? body.password.length : 0
     if (passwordLength < 3) {
-      return response
+      return res
         .status(400)
         .json({ error: "password length less than 3 characters" })
     }
@@ -55,15 +56,15 @@ businessesRouter.post("/", async (request, response, next) => {
       id: savedBusiness._id,
     }
 
-    const token = jwt.sign(businessForToken, process.env.SECRET)
+    const token = jwt.sign(businessForToken, process.env.SECRET || '')
 
     console.log("jwt token: " + token)
     //response.json(savedBusiness);
-    response
+    return res
       .status(200)
       .send({ token, name: savedBusiness.name, email: savedBusiness.email, role: "business" })
   } catch (exception) {
-    next(exception)
+    return next(exception)
   }
 })
 
@@ -76,21 +77,21 @@ businessesRouter.post("/", async (request, response, next) => {
  * @memberof module:controllers/businesses~businessesRouter
  * @inner
  */
-businessesRouter.get("/me", authenticateToken, (request, response, next) => {
+businessesRouter.get("/me", authenticateToken, (_req, res, next) => {
   try {
     //Decodatun tokenin arvo haetaan middlewarelta
-    const decoded = response.locals.decoded
+    const decoded = res.locals.decoded
     //Tokeni pitää sisällään userid jolla etsitään oikean käyttäjän tiedot
-    Business.findById({ _id: decoded.id }, (error, result) => {
+    Business.findById({ _id: decoded.id }, (error: Error, result: any) => {
       //Jos ei resultia niin käyttäjän tokenilla ei löydy käyttäjää
       if (!result || error) {
-        response.status(401).send(error || { message: "Not authorized" })
+        return res.status(401).send(error || { message: "Not authorized" })
       } else {
-        response.status(200).send(result)
+        return res.status(200).send(result)
       }
     })
   } catch (exception) {
-    next(exception)
+    return next(exception)
   }
 })
 
@@ -103,17 +104,17 @@ businessesRouter.get("/me", authenticateToken, (request, response, next) => {
  * @memberof module:controllers/businesses~businessesRouter
  * @inner
  */
-businessesRouter.put("/", authenticateToken, async (request, response, next) => {
-  const body = request.body
-  const decoded = response.locals.decoded
+businessesRouter.put("/", authenticateToken, async (req, res, next) => {
+  const { body } = req
+  const decoded = res.locals.decoded
   let passwordHash
 
   try {
     // Salataan uusi salasana
-    if (request.body.password) {
+    if (body.password) {
       const passwordLength = body.password ? body.password.length : 0
       if (passwordLength < 3) {
-        return response
+        return res
           .status(400)
           .json({ error: "Password length less than 3 characters" })
       }
@@ -139,9 +140,9 @@ businessesRouter.put("/", authenticateToken, async (request, response, next) => 
       { new: true, omitUndefined: true, runValidators: true })
 
     if (!updatedAgency) {
-      return response.status(400).json({ error: "Business not found" })
+      return res.status(400).json({ error: "Business not found" })
     }
-    return response.status(200).json(updatedAgency)
+    return res.status(200).json(updatedAgency)
 
   } catch (exception) {
     return next(exception)
@@ -149,9 +150,11 @@ businessesRouter.put("/", authenticateToken, async (request, response, next) => 
 })
 
 
-businessesRouter.get("/", authenticateToken, async (request, response, next) => {
-  const decoded = response.locals.decoded
-  const name = request.query.name
+businessesRouter.get("/", authenticateToken, async (req, res, next) => {
+  const { query } = req
+
+  const decoded = res.locals.decoded
+  const name = query.name
 
   try {
     const agency = await Agency.findById(decoded.id)
@@ -160,10 +163,10 @@ businessesRouter.get("/", authenticateToken, async (request, response, next) => 
       // Työpassit jätetään hausta pois
       const users = await Business.find({ name: { $regex: name, $options: "i" } }, { licenses: 0 })
       if (users) {
-        return response.status(200).json(users)
+        return res.status(200).json(users)
       }
     }
-    return response.status(400).json({ error: "Users not found" })
+    return res.status(400).json({ error: "Users not found" })
   } catch (exception) {
     return next(exception)
   }
@@ -177,15 +180,18 @@ businessesRouter.get("/", authenticateToken, async (request, response, next) => 
  * @memberof module:controllers/businesses~businessesRouter
  * @inner
  */
-businessesRouter.get("/businesscontracts", authenticateToken, needsToBeBusiness, async (request, response, next) => {
-  const contractIds = request.business.businessContracts
-  logger.info("ContractIds of this Business: " + contractIds)
-  let contracts = []
-  let temp = null
+businessesRouter.get("/businesscontracts", authenticateToken, needsToBeBusiness, async (req, res, next) => {
+  const { body } = req
+
+  const contractIds = body.business.businessContracts
+  info("ContractIds of this Business: " + contractIds)
+  let contracts: any = []
+  let temp: any
   try {
     if (contractIds) {
-      logger.info("Searching database for BusinessContracts: " + contractIds)
-      contractIds.forEach(async (contractId, index, contractIds) => { // Go through every contractId and, find contract data and push it to array "contracts".
+      info("Searching database for BusinessContracts: " + contractIds)
+      // Go through every contractId and, find contract data and push it to array "contracts".
+      contractIds.forEach(async (contractId: string, index: number, contractIds: string[]) => {
         temp = await BusinessContract.findById(contractId).exec()
         if (temp) {
           contracts.push(temp)
@@ -193,21 +199,21 @@ businessesRouter.get("/businesscontracts", authenticateToken, needsToBeBusiness,
         }
 
         if (index === contractIds.length-1) { // If this was the last contract to find, send response
-          logger.info("BusinessContracts to Response: " + contracts)
-          return response
+          info("BusinessContracts to Response: " + contracts)
+          return res
             .status(200)
             .json(contracts)
         }
       })
     } else { // No contractIds in Business, respond with empty array
-      return response
+      return res
         .status(200)
         .json(contracts)
     }
   } catch (exception) {
-    logger.error(exception)
-    next(exception)
+    _error(exception)
+    return next(exception)
   }
 })
 
-module.exports = businessesRouter
+export default businessesRouter

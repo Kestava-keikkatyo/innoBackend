@@ -10,7 +10,7 @@
  * @namespace workcontractsRouter
 */
 import express from "express"
-import { body } from "express-validator"
+import { body as _body } from "express-validator"
 import Agency from "../models/Agency"
 import Business from "../models/Business"
 import WorkContract from "../models/WorkContract"
@@ -45,19 +45,20 @@ const workContractsApiPath = "workcontracts/"
  * <pre>Full description: {@link workContractExists}</pre>
  * @param {callback} workContractIncludesUser - Checks if user who is using route is in workcontract.
  * <pre>Full description: {@link workContractIncludesUser}</pre>
- * @throws {JSON} Status 400 - response.body: { message: "User who is trying to use this route is not in workcontract" }
- * @returns {JSON} Status 200 - response.body: { The found WorkContract object }
+ * @throws {JSON} Status 400 - res.body: { message: "User who is trying to use this route is not in workcontract" }
+ * @returns {JSON} Status 200 - res.body: { The found WorkContract object }
 */
-workcontractsRouter.get("/:contractId", authenticateToken, needsToBeAgencyBusinessOrWorker, workContractExists, workContractIncludesUser, (request, response, next) => {
+workcontractsRouter.get("/:contractId", authenticateToken, needsToBeAgencyBusinessOrWorker, workContractExists, workContractIncludesUser, (req, res, next) => {
+  
   try {
-    if (request.userInWorkContract === true) {
-      return response.status(200).send(request.workContract)
+    if (req.body.userInWorkContract === true) {
+      return res.status(200).send(req.body.workContract)
     } else {
-      return response.status(400).send({ message:"User who is trying to use this route is not in workcontract" })
+      return res.status(400).send({ message:"User who is trying to use this route is not in workcontract" })
     }
   } catch (exception) {
     next(exception)
-    return response.status(500).send({ message:"OOPS SERVER ISSUE" })
+    return res.status(500).send({ message:"OOPS SERVER ISSUE" })
   }
 })
 
@@ -73,50 +74,52 @@ workcontractsRouter.get("/:contractId", authenticateToken, needsToBeAgencyBusine
  * @param {callback} authenticateToken - Decodes token.
  * @param {callback} needsToBeAgencyBusinessOrWorker - Checks if the logged in user is Agency, Business or Worker.
  * <pre>Full description: {@link needsToBeAgencyBusinessOrWorker}</pre>
- * @throws {JSON} Status 400 - response.body: { message:"Token didn't have any users." }
- * @returns {JSON} Status 200 - response.body: { All users WorkContract objects }
+ * @throws {JSON} Status 400 - res.body: { message:"Token didn't have any users." }
+ * @returns {JSON} Status 200 - res.body: { All users WorkContract objects }
  */
-workcontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWorker, async (request, response, next) => {
+workcontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWorker, async (req, res, next) => {
+  const { query, body } = req
   try {
     //Initialise page,limit,myId,model
-    const page = request.query.page
-    const limit = request.query.limit
+    const page: any = query.page
+    const limit: any = query.limit
     let myId = null
-    let model = null
+    let model: any = null
     //Check that page and limit exist and are not bellow 1
     if (page < 1 || !page) {
-      return response.status(400).send({ message: "Missing or incorrect page parameter" })
+      return res.status(400).send({ message: "Missing or incorrect page parameter" })
     }
     if (limit < 1 || !limit) {
-      return response.status(400).send({ message: "Missing or incorrect limit parameter" })
+      return res.status(400).send({ message: "Missing or incorrect limit parameter" })
     }
     //Which id is in question
-    if (request.agency !== undefined) {
-      myId = request.agency.id
+    if (body.agency !== undefined) {
+      myId = body.agency.id
       model = Agency
     }
-    else if (request.business !== undefined) {
-      myId = request.business.id
+    else if (body.business !== undefined) {
+      myId = body.business.id
       model = Business
     }
-    else if (request.worker !== undefined) {
-      myId = request.worker.id
+    else if (body.worker !== undefined) {
+      myId = body.worker.id
       model = User
     }
     else {
-      return response.status(400).send({ message:"Token didn't have any users." })
+      return res.status(400).send({ message:"Token didn't have any users." })
     }
     //Do the pagination
+    // TODO: proper type checking 
     model.paginate({ _id: { $in: myId } },
       { projection:"workContracts", populate: {path:"workContracts", model: "WorkContract", page: page, limit: limit} },
       (error:Error, result:any) => {
         if (error || !result) {
-          response.status(500).send( error.message || { message: "Did not receive a result from database." })
+          return res.status(500).send( error.message || { message: "Did not receive a result from database." })
         } else {
           if (result.docs.length === 0) {
-            return response.status(404).send( { message: "Could not find any WorkContracts." })
+            return res.status(404).send( { message: "Could not find any WorkContracts." })
           }
-          response.status(200).json(result)
+          return res.status(200).json(result)
         }
       })
   } catch (exception) {
@@ -128,8 +131,8 @@ workcontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWorker,
  * Route for Agency to make workContract.
  * Agency creates a new WorkContract between a Business and a Worker.
  * The WorkContract id is then saved to lists in: Worker, Agency, Business.
- * Requires User logged in as Agency. request.body MANDATORY: { businessId: "businessId", workerId: "workerId", validityPeriod: "valid end date" }.
- * request.body OPTIONAL: { processStatus: "integer" } has a default of "1".
+ * Requires User logged in as Agency. req.body MANDATORY: { businessId: "businessId", workerId: "workerId", validityPeriod: "valid end date" }.
+ * req.body OPTIONAL: { processStatus: "integer" } has a default of "1".
  * @example { created: http://localhost:8080/api/workcontracts/2lkdfrakws9a9vcsv}
  * @name POST /workcontracts
  * @function
@@ -139,126 +142,135 @@ workcontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWorker,
  * @param {callback} authenticateToken - Decodes token.
  * @param {callback} needsToBeAgency - Checks if the logged in user is an Agency.
  * <pre>Full description: {@link needsToBeAgency}</pre>
- * @param {callback} bodyBusinessExists - Checks if a Business with request.body.businessId exists.
+ * @param {callback} bodyBusinessExists - Checks if a Business with req.body.businessId exists.
  * <pre>Full description: {@link bodyBusinessExists}</pre>
- * @param {callback} bodyWorkerExists - Checks if a Worker with request.body.workerId exists.
+ * @param {callback} bodyWorkerExists - Checks if a Worker with req.body.workerId exists.
  * <pre>Full description: {@link bodyWorkerExists}</pre>
  * @param {callback} checkAgencyBusinessContracts - Used to go through agency businessContracts and check if correct Business and Worker are found.
  * <pre>Full description: {@link checkAgencyBusinessContracts}</pre>
- * @throws {JSON} Status 400 - response.body: { message: "The logged in Agency has no BusinessContracts with Business or Agency" }
- * @throws {JSON} Status 400 - response.body: { message: "The logged in Agency has BusinessContract with Business or Worker but not for both" }
- * @throws {JSON} Status 500 - response.body: { error,
- * message: "Could not add WorkContract to Business  with ID" + request.body.businessId + ". No WorkContract created." }
- * @throws {JSON} Status 500 - response.body: { error,
- * message: "Could not add WorkContract to Agency  with ID" + response.locals.decoded.id + ". No WorkContract created but references were deleted." }
- * @throws {JSON} Status 500 - response.body: { error,
- * message: "Could not add WorkContract to Agency  with ID" + response.locals.decoded.id + ". No WorkContract created and references were not deleted."  }
- * @throws {JSON} Status 500 - response.body: { error,
- * message: "Could not add WorkContract to User  with ID" + request.body.workerId + ". No WorkContract created but references were deleted."  }
- * @throws {JSON} Status 500 - response.body: { error,
- * message: "Could not add WorkContract to User  with ID" + request.body.workerId + ". No WorkContract created and references were not deleted." }
+ * @throws {JSON} Status 400 - res.body: { message: "The logged in Agency has no BusinessContracts with Business or Agency" }
+ * @throws {JSON} Status 400 - res.body: { message: "The logged in Agency has BusinessContract with Business or Worker but not for both" }
+ * @throws {JSON} Status 500 - res.body: { error,
+ * message: "Could not add WorkContract to Business  with ID" + req.body.businessId + ". No WorkContract created." }
+ * @throws {JSON} Status 500 - res.body: { error,
+ * message: "Could not add WorkContract to Agency  with ID" + res.locals.decoded.id + ". No WorkContract created but references were deleted." }
+ * @throws {JSON} Status 500 - res.body: { error,
+ * message: "Could not add WorkContract to Agency  with ID" + res.locals.decoded.id + ". No WorkContract created and references were not deleted."  }
+ * @throws {JSON} Status 500 - res.body: { error,
+ * message: "Could not add WorkContract to User  with ID" + req.body.workerId + ". No WorkContract created but references were deleted."  }
+ * @throws {JSON} Status 500 - res.body: { error,
+ * message: "Could not add WorkContract to User  with ID" + req.body.workerId + ". No WorkContract created and references were not deleted." }
  * @throws {JSON} Status 500 - reponse.body: {
  * message: "Could not make WorkContract because agency,business and worker allready have WorkContract. No WorkContract created but references were deleted." }
  * @throws {JSON} Status 500 - reponse.body: {
  * message: "Could not make WorkContract. No WorkContract created and references were not deleted. WorkContract allready exist"}
- * @returns {JSON} Status 201 - response.body: { created: domainUrl + workContractsApiPath + contract._id }
+ * @returns {JSON} Status 201 - res.body: { created: domainUrl + workContractsApiPath + contract._id }
  */
-workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessExists, bodyWorkerExists, checkAgencyBusinessContracts, async (request, response, next) => {
+workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessExists, bodyWorkerExists, checkAgencyBusinessContracts, async (req, res, next) => {
+  const { body } = req
   try {
     //checkAgencyBusinessContracts function checks commonContractIndex
-    if (request.commonContractIndex === -1) {
-      return response.status(400).json({ message: "The logged in Agency has no BusinessContracts with Business or Agency" }).end()
-    } else if (request.commonContractIndex === 0) {
-      return response.status(400).json({ message: "The logged in Agency has BusinessContract with Business or Worker but not for both" })
+    if (body.commonContractIndex === -1) {
+      return res.status(400).json({ message: "The logged in Agency has no BusinessContracts with Business or Agency" }).end()
+    } else if (body.commonContractIndex === 0) {
+      return res.status(400).json({ message: "The logged in Agency has BusinessContract with Business or Worker but not for both" })
     }
     //Initialize workcontracts fields
     let createFields = {
-      business: request.body.businessId,
-      user: request.body.workerId,
-      agency: response.locals.decoded.id,
-      validityPeriod: new Date(request.body.validityPeriod),
-      processStatus: request.body.processStatus //Mihin tätä tarvitaan? Workcontractin hyväksymiseen? Täytyy lisätä workcontractiin kyseinen field
-    }
-    if (body.processStatus) {
-      createFields.processStatus = body.processStatus
+      business: body.businessId,
+      user: body.workerId,
+      agency: res.locals.decoded.id,
+      validityPeriod: new Date(body.validityPeriod),
+      processStatus: body.processStatus //Mihin tätä tarvitaan? Workcontractin hyväksymiseen? Täytyy lisätä workcontractiin kyseinen field
     }
     const contractToCreate = new WorkContract(createFields)
     //Next add traces to Business, Agency and Worker.
-    await Business.findOneAndUpdate( { _id: request.body.businessId }, { $addToSet: { workContracts: contractToCreate._id } }, async (error, result) => {
+    await Business.findOneAndUpdate(
+      { _id: body.businessId },
+      { $addToSet: { workContracts: contractToCreate._id } },
+      undefined,
+      async (error: Error, result: any) => {
       if (error || !result) {
-        return response
+        return res
           .status(500)
-          .send({ error, message: "Could not add WorkContract to Business  with ID" + request.body.businessId + ". No WorkContract created." })
+          .send({ error, message: "Could not add WorkContract to Business  with ID" + body.businessId + ". No WorkContract created." })
       }
     })
-    let noErrorInDelete = null
-    await Agency.findOneAndUpdate( { _id: response.locals.decoded.id }, { $addToSet: { workContracts: contractToCreate._id } }, async (error, result) => {
+    let noErrorInDelete: boolean | undefined;
+    await Agency.findOneAndUpdate(
+      { _id: res.locals.decoded.id },
+      { $addToSet: { workContracts: contractToCreate._id } },
+      undefined,
+      async (error: Error, result: any) => {
       if (error || !result) {
-        await deleteTracesOfFailedWorkContract(null, request.body.businessId, response.locals.decoded.id, contractToCreate._id,
-          (result) => {
+        await deleteTracesOfFailedWorkContract(null, body.businessId, res.locals.decoded.id, contractToCreate._id,
+          (result: any) => {
             noErrorInDelete = result.success
           })
         if (noErrorInDelete) {
-          return response
+          return res
             .status(500)
             .send({ error,
-              message: "Could not add WorkContract to Agency  with ID" + response.locals.decoded.id + ". No WorkContract created but references were deleted." })
+              message: "Could not add WorkContract to Agency  with ID" + res.locals.decoded.id + ". No WorkContract created but references were deleted." })
         } else {
-          return response
+          return res
             .status(500)
             .send({ error,
-              message: "Could not add WorkContract to Agency  with ID" + response.locals.decoded.id + ". No WorkContract created and references were not deleted." })
+              message: "Could not add WorkContract to Agency  with ID" + res.locals.decoded.id + ". No WorkContract created and references were not deleted." })
         }
       }
     })
-    noErrorInDelete = null
-    await User.findOneAndUpdate( { _id: request.body.workerId }, { $addToSet: { workContracts: contractToCreate._id } }, async (error, result) => {
+    await User.findOneAndUpdate(
+      { _id: body.workerId },
+      { $addToSet: { workContracts: contractToCreate._id } },
+      undefined,
+      async (error: any, result: any) => {
       if (error || !result) {
-        await deleteTracesOfFailedWorkContract(request.body.workerId, request.body.businessId, response.locals.decoded.id, contractToCreate._id,
-          (result) => {
+        await deleteTracesOfFailedWorkContract(body.workerId, body.businessId, res.locals.decoded.id, contractToCreate._id,
+          (result: any) => {
             noErrorInDelete = result.success
           })
         if (noErrorInDelete) {
-          return response
+          return res
             .status(500)
             .send({ error,
-              message: "Could not add WorkContract to User  with ID" + request.body.workerId + ". No WorkContract created but references were deleted." })
+              message: "Could not add WorkContract to User  with ID" + body.workerId + ". No WorkContract created but references were deleted." })
         } else {
-          return response
+          return res
             .status(500)
             .send({ error,
-              message: "Could not add WorkContract to User  with ID" + request.body.workerId + ". No WorkContract created and references were not deleted." })
+              message: "Could not add WorkContract to User  with ID" + body.workerId + ". No WorkContract created and references were not deleted." })
         }
       }
     })
     //Next check that workContract doesn't allready exist
     let contract = undefined
     const commonWorkContractArray = await WorkContract.find({
-      business:  request.body.businessId,
-      user:  request.body.workerId
+      business:  body.businessId,
+      user:  body.workerId
     })
     if (commonWorkContractArray[0]) {
       contract = null
     } else {
       contract = await contractToCreate.save()
     }
-    //If contract allready exist deleteTraces, if not return response url.
+    //If contract allready exist deleteTraces, if not return res url.
     if (!contract) {
-      await deleteTracesOfFailedWorkContract(request.body.workerId, request.body.businessId, response.locals.decoded.id, contractToCreate._id,
-        (result) => {
+      await deleteTracesOfFailedWorkContract(body.workerId, body.businessId, res.locals.decoded.id, contractToCreate._id,
+        (result: any) => {
           noErrorInDelete = result.success
         })
       if (noErrorInDelete) {
-        return response
+        return res
           .status(500)
           .send({ message: "Could not make WorkContract because agency,business and worker allready have WorkContract. No WorkContract created but references were deleted." })
       } else {
-        return response
+        return res
           .status(500)
           .send({ message: "Could not make WorkContract. No WorkContract created and references were not deleted. WorkContract allready exist" })
       }
     } else {
-      return response
+      return res
         .status(201)
         .send({ created: domainUrl + workContractsApiPath + contract._id })
     }
@@ -284,29 +296,30 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
  * <pre>Full description: {@link workContractExists}</pre>
  * @param {callback} workContractIncludesUser - Checks if user who is using route is in workcontract.
  * <pre>Full description: {@link workContractIncludesUser}</pre>
- * @throws {JSON} Status 401 - response.body: { message: "This route is only available to Agency,Business and Worker who are in this contract." }
- * @throws {JSON} Status 400 - response.body: { success: false, error: "Could not update WorkContract with id " + request.params.contractId }
- * @returns {JSON} Status 200 - response.body: { The updated workcontract object }
+ * @throws {JSON} Status 401 - res.body: { message: "This route is only available to Agency,Business and Worker who are in this contract." }
+ * @throws {JSON} Status 400 - res.body: { success: false, error: "Could not update WorkContract with id " + req.params.contractId }
+ * @returns {JSON} Status 200 - res.body: { The updated workcontract object }
  */
-workcontractsRouter.put("/:contractId", authenticateToken, needsToBeAgencyBusinessOrWorker, workContractExists, workContractIncludesUser, (request, response, next) => {
+workcontractsRouter.put("/:contractId", authenticateToken, needsToBeAgencyBusinessOrWorker, workContractExists, workContractIncludesUser, (req, res, next) => {
   // TODO: Validate the id, check that the logged in user is authored for this
   // TODO: What form the end date need to be?
+  const { body, params } = req 
   try {
-    if (request.userInWorkContract !== true) {
-      return response.status(401).send({ message: "This route is only available to Agency,Business and Worker who are in this contract." })
+    if (body.userInWorkContract !== true) {
+      return res.status(401).send({ message: "This route is only available to Agency,Business and Worker who are in this contract." })
     }
     const updateFields = {
-      ...request.body
+      ...body
     }
-    WorkContract.findByIdAndUpdate(request.params.contractId, updateFields, { new: false, omitUndefined: true, runValidators: false }, (error, result) => {
+    return WorkContract.findByIdAndUpdate(params.contractId, updateFields, { new: false, omitUndefined: true, runValidators: false }, (error, result) => {
       if (!result || error) {
-        return response.status(400).send(error || { success: false, error: "Could not update WorkContract with id " + request.params.contractId })
+        return res.status(400).send(error || { success: false, error: "Could not update WorkContract with id " + req.params.contractId })
       } else {
-        return response.status(200).send(result)
+        return res.status(200).send(result)
       }
     })
   } catch (exception) {
-    next(exception)
+    return next(exception)
   }
 })
 
@@ -326,46 +339,49 @@ workcontractsRouter.put("/:contractId", authenticateToken, needsToBeAgencyBusine
  * <pre>Full description: {@link workContractExists}</pre>
  * @param {callback} workContractIncludesUser - Checks if user who is using route is in workcontract.
  * <pre>Full description: {@link workContractIncludesUser}</pre>
- * @throws {JSON} Status 401 - response.body: { message: "This route is only available to Agency who is in this contract." }
- * @throws {JSON} Status 500 - response.body: { message: "Deleted references to WorkContract with ID " + request.workContract._id +
+ * @throws {JSON} Status 401 - res.body: { message: "This route is only available to Agency who is in this contract." }
+ * @throws {JSON} Status 500 - res.body: { message: "Deleted references to WorkContract with ID " + req.workContract._id +
                     "but could not remove the contract itself. Possible error: " +
                     error, }
- * @throws {JSON} Status 500 - response.body: { message: "Couldn't delete references of this WorkContract"+
+ * @throws {JSON} Status 500 - res.body: { message: "Couldn't delete references of this WorkContract"+
              ", WorkerTraceRemoved: "+result.workerTraceRemoved+
              ", businessTraceRemoved: "+result.businessTraceRemoved+
              ", agencyTraceRemoved: "+result.agencyTraceRemoved}
- * @returns {JSON} Status 200 - response.body: { The deleted WorkContract object }
+ * @returns {JSON} Status 200 - res.body: { The deleted WorkContract object }
  */
-workcontractsRouter.delete("/:contractId",authenticateToken,needsToBeAgency,workContractExists,workContractIncludesUser, async (request, response, next) => {
+workcontractsRouter.delete("/:contractId",authenticateToken,needsToBeAgency,workContractExists,workContractIncludesUser, async (req, res, next) => {
+  const { body, params } = req 
+
+  if (body.userInWorkContract !== true)
+    return res.status(401).send( { message: "This route is only available to Agency who is in this contract." })
+  
   try {
-    if (request.userInWorkContract !== true) {
-      return response.status(401).send( { message: "This route is only available to Agency who is in this contract." })
-    }
     deleteTracesOfFailedWorkContract(
-      request.workContract.user,
-      request.workContract.business,
-      request.workContract.agency,
-      request.params.contractId,
-      async (result) => {
+      body.workContract.user,
+      body.workContract.business,
+      body.workContract.agency,
+      params.contractId,
+      async (result: any) => {
         if (result.workerTraceRemoved === true && result.businessTraceRemoved === true && result.agencyTraceRemoved === true) {
-          await WorkContract.findByIdAndDelete(
-            request.workContract._id,
-            (error, result) => {
+          return await WorkContract.findByIdAndDelete(
+            body.workContract._id,
+            undefined,
+            (error: Error, result: any) => {
               if (error || !result) {
-                return response.status(500).json({
+                return res.status(500).json({
                   message:
                     "Deleted references to WorkContract with ID " +
-                    request.workContract._id +
+                    body.workContract._id +
                     " but could not remove the contract itself. Possible error: " +
                     error,
                 })
               } else {
-                return response.status(200).json({ result })
+                return res.status(200).json({ result })
               }
             }
           )
         } else {
-          return response.status(500).json({
+          return res.status(500).json({
             message:
              "Couldn't delete references of this WorkContract"+
              ", WorkerTraceRemoved: "+result.workerTraceRemoved+
