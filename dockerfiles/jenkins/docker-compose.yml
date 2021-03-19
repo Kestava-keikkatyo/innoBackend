@@ -18,8 +18,7 @@ services:
 
   jenkins:
     image: jenkins/jenkins:lts-jdk11
-    build:
-      context: https://github.com/Kestava-keikkatyo/innoBackend.git#dev:dockerfiles/jenkins
+    build: "."
     user: root
     container_name: jenkins
     depends_on:
