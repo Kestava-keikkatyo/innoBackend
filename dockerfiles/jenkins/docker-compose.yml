@@ -9,15 +9,14 @@ services:
     expose:
       - 2376
     volumes:
-      - ~/jenkins-data:/var/jenkins_home
-      - ~/jenkins-docker-certs:/certs/client
+      - jenkins-data:/var/jenkins_home
+      - jenkins-docker-certs:/certs/client
     networks:
       - jenkins_dind
     environment:
       DOCKER_TLS_CERTDIR: "/certs"
 
   jenkins:
-    image: jenkins/jenkins:lts-jdk11
     build: "."
     user: root
     container_name: jenkins
@@ -27,8 +26,8 @@ services:
       - 8080:8080
       - 50000:50000
     volumes:
-      - ~/jenkins-data:/var/jenkins_home
-      - ~/jenkins-docker-certs:/certs/client:ro
+      - jenkins-data:/var/jenkins_home
+      - jenkins-docker-certs:/certs/client:ro
       - /usr/bin/docker:/usr/bin/docker
     environment:
       DOCKER_HOST: "tcp://dind:2376"
@@ -36,7 +35,7 @@ services:
       - jenkins_dind
 
   portainer:
-    image: portainer/portainer-ce
+    image: portainer/portainer-ce:latest
     command: -H unix:///var/run/docker.sock
     restart: always
     ports:
@@ -46,10 +45,16 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - portainer_data:/data
+    network_mode: bridge
 
 networks:
+  default:
+    external:
+      name: bridge
   jenkins_dind:
     driver: bridge
 
 volumes:
   portainer_data:
+  jenkins-data:
+  jenkins-docker-certs:
