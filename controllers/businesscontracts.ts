@@ -320,7 +320,7 @@ async (req, res, next) => {
       async (result: any) => {
         if ((result.workerTraceRemoved === true && result.businessTraceRemoved === undefined && result.agencyTraceRemoved === true) ||
         (result.workerTraceRemoved === undefined && result.businessTraceRemoved === true && result.agencyTraceRemoved === true) ) {
-          await BusinessContract.findByIdAndDelete(
+          return await BusinessContract.findByIdAndDelete(
             body.businessContract._id,
             undefined,
             (error: Error, result: any) => {
@@ -344,7 +344,6 @@ async (req, res, next) => {
             ", businessTraceRemoved: "+result.businessTraceRemoved+
             ", agencyTraceRemoved: "+result.agencyTraceRemoved } )
         }
-        return res.status(400).json("Bad request")
       })
   } catch (exception) {
     return next(exception)

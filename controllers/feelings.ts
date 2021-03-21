@@ -87,7 +87,7 @@ feelingsRouter.get("/:workerId", authenticateToken, needsToBeAgencyOrBusiness, a
       if (body.agency) {
         // Check if agency has business contract with worker.
         const contractIds = body.agency.businessContracts
-        workerExistsInContracts(BusinessContract, contractIds, workerId, (contracts: any) => {
+        return workerExistsInContracts(BusinessContract, contractIds, workerId, (contracts: any) => {
           // In callback
           for (let i = 0; i < contracts.length; i++) {
             if (contracts[i].user && contracts[i].user.equals(workerId)) {
@@ -108,7 +108,7 @@ feelingsRouter.get("/:workerId", authenticateToken, needsToBeAgencyOrBusiness, a
       } else if (body.business) {
         // Check if business has a work contract with worker.
         const contractIds = body.business.workContracts
-        workerExistsInContracts(WorkContract, contractIds, workerId, (contracts: any) => {
+        return workerExistsInContracts(WorkContract, contractIds, workerId, (contracts: any) => {
           // In callback
           for (let i = 0; i < contracts.length; i++) {
             if (contracts[i].user && contracts[i].user.equals(workerId)) {
@@ -126,8 +126,10 @@ feelingsRouter.get("/:workerId", authenticateToken, needsToBeAgencyOrBusiness, a
           return res.status(403).send( { message: "Not allowed to see worker feelings if no contract has been made with them." })
         })
 
+      } else {
+        return res.status(401).send( { message: "Not authorized" })
       }
-      return res.status(401).send( { message: "Not authorized" })
+      
     })
   } catch (exception) {
     return next(exception)
