@@ -54,7 +54,7 @@ agenciesRouter.post("/", async (req, res, next) => {
       email: body.email,
       passwordHash,
     })
-    const agency = await agencyToCreate.save()
+    const agency = await agencyToCreate.save() //TODO use callback and check for errors
 
     const agencyForToken = {
       email: agency.email,

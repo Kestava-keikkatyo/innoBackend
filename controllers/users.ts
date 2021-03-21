@@ -49,7 +49,7 @@ usersRouter.post("/", async (req, res, next) => {
       email: body.email,
       passwordHash,
     })
-    const user = await userToCreate.save()
+    const user = await userToCreate.save() //TODO use callback and check for errors
 
     const userForToken = {
       email: user.email,

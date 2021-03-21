@@ -49,7 +49,7 @@ businessesRouter.post("/", async (req, res, next) => {
       passwordHash,
     })
 
-    const savedBusiness = await business.save()
+    const savedBusiness = await business.save() //TODO use callback and check for errors
 
     const businessForToken = {
       email: savedBusiness.email,
