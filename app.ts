@@ -1,5 +1,4 @@
 import express from "express"
-import bodyParser from "body-parser"
 import cors from "cors"
 import mongoose from "mongoose"
 import config from "./utils/config"
@@ -30,7 +29,7 @@ mongoose.connect(config.MONGODB_URI || 'URI_NOTFOUND', { useNewUrlParser: true, 
   })
 
 app.use(cors())
-app.use(bodyParser.json())
+app.use(express.json())
 app.use(middleware.requestLogger)
 
 app.use("/api/users", usersRouter)

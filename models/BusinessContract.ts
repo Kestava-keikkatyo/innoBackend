@@ -2,11 +2,14 @@ import mongoose, {Schema, Document} from "mongoose"
 import uniqueValidator from "mongoose-unique-validator"
 
 export interface IBusinessContract extends Document {
-  createdAt: any,
+  _id: mongoose.Schema.Types.ObjectId
+  contractMade: Boolean,
+  createdAt: Date,
   validityPeriod: Date,
-  user: any,
-  business: any,
-  agency: any
+  user: mongoose.Schema.Types.ObjectId,
+  business: mongoose.Schema.Types.ObjectId,
+  agency: mongoose.Schema.Types.ObjectId,
+  contractType: String
 }
 
 const businessContractSchema = new Schema({

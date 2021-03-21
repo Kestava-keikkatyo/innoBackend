@@ -4,16 +4,16 @@ import mongoosePaginate from 'mongoose-paginate-v2'
 //https://mongoosejs.com/docs/validation.html
 //email validator tarkistettava toimiiko halutulla tavalla, samoin phonenumber validator
 export interface IUser extends Document {
-  name: any,
-  email: any,
-  passwordHash?: any,
-  createdAt: any,
-  phonenumber: any,
-  lisences: any,
-  businessContracts: any,
-  workContracts: any,
+  name: String,
+  email: String,
+  passwordHash?: String,
+  createdAt: Date,
+  phonenumber: String,
+  lisences: String,
+  businessContracts: Array<mongoose.Schema.Types.ObjectId>,
+  workContracts: Array<mongoose.Schema.Types.ObjectId>,
   feelings: any,
-  userType: any
+  userType: String
 }
 const userSchema = new Schema<any>({
   name: {

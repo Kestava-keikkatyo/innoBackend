@@ -3,16 +3,15 @@ import mongoose, {Schema, Document} from "mongoose"
 import mongoosePaginate from 'mongoose-paginate-v2';
 
 export interface IBusiness extends Document {
-  name: any,
-  email: any,
-  passwordHash?: any,
-  createdAt: any,
-  phonenumber: any,
-  lisences: any,
-  businessContracts: any,
-  workContracts: any,
+  name: String,
+  email: String,
+  passwordHash?: String,
+  createdAt: Date,
+  phonenumber: String,
+  businessContracts: Array<mongoose.Schema.Types.ObjectId>,
+  workContracts: Array<mongoose.Schema.Types.ObjectId>,
   feelings: any,
-  userType: any
+  userType: String
 }
 
 const businessSchema = new Schema<any>({
