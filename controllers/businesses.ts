@@ -161,7 +161,8 @@ businessesRouter.get("/", authenticateToken, async (req, res, next) => {
     if (agency && name) {
       // Työntekijät haetaan SQL:n LIKE operaattorin tapaisesti
       // Työpassit jätetään hausta pois
-      const users = await Business.find({ name: { $regex: name, $options: "i" } }, { licenses: 0 })
+      const findName: any = { $regex: name, $options: "i" }
+      const users = await Business.find({ name: findName }, { licenses: 0 })
       if (users) {
         return res.status(200).json(users)
       }
@@ -204,6 +205,7 @@ businessesRouter.get("/businesscontracts", authenticateToken, needsToBeBusiness,
             .status(200)
             .json(contracts)
         }
+        return
       })
     } else { // No contractIds in Business, respond with empty array
       return res

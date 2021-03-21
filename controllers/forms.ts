@@ -18,7 +18,7 @@ formsRouter.post("/", authenticateToken, needsToBeAgencyOrBusiness, async (reque
     const { body } = request
 
     // Form validation and checking happens in schema itself
-    const newForm = new Form({
+    const newForm: any = new Form({
       title: body.title,
       isPublic: body.isPublic,
       questions: body.questions
@@ -26,7 +26,7 @@ formsRouter.post("/", authenticateToken, needsToBeAgencyOrBusiness, async (reque
     if (body.description) {
       newForm.description = body.description
     }
-    newForm.save((error, result) => {
+    newForm.save((error: Error, result: any) => {
       if (error || !result) {
         return res.status(500).json( error || { message: "Unable to save form object." })
       }
@@ -96,7 +96,8 @@ formsRouter.get("/me", authenticateToken, needsToBeAgencyOrBusiness, async (req,
       return res.status(400).send({ message: "Missing or incorrect limit parameter" })
     }
     // Get limit's amount of own forms in specified page
-    Form.paginate({ _id: { $in: formIds } },
+    const model: any = Form
+    model.paginate({ _id: { $in: formIds } },
       { projection: "title description tags", page: page, limit: limit },
       (error: any, result: any) => {
         if (error || !result) {
@@ -138,20 +139,21 @@ formsRouter.get("/", authenticateToken, needsToBeAgencyOrBusiness, async (req, r
       return res.status(400).send({ message: "Missing or incorrect limit parameter" })
     }
     // Get limit's amount of public forms in specified page, except forms with ids that are in myForms
-    Form.paginate({ _id: { $nin: myForms }, isPublic: true },
+    const model: any = Form
+    model.paginate({ _id: { $nin: myForms }, isPublic: true },
       { projection: "title description tags", page: page, limit: limit },
       (error: any, result: any) => {
         if (error || !result) {
-          res.status(500).send( error || { message: "Did not receive a result from database" })
+          return res.status(500).send( error || { message: "Did not receive a result from database" })
         } else {
           if (result.docs.length === 0) {
             return res.status(404).send( error || { message: "Could not find any public forms not made by you" })
           }
-          res.status(200).json(result)
+          return res.status(200).json(result)
         }
       })
   } catch (exception) {
-    next(exception)
+    return next(exception)
   }
 })
 
@@ -233,7 +235,7 @@ const updateForm = (agencyOrBusinessObject: any, req: Request, res: Response, ne
       return res.status(404).send({ message: `Could not find form with id ${formId}` })
     }
   } catch (exception) {
-    next(exception)
+    return next(exception)
   }
 }
 
@@ -252,7 +254,7 @@ formsRouter.delete("/:formId", authenticateToken, needsToBeAgencyOrBusiness, asy
       return res.status(500).send( { error: "Error determining whether user is agency or business" })
     }
   } catch (exception) {
-    next(exception)
+    return next(exception)
   }
 })
 
@@ -293,6 +295,7 @@ const deleteForm = (agencyOrBusiness: any, agencyOrBusinessObject: any, formId: 
                 }
               )
             }
+            return result
           }
         )
       }

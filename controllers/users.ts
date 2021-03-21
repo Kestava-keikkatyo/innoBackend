@@ -62,7 +62,7 @@ usersRouter.post("/", async (req, res, next) => {
       .status(200)
       .send({ token, name: user.name, email: user.email, role: "worker" })
   } catch (exception) {
-    next(exception)
+    return next(exception)
   }
 })
 
@@ -167,7 +167,8 @@ usersRouter.get("/", authenticateToken, async (req, res, next) => {
     if (agency && name) {
       // Työntekijät haetaan SQL:n LIKE operaattorin tapaisesti
       // Työpassit jätetään hausta pois
-      const users = await User.find({ name: { $regex: name, $options: "i" } }, { licenses: 0 })
+      const findName: any = { $regex: name, $options: "i" }
+      const users = await User.find({ name: findName }, { licenses: 0 })
       if (users) {
         return res.status(200).json(users)
       }
@@ -209,6 +210,7 @@ usersRouter.get("/businesscontracts", authenticateToken, needsToBeWorker, async 
             .status(200)
             .json(contracts)
         }
+        return
       })
     } else { // No contractIds in Worker, respond with empty array
       return res

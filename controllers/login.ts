@@ -9,7 +9,7 @@ const loginRouter = express.Router()
 
 loginRouter.post("/worker", async (request, response) => {
   const body = request.body
-  const user = await User.findOne({ email: body.email })
+  const user: any = await User.findOne({ email: body.email })
   const passwordCorrect = user === null
     ? false
     : await bcrypt.compare(body.password, user.passwordHash)
@@ -26,7 +26,7 @@ loginRouter.post("/worker", async (request, response) => {
   }
   const token = jwt.sign(userForToken, process.env.SECRET || '')
 
-  response
+  return response
     .status(200)
     .send({ token, name: user.name, email: user.email, role: "worker" })
 })
@@ -34,7 +34,7 @@ loginRouter.post("/worker", async (request, response) => {
 loginRouter.post("/business", async (request, response) => {
   const body = request.body
 
-  const business = await Business.findOne({ email: body.email })
+  const business: any = await Business.findOne({ email: body.email })
   const passwordCorrect = business === null
     ? false
     : await bcrypt.compare(body.password, business.passwordHash)
@@ -51,14 +51,14 @@ loginRouter.post("/business", async (request, response) => {
 
   const token = jwt.sign(businessForToken, process.env.SECRET || '')
 
-  response
+  return response
     .status(200)
     .send({ token, name: business.name, email: business.email, role: "business" })
 })
 
 loginRouter.post("/agency", async (request, response) => {
   const body = request.body
-  const agency = await Agency.findOne({ email: body.email })
+  const agency: any = await Agency.findOne({ email: body.email })
   const passwordCorrect = agency === null
     ? false
     : await bcrypt.compare(body.password, agency.passwordHash)
@@ -75,9 +75,9 @@ loginRouter.post("/agency", async (request, response) => {
   }
   const token = jwt.sign(agencyForToken, process.env.SECRET || '')
 
-  response
+  return response
     .status(200)
     .send({ token, name: agency.name, email: agency.email, role: "agency" })
 })
 
-module.exports = loginRouter
+export default loginRouter

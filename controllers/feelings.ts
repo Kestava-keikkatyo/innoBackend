@@ -5,7 +5,6 @@ import BusinessContract from "../models/BusinessContract"
 import WorkContract from "../models/WorkContract"
 import { needsToBeWorker, needsToBeAgencyOrBusiness } from "../utils/middleware"
 import { workerExists, workerExistsInContracts } from "../utils/common"
-import { SetFields } from 'mongodb'
 
 const feelingsRouter = express.Router()
 /**
@@ -103,7 +102,7 @@ feelingsRouter.get("/:workerId", authenticateToken, needsToBeAgencyOrBusiness, a
             }
           }
           // Contract with worker was not found. Not allowed to see feelings.
-          res.status(403).send( { message: "Not allowed to see worker feelings if no contract has been made with them." })
+          return res.status(403).send( { message: "Not allowed to see worker feelings if no contract has been made with them." })
         })
 
       } else if (body.business) {
@@ -127,9 +126,8 @@ feelingsRouter.get("/:workerId", authenticateToken, needsToBeAgencyOrBusiness, a
           return res.status(403).send( { message: "Not allowed to see worker feelings if no contract has been made with them." })
         })
 
-      } else {
-        return res.status(401).send( { message: "Not authorized" })
       }
+      return res.status(401).send( { message: "Not authorized" })
     })
   } catch (exception) {
     return next(exception)

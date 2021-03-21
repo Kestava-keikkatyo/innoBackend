@@ -18,11 +18,11 @@ import { businessContractExists,
   needsToBeAgencyBusinessOrWorker,
   needsToBeBusinessOrWorker,
   bodyWorkerOrBusinessExists } from "../utils/middleware"
-import utils from "../utils/common"
 import { error as _error, info } from "../utils/logger"
 import Agency from "../models/Agency"
 import User from "../models/User"
 import Business from "../models/Business"
+import { deleteTracesOfBusinessContract } from "../utils/common"
 
 const businesscontractsRouter = express.Router()
 const domainUrl = "http://localhost:3000/"
@@ -92,7 +92,7 @@ businesscontractsRouter.get("/",
       const page: any = query.page
       const limit: any = query.limit
       let myId = null
-      let model = null
+      let model: any = null
       //Check that page and limit exist and are not bellow 1
       if (page < 1 || !page) {
         return res.status(400).send({ message: "Missing or incorrect page parameter" })
@@ -310,13 +310,13 @@ needsToBeAgency,
 businessContractExists,
 businessContractIncludesUser,
 async (req, res, next) => {
-  const { body, params } = req
+  const { body } = req
 
   try {
     if (body.userInBusinessContract !== true) {
       return res.status(401).send({ message: "This route is only available to agency who is in this contract " } )
     }
-    utils.deleteTracesOfBusinessContract(body.businessContract,
+    deleteTracesOfBusinessContract(body.businessContract,
       async (result: any) => {
         if ((result.workerTraceRemoved === true && result.businessTraceRemoved === undefined && result.agencyTraceRemoved === true) ||
         (result.workerTraceRemoved === undefined && result.businessTraceRemoved === true && result.agencyTraceRemoved === true) ) {
@@ -344,6 +344,7 @@ async (req, res, next) => {
             ", businessTraceRemoved: "+result.businessTraceRemoved+
             ", agencyTraceRemoved: "+result.agencyTraceRemoved } )
         }
+        return res.status(400).json("Bad request")
       })
   } catch (exception) {
     return next(exception)
@@ -440,6 +441,7 @@ const createBusinessContractCallBack = (error: Error, contract: any, response: R
       }
     })
   }
+  return response.status(400).send("Bad request")
 }
 
 

@@ -119,7 +119,7 @@ export const businessExists = (id:String,callback:Function): any => {
  * @param {Function} callback
  * @returns {Boolean} {workerTraceRemoved,businessTraceRemoved,agencyTraceRemoved}
  */
-export const deleteTracesOfFailedWorkContract = async (workerId:String, businessId:String, agencyId:String, contractToCreateid:String, callback:Function) => {
+export const deleteTracesOfFailedWorkContract = async (workerId:String|null, businessId:String, agencyId:String, contractToCreateid:String, callback:Function) => {
   try { //Needs somekind of check
     let workerTraceRemoved = undefined
     let businessTraceRemoved = undefined

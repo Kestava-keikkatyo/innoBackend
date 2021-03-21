@@ -10,16 +10,16 @@
  * @namespace agenciesRouter
 */
 import express from 'express'
-const logger = require("../utils/logger")
-const bcrypt = require("bcryptjs")
-const jwt = require("jsonwebtoken")
-const authenticateToken = require("../utils/auhenticateToken")
-const utils = require("../utils/common")
-const Agency = require("../models/Agency")
-const { needsToBeAgency } = require("../utils/middleware")
+import { info, error as _error} from "../utils/logger"
+import bcrypt from "bcryptjs"
+import jwt from "jsonwebtoken"
+import authenticateToken from "../utils/auhenticateToken"
+import Agency from "../models/Agency"
+import { needsToBeAgency } from "../utils/middleware"
 import { Promise as _Promise } from "bluebird";
-const User = require("../models/User")
-const BusinessContract = require("../models/BusinessContract")
+import User from "../models/User"
+import BusinessContract from "../models/BusinessContract"
+import { whichWorkersExist, workerExists } from '../utils/common'
 
 const agenciesRouter = express.Router()
 const domainUrl = "http://localhost:3000/"
@@ -61,13 +61,13 @@ agenciesRouter.post("/", async (req, res, next) => {
       id: agency._id,
     }
 
-    const token = jwt.sign(agencyForToken, process.env.SECRET)
+    const token = jwt.sign(agencyForToken, process.env.SECRET || '')
 
-    res
+    return res
       .status(200)
       .send({ token, name: agency.name, email: agency.email, role: "agency" })
   } catch (exception) {
-    next(exception)
+    return next(exception)
   }
 })
 
@@ -104,12 +104,12 @@ agenciesRouter.get("/workerIds", authenticateToken, needsToBeAgency, (req, res, 
   const { body } = req
 
   try {
-    logger.info("Agency users: " + body.agency.users)
+    info("Agency users: " + body.agency.users)
     return res
       .status(200)
       .json(body.agency.users)
   } catch (exception) {
-    next(exception)
+    return next(exception)
   }
 })
 
@@ -122,14 +122,14 @@ agenciesRouter.get("/workers", authenticateToken, needsToBeAgency, (req, res, ne
 
   try {
     let workerArray: any = []
-    logger.info("Populating array with " + body.agency.users.length + " workers.")
+    info("Populating array with " + body.agency.users.length + " workers.")
     _Promise.map(body.agency.users, (workerId) => {
       // Promise.map awaits for returned promises as well.
-      return User.findById({ _id: workerId }, (error: Error, result: any) => {
+      User.findById({ _id: workerId }, (error: Error, result: any) => {
         if (!result || error) {
           return res.status(500).send(error || { message: "Agency with ID " + body.agency._id + " has a Worker with ID " + result._id + " but it does not exist!" })
         } else {
-          workerArray.push(result)
+          return workerArray.push(result)
         }
       })
     }).then( () => {
@@ -214,10 +214,11 @@ agenciesRouter.post("/workers", authenticateToken, needsToBeAgency, (req, res, n
     if (body.worker) {
       let workerId = body.worker
       // addToSet operation adds an item to a mongoose array, if that item is not already present.
-      if (utils.workerExists(workerId, next)) {
+      if (workerExists(workerId, next)) {
         Agency.findOneAndUpdate(
         { _id: agencyId },
         { $addToSet: { users: [workerId] } },
+        undefined,
         (error: Error, result: any) => {
           if (error || !result) {
             return res
@@ -241,7 +242,8 @@ agenciesRouter.post("/workers", authenticateToken, needsToBeAgency, (req, res, n
       let workerIdsToAdd: any
       let workerIdsNotOk: any
 
-      utils.whichWorkersExist(body.workers, next, (workerResult: any) => {
+      //21.3. typescript-convertion: Deleted next argument
+      whichWorkersExist(body.workers, (workerResult: any) => {
         workerIdsToAdd = workerResult.existingWorkerIds
         workerIdsNotOk = workerResult.nonExistingWorkerIds
 
@@ -250,6 +252,7 @@ agenciesRouter.post("/workers", authenticateToken, needsToBeAgency, (req, res, n
           Agency.findOneAndUpdate(
           { _id: res.locals.decoded.id },
           { $addToSet: { users: workerIdsToAdd } },
+          undefined,
           (error: Error, result: any) => {
             if (error || !result) {
               return res
@@ -262,11 +265,10 @@ agenciesRouter.post("/workers", authenticateToken, needsToBeAgency, (req, res, n
               .header({ Location: domainUrl + agencyApiPath + agencyId + workersPath })
               .json({ success: true, workersAdded: workerIdsToAdd, workersNotAdded: workerIdsNotOk })
           })
-        } else {
-          return res
-            .status(400)
-            .json({ error: "All of the sent Worker Ids were either erronous or could not be matched with an existing worker." })
         }
+        return res
+          .status(400)
+          .json({ error: "All of the sent Worker Ids were either erronous or could not be matched with an existing worker." })
       } )
     }
   } catch (exception) {
@@ -291,8 +293,8 @@ agenciesRouter.get("/businesscontracts", authenticateToken, needsToBeAgency, asy
     if (!agency && !agency._id) return res.status(401) // No ID or Agency, respond with Unauthorized
 
     // TODO agencyId is not undefined since there is an empty array in db, so code'll get stuck here
-    logger.info("Searching database for BusinessContracts: " + agency._id)
-    const populatedAgency = await Agency.findById(agency._id).populate({
+    info("Searching database for BusinessContracts: " + agency._id)
+    const populatedAgency: any = await Agency.findById(agency._id).populate({
       path:"businessContracts", model: "BusinessContract",
       populate:
       [{
@@ -309,7 +311,7 @@ agenciesRouter.get("/businesscontracts", authenticateToken, needsToBeAgency, asy
     return res.status(200).json(populatedAgency.businessContracts)
 
   } catch (exception) {
-    logger.error(exception)
+    _error(exception)
     return next(exception)
   }
 })
@@ -322,7 +324,7 @@ agenciesRouter.get("/businesscontracts", authenticateToken, needsToBeAgency, asy
 agenciesRouter.get("/:agencyId/businesscontracts", authenticateToken, async (req, res, next) => {
   try {
     const agencyId = req.params.agencyId
-    logger.info("Finding BusinessContracts for Agency " + agencyId)
+    info("Finding BusinessContracts for Agency " + agencyId)
     Agency.findById(req.params.agencyId, (error: Error, agency: any) => {
       if (error || !agency) {
         return res
@@ -333,33 +335,35 @@ agenciesRouter.get("/:agencyId/businesscontracts", authenticateToken, async (req
         let temp: any
         let contracts: any = []
         if (contractIds) { // TODO contractIds is not undefined since there is an empty array in db, so code'll get stuck here
-          logger.info("Searching database for BusinessContracts: " + contractIds)
+          info("Searching database for BusinessContracts: " + contractIds)
           // Go through every contractId and, find contract data and push it to array "contracts".
           contractIds.forEach(async (contractId: string, index: number, contractIds: string[]) => {
             temp = await BusinessContract.findById(contractId).exec()
-            logger.info("Current contract: " + temp)
+            info("Current contract: " + temp)
             if (temp) {
               contracts.push(temp)
               temp = null
             }
-            logger.info("Index: " + index)
-            logger.info("contractIds.length" + contractIds.length)
+            info("Index: " + index)
+            info("contractIds.length" + contractIds.length)
             if (index === contractIds.length-1) { // If this was the last contract to find, send Response
-              logger.info("BusinessContracts to Response: " + contracts)
+              info("BusinessContracts to Response: " + contracts)
               return res
                 .status(200)
                 .json(contracts)
             }
+            return res.status(400).json("Bad request")
           })
         } else { // No contractIds in Agency, respond with empty array
           return res
             .status(200)
             .json(contracts)
         }
+        return res.status(400).json("Bad request")
       }
     })
   } catch (exception) {
-    logger.error(exception)
+    _error(exception)
     return next(exception)
   }
 })
@@ -387,7 +391,7 @@ agenciesRouter.put("/businesscontracts", authenticateToken, needsToBeAgency, asy
     }
 
   } catch (exception) {
-    logger.error(exception.message)
+    _error(exception.message)
     return next(exception)
   }
 })

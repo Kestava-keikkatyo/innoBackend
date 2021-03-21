@@ -9,7 +9,7 @@
  * @requires utils/common
  */
 import { Request , Response } from "express"
-import {error as _error} from "./logger"
+import {info, error as _error} from "./logger"
 import Business from "../models/Business"
 import Agency from "../models/Agency"
 import User from "../models/User"
@@ -19,10 +19,10 @@ import { deleteAgencyTracesOfBusinessContract } from "../utils/common"
 import { CallbackError } from "mongoose"
 
 export const requestLogger = (req:Request, _res:Response, next:Function) => {
-  logger.info("Method:", req.method)
-  logger.info("Path:  ", req.path)
-  logger.info("Body:  ", req.body)
-  logger.info("---")
+  info("Method:", req.method)
+  info("Path:  ", req.path)
+  info("Body:  ", req.body)
+  info("---")
   next()
 }
 
@@ -31,7 +31,7 @@ export const unknownEndpoint = (_req:Request, res:Response) => {
 }
 
 export const errorHandler = (err:any, _req:Request, res:Response, next:Function) => {
-  logger.error(err.message)
+  _error(err.message)
 
   if (err.name === "CastError" && err.kind === "ObjectId") {
     return res.status(400).send({ error: "malformatted id" })
@@ -561,9 +561,9 @@ export const checkAgencyBusinessContracts = async (req:Request,res:Response,next
             if (!contract) {
               await deleteAgencyTracesOfBusinessContract(req.body.agencyId,element,(result:any) => {
                 if (!result.success) {
-                  logger.error("Contract link could not be deleted")
+                  _error("Contract link could not be deleted")
                 } else {
-                  logger.info("Contract link deleted")
+                  info("Contract link deleted")
                 }
               })
             } else {
@@ -592,3 +592,5 @@ export const checkAgencyBusinessContracts = async (req:Request,res:Response,next
     return res.status(500).send({ exception })
   }
 }
+
+export default {}

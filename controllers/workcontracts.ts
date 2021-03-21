@@ -122,8 +122,9 @@ workcontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWorker,
           return res.status(200).json(result)
         }
       })
+    return res.status(400).send( { message: "Bad request." })
   } catch (exception) {
-    next(exception)
+    return next(exception)
   }
 })
 
@@ -195,6 +196,7 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
           .status(500)
           .send({ error, message: "Could not add WorkContract to Business  with ID" + body.businessId + ". No WorkContract created." })
       }
+      return result
     })
     let noErrorInDelete: boolean | undefined;
     await Agency.findOneAndUpdate(
@@ -219,6 +221,7 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
               message: "Could not add WorkContract to Agency  with ID" + res.locals.decoded.id + ". No WorkContract created and references were not deleted." })
         }
       }
+      return result
     })
     await User.findOneAndUpdate(
       { _id: body.workerId },
@@ -242,6 +245,7 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
               message: "Could not add WorkContract to User  with ID" + body.workerId + ". No WorkContract created and references were not deleted." })
         }
       }
+      return result
     })
     //Next check that workContract doesn't allready exist
     let contract = undefined
@@ -349,7 +353,12 @@ workcontractsRouter.put("/:contractId", authenticateToken, needsToBeAgencyBusine
              ", agencyTraceRemoved: "+result.agencyTraceRemoved}
  * @returns {JSON} Status 200 - res.body: { The deleted WorkContract object }
  */
-workcontractsRouter.delete("/:contractId",authenticateToken,needsToBeAgency,workContractExists,workContractIncludesUser, async (req, res, next) => {
+workcontractsRouter.delete("/:contractId",
+authenticateToken,
+needsToBeAgency,
+workContractExists,
+workContractIncludesUser,
+async (req, res, next) => {
   const { body, params } = req 
 
   if (body.userInWorkContract !== true)
@@ -391,7 +400,7 @@ workcontractsRouter.delete("/:contractId",authenticateToken,needsToBeAgency,work
         }
       })
   } catch (exception) {
-    next(exception)
+    return next(exception)
   }
 })
-module.exports = workcontractsRouter
+export default workcontractsRouter
