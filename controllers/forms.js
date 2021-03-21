@@ -117,7 +117,7 @@ formsRouter.get("/me", authenticateToken, needsToBeAgencyOrBusiness, async (requ
  */
 formsRouter.get("/", authenticateToken, needsToBeAgencyOrBusiness, async (request, response, next) => {
   try {
-    const page = request.query.page
+    const page = request.query.page // TODO duplicate code
     const limit = request.query.limit
 
     let myForms = null
@@ -154,7 +154,7 @@ formsRouter.get("/", authenticateToken, needsToBeAgencyOrBusiness, async (reques
 
 /** TODO Should probably check if the form is either public or their own. Otherwise able to get private forms by knowing the id
  * Route for agency/business to get the full form object by its id.
- * Returns the form object according to the Form model.
+ * Returns the form object according to the Form model, except the questions property has been changed into a sorted array according to the "ordering" properties.
  */
 formsRouter.get("/:formId", authenticateToken, needsToBeAgencyOrBusiness, async (request, response, next) => {
   try {
@@ -162,7 +162,18 @@ formsRouter.get("/:formId", authenticateToken, needsToBeAgencyOrBusiness, async 
       if (error || !form) {
         return response.status(404).send(error || { message: `Could not find form with id ${request.params.formId}` })
       }
-      response.status(200).send(form)
+      let newQuestions = []
+      let formAsObject = form.toObject()
+      const questions = formAsObject.questions
+      for (const property in questions) {
+        if (Object.prototype.hasOwnProperty.call(questions, property)) {
+          for (const question of questions[property]) {
+            newQuestions[question.ordering] = question
+          }
+        }
+      }
+      formAsObject.questions = newQuestions
+      response.status(200).send(formAsObject)
     })
   } catch (exception) {
     next(exception)

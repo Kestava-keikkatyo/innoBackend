@@ -62,7 +62,7 @@ feelingsRouter.get("/", authenticateToken, needsToBeWorker, async (request, resp
   }
 })
 
-/**
+/** // TODO mention query parameters in docs and maybe add paging information like how many pages there are.
  * Returns a list of feelings. response.body: [{ feeling object }, { feeling object }, ...]
  * Route for agency/business to get a list of a worker's feelings they have a contract with.
  */
