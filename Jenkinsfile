@@ -24,12 +24,12 @@ pipeline {
         sh 'npm install'
       }
     }
-    stage('Test stage') {
-      steps {
-        echo 'Test stage'
-        sh 'npm test'
-      }
-    }
+    // stage('Test stage') {
+    //   steps {
+    //     echo 'Test stage'
+    //     sh 'npm test'
+    //   }
+    // }
     stage('Deploy stage') {
       steps {
         echo 'Deploy stage'
