@@ -50,7 +50,8 @@ docker container run --name jenkins-docker --rm --detach \
   --publish 2376:2376 docker:dind
 
 ---------Build a new docker image from this Dockerfile and assign the image a meaningful name
-docker build -t myjenkins-blueocean:1.1 https://github.com/Kestava-keikkatyo/innoBackend.git#dev:dockerfiles
+docker build -t myjenkins-blueocean:latest https://github.com/Kestava-keikkatyo/innoBackend.git#dev:dockerfiles\jenkins
+
 
 ---------Run your own myjenkins-blueocean:1.1 image as a container in Docker using the following docker run command:
 docker run --name jenkins-blueocean --rm --detach \
@@ -59,7 +60,7 @@ docker run --name jenkins-blueocean --rm --detach \
   --publish 8080:8080 --publish 50000:50000 \
   --volume jenkins-data:/var/jenkins_home \
   --volume jenkins-docker-certs:/certs/client:ro \
-  myjenkins-blueocean:1.1
+  myjenkins-blueocean:latest
 
 ---------Jenkins setup wizard
 https://www.jenkins.io/doc/book/installing/#setup-wizard
