@@ -264,3 +264,20 @@ export const deleteTracesOfBusinessContract = async (contract:any, callback:Func
   }
 }
 
+/**
+ * Function that returns the forms of the agency or business, depending on which is provided in the body.
+ * @param body the body of the request
+ */
+export const getAgencyOrBusinessOwnForms: any = (body: any) => {
+  try {
+    let myForms = null
+    if (body.agency) {
+      myForms = body.agency.forms
+    } else if (body.business) {
+      myForms = body.business.forms
+    }
+    return myForms
+  } catch (exception) {
+    return exception
+  }
+}

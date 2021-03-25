@@ -17,10 +17,15 @@ const app = express()
 
 info("connecting to", config.MONGODB_URI)
 
-mongoose.set("useCreateIndex", true)
-mongoose.set("useFindAndModify", false)
+// These options fix deprecation warnings
+const options: any = {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useFindAndModify: false,
+    useCreateIndex: true
+}
 
-mongoose.connect(config.MONGODB_URI || 'URI_NOTFOUND', { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(config.MONGODB_URI || 'URI_NOTFOUND', options)
   .then(() => {
     info("connected to MongoDB")
   })

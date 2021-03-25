@@ -1,11 +1,12 @@
-import express, { Request, Response } from 'express'
+import express, {NextFunction, Request, Response} from 'express'
 import authenticateToken from "../utils/auhenticateToken"
 
-import { error as _error } from "../utils/logger"
+import { error as _error, info as _info } from "../utils/logger"
 import Form from "../models/Form"
 import Business from "../models/Business"
 import Agency from "../models/Agency"
 import { needsToBeAgencyOrBusiness } from "../utils/middleware"
+import { getAgencyOrBusinessOwnForms } from "../utils/common"
 
 const formsRouter = express.Router()
 
@@ -13,9 +14,9 @@ const formsRouter = express.Router()
  * Returns the added form.
  * Route for agency/business to add a form. Form given in body according to its schema model.
  */
-formsRouter.post("/", authenticateToken, needsToBeAgencyOrBusiness, async (request, res, next) => {
+formsRouter.post("/", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { body } = request
+    const { body } = req
 
     // Form validation and checking happens in schema itself
     const newForm: any = new Form({
@@ -53,7 +54,7 @@ formsRouter.post("/", authenticateToken, needsToBeAgencyOrBusiness, async (reque
  * @param res
  * @param next
  */
-const addFormToAgencyOrBusiness = (AgencyOrBusiness: any, id: string, form: any, res: any, next: any) => {
+const addFormToAgencyOrBusiness = (AgencyOrBusiness: any, id: string, form: any, res: Response, next: NextFunction) => {
   try {
     AgencyOrBusiness.findByIdAndUpdate(
       id,
@@ -75,20 +76,16 @@ const addFormToAgencyOrBusiness = (AgencyOrBusiness: any, id: string, form: any,
  * Route for agency/business to get their own forms
  * returns an array. response.body: [{tags: [], title: "title", description: "description", id: "id"}, {...}, ...] //TODO update return in docs
  */
-formsRouter.get("/me", authenticateToken, needsToBeAgencyOrBusiness, async (req, res, next) => {
+formsRouter.get("/me", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request, res: Response, next: NextFunction) => {
   const { query, body } = req
   try {
-    const page: any = query.page
-    const limit: any = query.limit
-
-    let formIds = null
-    if (body.agency) {
-      formIds = body.agency.forms
-    } else if (body.business) {
-      formIds = body.business.forms
-    } else {
+    let ownForms: any = getAgencyOrBusinessOwnForms(body)
+    if (!ownForms) {
       return res.status(500).send( { error: "Error determining whether user is agency or business" })
     }
+
+    const page: number = parseInt(query.page as string, 10)
+    const limit: number = parseInt(query.limit as string, 10)
     if (page < 1 || !page) {
       return res.status(400).send({ message: "Missing or incorrect page parameter" })
     }
@@ -97,7 +94,7 @@ formsRouter.get("/me", authenticateToken, needsToBeAgencyOrBusiness, async (req,
     }
     // Get limit's amount of own forms in specified page
     const model: any = Form
-    model.paginate({ _id: { $in: formIds } },
+    model.paginate({ _id: { $in: ownForms } },
       { projection: "title description tags", page: page, limit: limit },
       (error: any, result: any) => {
         if (error || !result) {
@@ -118,36 +115,31 @@ formsRouter.get("/me", authenticateToken, needsToBeAgencyOrBusiness, async (req,
  * Route for agency/business to get all public forms, excluding their own forms.
  * returns an array. response.body: [{tags: [], title: "title", description: "description", id: "id"}, {...}, ...]
  */
-formsRouter.get("/", authenticateToken, needsToBeAgencyOrBusiness, async (req, res, next) => {
-  const { body } = req
+formsRouter.get("/", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request, res: Response, next: NextFunction) => {
+  const { body, query } = req
   try {
-    const page: any = req.query.page // TODO duplicate code
-    const limit: any = req.query.limit
-
-    let myForms = null
-    if (body.agency) {
-      myForms = body.agency.forms
-    } else if (body.business) {
-      myForms = body.business.forms
-    } else {
+    let ownForms: any = getAgencyOrBusinessOwnForms(body)
+    if (!ownForms) {
       return res.status(500).send( { error: "Error determining whether user is agency or business" })
     }
+    const page: number = parseInt(query.page as string, 10)
+    const limit: number = parseInt(query.limit as string, 10)
     if (page < 1 || !page) {
       return res.status(400).send({ message: "Missing or incorrect page parameter" })
     }
     if (limit < 1 || !limit) {
       return res.status(400).send({ message: "Missing or incorrect limit parameter" })
     }
-    // Get limit's amount of public forms in specified page, except forms with ids that are in myForms
+    // Get limit's amount of public forms in specified page, except forms with ids that are in ownForms
     const model: any = Form
-    model.paginate({ _id: { $nin: myForms }, isPublic: true },
+    model.paginate({ _id: { $nin: ownForms }, isPublic: true },
       { projection: "title description tags", page: page, limit: limit },
       (error: any, result: any) => {
         if (error || !result) {
           return res.status(500).send( error || { message: "Did not receive a result from database" })
         } else {
           if (result.docs.length === 0) {
-            return res.status(404).send( error || { message: "Could not find any public forms not made by you" })
+            return res.status(404).send( { message: "Could not find any public forms not made by you" })
           }
           return res.status(200).json(result)
         }
@@ -157,11 +149,107 @@ formsRouter.get("/", authenticateToken, needsToBeAgencyOrBusiness, async (req, r
   }
 })
 
+/**
+ * Route for agency/business to search public forms with a search string. Does not include their own forms.
+ * req.query: q, page, limit
+ */
+formsRouter.get("/search", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request, res: Response, next: NextFunction) => {
+  const { query, body } = req
+
+  try {
+    let ownForms: any = getAgencyOrBusinessOwnForms(body)
+    if (!ownForms) {
+      return res.status(500).send( { error: "Error determining whether user is agency or business" })
+    }
+
+    const page: number = parseInt(query.page as string, 10)
+    const limit: number = parseInt(query.limit as string, 10)
+    if (page < 1 || !page) {
+      return res.status(400).send({ message: "Missing or incorrect page parameter" })
+    }
+    if (limit < 1 || !limit) {
+      return res.status(400).send({ message: "Missing or incorrect limit parameter" })
+    }
+
+    const searchQuery: string = decodeURIComponent(query.q as string)
+
+    const model: any = Form
+    model.paginate(
+        { $text: { $search: searchQuery }, _id: { $nin: ownForms }, isPublic: true },
+        {
+          projection: { title: 1, description: 1, tags: 1, score: { $meta: "textScore" } },
+          page: page,
+          limit: limit,
+          sort: { score: { $meta: "textScore" } }
+        },
+        (error: any, result: any) => {
+          if (error || !result) {
+            return res.status(500).send( error || { message: "Did not receive a result from database" })
+          } else {
+            if (result.docs.length === 0) {
+              return res.status(404).send( { message: `Could not find any public forms not made by you with '${searchQuery}' query` })
+            }
+            return res.status(200).send(result)
+          }
+        })
+  } catch (exception) {
+    return next(exception)
+  }
+})
+
+/**
+ * Route for agency/business to search their own forms with a search string.
+ * req.query: q, page, limit
+ */
+formsRouter.get("/me/search", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request, res: Response, next: NextFunction) => {
+  const { query, body } = req
+
+  try {
+    let ownForms: any = getAgencyOrBusinessOwnForms(body)
+    if (!ownForms) {
+      return res.status(500).send( { error: "Error determining whether user is agency or business" })
+    }
+
+    const page: number = parseInt(query.page as string, 10)
+    const limit: number = parseInt(query.limit as string, 10)
+    if (page < 1 || !page) {
+      return res.status(400).send({ message: "Missing or incorrect page parameter" })
+    }
+    if (limit < 1 || !limit) {
+      return res.status(400).send({ message: "Missing or incorrect limit parameter" })
+    }
+
+    const searchQuery: string = decodeURIComponent(query.q as string)
+
+    const model: any = Form
+    model.paginate(
+        { $text: { $search: searchQuery }, _id: { $in: ownForms } },
+        {
+          projection: { title: 1, description: 1, tags: 1, score: { $meta: "textScore" } },
+          page: page,
+          limit: limit,
+          sort: { score: { $meta: "textScore" } }
+        },
+        (error: any, result: any) => {
+          if (error || !result) {
+            return res.status(500).send( error || { message: "Did not receive a result from database" })
+          } else {
+            if (result.docs.length === 0) {
+              return res.status(404).send( { message: `Could not find any forms made by you with '${searchQuery}' query` })
+            }
+            return res.status(200).send(result)
+          }
+        })
+  } catch (exception) {
+    return next(exception)
+  }
+})
+
 /** TODO Should probably check if the form is either public or their own. Otherwise able to get private forms by knowing the id
  * Route for agency/business to get the full form object by its id.
  * Returns the form object according to the Form model, except the questions property has been changed into a sorted array according to the "ordering" properties.
  */
-formsRouter.get("/:formId", authenticateToken, needsToBeAgencyOrBusiness, async (req, res, next) => {
+formsRouter.get("/:formId", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request, res: Response, next: NextFunction) => {
   const { params } = req
 
   try {
@@ -193,7 +281,7 @@ formsRouter.get("/:formId", authenticateToken, needsToBeAgencyOrBusiness, async 
  * If you only need to update title, isPublic, or description field, you can just give that in the body, like: { "isPublic": false }
  * When updating any questions, give the full form object or the full questions object in it, in the body.
  */
-formsRouter.put("/:formId", authenticateToken, needsToBeAgencyOrBusiness, async (req, res, next) => {
+formsRouter.put("/:formId", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request, res: Response, next: NextFunction) => {
   const { body } = req
 
   try {
@@ -212,12 +300,12 @@ formsRouter.put("/:formId", authenticateToken, needsToBeAgencyOrBusiness, async 
 /**
  * Helper function for updating the form. Helps reduce duplicate code.
  * @param agencyOrBusinessObject request.agency or request.business. Depending on which one is trying to update the form
- * @param request
- * @param response
+ * @param req
+ * @param res
  * @param next
  * @returns {*}
  */
-const updateForm = (agencyOrBusinessObject: any, req: Request, res: Response, next: any) => {
+const updateForm = (agencyOrBusinessObject: any, req: Request, res: Response, next: NextFunction) => {
   const { params } = req
   try {
     const formId = params.formId

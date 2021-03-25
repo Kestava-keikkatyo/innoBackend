@@ -47,8 +47,8 @@ feelingsRouter.post("/", authenticateToken, needsToBeWorker, async (req, res, ne
 feelingsRouter.get("/", authenticateToken, needsToBeWorker, async (req, res, next) => {
   const { query, body } = req
   try {
-    const page: any = query.page
-    const limit: any = query.limit
+    const page: number = parseInt(query.page as string, 10)
+    const limit: number = parseInt(query.limit as string, 10)
     if (page < 1 || !page) {
       return res.status(400).send({ message: "Missing or incorrect page parameter" })
     }
@@ -56,7 +56,7 @@ feelingsRouter.get("/", authenticateToken, needsToBeWorker, async (req, res, nex
       return res.status(400).send({ message: "Missing or incorrect limit parameter" })
     }
     // Using Array.slice() to paginate feelings.
-    res.status(200).send(body.worker.feelings.slice(page*limit-limit, page*limit))
+    res.status(200).send(body.worker.feelings.slice((page-1)*limit, page*limit)) // TODO send next and previous page info as well
   } catch (exception) {
     return next(exception)
   }
@@ -71,8 +71,8 @@ feelingsRouter.get("/:workerId", authenticateToken, needsToBeAgencyOrBusiness, a
   const { query, params, body } = req
 
   try {
-    const page: any = query.page
-    const limit: any = query.limit
+    const page: number = parseInt(query.page as string, 10)
+    const limit: number = parseInt(query.limit as string, 10)
     if (page < 1 || !page) {
       return res.status(400).send({ message: "Missing or incorrect page parameter" })
     }
@@ -95,7 +95,7 @@ feelingsRouter.get("/:workerId", authenticateToken, needsToBeAgencyOrBusiness, a
               if (contracts[i].contractMade) {
                 // Contract with worker found, so agency is allowed to see worker feelings.
                 // Using Array.slice() to paginate feelings.
-                return res.status(200).send(worker.feelings.slice(page*limit-limit, page*limit))
+                return res.status(200).send(worker.feelings.slice((page-1)*limit, page*limit))
               } else {
                 // Contract found, but contractMade is false, so worker hasn't approved it yet.
                 return res.status(403).send( { message: "Worker has yet to approve contract." })
@@ -116,7 +116,7 @@ feelingsRouter.get("/:workerId", authenticateToken, needsToBeAgencyOrBusiness, a
               if (Date.now() > contracts[i].validityPeriod.getTime()) {
                 // Contract with worker found, so business is allowed to see worker feelings.
                 // Using Array.slice() to paginate feelings.
-                return res.status(200).send(worker.feelings.slice(page*limit-limit, page*limit))
+                return res.status(200).send(worker.feelings.slice((page-1)*limit, page*limit))
               } else {
                 // Contract found, but validityPeriod has passed, so contract is no longer valid.
                 return res.status(403).send( { message: "Contract with worker has expired." })
@@ -130,7 +130,7 @@ feelingsRouter.get("/:workerId", authenticateToken, needsToBeAgencyOrBusiness, a
       } else {
         return res.status(401).send( { message: "Not authorized" })
       }
-      
+
     })
   } catch (exception) {
     return next(exception)

@@ -1,9 +1,15 @@
-import mongoose, {Schema, Document} from "mongoose";
-//const uniqueValidator = require("mongoose-unique-validator")
-import mongoosePaginate from 'mongoose-paginate-v2';
+import mongoose, {Schema, Document} from "mongoose"
+import mongoosePaginate from 'mongoose-paginate-v2'
+//import mongoose_fuzzy_searching from 'mongoose-fuzzy-searching' Doesn't work. Doesn't have a types file for ts
+import { error as _error } from "../utils/logger"
 
 export interface IForm extends Document {
-  //tähän tyypitys
+  title: string,
+  isPublic: boolean,
+  description: string,
+  questions: Object,
+  tags: Array<string>
+  createdAt: Date
 }
 
 const formSchema = new Schema({
@@ -287,6 +293,8 @@ const formSchema = new Schema({
     default: Date.now,
     immutable: true
   }
+}, {
+  autoIndex: true
 })
 
 formSchema.plugin(mongoosePaginate)
@@ -300,4 +308,16 @@ formSchema.set("toJSON", {
   }
 })
 
-export default mongoose.model<IForm>("Form", formSchema)
+formSchema.index(
+    { title: "text", description: "text", tags: "text" },
+    { name: "search_index", weights: { title: 3, description: 1, tags: 2 } }
+    )
+
+const FormModel = mongoose.model<IForm>("Form", formSchema)
+FormModel.on("index", (error: Error) => {
+  if (error) {
+    _error(error.message+"\n"+error)
+  }
+})
+
+export default FormModel
