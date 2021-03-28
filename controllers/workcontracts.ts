@@ -16,8 +16,8 @@ import Business from "../models/Business"
 import WorkContract from "../models/WorkContract"
 import User from "../models/User"
 import authenticateToken from "../utils/auhenticateToken"
-import { 
-  needsToBeAgency, 
+import {
+  needsToBeAgency,
   bodyBusinessExists,
   workContractExists,
   needsToBeAgencyBusinessOrWorker,
@@ -25,7 +25,7 @@ import {
   bodyWorkerExists,
   checkAgencyBusinessContracts } from "../utils/middleware"
 import { deleteTracesOfFailedWorkContract } from "../utils/common"
-const workcontractsRouter = express.Router() 
+const workcontractsRouter = express.Router()
 
 const domainUrl = "http://localhost:8000/"
 const workContractsApiPath = "workcontracts/"
@@ -49,7 +49,7 @@ const workContractsApiPath = "workcontracts/"
  * @returns {JSON} Status 200 - res.body: { The found WorkContract object }
 */
 workcontractsRouter.get("/:contractId", authenticateToken, needsToBeAgencyBusinessOrWorker, workContractExists, workContractIncludesUser, (req, res, next) => {
-  
+
   try {
     if (req.body.userInWorkContract === true) {
       return res.status(200).send(req.body.workContract)
@@ -94,24 +94,24 @@ workcontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWorker,
     }
     //Which id is in question
     if (body.agency !== undefined) {
-      myId = body.agency.id
+      myId = body.agency._id
       model = Agency
     }
     else if (body.business !== undefined) {
-      myId = body.business.id
+      myId = body.business._id
       model = Business
     }
     else if (body.worker !== undefined) {
-      myId = body.worker.id
+      myId = body.worker._id
       model = User
     }
     else {
       return res.status(400).send({ message:"Token didn't have any users." })
     }
     //Do the pagination
-    // TODO: proper type checking 
+    // TODO: proper type checking
     model.paginate({ _id: { $in: myId } },
-      { projection:"workContracts", populate: {path:"workContracts", model: "WorkContract", page: page, limit: limit} },
+      { projection:"workContracts", populate: {path:"workContracts", model: "WorkContract", page: page, limit: limit}, lean: true, leanWithId: false },
       (error:Error, result:any) => {
         if (error || !result) {
           return res.status(500).send( error.message || { message: "Did not receive a result from database." })
@@ -189,7 +189,7 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
     await Business.findOneAndUpdate(
       { _id: body.businessId },
       { $addToSet: { workContracts: contractToCreate._id } },
-      undefined,
+      { lean: true },
       async (error: Error, result: any) => {
       if (error || !result) {
         return res
@@ -202,7 +202,7 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
     await Agency.findOneAndUpdate(
       { _id: res.locals.decoded.id },
       { $addToSet: { workContracts: contractToCreate._id } },
-      undefined,
+      { lean: true },
       async (error: Error, result: any) => {
       if (error || !result) {
         await deleteTracesOfFailedWorkContract(null, body.businessId, res.locals.decoded.id, contractToCreate._id,
@@ -226,7 +226,7 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
     await User.findOneAndUpdate(
       { _id: body.workerId },
       { $addToSet: { workContracts: contractToCreate._id } },
-      undefined,
+      { lean: true },
       async (error: any, result: any) => {
       if (error || !result) {
         await deleteTracesOfFailedWorkContract(body.workerId, body.businessId, res.locals.decoded.id, contractToCreate._id,
@@ -307,7 +307,7 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
 workcontractsRouter.put("/:contractId", authenticateToken, needsToBeAgencyBusinessOrWorker, workContractExists, workContractIncludesUser, (req, res, next) => {
   // TODO: Validate the id, check that the logged in user is authored for this
   // TODO: What form the end date need to be?
-  const { body, params } = req 
+  const { body, params } = req
   try {
     if (body.userInWorkContract !== true) {
       return res.status(401).send({ message: "This route is only available to Agency,Business and Worker who are in this contract." })
@@ -315,7 +315,7 @@ workcontractsRouter.put("/:contractId", authenticateToken, needsToBeAgencyBusine
     const updateFields = {
       ...body
     }
-    return WorkContract.findByIdAndUpdate(params.contractId, updateFields, { new: false, omitUndefined: true, runValidators: false }, (error, result) => {
+    return WorkContract.findByIdAndUpdate(params.contractId, updateFields, { new: false, omitUndefined: true, runValidators: false, lean: true }, (error, result) => {
       if (!result || error) {
         return res.status(400).send(error || { success: false, error: "Could not update WorkContract with id " + req.params.contractId })
       } else {
@@ -359,11 +359,11 @@ needsToBeAgency,
 workContractExists,
 workContractIncludesUser,
 async (req, res, next) => {
-  const { body, params } = req 
+  const { body, params } = req
 
   if (body.userInWorkContract !== true)
     return res.status(401).send( { message: "This route is only available to Agency who is in this contract." })
-  
+
   try {
     deleteTracesOfFailedWorkContract(
       body.workContract.user,

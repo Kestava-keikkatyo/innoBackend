@@ -3,15 +3,15 @@ import mongoose, {Schema, Document} from "mongoose"
 import mongoosePaginate from 'mongoose-paginate-v2';
 
 export interface IBusiness extends Document {
-  name: String,
-  email: String,
-  passwordHash?: String,
+  name: string,
+  email: string,
+  passwordHash?: string,
   createdAt: Date,
-  phonenumber: String,
+  phonenumber: string,
   businessContracts: Array<mongoose.Schema.Types.ObjectId>,
   workContracts: Array<mongoose.Schema.Types.ObjectId>,
   feelings: any,
-  userType: String
+  userType: string
 }
 
 const businessSchema = new Schema<any>({
@@ -93,9 +93,6 @@ businessSchema.plugin(mongoosePaginate)
 
 businessSchema.set("toJSON", {
   transform: (_doc: any, returnedObject: any) => {
-    returnedObject.id = returnedObject._id.toString()
-    delete returnedObject._id
-    delete returnedObject.__v
     delete returnedObject.passwordHash
   },
 })

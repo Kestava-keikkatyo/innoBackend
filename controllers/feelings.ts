@@ -22,7 +22,7 @@ feelingsRouter.post("/", authenticateToken, needsToBeWorker, async (req, res, ne
         // User id got from middleware.js. AddToSet adds 'value' and 'note' to feelings array. Note not added if undefined.
         res.locals.decoded.id,
         { $addToSet: fields },
-        { new: true, omitUndefined: true, runValidators: true },
+        { new: true, omitUndefined: true, runValidators: true, lean: true },
         (error: Error, result: any) => {
           if (!result || error) {
             res.status(401).send(error || { message: "Received no result when updating user" })
@@ -149,9 +149,9 @@ feelingsRouter.delete("/:feelingId", authenticateToken, needsToBeWorker, async (
       if (feeling._id.equals(params.feelingId)) {
         found = true
         User.findByIdAndUpdate(
-          body.worker.id,
+          body.worker._id,
           { $pull: { feelings: { _id: params.feelingId } } },
-          undefined,
+          { lean: true },
           (error: Error, result: any) => {
             if (!result || error) {
               return res.status(500).send(error || { message: "Did not receive any result from database" })

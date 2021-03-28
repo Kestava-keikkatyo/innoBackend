@@ -7,6 +7,7 @@ import Business from "../models/Business"
 import Agency from "../models/Agency"
 import { needsToBeAgencyOrBusiness } from "../utils/middleware"
 import { getAgencyOrBusinessOwnForms } from "../utils/common"
+import {CallbackError} from "mongoose";
 
 const formsRouter = express.Router()
 
@@ -59,7 +60,7 @@ const addFormToAgencyOrBusiness = (AgencyOrBusiness: any, id: string, form: any,
     AgencyOrBusiness.findByIdAndUpdate(
       id,
       { $addToSet: { forms: [form] } },
-      { new: true, omitUndefined: true, runValidators: true },
+      { new: true, omitUndefined: true, runValidators: true, lean: true },
       (error: any, result: any) => {
         if (!result || error) {
           return res.status(500).send(error || { message: "Received no result when updating user" })
@@ -95,7 +96,7 @@ formsRouter.get("/me", authenticateToken, needsToBeAgencyOrBusiness, async (req:
     // Get limit's amount of own forms in specified page
     const model: any = Form
     model.paginate({ _id: { $in: ownForms } },
-      { projection: "title description tags", page: page, limit: limit },
+      { projection: "title description tags", page: page, limit: limit, lean: true, leanWithId: false },
       (error: any, result: any) => {
         if (error || !result) {
           return res.status(500).send( error || { message: "Did not receive a result from database" })
@@ -133,7 +134,7 @@ formsRouter.get("/", authenticateToken, needsToBeAgencyOrBusiness, async (req: R
     // Get limit's amount of public forms in specified page, except forms with ids that are in ownForms
     const model: any = Form
     model.paginate({ _id: { $nin: ownForms }, isPublic: true },
-      { projection: "title description tags", page: page, limit: limit },
+      { projection: "title description tags", page: page, limit: limit, lean: true, leanWithId: false },
       (error: any, result: any) => {
         if (error || !result) {
           return res.status(500).send( error || { message: "Did not receive a result from database" })
@@ -180,7 +181,9 @@ formsRouter.get("/search", authenticateToken, needsToBeAgencyOrBusiness, async (
           projection: { title: 1, description: 1, tags: 1, score: { $meta: "textScore" } },
           page: page,
           limit: limit,
-          sort: { score: { $meta: "textScore" } }
+          sort: { score: { $meta: "textScore" } },
+          lean: true,
+          leanWithId: false
         },
         (error: any, result: any) => {
           if (error || !result) {
@@ -228,7 +231,9 @@ formsRouter.get("/me/search", authenticateToken, needsToBeAgencyOrBusiness, asyn
           projection: { title: 1, description: 1, tags: 1, score: { $meta: "textScore" } },
           page: page,
           limit: limit,
-          sort: { score: { $meta: "textScore" } }
+          sort: { score: { $meta: "textScore" } },
+          lean: true,
+          leanWithId: false
         },
         (error: any, result: any) => {
           if (error || !result) {
@@ -253,13 +258,15 @@ formsRouter.get("/:formId", authenticateToken, needsToBeAgencyOrBusiness, async 
   const { params } = req
 
   try {
-    Form.findById(params.formId, (error: Error, form: any) => {
+    Form.findById(params.formId,
+        undefined,
+        { lean: true },
+        (error: CallbackError, form: any) => {
       if (error || !form) {
         return res.status(404).send(error || { message: `Could not find form with id ${params.formId}` })
       }
       let newQuestions = []
-      let formAsObject = form.toObject()
-      const questions = formAsObject.questions
+      const questions = form.questions
       for (const property in questions) {
         if (Object.prototype.hasOwnProperty.call(questions, property)) {
           for (const question of questions[property]) {
@@ -267,8 +274,8 @@ formsRouter.get("/:formId", authenticateToken, needsToBeAgencyOrBusiness, async 
           }
         }
       }
-      formAsObject.questions = newQuestions
-      return res.status(200).send(formAsObject)
+      form.questions = newQuestions
+      return res.status(200).send(form)
     })
   } catch (exception) {
     return next(exception)
@@ -318,8 +325,8 @@ const updateForm = (agencyOrBusinessObject: any, req: Request, res: Response, ne
         found = true
         Form.findByIdAndUpdate(
           formId,
-          { ...req.body }, // Give the full form object or the full questions object in it, in body when updating questions. Otherwise all other questions are deleted.
-          { new: true, runValidators: true },
+          { ...req.body }, // Give the full form object, or the full questions object in said object, in body when updating questions. Otherwise all other questions are deleted.
+          { new: true, runValidators: true, lean: true },
           (error, result) => {
             if (error || !result) {
               return res.status(500).send(error || { message: "Didn't get a result from database while updating form" })
@@ -383,7 +390,7 @@ const deleteForm = (agencyOrBusiness: any, agencyOrBusinessObject: any, formId: 
               return res.status(500).send(error || { message: "Did not receive any result from database when deleting form" })
             } else {
               agencyOrBusiness.findByIdAndUpdate( // Once form is deleted, it also needs to be deleted from agency's or business' forms array
-                agencyOrBusinessObject.id,
+                agencyOrBusinessObject._id,
                 { $pull: { forms: { $in: [formId] } } },
                 (error: Error, result: any) => {
                   if (error || !result) {

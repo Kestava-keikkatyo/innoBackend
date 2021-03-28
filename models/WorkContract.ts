@@ -32,16 +32,6 @@ const workContractSchema = new Schema({
   }
 })
 
-
 workContractSchema.plugin(uniqueValidator)
-
-workContractSchema.set("toJSON", {
-  transform: (_doc: any, returnedObject: any) => {
-    returnedObject.id = returnedObject._id.toString()
-    delete returnedObject._id
-    delete returnedObject.__v
-    delete returnedObject.passwordHash
-  }
-})
 
 export default mongoose.model<IWorkContract>("WorkContract", workContractSchema)

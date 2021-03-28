@@ -4,16 +4,16 @@ import mongoosePaginate from 'mongoose-paginate-v2'
 //https://mongoosejs.com/docs/validation.html
 //email validator tarkistettava toimiiko halutulla tavalla, samoin phonenumber validator
 export interface IUser extends Document {
-  name: String,
-  email: String,
-  passwordHash?: String,
+  name: string,
+  email: string,
+  passwordHash?: string,
   createdAt: Date,
-  phonenumber: String,
-  lisences: String,
+  phonenumber: string,
+  lisences: string,
   businessContracts: Array<mongoose.Schema.Types.ObjectId>,
   workContracts: Array<mongoose.Schema.Types.ObjectId>,
   feelings: any,
-  userType: String
+  userType: string
 }
 const userSchema = new Schema<any>({
   name: {
@@ -90,13 +90,6 @@ userSchema.plugin(mongoosePaginate)
 
 userSchema.set("toJSON", {
   transform: (_document: any, returnedObject: any) => {
-    if (returnedObject._id) returnedObject.id = returnedObject._id.toString() // TODO do this in other models as well, and for other fields. if _id field is excluded, it will be undefined and trying to call toString on it will crash
-    if (returnedObject.feelings !== undefined) {
-      returnedObject.feelings.forEach((feeling: any) => feeling.id = feeling._id)
-      returnedObject.feelings.forEach((feeling: any) => delete feeling._id)
-    }
-    delete returnedObject._id
-    delete returnedObject.__v
     delete returnedObject.passwordHash
   }
 })

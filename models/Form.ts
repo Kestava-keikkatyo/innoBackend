@@ -203,9 +203,21 @@ const formSchema = new Schema({
         type: Number,
         required: true
       },
-      scaleOptionTitleLeft: String,
-      scaleOptionTitleCenter: String,
-      scaleOptionTitleRight: String
+      scaleOptionTitleLeft: {
+        type: String,
+        minlength: 0,
+        maxlength: 75
+      },
+      scaleOptionTitleCenter: {
+        type: String,
+        minlength: 0,
+        maxlength: 75
+      },
+      scaleOptionTitleRight: {
+        type: String,
+        minlength: 0,
+        maxlength: 75
+      }
     }],
     contactInformation: [{
       ordering: {
@@ -298,15 +310,6 @@ const formSchema = new Schema({
 })
 
 formSchema.plugin(mongoosePaginate)
-
-formSchema.set("toJSON", {
-  transform: (_doc: any, returnedObject: any) => {
-    returnedObject.id = returnedObject._id.toString()
-    delete returnedObject._id
-    delete returnedObject.__v
-    delete returnedObject.passwordHash
-  }
-})
 
 formSchema.index(
     { title: "text", description: "text", tags: "text" },

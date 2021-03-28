@@ -3,13 +3,13 @@ import uniqueValidator from "mongoose-unique-validator"
 
 export interface IBusinessContract extends Document {
   _id: mongoose.Schema.Types.ObjectId
-  contractMade: Boolean,
+  contractMade: boolean,
   createdAt: Date,
   validityPeriod: Date,
   user: mongoose.Schema.Types.ObjectId,
   business: mongoose.Schema.Types.ObjectId,
   agency: mongoose.Schema.Types.ObjectId,
-  contractType: String
+  contractType: string
 }
 
 const businessContractSchema = new Schema({
@@ -42,14 +42,5 @@ const businessContractSchema = new Schema({
 
 
 businessContractSchema.plugin(uniqueValidator)
-
-businessContractSchema.set("toJSON", {
-  transform: (_doc: any, returnedObject: any) => {
-    returnedObject.id = returnedObject._id.toString()
-    delete returnedObject._id
-    delete returnedObject.__v
-    delete returnedObject.passwordHash
-  }
-})
 
 export default mongoose.model<IBusinessContract>("BusinessContract", businessContractSchema)

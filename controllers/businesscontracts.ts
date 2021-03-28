@@ -81,9 +81,9 @@ businesscontractsRouter.get(
  * @returns {JSON} Status 200 - response.body: { All users BusinessContract objects }
  */
 businesscontractsRouter.get("/",
-  
+
   authenticateToken,
-  
+
     needsToBeAgencyBusinessOrWorker,
   async (req, res, next) => {
     const { query, body } = req
@@ -102,15 +102,15 @@ businesscontractsRouter.get("/",
       }
       //Which id is in question
       if (body.agency !== undefined) {
-        myId = body.agency.id
+        myId = body.agency._id
         model = Agency
       }
       else if (body.business !== undefined) {
-        myId = body.business.id
+        myId = body.business._id
         model = Business
       }
       else if (body.worker !== undefined) {
-        myId = body.worker.id
+        myId = body.worker._id
         model = User
       }
       else {
@@ -118,7 +118,7 @@ businesscontractsRouter.get("/",
       }
       //Do the pagination
       model.paginate({ _id: { $in: myId } },
-        { projection:"businessContracts", populate: {path:"businessContracts", model: "BusinessContract", page: page, limit: limit} },
+        { projection:"businessContracts", populate: {path:"businessContracts", model: "BusinessContract", page: page, limit: limit}, lean: true, leanWithId: false },
         (error: any, result: any) => {
           if (error || !result) {
             return res.status(500).send( { error: error } || { message: "Did not receive a result from database." })
@@ -176,7 +176,9 @@ async (req, res, next) => {
       const commonContractsArray = await BusinessContract.find({ // Check if worker has allready businessContract with agency.
         agency: contractToCreate.agency,
         user: contractToCreate.user,
-      })
+      },
+      undefined,
+      { lean: true })
       if (commonContractsArray[0]) {
         // The Agency already has a businessContract with the Worker
         return res.status(400).json({
@@ -198,7 +200,9 @@ async (req, res, next) => {
       const commonContractsArray = await BusinessContract.find({ // Check if Business has allready businessContract with agency.
         agency: res.locals.decoded.id,
         business: body.businessId,
-      })
+      },
+      undefined,
+      { lean: true })
       if (commonContractsArray[0]) {
         // The Agency already has a businessContract with the Business
         return res.status(400).json({
@@ -260,7 +264,7 @@ async (req, res, next) => {
     await BusinessContract.findByIdAndUpdate(
       params.businessContractId,
       { contractMade: true },
-      { new: false, omitUndefined: true, runValidators: false },
+      { new: false, omitUndefined: true, runValidators: false, lean: true },
       (error: Error, result: any) => {
         if (!result || error) {
           return res.status(400).send(error || { success: false, error: "Could not update BusinessContract with id " + params.businessContractId })
@@ -459,7 +463,8 @@ const addBusinessContractToParticipants = async (contract: any, callback: Functi
   // $addToSet adds to mongoose array if the item does not already exist, thus eliminating duplicates.
   const agency = await Agency.findOneAndUpdate(
     { _id: contract.agency },
-    { $addToSet: field }
+    { $addToSet: field },
+    { lean: true }
   )
   if (!agency) {
     const error: any = {
