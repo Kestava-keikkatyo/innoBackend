@@ -281,3 +281,27 @@ export const getAgencyOrBusinessOwnForms: any = (body: any) => {
     return exception
   }
 }
+
+export const buildPaginatedFeelingsObject: any = (page: number, limit: number, feelings: any) => {
+  let paginatedFeelings: any = {
+    docs: feelings.slice((page-1)*limit, page*limit), // Using Array.slice() to paginate feelings.
+    totalDocs: feelings.length,
+    limit: limit,
+    totalPages: Math.ceil(feelings.length/limit),
+    page: page,
+    pagingCounter: (page-1)*limit+1,
+    hasPrevPage: true,
+    hasNextPage: true,
+    prevPage: page-1,
+    nextPage: page+1
+  }
+  if (page+1 > paginatedFeelings.totalPages) {
+    paginatedFeelings.hasNextPage = false
+    paginatedFeelings.nextPage = null
+  }
+  if (page-1 < 1 || page > paginatedFeelings.totalPages+1) {
+    paginatedFeelings.hasPrevPage = false
+    paginatedFeelings.prevPage = null
+  }
+  return paginatedFeelings
+}
