@@ -36,7 +36,7 @@ const formSchema = new Schema({
         max: 99,
         required: true
       },
-      questionTitle: {
+      title: {
         type: String,
         minlength: 0,
         maxlength: 1000,
@@ -50,13 +50,13 @@ const formSchema = new Schema({
         max: 99,
         required: true
       },
-      questionTitle: {
+      title: {
         type: String,
         minlength: 0,
         maxlength: 200,
         required: true
       },
-      questionSubTitle: {
+      subtitle: {
         type: String,
         minlength: 0,
         maxlength: 500
@@ -81,13 +81,13 @@ const formSchema = new Schema({
         max: 99,
         required: true
       },
-      questionTitle: {
+      title: {
         type: String,
         minlength: 0,
         maxlength: 200,
         required: true
       },
-      questionSubTitle: {
+      subtitle: {
         type: String,
         minlength: 0,
         maxlength: 500
@@ -103,6 +103,12 @@ const formSchema = new Schema({
       answerMinLength: {
         type: Number,
         required: true
+      },
+      rows: {
+        type: Number,
+        min: 0,
+        max: 50,
+        required: true
       }
     }],
     checkbox: [{
@@ -112,13 +118,13 @@ const formSchema = new Schema({
         max: 99,
         required: true
       },
-      questionTitle: {
+      title: {
         type: String,
         minlength: 0,
         maxlength: 200,
         required: true
       },
-      questionSubTitle: {
+      subtitle: {
         type: String,
         minlength: 0,
         maxlength: 500
@@ -135,13 +141,13 @@ const formSchema = new Schema({
         max: 99,
         required: true
       },
-      questionTitle: {
+      title: {
         type: String,
         minlength: 0,
         maxlength: 200,
         required: true
       },
-      questionSubTitle: {
+      subtitle: {
         type: String,
         minlength: 0,
         maxlength: 500
@@ -159,13 +165,13 @@ const formSchema = new Schema({
         max: 99,
         required: true
       },
-      questionTitle: {
+      title: {
         type: String,
         minlength: 0,
         maxlength: 200,
         required: true
       },
-      questionSubTitle: {
+      subtitle: {
         type: String,
         minlength: 0,
         maxlength: 500
@@ -183,13 +189,13 @@ const formSchema = new Schema({
         max: 99,
         required: true
       },
-      questionTitle: {
+      title: {
         type: String,
         minlength: 0,
         maxlength: 200,
         required: true
       },
-      questionSubTitle: {
+      subtitle: {
         type: String,
         minlength: 0,
         maxlength: 500
@@ -238,13 +244,13 @@ const formSchema = new Schema({
         type: String,
         required: true
       },
-      questionTitle: {
+      title: {
         type: String,
         minlength: 0,
         maxlength: 200,
         required: true
       },
-      questionSubTitle: {
+      subtitle: {
         type: String,
         minlength: 0,
         maxlength: 500
@@ -261,13 +267,13 @@ const formSchema = new Schema({
         max: 99,
         required: true
       },
-      questionTitle: {
+      title: {
         type: String,
         minlength: 0,
         maxlength: 200,
         required: true
       },
-      questionSubTitle: {
+      subtitle: {
         type: String,
         minlength: 0,
         maxlength: 500
@@ -284,13 +290,13 @@ const formSchema = new Schema({
         max: 99,
         required: true
       },
-      questionTitle: {
+      title: {
         type: String,
         minlength: 0,
         maxlength: 200,
         required: true
       },
-      questionSubTitle: {
+      subtitle: {
         type: String,
         minlength: 0,
         maxlength: 500

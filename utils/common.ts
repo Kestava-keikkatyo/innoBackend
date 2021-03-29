@@ -282,6 +282,13 @@ export const getAgencyOrBusinessOwnForms: any = (body: any) => {
   }
 }
 
+/**
+ * Function that paginates an array, and returns it as an object,
+ * that is identical to what mongoose-paginate-v2 library returns.
+ * @param page
+ * @param limit
+ * @param arrayToPaginate
+ */
 export const buildPaginatedObjectFromArray: any = (page: number, limit: number, arrayToPaginate: any) => {
   let paginationObject: any = {
     docs: arrayToPaginate.slice((page-1)*limit, page*limit), // Using Array.slice() to paginate feelings.
