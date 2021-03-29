@@ -238,6 +238,12 @@ const formSchema = new Schema({
         type: String,
         required: true
       },
+      questionTitle: {
+        type: String,
+        minlength: 0,
+        maxlength: 200,
+        required: true
+      },
       questionSubTitle: {
         type: String,
         minlength: 0,
