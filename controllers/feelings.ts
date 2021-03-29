@@ -4,7 +4,7 @@ import User from "../models/User"
 import BusinessContract from "../models/BusinessContract"
 import WorkContract from "../models/WorkContract"
 import { needsToBeWorker, needsToBeAgencyOrBusiness } from "../utils/middleware"
-import { workerExists, workerExistsInContracts, buildPaginatedFeelingsObject } from "../utils/common"
+import { workerExists, workerExistsInContracts, buildPaginatedObjectFromArray } from "../utils/common"
 
 const feelingsRouter = express.Router()
 /**
@@ -56,7 +56,7 @@ feelingsRouter.get("/", authenticateToken, needsToBeWorker, async (req, res, nex
       return res.status(400).send({ message: "Missing or incorrect limit parameter" })
     }
     // Returning feelings in the same format that the pagination library would return paginated results
-    res.status(200).send(buildPaginatedFeelingsObject(page, limit, body.worker.feelings))
+    res.status(200).send(buildPaginatedObjectFromArray(page, limit, body.worker.feelings))
   } catch (exception) {
     return next(exception)
   }
@@ -96,7 +96,7 @@ feelingsRouter.get("/:workerId", authenticateToken, needsToBeAgencyOrBusiness, a
               if (contracts[i].contractMade) {
                 // Contract with worker found, so agency is allowed to see worker feelings.
                 // Using Array.slice() to paginate feelings.
-                return res.status(200).send(buildPaginatedFeelingsObject(page, limit, worker.feelings))
+                return res.status(200).send(buildPaginatedObjectFromArray(page, limit, worker.feelings))
               } else {
                 // Contract found, but contractMade is false, so worker hasn't approved it yet.
                 return res.status(403).send( { message: "Worker has yet to approve contract." })
@@ -117,7 +117,7 @@ feelingsRouter.get("/:workerId", authenticateToken, needsToBeAgencyOrBusiness, a
               if (Date.now() > contracts[i].validityPeriod.getTime()) {
                 // Contract with worker found, so business is allowed to see worker feelings.
                 // Using Array.slice() to paginate feelings.
-                return res.status(200).send(buildPaginatedFeelingsObject(page, limit, worker.feelings))
+                return res.status(200).send(buildPaginatedObjectFromArray(page, limit, worker.feelings))
               } else {
                 // Contract found, but validityPeriod has passed, so contract is no longer valid.
                 return res.status(403).send( { message: "Contract with worker has expired." })

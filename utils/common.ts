@@ -282,12 +282,12 @@ export const getAgencyOrBusinessOwnForms: any = (body: any) => {
   }
 }
 
-export const buildPaginatedFeelingsObject: any = (page: number, limit: number, feelings: any) => {
-  let paginatedFeelings: any = {
-    docs: feelings.slice((page-1)*limit, page*limit), // Using Array.slice() to paginate feelings.
-    totalDocs: feelings.length,
+export const buildPaginatedObjectFromArray: any = (page: number, limit: number, arrayToPaginate: any) => {
+  let paginationObject: any = {
+    docs: arrayToPaginate.slice((page-1)*limit, page*limit), // Using Array.slice() to paginate feelings.
+    totalDocs: arrayToPaginate.length,
     limit: limit,
-    totalPages: Math.ceil(feelings.length/limit),
+    totalPages: Math.ceil(arrayToPaginate.length/limit),
     page: page,
     pagingCounter: (page-1)*limit+1,
     hasPrevPage: true,
@@ -295,13 +295,13 @@ export const buildPaginatedFeelingsObject: any = (page: number, limit: number, f
     prevPage: page-1,
     nextPage: page+1
   }
-  if (page+1 > paginatedFeelings.totalPages) {
-    paginatedFeelings.hasNextPage = false
-    paginatedFeelings.nextPage = null
+  if (page+1 > paginationObject.totalPages) {
+    paginationObject.hasNextPage = false
+    paginationObject.nextPage = null
   }
-  if (page-1 < 1 || page > paginatedFeelings.totalPages+1) {
-    paginatedFeelings.hasPrevPage = false
-    paginatedFeelings.prevPage = null
+  if (page-1 < 1 || page > paginationObject.totalPages+1) {
+    paginationObject.hasPrevPage = false
+    paginationObject.prevPage = null
   }
-  return paginatedFeelings
+  return paginationObject
 }
