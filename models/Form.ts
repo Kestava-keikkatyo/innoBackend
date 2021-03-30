@@ -41,6 +41,10 @@ const formSchema = new Schema({
         minlength: 0,
         maxlength: 1000,
         required: true
+      },
+      questionType: {
+        type: String,
+        match: "^comment$"
       }
     }],
     text: [{
@@ -72,6 +76,10 @@ const formSchema = new Schema({
       answerMinLength: {
         type: Number,
         required: true
+      },
+      questionType: {
+        type: String,
+        match: "^text$"
       }
     }],
     textarea: [{
@@ -109,6 +117,10 @@ const formSchema = new Schema({
         min: 0,
         max: 50,
         required: true
+      },
+      questionType: {
+        type: String,
+        match: "^textarea$"
       }
     }],
     checkbox: [{
@@ -132,6 +144,10 @@ const formSchema = new Schema({
       optional: {
         type: Boolean,
         required: true
+      },
+      questionType: {
+        type: String,
+        match: "^checkbox$"
       }
     }],
     checkbox_group: [{
@@ -156,7 +172,15 @@ const formSchema = new Schema({
         type: Boolean,
         required: true
       },
-      options: [String]
+      options: [{
+        type: String,
+        minlength: 0,
+        maxlength: 200
+      }],
+      questionType: {
+        type: String,
+        match: "^checkbox_group$"
+      }
     }],
     radiobutton_group: [{
       ordering: {
@@ -180,7 +204,15 @@ const formSchema = new Schema({
         type: Boolean,
         required: true
       },
-      options: [String]
+      options: [{
+        type: String,
+        minlength: 0,
+        maxlength: 200
+      }],
+      questionType: {
+        type: String,
+        match: "^radiobutton_group$"
+      }
     }],
     radiobutton_group_horizontal: [{
       ordering: {
@@ -223,9 +255,13 @@ const formSchema = new Schema({
         type: String,
         minlength: 0,
         maxlength: 75
+      },
+      questionType: {
+        type: String,
+        match: "^radiobutton_group_horizontal$"
       }
     }],
-    contactInformation: [{
+    contact_information: [{
       ordering: {
         type: Number,
         min: 0,
@@ -258,9 +294,13 @@ const formSchema = new Schema({
       optional: {
         type: Boolean,
         required: true
+      },
+      questionType: {
+        type: String,
+        match: "^contact_information$"
       }
     }],
-    datePicker: [{
+    datepicker: [{
       ordering: {
         type: Number,
         min: 0,
@@ -281,9 +321,13 @@ const formSchema = new Schema({
       isClosedTimeFrame: {
         type: Boolean,
         required: true
+      },
+      questionType: {
+        type: String,
+        match: "^datepicker$"
       }
     }],
-    timePicker: [{
+    timepicker: [{
       ordering: {
         type: Number,
         min: 0,
@@ -304,6 +348,10 @@ const formSchema = new Schema({
       isClosedTimeFrame: {
         type: Boolean,
         required: true
+      },
+      questionType: {
+        type: String,
+        match: "^timepicker$"
       }
     }]
   },

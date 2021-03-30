@@ -271,6 +271,7 @@ formsRouter.get("/:formId", authenticateToken, needsToBeAgencyOrBusiness, async 
         if (Object.prototype.hasOwnProperty.call(questions, property)) {
           for (const question of questions[property]) {
             newQuestions[question.ordering] = question
+            newQuestions[question.ordering].questionType = property
           }
         }
       }
