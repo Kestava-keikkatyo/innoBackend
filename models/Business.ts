@@ -1,20 +1,9 @@
-import mongoose, {Schema, Document} from "mongoose"
+import mongoose, {Schema} from "mongoose"
 //const uniqueValidator = require("mongoose-unique-validator")
 import mongoosePaginate from 'mongoose-paginate-v2';
+import {IBusiness} from "../objecttypes/modelTypes"
 
-export interface IBusiness extends Document {
-  name: string,
-  email: string,
-  passwordHash?: string,
-  createdAt: Date,
-  phonenumber: string,
-  businessContracts: Array<mongoose.Schema.Types.ObjectId>,
-  workContracts: Array<mongoose.Schema.Types.ObjectId>,
-  feelings: any,
-  userType: string
-}
-
-const businessSchema = new Schema<any>({
+const businessSchema = new Schema({
   name: {
     type: String,
     minlength: 3,
@@ -63,12 +52,6 @@ const businessSchema = new Schema<any>({
     immutable: true,
     default: Date.now,
   },
-  users: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    },
-  ],
   forms: [
     {
       type: mongoose.Schema.Types.ObjectId,

@@ -25,6 +25,8 @@ import {
   bodyWorkerExists,
   checkAgencyBusinessContracts } from "../utils/middleware"
 import { deleteTracesOfFailedWorkContract } from "../utils/common"
+import {IWorkContract} from "../objecttypes/modelTypes";
+
 const workcontractsRouter = express.Router()
 
 const domainUrl = "http://localhost:8000/"
@@ -184,7 +186,7 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
       validityPeriod: new Date(body.validityPeriod),
       processStatus: body.processStatus //Mihin tätä tarvitaan? Workcontractin hyväksymiseen? Täytyy lisätä workcontractiin kyseinen field
     }
-    const contractToCreate = new WorkContract(createFields)
+    const contractToCreate: IWorkContract = new WorkContract(createFields)
     //Next add traces to Business, Agency and Worker.
     await Business.findOneAndUpdate(
       { _id: body.businessId },
@@ -205,7 +207,7 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
       { lean: true },
       async (error: Error, result: any) => {
       if (error || !result) {
-        await deleteTracesOfFailedWorkContract(null, body.businessId, res.locals.decoded.id, contractToCreate._id,
+        await deleteTracesOfFailedWorkContract(null, body.businessId, res.locals.decoded.id, contractToCreate._id.toString(),
           (result: any) => {
             noErrorInDelete = result.success
           })
@@ -229,7 +231,7 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
       { lean: true },
       async (error: any, result: any) => {
       if (error || !result) {
-        await deleteTracesOfFailedWorkContract(body.workerId, body.businessId, res.locals.decoded.id, contractToCreate._id,
+        await deleteTracesOfFailedWorkContract(body.workerId, body.businessId, res.locals.decoded.id, contractToCreate._id.toString(),
           (result: any) => {
             noErrorInDelete = result.success
           })
@@ -260,7 +262,7 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
     }
     //If contract allready exist deleteTraces, if not return res url.
     if (!contract) {
-      await deleteTracesOfFailedWorkContract(body.workerId, body.businessId, res.locals.decoded.id, contractToCreate._id,
+      await deleteTracesOfFailedWorkContract(body.workerId, body.businessId, res.locals.decoded.id, contractToCreate._id.toString(),
         (result: any) => {
           noErrorInDelete = result.success
         })

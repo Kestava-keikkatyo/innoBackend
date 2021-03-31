@@ -1,16 +1,8 @@
-import mongoose, {Schema, Document} from "mongoose"
+import mongoose, {Schema} from "mongoose"
 import mongoosePaginate from 'mongoose-paginate-v2'
-//import mongoose_fuzzy_searching from 'mongoose-fuzzy-searching' Doesn't work. Doesn't have a types file for ts
+import {IForm} from "../objecttypes/modelTypes"
+//import mongoose_fuzzy_searching from 'mongoose-fuzzy-searching' Doesn't work. Doesn't have a types file for ts. Looks like it'll be updated in the future tho. So leaving this comment here.
 import { error as _error } from "../utils/logger"
-
-export interface IForm extends Document {
-  title: string,
-  isPublic: boolean,
-  description: string,
-  questions: Object,
-  tags: Array<string>
-  createdAt: Date
-}
 
 const formSchema = new Schema({
   title: {
@@ -300,7 +292,7 @@ const formSchema = new Schema({
         match: "^contact_information$"
       }
     }],
-    datepicker: [{
+    date_picker: [{
       ordering: {
         type: Number,
         min: 0,
@@ -327,7 +319,7 @@ const formSchema = new Schema({
         match: "^datepicker$"
       }
     }],
-    timepicker: [{
+    time_picker: [{
       ordering: {
         type: Number,
         min: 0,
@@ -377,9 +369,10 @@ formSchema.index(
     )
 
 const FormModel = mongoose.model<IForm>("Form", formSchema)
+
 FormModel.on("index", (error: Error) => {
   if (error) {
-    _error(error.message+"\n"+error)
+    _error(error.message+"\n\n"+error)
   }
 })
 

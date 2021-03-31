@@ -1,23 +1,11 @@
-import mongoose, {Schema, Document} from "mongoose"
+import mongoose, {Schema} from "mongoose"
 //const uniqueValidator = require("mongoose-unique-validator")
 import mongoosePaginate from 'mongoose-paginate-v2'
+import {IAgency} from "../objecttypes/modelTypes"
 //https://mongoosejs.com/docs/validation.html
 //email validator tarkistettava toimiiko halutulla tavalla
 
-export interface IAgency extends Document {
-  //tähän tyypitys
-  name: string,
-  email: string,
-  passwordHash?: string,
-  createdAt: Date,
-  phonenumber: string,
-  businessContracts: Array<mongoose.Schema.Types.ObjectId>,
-  workContracts: Array<mongoose.Schema.Types.ObjectId>,
-  feelings: any,
-  userType: string
-}
-
-const agencySchema = new Schema<any>({
+const agencySchema = new Schema({
   name: {
     type: String,
     minlength: 3,
@@ -66,12 +54,6 @@ const agencySchema = new Schema<any>({
     type: Date,
     default: Date.now,
   },
-  users: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    },
-  ],
   forms: [
     {
       type: mongoose.Schema.Types.ObjectId,

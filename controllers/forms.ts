@@ -7,7 +7,8 @@ import Business from "../models/Business"
 import Agency from "../models/Agency"
 import { needsToBeAgencyOrBusiness } from "../utils/middleware"
 import { getAgencyOrBusinessOwnForms } from "../utils/common"
-import {CallbackError} from "mongoose";
+import {CallbackError, DocumentDefinition, Model} from "mongoose";
+import {IAgency, IBusiness, IForm} from "../objecttypes/modelTypes";
 
 const formsRouter = express.Router()
 
@@ -20,7 +21,7 @@ formsRouter.post("/", authenticateToken, needsToBeAgencyOrBusiness, async (req: 
     const { body } = req
 
     // Form validation and checking happens in schema itself
-    const newForm: any = new Form({
+    const newForm: IForm = new Form({
       title: body.title,
       isPublic: body.isPublic,
       questions: body.questions
@@ -28,7 +29,7 @@ formsRouter.post("/", authenticateToken, needsToBeAgencyOrBusiness, async (req: 
     if (body.description) {
       newForm.description = body.description
     }
-    newForm.save((error: Error, result: any) => {
+    newForm.save((error: CallbackError, result: IForm) => {
       if (error || !result) {
         return res.status(500).json( error || { message: "Unable to save form object." })
       }
@@ -55,13 +56,13 @@ formsRouter.post("/", authenticateToken, needsToBeAgencyOrBusiness, async (req: 
  * @param res
  * @param next
  */
-const addFormToAgencyOrBusiness = (AgencyOrBusiness: any, id: string, form: any, res: Response, next: NextFunction) => {
+const addFormToAgencyOrBusiness = (AgencyOrBusiness: Model<IAgency>|Model<IBusiness>, id: string, form: IForm, res: Response, next: NextFunction) => {
   try {
     AgencyOrBusiness.findByIdAndUpdate(
       id,
-      { $addToSet: { forms: [form] } },
+      { $addToSet: { forms: form } },
       { new: true, omitUndefined: true, runValidators: true, lean: true },
-      (error: any, result: any) => {
+      (error: CallbackError, _doc: IAgency|IBusiness|null, result: DocumentDefinition<IAgency|IBusiness>) => {
         if (!result || error) {
           return res.status(500).send(error || { message: "Received no result when updating user" })
         } else {

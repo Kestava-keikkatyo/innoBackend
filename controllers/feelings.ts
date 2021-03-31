@@ -1,10 +1,12 @@
-import express from 'express'
+import express, {NextFunction, Request, Response} from 'express'
 import authenticateToken from "../utils/auhenticateToken"
 import User from "../models/User"
 import BusinessContract from "../models/BusinessContract"
 import WorkContract from "../models/WorkContract"
 import { needsToBeWorker, needsToBeAgencyOrBusiness } from "../utils/middleware"
 import { workerExists, workerExistsInContracts, buildPaginatedObjectFromArray } from "../utils/common"
+import {IFeelings, IUser} from "../objecttypes/modelTypes";
+import {DocumentDefinition} from "mongoose";
 
 const feelingsRouter = express.Router()
 /**
@@ -13,17 +15,17 @@ const feelingsRouter = express.Router()
  * request.body requirements: {value: Int}. That is the minimum, can also be {value: Int, note: "note"}
  * Must be logged in as user.
  */
-feelingsRouter.post("/", authenticateToken, needsToBeWorker, async (req, res, next) => {
+feelingsRouter.post("/", authenticateToken, needsToBeWorker, async (req: Request, res: Response, next: NextFunction) => {
   const { body } = req
   try {
     if (body.value !== undefined) {
-      const fields: any = { feelings: [{ value: body.value, note: body.note }] }
+      const feelingsObject: IFeelings = { value: body.value, note: body.note }
       User.findByIdAndUpdate(
         // User id got from middleware.js. AddToSet adds 'value' and 'note' to feelings array. Note not added if undefined.
         res.locals.decoded.id,
-        { $addToSet: fields },
+        { $addToSet: { feelings: feelingsObject } },
         { new: true, omitUndefined: true, runValidators: true, lean: true },
-        (error: Error, result: any) => {
+        (error: Error, _doc: IUser|null, result: DocumentDefinition<IUser>) => {
           if (!result || error) {
             res.status(401).send(error || { message: "Received no result when updating user" })
           } else {
@@ -44,7 +46,7 @@ feelingsRouter.post("/", authenticateToken, needsToBeWorker, async (req, res, ne
  * Route for user to get a list of their feelings.
  * Must be logged in as user.
  */
-feelingsRouter.get("/", authenticateToken, needsToBeWorker, async (req, res, next) => {
+feelingsRouter.get("/", authenticateToken, needsToBeWorker, async (req: Request, res: Response, next: NextFunction) => {
   const { query, body } = req
   try {
     const page: number = parseInt(query.page as string, 10)
@@ -67,7 +69,7 @@ feelingsRouter.get("/", authenticateToken, needsToBeWorker, async (req, res, nex
  * Returns a list of feelings. response.body: [{ feeling object }, { feeling object }, ...]
  * Route for agency/business to get a list of a worker's feelings they have a contract with.
  */
-feelingsRouter.get("/:workerId", authenticateToken, needsToBeAgencyOrBusiness, async (req, res, next) => {
+feelingsRouter.get("/:workerId", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request, res: Response, next: NextFunction) => {
   const { query, params, body } = req
 
   try {
@@ -141,7 +143,7 @@ feelingsRouter.get("/:workerId", authenticateToken, needsToBeAgencyOrBusiness, a
 /**
  * Route for worker to delete one of their own feelings by providing an id of that feeling as a parameter.
  */
-feelingsRouter.delete("/:feelingId", authenticateToken, needsToBeWorker, async (req, res, next) => {
+feelingsRouter.delete("/:feelingId", authenticateToken, needsToBeWorker, async (req: Request, res: Response, next: NextFunction) => {
   const { params, body } = req
 
   try {

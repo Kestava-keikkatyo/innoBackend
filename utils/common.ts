@@ -16,9 +16,9 @@ import { CallbackError } from "mongoose"
  * @param {Function} callback
  * @returns Worker Object, if worker exists. False, if not.
 */
-export const workerExists = (id:String, callback:Function) => {
+export const workerExists = (id:string, callback:Function) => {
   try {
-    return User.findById({ _id: id }, (error:Error, result:any) => {
+    return User.findById(id, (error:Error, result:any) => {
       if (error || !result) {
         callback(false)
       } else {
@@ -39,10 +39,10 @@ export const workerExists = (id:String, callback:Function) => {
  * @param {Function} callback
  * @returns {JSON} {existingWorkerIds: existingWorkerIds, nonExistingWorkerIds: nonExistingWorkerIds}
  */
-export const whichWorkersExist = (workerIdArray:Array<String>, callback:Function) => {
+export const whichWorkersExist = (workerIdArray:Array<string>, callback:Function) => {
   try {
-    let existingWorkerIds: String[] = []
-    let nonExistingWorkerIds: String[] = []
+    let existingWorkerIds: string[] = []
+    let nonExistingWorkerIds: string[] = []
     if (Array.isArray(workerIdArray)) {
       for (let i = 0; i < workerIdArray.length; i++) {
         User.findById(workerIdArray[i], (err:CallbackError, result:any) => {
@@ -75,7 +75,7 @@ export const whichWorkersExist = (workerIdArray:Array<String>, callback:Function
  * @param {Function} callback
  * @returns {Array} contractsArray
  */
-export const workerExistsInContracts = (contractType:any, contracts:Array<String>, _workerId:String,callback:Function) => {
+export const workerExistsInContracts = (contractType:any, contracts:Array<string>, _workerId:string,callback:Function) => {
   try {
     contractType.find({ _id: { $in: contracts } }, (error:CallbackError, result:any) => {
       if (error) {
@@ -94,7 +94,7 @@ export const workerExistsInContracts = (contractType:any, contracts:Array<String
  * @param {Function} callback
  * @returns {IBusiness|Boolean} Business Object, if worker exists. False, if not.
 */
-export const businessExists = (id:String,callback:Function): any => {
+export const businessExists = (id:string,callback:Function): any => {
   try {
     return Business.findById({ _id: id }, (error:Error, result:any) => {
       if (error || !result) {
@@ -119,7 +119,7 @@ export const businessExists = (id:String,callback:Function): any => {
  * @param {Function} callback
  * @returns {Boolean} {workerTraceRemoved,businessTraceRemoved,agencyTraceRemoved}
  */
-export const deleteTracesOfFailedWorkContract = async (workerId:String|null, businessId:String, agencyId:String, contractToCreateid:String, callback:Function) => {
+export const deleteTracesOfFailedWorkContract = async (workerId:string|null, businessId:string, agencyId:string, contractToCreateid:string, callback:Function) => {
   try { //Needs somekind of check
     let workerTraceRemoved = undefined
     let businessTraceRemoved = undefined
@@ -182,7 +182,7 @@ export const deleteTracesOfFailedWorkContract = async (workerId:String|null, bus
  * @param {Function} callback
  * @return {Boolean} request.success = true/false
  */
-export const deleteAgencyTracesOfBusinessContract = async (agencyid:String,contractid:String,callback:Function) => {
+export const deleteAgencyTracesOfBusinessContract = async (agencyid:string, contractid:string, callback:Function) => {
   try {
     await Agency.findByIdAndUpdate(
       agencyid,

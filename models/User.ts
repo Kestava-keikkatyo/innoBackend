@@ -1,21 +1,11 @@
-import mongoose, {Schema, Document} from "mongoose"
+import mongoose, {Schema} from "mongoose"
 //const uniqueValidator = require("mongoose-unique-validator")
 import mongoosePaginate from 'mongoose-paginate-v2'
+import {IUser} from "../objecttypes/modelTypes"
 //https://mongoosejs.com/docs/validation.html
-//email validator tarkistettava toimiiko halutulla tavalla, samoin phonenumber validator
-export interface IUser extends Document {
-  name: string,
-  email: string,
-  passwordHash?: string,
-  createdAt: Date,
-  phonenumber: string,
-  lisences: string,
-  businessContracts: Array<mongoose.Schema.Types.ObjectId>,
-  workContracts: Array<mongoose.Schema.Types.ObjectId>,
-  feelings: any,
-  userType: string
-}
-const userSchema = new Schema<any>({
+// todo email validator tarkistettava toimiiko halutulla tavalla, samoin phonenumber validator
+
+const userSchema = new Schema({
   name: {
     type: String,
     minlength: 3,
@@ -60,6 +50,10 @@ const userSchema = new Schema<any>({
     type: mongoose.Schema.Types.ObjectId,
     ref: "bContract",
   }],
+  workContracts: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "wContract",
+  }],
   feelings: [{
     value: {
       type: Number,
@@ -67,18 +61,14 @@ const userSchema = new Schema<any>({
       min: [0, "Feelings can't go below 0"],
       max: [3, "Feelings can't be above 3"]
     },
+    note: {
+      type: String
+    },
     createdAt: {
       type: Date,
       default: Date.now,
       immutable: true
-    },
-    note: {
-      type: String
     }
-  }],
-  workContracts: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "wContract",
   }],
   userType: {
     type: String,

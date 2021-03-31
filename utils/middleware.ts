@@ -8,14 +8,15 @@
  * @requires WorkContract
  * @requires utils/common
  */
-import { Request , Response } from "express"
+import {NextFunction, Request, Response} from "express"
 import {info, error as _error} from "./logger"
 import Business from "../models/Business"
 import Agency from "../models/Agency"
 import User from "../models/User"
-import BusinessContract, { IBusinessContract } from "../models/BusinessContract"
+import BusinessContract from "../models/BusinessContract"
 import WorkContract from "../models/WorkContract"
-import { deleteAgencyTracesOfBusinessContract } from "../utils/common"
+import { deleteAgencyTracesOfBusinessContract } from "./common"
+import { IBusinessContract } from "../objecttypes/modelTypes"
 import { CallbackError } from "mongoose"
 
 export const requestLogger = (req:Request, _res:Response, next:Function) => {
@@ -363,7 +364,7 @@ export const needsToBeAgency = (req:Request, res:Response, next:Function) => {
 /**
  * Checks if the logged in user is a Business.
  * Business object from database is populated to request.body.business
- * @param {String} request.locals.decoded.id - UsersId (AgencyId) from token.
+ * @param {String} res.locals.decoded.id - UsersId (AgencyId) from token.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {Function} next - NextFunction.
@@ -389,7 +390,7 @@ export const needsToBeBusiness = (req:Request, res:Response, next:Function) => {
 /**
  * Checks if the logged in user is a Worker.
  * Worker object from database is populated to request.body.worker.
- * @param {String} req.locals.decoded.id - UsersId (AgencyId) from token. // TODO response.locals...
+ * @param {String} res.locals.decoded.id - UsersId (AgencyId) from token.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {Function} next - NextFunction.
@@ -543,12 +544,12 @@ export const needsToBeAgencyBusinessOrWorker = (req:Request, res:Response, next:
  * @param {Array} req.body.agency.businessContracts - Agency array of businessContract ID:s.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
- * @param {Function} next - NextFunction.
+ * @param {NextFunction} next - Express NextFunction.
  * @throws {JSON} Status 204 - response.body: { message:"Agency doesn't have any BusinessContracts" }
  * @throws {JSON} Status 500 - response.body: { exception }
  * @returns {Function} next()
  */
-export const checkAgencyBusinessContracts = async (req:Request,res:Response,next:Function) => {
+export const checkAgencyBusinessContracts = async (req:Request, res:Response, next:NextFunction) => {
   try {
     req.body.commonContractIndex = -1
     if (req.body.agency.businessContracts || req.body.agency.businessContracts.length > 0) {
@@ -569,16 +570,20 @@ export const checkAgencyBusinessContracts = async (req:Request,res:Response,next
             } else {
               console.log("Result:", contract)
               switch (contract.business) {
-              case undefined:
-                if (contract.user.toString() === req.body.workerId.toString() && contract.contractMade === true) {
-                  req.body.commonContractIndex += 1
-                }
-                break
-              default:
-                if (contract.business.toString() === req.body.businessId.toString() && contract.contractMade === true) {
-                  req.body.commonContractIndex += 1
-                }
-                break
+                case undefined:
+                  if (contract.user !== undefined) {
+                    if (contract.user.toString() === req.body.workerId.toString() && contract.contractMade) {
+                      req.body.commonContractIndex += 1
+                    }
+                  } else {
+                    _error("Contract.user was undefined")
+                  }
+                  break
+                default:
+                  if (contract.business.toString() === req.body.businessId.toString() && contract.contractMade) {
+                    req.body.commonContractIndex += 1
+                  }
+                  break
               }
             }
           }

@@ -1,13 +1,6 @@
-import mongoose, {Schema, Document} from "mongoose"
+import mongoose, {Schema} from "mongoose"
 import uniqueValidator from "mongoose-unique-validator"
-
-export interface IWorkContract extends Document {
-  createdAt: Date,
-  validityPeriod: Date,
-  user: mongoose.Schema.Types.ObjectId,
-  business: mongoose.Schema.Types.ObjectId,
-  agency: mongoose.Schema.Types.ObjectId
-}
+import {IWorkContract} from "../objecttypes/modelTypes"
 
 const workContractSchema = new Schema({
   createdAt: {
