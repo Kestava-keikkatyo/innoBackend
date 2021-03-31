@@ -2,7 +2,7 @@ import express from "express"
 import cors from "cors"
 import mongoose from "mongoose"
 import config from "./utils/config"
-import usersRouter from "./controllers/users"
+import workersRouter from "./controllers/worker"
 import businessRouter from "./controllers/businesses"
 import agenciesRouter from "./controllers/agencies"
 import loginRouter from "./controllers/login"
@@ -37,7 +37,7 @@ app.use(cors())
 app.use(express.json())
 app.use(requestLogger)
 
-app.use("/api/users", usersRouter)
+app.use("/api/workers", workersRouter)
 app.use("/api/businesses", businessRouter)
 app.use("/api/agencies", agenciesRouter)
 app.use("/api/login", loginRouter)

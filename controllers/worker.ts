@@ -15,25 +15,25 @@ import { sign } from "jsonwebtoken"
 import { info, error as _error } from "../utils/logger"
 import authenticateToken from "../utils/auhenticateToken"
 
-import User from "../models/User"
+import Worker from "../models/Worker"
 import Agency from "../models/Agency"
 import BusinessContract from "../models/BusinessContract"
 import { needsToBeWorker } from "../utils/middleware"
 
 
-const usersRouter = express.Router()
+const workersRouter = express.Router()
 
 /**
  * req.body requirements: {name: "name", email: "email", password: "password"}
- * Route used for User registration.
- * Returns a token that is used for user log in.
- * @name POST /users
+ * Route used for Worker registration.
+ * Returns a token that is used for worker log in.
+ * @name POST /workers
  * @function
  * @memberof module:controllers/users~usersRouter
  * @inner
- * @returns {JSON} response.body: { token, name: user.name, email: user.email, role: "worker" }
+ * @returns {JSON} response.body: { token, name: worker.name, email: worker.email, role: "worker" }
  */
-usersRouter.post("/", async (req, res, next) => {
+workersRouter.post("/", async (req, res, next) => {
   try {
     const body = req.body
     const passwordLength = body.password ? body.password.length : 0
@@ -44,15 +44,15 @@ usersRouter.post("/", async (req, res, next) => {
     }
     const saltRounds = 10
     const passwordHash = await hash(body.password, saltRounds)
-    const userToCreate = new User({
+    const userToCreate = new Worker({
       name: body.name,
       email: body.email,
       passwordHash,
     })
-    const user = await userToCreate.save() //TODO use callback and check for errors
+    const worker = await userToCreate.save() //TODO use callback and check for errors
 
     const userForToken = {
-      email: user.email,
+      email: worker.email,
       id: userToCreate._id,
     }
 
@@ -60,7 +60,7 @@ usersRouter.post("/", async (req, res, next) => {
 
     res
       .status(200)
-      .send({ token, name: user.name, email: user.email, role: "worker" })
+      .send({ token, name: worker.name, email: worker.email, role: "worker" })
   } catch (exception) {
     return next(exception)
   }
@@ -69,18 +69,18 @@ usersRouter.post("/", async (req, res, next) => {
 /**
  * Route used to find user with decoded authenticateToken.
  * Requires user logged in as a Worker
- * @name GET /users/me
+ * @name GET /workers/me
  * @function
  * @memberof module:controllers/users~usersRouter
  * @inner
  * @returns {JSON} res.body: { The found Worker object }
  */
-usersRouter.get("/me", authenticateToken, async (_req, res, next) => {
+workersRouter.get("/me", authenticateToken, async (_req, res, next) => {
   try {
     //Decodatun tokenin arvo haetaan middlewarelta
     const decoded = res.locals.decoded
     //Tokeni pitää sisällään userid jolla etsitään oikean käyttäjän tiedot
-    User.findById({ _id: decoded.id }, (error: any, result: any) => {
+    Worker.findById({ _id: decoded.id }, (error: any, result: any) => {
       //Jos ei resultia niin käyttäjän tokenilla ei löydy käyttäjää
       if (!result || error) {
         res.status(401).send(error || { message: "Not authorized" })
@@ -96,13 +96,13 @@ usersRouter.get("/me", authenticateToken, async (_req, res, next) => {
 /**
  * Route used to update users password.
  * Requires User logged in as a Worker. req.body OPTIONAL: Properties as per User model.
- * @name PUT /users
+ * @name PUT /workers
  * @function
  * @memberof module:controllers/users~usersRouter
  * @inner
  * @returns {JSON} res.body: { The found Worker object }
  */
-usersRouter.put("/", authenticateToken, async (req, res, next) => {
+workersRouter.put("/", authenticateToken, async (req, res, next) => {
   const body = req.body
   const decoded = res.locals.decoded
   let passwordHash
@@ -134,7 +134,7 @@ usersRouter.put("/", authenticateToken, async (req, res, next) => {
 
     // https://mongoosejs.com/docs/tutorials/findoneandupdate.html
     // https://mongoosejs.com/docs/api.html#model_Model.findByIdAndUpdate
-    const updatedUser = await User.findByIdAndUpdate(decoded.id, updateFields,
+    const updatedUser = await Worker.findByIdAndUpdate(decoded.id, updateFields,
       { new: true, omitUndefined: true, runValidators: true })
 
     if (!updatedUser) {
@@ -152,13 +152,13 @@ usersRouter.put("/", authenticateToken, async (req, res, next) => {
  * Retrieves all workers that have a matching name pattern.
  * @example
  * http://localhost:3001/api/users?name=jarmo
- * @name GET /users
+ * @name GET /workers
  * @function
  * @memberof module:controllers/users~usersRouter
  * @inner
  * @returns {JSON} res.body: { List of users }
  */
-usersRouter.get("/", authenticateToken, async (req, res, next) => {
+workersRouter.get("/", authenticateToken, async (req, res, next) => {
   const decoded = res.locals.decoded
   const name = req.query.name
 
@@ -168,7 +168,7 @@ usersRouter.get("/", authenticateToken, async (req, res, next) => {
       // Työntekijät haetaan SQL:n LIKE operaattorin tapaisesti
       // Työpassit jätetään hausta pois
       const findName: any = { $regex: name, $options: "i" }
-      const users = await User.find({ name: findName }, { licenses: 0 })
+      const users = await Worker.find({ name: findName }, { licenses: 0 })
       if (users) {
         return res.status(200).json(users)
       }
@@ -182,13 +182,13 @@ usersRouter.get("/", authenticateToken, async (req, res, next) => {
 /**
  * Requires User logged in as an Worker.
  * Route for getting full data of all BusinessContracts that the logged in Worker has.
- * @name GET /users/businesscontracts
+ * @name GET /workers/businesscontracts
  * @function
  * @memberof module:controllers/users~usersRouter
  * @inner
  * @returns {JSON} response.body: { [{businessContract1}, {businessContract2},...] }
  */
-usersRouter.get("/businesscontracts", authenticateToken, needsToBeWorker, async (req, res, next) => {
+workersRouter.get("/businesscontracts", authenticateToken, needsToBeWorker, async (req, res, next) => {
   const { body } = req
   const contractIds = body.worker.businessContracts
   let contracts: any = []
@@ -223,4 +223,4 @@ usersRouter.get("/businesscontracts", authenticateToken, needsToBeWorker, async 
   }
 })
 
-export default usersRouter
+export default workersRouter

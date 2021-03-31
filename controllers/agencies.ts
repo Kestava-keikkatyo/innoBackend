@@ -17,7 +17,7 @@ import authenticateToken from "../utils/auhenticateToken"
 import Agency from "../models/Agency"
 import { needsToBeAgency } from "../utils/middleware"
 import { Promise as _Promise } from "bluebird";
-import User from "../models/User"
+import Worker from "../models/Worker"
 import BusinessContract from "../models/BusinessContract"
 import { whichWorkersExist, workerExists } from '../utils/common'
 
@@ -125,7 +125,7 @@ agenciesRouter.get("/workers", authenticateToken, needsToBeAgency, (req, res, ne
     info("Populating array with " + body.agency.users.length + " workers.")
     _Promise.map(body.agency.users, (workerId) => {
       // Promise.map awaits for returned promises as well.
-      User.findById({ _id: workerId }, (error: Error, result: any) => {
+      Worker.findById({ _id: workerId }, (error: Error, result: any) => {
         if (!result || error) {
           return res.status(500).send(error || { message: "Agency with ID " + body.agency._id + " has a Worker with ID " + result._id + " but it does not exist!" })
         } else {
@@ -277,7 +277,7 @@ agenciesRouter.post("/workers", authenticateToken, needsToBeAgency, (req, res, n
 })
 
 /**
- * Returns res.body: { [{businessContract1}, {businessContract2},...] }
+ * @deprecated Returns res.body: { [{businessContract1}, {businessContract2},...] }
  * Requires user logged in as Agency.
  * Route for getting full data of all BusinessContracts that the logged in Agency has.
  * { [{businessContract1}, {businessContract2},...] }
@@ -298,8 +298,8 @@ agenciesRouter.get("/businesscontracts", authenticateToken, needsToBeAgency, asy
       path:"businessContracts", model: "BusinessContract",
       populate:
       [{
-        path: "user",
-        model: "User",
+        path: "worker",
+        model: "Workers",
         select: "name email feelings"
       },
       {

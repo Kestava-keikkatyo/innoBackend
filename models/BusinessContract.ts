@@ -16,9 +16,9 @@ const businessContractSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "business",
   },
-  user: {
+  worker: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "user"
+    ref: "worker"
   },
   agency: {
     type: mongoose.Schema.Types.ObjectId,
