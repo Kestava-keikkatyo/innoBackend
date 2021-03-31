@@ -1,6 +1,6 @@
 import express from 'express'
 import authenticateToken from "../utils/auhenticateToken"
-import User from "../models/User"
+import User from "../models/Worker"
 import BusinessContract from "../models/BusinessContract"
 import WorkContract from "../models/WorkContract"
 import { needsToBeWorker, needsToBeAgencyOrBusiness } from "../utils/middleware"

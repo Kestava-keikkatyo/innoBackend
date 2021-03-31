@@ -6,7 +6,7 @@ export interface IBusinessContract extends Document {
   contractMade: boolean,
   createdAt: Date,
   validityPeriod: Date,
-  user: mongoose.Schema.Types.ObjectId,
+  worker: mongoose.Schema.Types.ObjectId,
   business: mongoose.Schema.Types.ObjectId,
   agency: mongoose.Schema.Types.ObjectId,
   contractType: string
@@ -26,9 +26,9 @@ const businessContractSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "business",
   },
-  user: {
+  worker: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "user"
+    ref: "worker"
   },
   agency: {
     type: mongoose.Schema.Types.ObjectId,

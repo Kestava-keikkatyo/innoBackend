@@ -1,10 +1,10 @@
 /** Contains all callback functions that use callback.
  * @module utils/common
- * @requires User
+ * @requires Worker
  * @requires Business
  * @requires Agency
  */
-import User from "../models/User"
+import Worker from "../models/Worker"
 import Business from "../models/Business"
 import Agency from "../models/Agency"
 
@@ -18,7 +18,7 @@ import { CallbackError } from "mongoose"
 */
 export const workerExists = (id:String, callback:Function) => {
   try {
-    return User.findById({ _id: id }, (error:Error, result:any) => {
+    return Worker.findById({ _id: id }, (error:Error, result:any) => {
       if (error || !result) {
         callback(false)
       } else {
@@ -45,7 +45,7 @@ export const whichWorkersExist = (workerIdArray:Array<String>, callback:Function
     let nonExistingWorkerIds: String[] = []
     if (Array.isArray(workerIdArray)) {
       for (let i = 0; i < workerIdArray.length; i++) {
-        User.findById(workerIdArray[i], (err:CallbackError, result:any) => {
+        Worker.findById(workerIdArray[i], (err:CallbackError, result:any) => {
           if (err || !result) {
             nonExistingWorkerIds.push(workerIdArray[i])
           } else {
@@ -112,14 +112,14 @@ export const businessExists = (id:String,callback:Function): any => {
  * Deletes traces of failed WorkContract from business, agency and user collection.
  * If you don't wanna delete some references you can leave id value ass null.
  * This function is used in workcontract.js in POST workcontract route.
- * @param {string} workerId User/Workers Id - used to find right worker / can be null
+ * @param {string} workerId Workers Id - used to find right worker / can be null
  * @param {string} businessId Business Id - used to find right business / can be null
  * @param {string} agencyId Agency ObjecId - used to find right agency / can be null
  * @param {string} contractToCreateid ContractId - contract that failed save to db
  * @param {Function} callback
  * @returns {Boolean} {workerTraceRemoved,businessTraceRemoved,agencyTraceRemoved}
  */
-export const deleteTracesOfFailedWorkContract = async (workerId:String|null, businessId:String, agencyId:String, contractToCreateid:String, callback:Function) => {
+export const deleteTracesOfFailedWorkContract = async (workerId:String|null, businessId:String|null, agencyId:String|null, contractToCreateid:String, callback:Function) => {
   try { //Needs somekind of check
     let workerTraceRemoved = undefined
     let businessTraceRemoved = undefined
@@ -154,9 +154,9 @@ export const deleteTracesOfFailedWorkContract = async (workerId:String|null, bus
         }
       )
     }
-    //if user
+    //if worker
     if (workerId !== null) {
-      await User.findByIdAndUpdate(
+      await Worker.findByIdAndUpdate(
         { _id: workerId },
         { $pull: { workContracts : { $in: [contractToCreateid.toString()] } } },
         { multi: false },
@@ -216,8 +216,8 @@ export const deleteTracesOfBusinessContract = async (contract:any, callback:Func
     //check which businesscontract is in question
     if (contract.contractType.toString() === "Worker")
     {
-      await User.findByIdAndUpdate(
-        contract.user._id,
+      await Worker.findByIdAndUpdate(
+        contract.worker._id,
         { $pull: { businessContracts : { $in: [contract._id.toString()] } } },
         { multi: false },
         (error,result) => {

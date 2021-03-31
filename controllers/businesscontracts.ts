@@ -20,7 +20,7 @@ import { businessContractExists,
   bodyWorkerOrBusinessExists } from "../utils/middleware"
 import { error as _error, info } from "../utils/logger"
 import Agency from "../models/Agency"
-import User from "../models/User"
+import Worker from "../models/Worker"
 import Business from "../models/Business"
 import { deleteTracesOfBusinessContract } from "../utils/common"
 
@@ -110,8 +110,8 @@ businesscontractsRouter.get("/",
         model = Business
       }
       else if (body.worker !== undefined) {
-        myId = body.worker._id
-        model = User
+        myId = body.worker.id
+        model = Worker
       }
       else {
         return res.status(400).send({ message:"Token didn't have any users." })
@@ -411,7 +411,7 @@ const createBusinessContract = (contractToCreate: any, response: Response, callb
  * @param {*} response
  * @see {@link addBusinessContractToParticipants}
  */
-const createBusinessContractCallBack = (error: Error, contract: any, response: Response) => {
+const createBusinessContractCallBack = async (error: Error, contract: any, response: Response) => {
   info("In createBusinessContractCallBack...")
   if (error || !contract) {
     return response.status(500).json({
@@ -423,7 +423,7 @@ const createBusinessContractCallBack = (error: Error, contract: any, response: R
     // add to participants
     info("Adding created contract to participants...")
     info(contract)
-    addBusinessContractToParticipants(contract, (error: Error, result: any) => {
+    return await addBusinessContractToParticipants(contract, (error: Error, result: any) => {
       if (error || !result) {
         // Couldn't add the contract to a participant, rollback everything
         // check error.needToBeCleanedUp to see which participants need have the contract id removed.
@@ -444,7 +444,7 @@ const createBusinessContractCallBack = (error: Error, contract: any, response: R
       }
     })
   }
-  return response.status(400).send("Bad request")
+  // return response.status(400).send("Bad request")
 }
 
 
@@ -479,7 +479,7 @@ const addBusinessContractToParticipants = async (contract: any, callback: Functi
   } else {
     if (contract.user) {
       // add to worker
-      const worker = await User.findOneAndUpdate(
+      const worker = await Worker.findOneAndUpdate(
         { _id: contract.user },
         { $addToSet: field }
       )
