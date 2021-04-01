@@ -1,5 +1,5 @@
 /** Express router providing Worker-related routes
- * @module controllers/users
+ * @module controllers/workers
  * @requires express
  */
 
@@ -7,7 +7,7 @@
  * Express router to mount Worker-related functions on.
  * @type {object}
  * @const
- * @namespace usersRouter
+ * @namespace workersRouter
 */
 import express from "express"
 import { hash } from "bcryptjs"
@@ -29,7 +29,7 @@ const workersRouter = express.Router()
  * Returns a token that is used for worker log in.
  * @name POST /workers
  * @function
- * @memberof module:controllers/users~usersRouter
+ * @memberof module:controllers/workers~workersRouter
  * @inner
  * @returns {JSON} response.body: { token, name: worker.name, email: worker.email, role: "worker" }
  */
@@ -44,19 +44,19 @@ workersRouter.post("/", async (req, res, next) => {
     }
     const saltRounds = 10
     const passwordHash = await hash(body.password, saltRounds)
-    const userToCreate = new Worker({
+    const workerToCreate: any = new Worker({ // TODO change any to IWorker after it has been finished
       name: body.name,
       email: body.email,
       passwordHash,
     })
-    const worker = await userToCreate.save() //TODO use callback and check for errors
+    const worker = await workerToCreate.save() //TODO use callback and check for errors
 
-    const userForToken = {
+    const workerForToken = {
       email: worker.email,
-      id: userToCreate._id,
+      id: workerToCreate._id,
     }
 
-    const token = sign(userForToken, process.env.SECRET || '')
+    const token = sign(workerForToken, process.env.SECRET || '')
 
     res
       .status(200)
@@ -67,11 +67,11 @@ workersRouter.post("/", async (req, res, next) => {
 })
 
 /**
- * Route used to find user with decoded authenticateToken.
- * Requires user logged in as a Worker
+ * Route used to find worker with decoded authenticateToken.
+ * Requires worker logged in as a Worker
  * @name GET /workers/me
  * @function
- * @memberof module:controllers/users~usersRouter
+ * @memberof module:controllers/workers~workersRouter
  * @inner
  * @returns {JSON} res.body: { The found Worker object }
  */
@@ -79,7 +79,7 @@ workersRouter.get("/me", authenticateToken, async (_req, res, next) => {
   try {
     //Decodatun tokenin arvo haetaan middlewarelta
     const decoded = res.locals.decoded
-    //Tokeni pitää sisällään userid jolla etsitään oikean käyttäjän tiedot
+    //Tokeni pitää sisällään workerid jolla etsitään oikean käyttäjän tiedot
     Worker.findById({ _id: decoded.id }, (error: any, result: any) => {
       //Jos ei resultia niin käyttäjän tokenilla ei löydy käyttäjää
       if (!result || error) {
@@ -94,11 +94,11 @@ workersRouter.get("/me", authenticateToken, async (_req, res, next) => {
 })
 
 /**
- * Route used to update users password.
- * Requires User logged in as a Worker. req.body OPTIONAL: Properties as per User model.
+ * Route used to update workers password.
+ * Requires worker logged in as a Worker. req.body OPTIONAL: Properties as per worker model.
  * @name PUT /workers
  * @function
- * @memberof module:controllers/users~usersRouter
+ * @memberof module:controllers/workers~workersRouter
  * @inner
  * @returns {JSON} res.body: { The found Worker object }
  */
@@ -134,13 +134,13 @@ workersRouter.put("/", authenticateToken, async (req, res, next) => {
 
     // https://mongoosejs.com/docs/tutorials/findoneandupdate.html
     // https://mongoosejs.com/docs/api.html#model_Model.findByIdAndUpdate
-    const updatedUser = await Worker.findByIdAndUpdate(decoded.id, updateFields,
+    const updatedworker = await Worker.findByIdAndUpdate(decoded.id, updateFields,
       { new: true, omitUndefined: true, runValidators: true })
 
-    if (!updatedUser) {
-      return res.status(400).json({ error: "User not found" })
+    if (!updatedworker) {
+      return res.status(400).json({ error: "worker not found" })
     }
-    return res.status(200).json(updatedUser)
+    return res.status(200).json(updatedworker)
 
   } catch (exception) {
     return next(exception)
@@ -148,15 +148,15 @@ workersRouter.put("/", authenticateToken, async (req, res, next) => {
 })
 
 /**
- * Requires User logged in as an Agency. req.query.name: Worker name to be searched
+ * Requires worker logged in as an Agency. req.query.name: Worker name to be searched
  * Retrieves all workers that have a matching name pattern.
  * @example
- * http://localhost:3001/api/users?name=jarmo
+ * http://localhost:3001/api/workers?name=jarmo
  * @name GET /workers
  * @function
- * @memberof module:controllers/users~usersRouter
+ * @memberof module:controllers/workers~workersRouter
  * @inner
- * @returns {JSON} res.body: { List of users }
+ * @returns {JSON} res.body: { List of workers }
  */
 workersRouter.get("/", authenticateToken, async (req, res, next) => {
   const decoded = res.locals.decoded
@@ -168,23 +168,23 @@ workersRouter.get("/", authenticateToken, async (req, res, next) => {
       // Työntekijät haetaan SQL:n LIKE operaattorin tapaisesti
       // Työpassit jätetään hausta pois
       const findName: any = { $regex: name, $options: "i" }
-      const users = await Worker.find({ name: findName }, { licenses: 0 })
-      if (users) {
-        return res.status(200).json(users)
+      const workers = await Worker.find({ name: findName }, { licenses: 0 })
+      if (workers) {
+        return res.status(200).json(workers)
       }
     }
-    return res.status(400).json({ error: "Users not found" })
+    return res.status(400).json({ error: "workers not found" })
   } catch (exception) {
     return next(exception)
   }
 })
 
 /**
- * Requires User logged in as an Worker.
+ * Requires worker logged in as an Worker.
  * Route for getting full data of all BusinessContracts that the logged in Worker has.
  * @name GET /workers/businesscontracts
  * @function
- * @memberof module:controllers/users~usersRouter
+ * @memberof module:controllers/workers~workersRouter
  * @inner
  * @returns {JSON} response.body: { [{businessContract1}, {businessContract2},...] }
  */

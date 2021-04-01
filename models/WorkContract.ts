@@ -4,17 +4,17 @@ import {IWorkContract} from "../objecttypes/modelTypes"
 
 const subContractSchema = new Schema({
   workers: [{
-    type:mongoose.Schema.Types.ObjectId,
-    ref:"workers"
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "workers"
   }],
   workerCount: {
-    type:String
+    type: String // ?? Why a string and not number?
   },
   acceptedAgency: {
-    type:Boolean
+    type: Boolean
   },
   acceptedBusiness: {
-    type:Boolean
+    type: Boolean
   },
   createdAt: {
     type: Date,
@@ -23,10 +23,10 @@ const subContractSchema = new Schema({
   },
   validityPeriod: {
     startDate: {
-      type:Date
+      type: Date
     },
     endDate: {
-      type:Date
+      type: Date
     }
   }
 })

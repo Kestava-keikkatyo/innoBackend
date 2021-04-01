@@ -1,11 +1,11 @@
 import mongoose, {Schema} from "mongoose"
 //const uniqueValidator = require("mongoose-unique-validator")
 import mongoosePaginate from 'mongoose-paginate-v2'
-import {IUser} from "../objecttypes/modelTypes"
+import {IWorker} from "../objecttypes/modelTypes"
 //https://mongoosejs.com/docs/validation.html
 // todo email validator tarkistettava toimiiko halutulla tavalla, samoin phonenumber validator
 
-const userSchema = new Schema({
+const workerSchema = new Schema({
   name: {
     type: String,
     minlength: 3,
@@ -76,12 +76,12 @@ const userSchema = new Schema({
   }
 })
 
-userSchema.plugin(mongoosePaginate)
+workerSchema.plugin(mongoosePaginate)
 
-userSchema.set("toJSON", {
+workerSchema.set("toJSON", {
   transform: (_document: any, returnedObject: any) => {
     delete returnedObject.passwordHash
   }
 })
 
-export default mongoose.model<IUser>('User', userSchema)
+export default mongoose.model<IWorker>('Worker', workerSchema)

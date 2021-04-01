@@ -5,7 +5,7 @@ import BusinessContract from "../models/BusinessContract"
 import WorkContract from "../models/WorkContract"
 import { needsToBeWorker, needsToBeAgencyOrBusiness } from "../utils/middleware"
 import { workerExists, workerExistsInContracts, buildPaginatedObjectFromArray } from "../utils/common"
-import {IFeelings, IUser} from "../objecttypes/modelTypes";
+import {IFeelings, IWorker} from "../objecttypes/modelTypes";
 import {DocumentDefinition} from "mongoose";
 
 const feelingsRouter = express.Router()
@@ -25,7 +25,7 @@ feelingsRouter.post("/", authenticateToken, needsToBeWorker, async (req: Request
         res.locals.decoded.id,
         { $addToSet: { feelings: feelingsObject } },
         { new: true, omitUndefined: true, runValidators: true, lean: true },
-        (error: Error, _doc: IUser|null, result: DocumentDefinition<IUser>) => {
+        (error: Error, _doc: IWorker|null, result: DocumentDefinition<IWorker>) => {
           if (!result || error) {
             res.status(401).send(error || { message: "Received no result when updating user" })
           } else {
