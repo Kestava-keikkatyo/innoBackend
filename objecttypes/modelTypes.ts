@@ -4,7 +4,7 @@ export interface IFeelings {
   _id?: any, //Schema.Types.ObjectId Bugi mongodb:n tyypitys-tiedostossa ei salli optionaalin ObjectId-tyyppisen _id:n käyttöä $addToSet:in kanssa.
   value: number,
   note?: string,
-  createdAt: Date
+  createdAt?: Date
 }
 
 export interface IQuestions {
