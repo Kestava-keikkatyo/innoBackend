@@ -1,4 +1,4 @@
-import { Document, Schema } from "mongoose";
+import {Document, Schema, PaginateModel} from "mongoose"
 
 export interface IFeelings {
   _id?: any, //Schema.Types.ObjectId Bugi mongodb:n tyypitys-tiedostossa ei salli optionaalin ObjectId-tyyppisen _id:n käyttöä $addToSet:in kanssa.
@@ -68,9 +68,6 @@ export interface IQuestions {
   }>,
   contact_information: Array<{
     ordering: number,
-    name: string,
-    email: string,
-    phoneNumber: string,
     title: string,
     subtitle: string,
     optional: boolean,
@@ -89,7 +86,8 @@ export interface IQuestions {
     subtitle: string,
     isClosedTimeFrame: boolean,
     questionType: string
-  }>
+  }>,
+  [key: string]: any
 }
 
 export interface IWorker extends Document {
@@ -160,7 +158,7 @@ export interface IWorkContract extends Document {
 export interface ISubContract extends Document {
   _id: Schema.Types.ObjectId,
   workers: Array<IWorker['_id'] | IWorker>,
-  workerCount: string,
+  workerCount: string, // Why not number?
   acceptedAgency: boolean,
   acceptedBusiness: boolean,
   createdAt: Date,
@@ -169,7 +167,17 @@ export interface ISubContract extends Document {
     endDate: Date
   }
 }
-
+/* If DocumentDefinition<IForm> isn't what you're actually supposed to use for docs returned by lean option,
+   then we create an interface IFormDoc that IForm will extend in addition to Document. IFormDoc is then used when returning with lean.
+export interface IFormDoc {
+  title: string,
+  isPublic: boolean,
+  description: string,
+  questions: IQuestions,
+  tags: Array<string>,
+  createdAt: Date
+}
+*/
 export interface IForm extends Document {
   _id: Schema.Types.ObjectId,
   title: string,
@@ -179,3 +187,5 @@ export interface IForm extends Document {
   tags: Array<string>,
   createdAt: Date
 }
+
+export interface FormModel<T extends Document> extends PaginateModel<T> {} // Used so Form.paginate can be used

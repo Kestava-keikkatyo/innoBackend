@@ -68,7 +68,7 @@ workersRouter.post("/", async (req, res, next) => {
 
 /**
  * Route used to find worker with decoded authenticateToken.
- * Requires worker logged in as a Worker
+ * Requires user logged in as a Worker
  * @name GET /workers/me
  * @function
  * @memberof module:controllers/workers~workersRouter
@@ -95,7 +95,7 @@ workersRouter.get("/me", authenticateToken, async (_req, res, next) => {
 
 /**
  * Route used to update workers password.
- * Requires worker logged in as a Worker. req.body OPTIONAL: Properties as per worker model.
+ * Requires user logged in as a Worker. req.body OPTIONAL: Properties as per Worker model.
  * @name PUT /workers
  * @function
  * @memberof module:controllers/workers~workersRouter
@@ -134,13 +134,13 @@ workersRouter.put("/", authenticateToken, async (req, res, next) => {
 
     // https://mongoosejs.com/docs/tutorials/findoneandupdate.html
     // https://mongoosejs.com/docs/api.html#model_Model.findByIdAndUpdate
-    const updatedworker = await Worker.findByIdAndUpdate(decoded.id, updateFields,
+    const updatedWorker = await Worker.findByIdAndUpdate(decoded.id, updateFields,
       { new: true, omitUndefined: true, runValidators: true })
 
-    if (!updatedworker) {
-      return res.status(400).json({ error: "worker not found" })
+    if (!updatedWorker) {
+      return res.status(400).json({ error: "Worker not found" })
     }
-    return res.status(200).json(updatedworker)
+    return res.status(200).json(updatedWorker)
 
   } catch (exception) {
     return next(exception)
@@ -148,7 +148,7 @@ workersRouter.put("/", authenticateToken, async (req, res, next) => {
 })
 
 /**
- * Requires worker logged in as an Agency. req.query.name: Worker name to be searched
+ * Requires user logged in as an Agency. req.query.name: Worker name to be searched
  * Retrieves all workers that have a matching name pattern.
  * @example
  * http://localhost:3001/api/workers?name=jarmo
@@ -173,14 +173,14 @@ workersRouter.get("/", authenticateToken, async (req, res, next) => {
         return res.status(200).json(workers)
       }
     }
-    return res.status(400).json({ error: "workers not found" })
+    return res.status(400).json({ error: "Workers not found" })
   } catch (exception) {
     return next(exception)
   }
 })
 
 /**
- * Requires worker logged in as an Worker.
+ * Requires user logged in as a Worker.
  * Route for getting full data of all BusinessContracts that the logged in Worker has.
  * @name GET /workers/businesscontracts
  * @function

@@ -9,26 +9,26 @@ import Business from "../models/Business"
 import Agency from "../models/Agency"
 
 import { error as _error } from "../utils/logger"
-import { CallbackError } from "mongoose"
+import {CallbackError, Schema} from "mongoose"
+import {IWorker} from "../objecttypes/modelTypes";
 /**
  * Checks if a worker with param id exists.
  * @param {string} id
  * @param {Function} callback
- * @returns Worker Object, if worker exists. False, if not.
+ * @returns Worker Object if worker exists, null if not.
 */
-export const workerExists = (id:string, callback:Function) => {
+export const workerExists = (id: string, callback: (result: IWorker | null) => void): void => {
   try {
-    return Worker.findById(id, (error:Error, result:any) => {
+    Worker.findById(id, (error: CallbackError, result: IWorker | null) => {
       if (error || !result) {
-        callback(false)
+        callback(null)
       } else {
         callback(result)
       }
     })
   } catch (exception) {
     _error(exception)
-    callback(false)
-    return
+    callback(null)
   }
 }
 
@@ -268,7 +268,7 @@ export const deleteTracesOfBusinessContract = async (contract:any, callback:Func
  * Function that returns the forms of the agency or business, depending on which is provided in the body.
  * @param body the body of the request
  */
-export const getAgencyOrBusinessOwnForms: any = (body: any) => {
+export const getAgencyOrBusinessOwnForms = (body: any): Array<Schema.Types.ObjectId> | null => {
   try {
     let myForms = null
     if (body.agency) {

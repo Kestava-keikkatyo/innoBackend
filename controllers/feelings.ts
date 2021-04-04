@@ -1,12 +1,12 @@
 import express, {NextFunction, Request, Response} from 'express'
 import authenticateToken from "../utils/auhenticateToken"
-import User from "../models/Worker"
+import Worker from "../models/Worker"
 import BusinessContract from "../models/BusinessContract"
 import WorkContract from "../models/WorkContract"
 import { needsToBeWorker, needsToBeAgencyOrBusiness } from "../utils/middleware"
 import { workerExists, workerExistsInContracts, buildPaginatedObjectFromArray } from "../utils/common"
 import {IFeelings, IWorker} from "../objecttypes/modelTypes";
-import {DocumentDefinition} from "mongoose";
+import {CallbackError, DocumentDefinition} from "mongoose";
 
 const feelingsRouter = express.Router()
 /**
@@ -20,12 +20,12 @@ feelingsRouter.post("/", authenticateToken, needsToBeWorker, async (req: Request
   try {
     if (body.value !== undefined) {
       const feelingsObject: IFeelings = { value: body.value, note: body.note }
-      User.findByIdAndUpdate(
+      Worker.findByIdAndUpdate(
         // User id got from middleware.js. AddToSet adds 'value' and 'note' to feelings array. Note not added if undefined.
         res.locals.decoded.id,
         { $addToSet: { feelings: feelingsObject } },
         { new: true, omitUndefined: true, runValidators: true, lean: true },
-        (error: Error, _doc: IWorker|null, result: DocumentDefinition<IWorker>) => {
+        (error: CallbackError, result: DocumentDefinition<IWorker> | null) => {
           if (!result || error) {
             res.status(401).send(error || { message: "Received no result when updating user" })
           } else {
@@ -82,8 +82,8 @@ feelingsRouter.get("/:workerId", authenticateToken, needsToBeAgencyOrBusiness, a
       return res.status(400).send({ message: "Missing or incorrect limit parameter" })
     }
 
-    const workerId = params.workerId
-    workerExists(workerId, (worker: any) => {
+    const workerId: string = params.workerId
+    workerExists(workerId, (worker: IWorker | null) => {
       if (!worker) {
         return res.status(404).send( { message: "Worker with ID " + workerId + " not found" })
       }
@@ -147,15 +147,15 @@ feelingsRouter.delete("/:feelingId", authenticateToken, needsToBeWorker, async (
   const { params, body } = req
 
   try {
-    let found: boolean | undefined
+    let found: boolean = false
     for (const feeling of body.worker.feelings) {
       if (feeling._id.equals(params.feelingId)) {
         found = true
-        User.findByIdAndUpdate(
+        Worker.findByIdAndUpdate(
           body.worker._id,
           { $pull: { feelings: { _id: params.feelingId } } },
           { lean: true },
-          (error: Error, result: any) => {
+          (error: CallbackError, result: DocumentDefinition<IWorker> | null) => {
             if (!result || error) {
               return res.status(500).send(error || { message: "Did not receive any result from database" })
             } else {

@@ -1,6 +1,6 @@
 import mongoose, {Schema} from "mongoose"
 import mongoosePaginate from 'mongoose-paginate-v2'
-import {IForm} from "../objecttypes/modelTypes"
+import {IForm, FormModel} from "../objecttypes/modelTypes"
 //import mongoose_fuzzy_searching from 'mongoose-fuzzy-searching' Doesn't work. Doesn't have a types file for ts. Looks like it'll be updated in the future tho. So leaving this comment here.
 import { error as _error } from "../utils/logger"
 
@@ -260,18 +260,6 @@ const formSchema = new Schema({
         max: 99,
         required: true
       },
-      name: {
-        type: String,
-        required: true
-      },
-      email: {
-        type: String,
-        required: true
-      },
-      phoneNumber: {
-        type: String,
-        required: true
-      },
       title: {
         type: String,
         minlength: 0,
@@ -368,7 +356,7 @@ formSchema.index(
     { name: "search_index", weights: { title: 3, description: 1, tags: 2 } }
     )
 
-const FormModel = mongoose.model<IForm>("Form", formSchema)
+const FormModel: FormModel<IForm> = mongoose.model<IForm>("Form", formSchema) as FormModel<IForm>
 
 FormModel.on("index", (error: Error) => {
   if (error) {

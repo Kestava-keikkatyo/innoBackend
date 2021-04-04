@@ -20,6 +20,7 @@ import { Promise as _Promise } from "bluebird";
 import Worker from "../models/Worker"
 import BusinessContract from "../models/BusinessContract"
 import { whichWorkersExist, workerExists } from '../utils/common'
+import {IWorker} from "../objecttypes/modelTypes";
 
 const agenciesRouter = express.Router()
 const domainUrl = "http://localhost:3000/"
@@ -214,28 +215,25 @@ agenciesRouter.post("/workers", authenticateToken, needsToBeAgency, (req, res, n
     if (body.worker) {
       let workerId = body.worker
       // addToSet operation adds an item to a mongoose array, if that item is not already present.
-      if (workerExists(workerId, next)) {
-        Agency.findOneAndUpdate(
-        { _id: agencyId },
-        { $addToSet: { users: [workerId] } },
-        undefined,
-        (error: Error, result: any) => {
-          if (error || !result) {
-            return res
-              .status(400)
-              .json({ error: "Could not add Worker with ID" + workerId + " into Agency with ID" + agencyId + "." })
-          } else {
-            // Added Worker to Agency, return resource URL
-            return res
-              .status(200)
-              .json({ updated: domainUrl + agencyApiPath + agencyId, workersAdded: workerId })
-          }
-        })
-      } else {
-        return res
-          .status(400)
-          .json({ error: "Could not find Worker with ID " + workerId + "." })
-      }
+
+      workerExists(workerId, (worker: IWorker | null) => {
+        if (worker) {
+          Agency.findOneAndUpdate(
+              { _id: agencyId },
+              { $addToSet: { users: [workerId] } },
+              undefined,
+              (error: Error, result: any) => {
+                if (error || !result) {
+                  res.status(400).json({ error: "Could not add Worker with ID" + workerId + " into Agency with ID" + agencyId + "." })
+                } else {
+                  // Added Worker to Agency, return resource URL
+                  res.status(200).json({ updated: domainUrl + agencyApiPath + agencyId, workersAdded: workerId })
+                }
+              })
+        } else {
+          res.status(400).json({ error: "Could not find Worker with ID " + workerId + "." })
+        }
+      })
 
       // Adding several workers
     } else if (body.workers) {
