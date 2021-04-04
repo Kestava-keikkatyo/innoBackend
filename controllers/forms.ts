@@ -275,7 +275,7 @@ formsRouter.get("/:formId", authenticateToken, needsToBeAgencyOrBusiness, async 
       }
       let newForm: any = form
       newForm.questions = newQuestions
-      return res.status(200).send(form)
+      return res.status(200).send(newForm)
     })
   } catch (exception) {
     return next(exception)
