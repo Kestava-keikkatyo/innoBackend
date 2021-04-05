@@ -11,9 +11,9 @@ import {CallbackError, DocumentDefinition} from "mongoose";
 const feelingsRouter = express.Router()
 /**
  * Returns response.body: { The updated Worker object }
- * Route for user to add a feeling.
+ * Route for worker to add a feeling.
  * request.body requirements: {value: Int}. That is the minimum, can also be {value: Int, note: "note"}
- * Must be logged in as user.
+ * Must be logged in as worker.
  */
 feelingsRouter.post("/", authenticateToken, needsToBeWorker, async (req: Request, res: Response, next: NextFunction) => {
   const { body } = req
@@ -43,8 +43,8 @@ feelingsRouter.post("/", authenticateToken, needsToBeWorker, async (req: Request
 
 /**
  * Returns a list of feelings. response.body: [{ feeling object }, { feeling object }, ...]
- * Route for user to get a list of their feelings.
- * Must be logged in as user.
+ * Route for worker to get a list of their feelings.
+ * Must be logged in as worker.
  */
 feelingsRouter.get("/", authenticateToken, needsToBeWorker, async (req: Request, res: Response, next: NextFunction) => {
   const { query, body } = req
@@ -94,7 +94,7 @@ feelingsRouter.get("/:workerId", authenticateToken, needsToBeAgencyOrBusiness, a
         return workerExistsInContracts(BusinessContract, contractIds, workerId, (contracts: any) => {
           // In callback
           for (let i = 0; i < contracts.length; i++) {
-            if (contracts[i].user && contracts[i].user.equals(workerId)) {
+            if (contracts[i].worker && contracts[i].worker.equals(workerId)) {
               if (contracts[i].contractMade) {
                 // Contract with worker found, so agency is allowed to see worker feelings.
                 // Using Array.slice() to paginate feelings.
@@ -115,7 +115,7 @@ feelingsRouter.get("/:workerId", authenticateToken, needsToBeAgencyOrBusiness, a
         return workerExistsInContracts(WorkContract, contractIds, workerId, (contracts: any) => {
           // In callback
           for (let i = 0; i < contracts.length; i++) {
-            if (contracts[i].user && contracts[i].user.equals(workerId)) {
+            if (contracts[i].worker && contracts[i].worker.equals(workerId)) {
               if (Date.now() > contracts[i].validityPeriod.getTime()) {
                 // Contract with worker found, so business is allowed to see worker feelings.
                 // Using Array.slice() to paginate feelings.
