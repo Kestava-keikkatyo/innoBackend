@@ -8,7 +8,7 @@ const subContractSchema = new Schema({
     ref: "workers"
   }],
   workerCount: {
-    type: String // ?? Why a string and not number?
+    type: Number
   },
   acceptedAgency: {
     type: Boolean

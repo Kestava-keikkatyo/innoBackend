@@ -1,97 +1,83 @@
-import {Document, Schema, PaginateModel} from "mongoose"
+import {Document, PaginateModel, Types} from "mongoose"
 
 export interface IFeelings {
-  _id?: any, //Schema.Types.ObjectId Bugi mongodb:n tyypitys-tiedostossa ei salli optionaalin ObjectId-tyyppisen _id:n käyttöä $addToSet:in kanssa.
+  _id?: Types.ObjectId,
   value: number,
   note?: string,
   createdAt?: Date
 }
 
+export interface IComment {
+  ordering: number,
+  title: string,
+  questionType: string
+}
+
+export interface IBaseQuestion {
+  ordering: number,
+  title: string,
+  subtitle: string,
+  optional: boolean,
+  questionType: string
+}
+
+export interface ITextQuestion extends IBaseQuestion {
+  answerMaxLength: number,
+  answerMinLength: number
+}
+
+export interface ITextareaQuestion extends IBaseQuestion {
+  answerMaxLength: number,
+  answerMinLength: number,
+  rows: number
+}
+
+export interface ICheckboxQuestion extends IBaseQuestion {}
+
+export interface ICheckboxGroupQuestion extends IBaseQuestion {
+  options: Array<string>
+}
+
+export interface IRadiobuttonGroupQuestion extends IBaseQuestion {
+  options: Array<string>
+}
+
+export interface IRadiobuttonGroupHorizontalQuestion extends IBaseQuestion {
+  options: Array<string>,
+  scaleOptionTitleLeft: string,
+  scaleOptionTitleCenter: string,
+  scaleOptionTitleRight: string
+}
+
+export interface IContactInformationQuestion extends IBaseQuestion {}
+
+export interface IDatePickerQuestion extends IBaseQuestion {
+  isClosedTimeFrame: boolean
+}
+
+export interface ITimePickerQuestion extends IBaseQuestion {
+  isClosedTimeFrame: boolean
+}
+
+export type AnyQuestion = IComment | ITextQuestion | ITextareaQuestion | ICheckboxQuestion | ICheckboxGroupQuestion | IRadiobuttonGroupQuestion | IRadiobuttonGroupHorizontalQuestion | IContactInformationQuestion | IDatePickerQuestion | ITimePickerQuestion
+
+
 export interface IQuestions {
-  comment: Array<{
-    ordering: number,
-    title: string,
-    questionType: string
-  }>,
-  text: Array<{
-    ordering: number,
-    title: string,
-    subtitle: string,
-    optional: boolean,
-    answerMaxLength: number,
-    answerMinLength: number,
-    questionType: string
-  }>,
-  textarea: Array<{
-    ordering: number,
-    title: string,
-    subtitle: string,
-    optional: boolean,
-    answerMaxLength: number,
-    answerMinLength: number,
-    rows: number,
-    questionType: string
-  }>,
-  checkbox: Array<{
-    ordering: number,
-    title: string,
-    subtitle: string,
-    optional: boolean,
-    questionType: string
-  }>,
-  checkbox_group: Array<{
-    ordering: number,
-    title: string,
-    subtitle: string,
-    optional: boolean,
-    options: Array<string>,
-    questionType: string
-  }>,
-  radiobutton_group: Array<{
-    ordering: number,
-    title: string,
-    subtitle: string,
-    optional: boolean,
-    options: Array<string>,
-    questionType: string
-  }>,
-  radiobutton_group_horizontal: Array<{
-    ordering: number,
-    title: string,
-    subtitle: string,
-    optional: boolean,
-    options: Array<string>,
-    scaleOptionTitleLeft: string,
-    scaleOptionTitleCenter: string,
-    scaleOptionTitleRight: string,
-    questionType: string
-  }>,
-  contact_information: Array<{
-    ordering: number,
-    title: string,
-    subtitle: string,
-    optional: boolean,
-    questionType: string
-  }>,
-  date_picker: Array<{
-    ordering: number,
-    title: string,
-    subtitle: string,
-    isClosedTimeFrame: boolean,
-    questionType: string
-  }>,
-  time_picker: Array<{
-    ordering: number,
-    title: string,
-    subtitle: string,
-    isClosedTimeFrame: boolean,
-    questionType: string
-  }>,
-  [key: string]: any
+  comment: Array<IComment>,
+  text: Array<ITextQuestion>,
+  textarea: Array<ITextareaQuestion>,
+  checkbox: Array<ICheckboxQuestion>,
+  checkbox_group: Array<ICheckboxGroupQuestion>,
+  radiobutton_group: Array<IRadiobuttonGroupQuestion>,
+  radiobutton_group_horizontal: Array<IRadiobuttonGroupHorizontalQuestion>,
+  contact_information: Array<IContactInformationQuestion>,
+  date_picker: Array<IDatePickerQuestion>,
+  time_picker: Array<ITimePickerQuestion>,
+  [key: string]: Array<AnyQuestion>
 }
 
 export interface IWorker extends Document {
-  _id: Schema.Types.ObjectId,
+  _id: Types.ObjectId,
   name: string,
   email: string,
   passwordHash?: string,
@@ -105,7 +91,7 @@ export interface IWorker extends Document {
 }
 
 export interface IAgency extends Document {
-  _id: Schema.Types.ObjectId,
+  _id: Types.ObjectId,
   name: string,
   email: string,
   city: string,
@@ -117,12 +103,12 @@ export interface IAgency extends Document {
   createdAt: Date,
   forms: Array<IForm['_id']> | Array<IForm>,
   businessContracts: Array<IBusinessContract['_id']> | Array<IBusinessContract>,
-  workContracts: Array<Schema.Types.ObjectId> | Array<IWorkContract>,
+  workContracts: Array<Types.ObjectId> | Array<IWorkContract>,
   userType: string
 }
 
 export interface IBusiness extends Document {
-  _id: Schema.Types.ObjectId,
+  _id: Types.ObjectId,
   name: string,
   email: string,
   city: string,
@@ -134,12 +120,12 @@ export interface IBusiness extends Document {
   createdAt: Date,
   forms: Array<IForm['_id']> | Array<IForm>,
   businessContracts: Array<IBusinessContract['_id']> | Array<IBusinessContract>,
-  workContracts: Array<Schema.Types.ObjectId> | Array<IWorkContract>,
+  workContracts: Array<Types.ObjectId> | Array<IWorkContract>,
   userType: string
 }
 
 export interface IBusinessContract extends Document {
-  _id: Schema.Types.ObjectId,
+  _id: Types.ObjectId,
   contractMade: boolean,
   createdAt: Date,
   worker: IWorker['_id'] | IWorker, // Todo can't some of these be optional?
@@ -149,16 +135,16 @@ export interface IBusinessContract extends Document {
 }
 
 export interface IWorkContract extends Document {
-  _id: Schema.Types.ObjectId,
+  _id: Types.ObjectId,
   business: IBusiness['_id'] | IBusiness,
   agency: IAgency['_id'] | IAgency,
   contracts: Array<ISubContract>
 }
 
 export interface ISubContract extends Document {
-  _id: Schema.Types.ObjectId,
+  _id: Types.ObjectId,
   workers: Array<IWorker['_id'] | IWorker>,
-  workerCount: string, // Why not number?
+  workerCount: number,
   acceptedAgency: boolean,
   acceptedBusiness: boolean,
   createdAt: Date,
@@ -167,24 +153,17 @@ export interface ISubContract extends Document {
     endDate: Date
   }
 }
-/* If DocumentDefinition<IForm> isn't what you're actually supposed to use for docs returned by lean option,
-   then we create an interface IFormDoc that IForm will extend in addition to Document. IFormDoc is then used when returning with lean.
+// Used when we want to type docs given in req.body. For calls with {lean: true} option, use DocumentDefinition<IForm> for result type
 export interface IFormDoc {
   title: string,
   isPublic: boolean,
-  description: string,
-  questions: IQuestions,
-  tags: Array<string>,
-  createdAt: Date
+  description?: string,
+  questions?: IQuestions,
+  tags?: Array<string>,
 }
-*/
-export interface IForm extends Document {
-  _id: Schema.Types.ObjectId,
-  title: string,
-  isPublic: boolean,
-  description: string,
-  questions: IQuestions,
-  tags: Array<string>,
+
+export interface IForm extends Document, IFormDoc {
+  _id: Types.ObjectId,
   createdAt: Date
 }
 

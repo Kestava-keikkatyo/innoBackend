@@ -19,7 +19,7 @@ import { deleteAgencyTracesOfBusinessContract } from "./common"
 import { IBusinessContract } from "../objecttypes/modelTypes"
 import { CallbackError } from "mongoose"
 
-export const requestLogger = (req:Request, _res:Response, next:Function) => {
+export const requestLogger = (req: Request, _res: Response, next: NextFunction) => {
   info("Method:", req.method)
   info("Path:  ", req.path)
   info("Body:  ", req.body)
@@ -27,11 +27,11 @@ export const requestLogger = (req:Request, _res:Response, next:Function) => {
   next()
 }
 
-export const unknownEndpoint = (_req:Request, res:Response) => {
+export const unknownEndpoint = (_req: Request, res: Response) => {
   res.status(404).send({ error: "unknown endpoint" })
 }
 
-export const errorHandler = (err:any, _req:Request, res:Response, next:Function) => {
+export const errorHandler = (err: any, _req: Request, res: Response, next: NextFunction): any => {
   _error(err.message)
 
   if (err.name === "CastError" && err.kind === "ObjectId") {
@@ -47,15 +47,15 @@ export const errorHandler = (err:any, _req:Request, res:Response, next:Function)
  * @param {String} req.body.businessId - BusinessId from body.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
- * @param {Function} next - NextFunction.
+ * @param {NextFunction} next - NextFunction.
  * @throws {JSON} Status 404 - response.body: { error: "No business found with the request businessId." }
  * @throws {JSON} Status 400 - response.body: { error: "No businessId in request body." }
- * @returns {Function} next()
+ * @returns {NextFunction} next()
  */
-export const bodyBusinessExists = (req: Request, res: Response, next: Function): any => {
+export const bodyBusinessExists = (req: Request, res: Response, next: NextFunction): any => {
   try {
     if (req.body.businessId) {
-      return Business.findById({ _id: req.body.businessId }, (err:Error, result:any) => {
+      return Business.findById({ _id: req.body.businessId }, (err: Error, result: any) => {
         if (err || !result) {
           return res.status(404).send({ error: "No business found with the request businessId." })
         } else {
@@ -74,15 +74,15 @@ export const bodyBusinessExists = (req: Request, res: Response, next: Function):
  * @param {String} req.body.workerId - WorkerId from body.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
- * @param {Function} next - NextFunction.
+ * @param {NextFunction} next - NextFunction.
  * @throws {JSON} Status 404 - response.body: { error: "No worker found with the request workerId." }
  * @throws {JSON} Status 400 - response.body: { error: "No workerId in request body." }
- * @returns {Function} next()
+ * @returns {NextFunction} next()
 */
-export const bodyWorkerExists = (req:Request, res:Response, next:Function) => {
+export const bodyWorkerExists = (req: Request, res: Response, next: NextFunction) => {
   try {
     if (req.body.workerId) {
-      return Worker.findById({ _id: req.body.workerId }, (err:Error, result:any) => {
+      return Worker.findById({ _id: req.body.workerId }, (err: Error, result: any) => {
         if (err || !result) {
           return res.status(404).send({ error: "No worker found with the request workerId." })
         } else {
@@ -105,13 +105,13 @@ export const bodyWorkerExists = (req:Request, res:Response, next:Function) => {
  * @param {String} req.body.businessId - BusinessId from body.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
- * @param {Function} next - NextFunction.
+ * @param {NextFunction} next - NextFunction.
  * @throws {JSON} Status 404 - response.body: { error: "No worker found with the request workerId." }
  * @throws {JSON} Status 404 - response.body: { error: "No business found with the request businessId." }
  * @throws {JSON} Status 404 - response.body: { error: "Body doesn't include workerId or businessId" }
- * @returns {Function} next()
+ * @returns {NextFunction} next()
 */
-export const bodyWorkerOrBusinessExists = (req:Request, res:Response, next:Function) => {
+export const bodyWorkerOrBusinessExists = (req: Request, res: Response, next: NextFunction) => {
   try {
     if (req.body.workerId && !req.body.businessId) {
       return Worker.findById({ _id: req.body.workerId }, (err:Error, result:any) => {
@@ -124,7 +124,7 @@ export const bodyWorkerOrBusinessExists = (req:Request, res:Response, next:Funct
         }
       })
     } else if (!req.body.workerId && req.body.businessId) {
-      return Business.findById({ _id: req.body.businessId }, (err:Error, result:any) => {
+      return Business.findById({ _id: req.body.businessId }, (err: Error, result: any) => {
         if (err || !result) {
           return res.status(404).send({ error: "No business found with the request businessId." })
         } else {
@@ -147,15 +147,15 @@ export const bodyWorkerOrBusinessExists = (req:Request, res:Response, next:Funct
  * @param {String} req.params.agencyId - AgencyId from parameter (url).
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
- * @param {Function} next - NextFunction.
+ * @param {NextFunction} next - NextFunction.
  * @throws {JSON} Status 404 - response.body: { error: "No Agency found with the request :agencyId." }
  * @throws {JSON} Status 400 - response.body: { error: "No :agencyId in url." }
- * @returns {Function} next()
+ * @returns {NextFunction} next()
 */
-export const agencyExists = (req:Request, res:Response, next:Function) => {
+export const agencyExists = (req: Request, res: Response, next: NextFunction) => {
   try {
     if (req.params.agencyId) {
-      return Agency.findById({ _id: req.params.agencyId }, (err:Error, result:any) => {
+      return Agency.findById({ _id: req.params.agencyId }, (err: Error, result: any) => {
         if (err || !result) {
           return res.status(404).send({ error: "No Agency found with the request :agencyId." })
         } else {
@@ -177,15 +177,15 @@ export const agencyExists = (req:Request, res:Response, next:Function) => {
  * @param {String} req.param.businessId - BusinessId from parameter (url).
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
- * @param {Function} next - NextFunction.
+ * @param {NextFunction} next - NextFunction.
  * @throws {JSON} Status 404 - response.body: { error: "No Business found with the request :businessId." }
  * @throws {JSON} Status 400 - response.body: { error: "No :businessId in url." }
- * @returns {Function} next()
+ * @returns {NextFunction} next()
 */
-export const businessExists = (req:Request, res:Response, next:Function) => {
+export const businessExists = (req: Request, res: Response, next: NextFunction) => {
   try {
     if (req.params.businessId) {
-      return Business.findById({ _id: req.params.businessId }, (err:Error, result:any) => {
+      return Business.findById({ _id: req.params.businessId }, (err: Error, result: any) => {
         if (err || !result) {
           return res.status(404).send({ error: "No Business found with the request :businessId." })
         } else {
@@ -207,15 +207,15 @@ export const businessExists = (req:Request, res:Response, next:Function) => {
  * @param {String} req.params.businessContractId - BusinessContractId from parameter (url).
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
- * @param {Function} next - NextFunction.
+ * @param {NextFunction} next - NextFunction.
  * @throws {JSON} Status 404 - request.body: { error: "No BusinessContract found with the request :businessContractId." }
  * @throws {JSON} Status 400 - request.body: { error: "No :businessContractId in url." }
- * @returns {Function} next()
+ * @returns {NextFunction} next()
 */
-export const businessContractExists = (req:Request, res:Response, next:Function) => {
+export const businessContractExists = (req: Request, res: Response, next: NextFunction) => {
   try {
     if (req.params.businessContractId) {
-      return BusinessContract.findById({ _id: req.params.businessContractId }, (err:Error, result:any) => {
+      return BusinessContract.findById({ _id: req.params.businessContractId }, (err: Error, result: any) => {
         if (err || !result) {
           return res.status(404).send({ error: "No BusinessContract found with the request :businessContractId." })
         } else {
@@ -237,14 +237,14 @@ export const businessContractExists = (req:Request, res:Response, next:Function)
  * @param {BusinessContract} req.body.businessContract - BusinessContract.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
- * @param {Function} next - NextFunction.
+ * @param {NextFunction} next - NextFunction.
  * @throws {JSON} Status 500 - response.body: { exception }
- * @returns {Function} next()
+ * @returns {NextFunction} next()
  */
-export const businessContractIncludesUser = (req:Request,res:Response,next:Function) => {
+export const businessContractIncludesUser = (req: Request,res: Response,next: NextFunction) => {
   try {
     if (req.body.businessContract !== undefined) {
-      if (req.body.businessContract.agency._id.toString() === res.locals.decoded.id.toString()) {
+      if (req.body.businessContract.agency._id.toString() === res.locals.decoded.id.toString()) { // TODO Agency hasn't been populated, so _id is undefined, so an exception will be caught.
         req.body.userInBusinessContract = true
       } else {
         switch (req.body.businessContract.worker) {
@@ -265,7 +265,8 @@ export const businessContractIncludesUser = (req:Request,res:Response,next:Funct
     }
     return next()
   } catch (exception) {
-    return res.status(500).send({ exception })
+    _error("exception:\n"+exception)
+    return res.status(500).send("Exception:\n"+exception)
   }
 }
 
@@ -275,16 +276,16 @@ export const businessContractIncludesUser = (req:Request,res:Response,next:Funct
  * @param {String} req.params.contractId - ContractId from parameters (url).
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
- * @param {Function} next - NextFunction.
+ * @param {NextFunction} next - NextFunction.
  * @throws {JSON} Status 404 - response.body: { error: "No WorkContract found with the request :contractId." }
  * @throws {JSON} Status 400 - response.body: { error: "No :contractId in url." }
  * @throws {JSON} Status 500 - response.body: { exception }
- * @returns {Function} next()
+ * @returns {NextFunction} next()
 */
-export const workContractExists = (req:Request,res:Response, next:Function) => {
+export const workContractExists = (req: Request,res: Response, next: NextFunction) => {
   try {
     if (req.params.contractId) {
-      return WorkContract.findById({ _id: req.params.contractId }, (err:Error,result:any) => {
+      return WorkContract.findById({ _id: req.params.contractId }, (err: Error,result: any) => {
         if (err || !result) {
           return res.status(404).send({ error: "No WorkContract found with the request :contractId." })
         } else {
@@ -307,11 +308,11 @@ export const workContractExists = (req:Request,res:Response, next:Function) => {
  * @param {WorkContract} req.body.workContract - WorkContract
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
- * @param {Function} next - NextFunction.
+ * @param {NextFunction} next - NextFunction.
  * @throws {JSON} Status 500 - response.body: { exception }
- * @returns {Function} next()
+ * @returns {NextFunction} next()
  */
-export const workContractIncludesUser = (req:Request, res:Response, next:Function) => {
+export const workContractIncludesUser = (req: Request, res: Response, next: NextFunction) => {
   try {
     if (req.body.workContract !== undefined) {
       // if (req.body.workContract.user._id.toString() === res.locals.decoded.id.toString()) {
@@ -340,11 +341,11 @@ export const workContractIncludesUser = (req:Request, res:Response, next:Functio
  * @param {Boolean} req.body.userInWorkContract - Boolean that indicates user who is trying to use route is found in contract.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
- * @param {Function} next - NextFunction.
+ * @param {NextFunction} next - NextFunction.
  * @throws {JSON} Status 401 - response.body: { message:"User not found in WorkContract and is not authorized to use this route." }
- * @returns {Function} next()
+ * @returns {NextFunction} next()
  */
-export const checkUserInWorkContract = (req:Request, res:Response, next:Function) => {
+export const checkUserInWorkContract = (req: Request, res: Response, next: NextFunction) => {
   const { body } = req
   try {
     if (body.userInWorkContract === true) {
@@ -363,14 +364,14 @@ export const checkUserInWorkContract = (req:Request, res:Response, next:Function
  * @param {String} res.locals.decoded.id - UsersId (AgencyId) from token.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
- * @param {Function} next - NextFunction.
+ * @param {NextFunction} next - NextFunction.
  * @throws {JSON} Status 404 - response.body: { message: "This route is only available to Agency users." }
  * @throws {JSON} Status 500 - response.body: { exception }
- * @returns {Function} next()
+ * @returns {NextFunction} next()
 */
-export const needsToBeAgency = (req:Request, res:Response, next:Function) => {
+export const needsToBeAgency = (req: Request, res: Response, next: NextFunction) => {
   try {
-    return Agency.findById({ _id: res.locals.decoded.id }, (err:Error, result:any) => {
+    return Agency.findById({ _id: res.locals.decoded.id }, (err: Error, result: any) => {
       if (err || !result) {
         return res.status(401).send(err || { message: "This route is only available to Agency users." })
       } else {
@@ -389,14 +390,14 @@ export const needsToBeAgency = (req:Request, res:Response, next:Function) => {
  * @param {String} res.locals.decoded.id - UsersId (AgencyId) from token.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
- * @param {Function} next - NextFunction.
+ * @param {NextFunction} next - NextFunction.
  * @throws {JSON} Status 401 - response.body: { message: "This route only available to Business users." }
  * @throws {JSON} Status 500 - response.body: { exception }
- * @returns {Function} next()
+ * @returns {NextFunction} next()
 */
-export const needsToBeBusiness = (req:Request, res:Response, next:Function) => {
+export const needsToBeBusiness = (req: Request, res: Response, next: NextFunction) => {
   try {
-    return Business.findById({ _id: res.locals.decoded.id }, (err:Error, result:any) => {
+    return Business.findById({ _id: res.locals.decoded.id }, (err: Error, result: any) => {
       if (err || !result) {
         return res.status(401).send(err || { message: "This route only available to Business users." })
       } else {
@@ -415,14 +416,14 @@ export const needsToBeBusiness = (req:Request, res:Response, next:Function) => {
  * @param {String} res.locals.decoded.id - UsersId (AgencyId) from token.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
- * @param {Function} next - NextFunction.
+ * @param {NextFunction} next - NextFunction.
  * @throws {JSON} Status 401 - response.body: { message: "This route only available to Worker users." }
  * @throws {JSON} Status 500 - response.body: { exception }
- * @returns {Function} next()
+ * @returns {NextFunction} next()
 */
-export const needsToBeWorker = (req:Request, res:Response, next:Function) => {
+export const needsToBeWorker = (req: Request, res: Response, next: NextFunction) => {
   try {
-    return Worker.findById({ _id: res.locals.decoded.id }, (err:Error, result:any) => {
+    return Worker.findById({ _id: res.locals.decoded.id }, (err: Error, result: any) => {
       if (err || !result) {
         return res.status(401).send(err || { message: "This route only available to Worker users." })
       } else {
@@ -442,18 +443,18 @@ export const needsToBeWorker = (req:Request, res:Response, next:Function) => {
  * @param {String} res.locals.decoded.id - UsersId (AgencyId or BusinessId) from token.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
- * @param {Function} next - NextFunction.
+ * @param {NextFunction} next - NextFunction.
  * @throws {JSON} Status 401 - response.body: { message: "This route is only available to Agency or Business users." }
  * @throws {JSON} Status 401 - response.body: { error }
  * @throws {JSON} Status 500 - response.body: { exception }
- * @returns {Function} next()
+ * @returns {NextFunction} next()
  */
-export const needsToBeAgencyOrBusiness = (req:Request, res:Response, next:Function) => {
+export const needsToBeAgencyOrBusiness = (req: Request, res: Response, next: NextFunction) => {
   try {
-    return Agency.findById( { _id: res.locals.decoded.id }, (err:Error, result:any) => {
+    return Agency.findById( { _id: res.locals.decoded.id }, (err: Error, result: any) => {
       if (!err) {
         if (!result) {
-          Business.findById({ _id: res.locals.decoded.id }, (err:Error, result:any) => {
+          Business.findById({ _id: res.locals.decoded.id }, (err: Error, result: any) => {
             if (err || !result) {
               res.status(401).send(err || { message: "This route is only available to Agency or Business users." })
             } else {
@@ -481,18 +482,18 @@ export const needsToBeAgencyOrBusiness = (req:Request, res:Response, next:Functi
  * @param {String} res.locals.decoded.id - UsersId (BusinessId or WorkerId) from token.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
- * @param {Function} next - NextFunction.
+ * @param {NextFunction} next - NextFunction.
  * @throws {JSON} Status 401 - response.body: { message: "This route is only available to Business or Worker users" }
  * @throws {JSON} Status 401 - response.body: { error }
  * @throws {JSON} Status 500 - response.body: { exception }
- * @returns {Function} next()
+ * @returns {NextFunction} next()
  */
-export const needsToBeBusinessOrWorker = (req:Request, res:Response, next:Function) => {
+export const needsToBeBusinessOrWorker = (req: Request, res: Response, next: NextFunction) => {
   try {
-    return Business.findById( { _id: res.locals.decoded.id }, (err:Error, result:Response) => {
+    return Business.findById( { _id: res.locals.decoded.id }, (err: Error, result: Response) => {
       if (!err) {
         if (!result) {
-          Worker.findById( { _id: res.locals.decoded.id }, (err:Error, result:Response) => {
+          Worker.findById( { _id: res.locals.decoded.id }, (err: Error, result: Response) => {
             if (err || !result) {
               return res.status(401).send( err || { message: "This route is only available to Business or Worker users" })
             } else {
@@ -521,20 +522,20 @@ export const needsToBeBusinessOrWorker = (req:Request, res:Response, next:Functi
  * @param {String} res.locals.decoded.id - UserId (AgencyId or BusinessId) from token.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
- * @param {Function} next - NextFunction.
+ * @param {NextFunction} next - NextFunction.
  * @throws {JSON} Status 401 - response.body: { message: "This route is only available to Agency, Business or Worker users." }
  * @throws {JSON} Status 500 - response.body: { exception }
- * @returns {Function} next()
+ * @returns {NextFunction} next()
  */
-export const needsToBeAgencyBusinessOrWorker = (req:Request, res:Response, next:Function) => {
+export const needsToBeAgencyBusinessOrWorker = (req: Request, res: Response, next: NextFunction) => {
   try {
-    return Agency.findById({ _id: res.locals.decoded.id }, (err:Error,result:any) => {
+    return Agency.findById({ _id: res.locals.decoded.id }, (err: Error,result: any) => {
       if (!err) {
         if (!result) {
-          Business.findById({ _id: res.locals.decoded.id }, (err:Error, result:any) => {
+          Business.findById({ _id: res.locals.decoded.id }, (err: Error, result: any) => {
             if (!err) {
               if (!result) {
-                Worker.findById({ _id: res.locals.decoded.id }, (err:Error, result:any) => {
+                Worker.findById({ _id: res.locals.decoded.id }, (err: Error, result: any) => {
                   if (err || !result) {
                     return res.status(401).send(err || { message: "This route is only available to Agency, Business or Worker users." })
                   } else {
@@ -569,20 +570,20 @@ export const needsToBeAgencyBusinessOrWorker = (req:Request, res:Response, next:
  * @param {NextFunction} next - Express NextFunction.
  * @throws {JSON} Status 204 - response.body: { message:"Agency doesn't have any BusinessContracts" }
  * @throws {JSON} Status 500 - response.body: { exception }
- * @returns {Function} next()
+ * @returns {NextFunction} next()
  */
-export const checkAgencyBusinessContracts = async (req:Request, res:Response, next:NextFunction) => {
+export const checkAgencyBusinessContracts = async (req: Request, res: Response, next: NextFunction) => {
   try {
     req.body.commonContractIndex = -1
     if (req.body.agency.businessContracts || req.body.agency.businessContracts.length > 0) {
-      await Promise.all(req.body.agency.businessContracts.map(async (element:any) => {
-        await BusinessContract.findById(element._id,{ business:1,user:1,contractMade:1  },null, async (err:CallbackError, contract:IBusinessContract | null) => {
+      await Promise.all(req.body.agency.businessContracts.map(async (element: any) => {
+        await BusinessContract.findById(element._id,{ business: 1, user: 1, contractMade: 1  },null, async (err: CallbackError, contract: IBusinessContract | null) => {
           if (err) {
             req.body.commonContractIndex = -1
           } else {
             console.log("Element:", element)
             if (!contract) {
-              await deleteAgencyTracesOfBusinessContract(req.body.agencyId,element,(result:any) => {
+              await deleteAgencyTracesOfBusinessContract(req.body.agencyId, element, (result: any) => {
                 if (!result.success) {
                   _error("Contract link could not be deleted")
                 } else {
@@ -598,7 +599,7 @@ export const checkAgencyBusinessContracts = async (req:Request, res:Response, ne
                 // }
                 break
               default:
-                if (contract.business.toString() === req.body.businessId.toString() && contract.contractMade === true) {
+                if (contract.business.toString() === req.body.businessId.toString() && contract.contractMade) {
                   req.body.commonContractIndex += 1
                 }
                 break
@@ -620,12 +621,12 @@ export const checkAgencyBusinessContracts = async (req:Request, res:Response, ne
  * Gets update from req.body.workContractUpdate.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
- * @param {Function} next - NextFunction.
+ * @param {NextFunction} next - NextFunction.
  * @throws {JSON} Status 401 - res.body: { message: "This route is only available to Agency,Business and Worker who are in this contract." }
  * @throws {JSON} Status 400 - res.body: { success: false, error: "Could not update WorkContract with id " + req.params.contractId }
- * @returns {Function} next()
+ * @returns {NextFunction} next()
  */
- export const updateWorkContract = async (req:Request, res:Response, next:Function) => {
+ export const updateWorkContract = async (req: Request, res: Response, next: NextFunction) => {
   // TODO: Validate the id, check that the logged in user is authored for this
   // TODO: What form the end date need to be?
   const { body } = req
@@ -646,10 +647,10 @@ export const checkAgencyBusinessContracts = async (req:Request, res:Response, ne
  * Used to add worker to contract in WorkerContract.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
- * @param {Function} next - NextFunction.
- * @returns {Function} next()
+ * @param {NextFunction} next - NextFunction.
+ * @returns {NextFunction} next()
  */
-export const addWorkerToWorkContract = (req:Request, res:Response, next:Function) => {
+export const addWorkerToWorkContract = (req: Request, res: Response, next: NextFunction) => {
   const { body,params } = req
   try { //Täytyy tarkistaa onko Worker ja Agency solminut työsopimuksen keskenään.
     body.workContractUpdate = { $addToSet: { 'contracts.$.workers': res.locals.decoded.id }}
@@ -666,11 +667,11 @@ export const addWorkerToWorkContract = (req:Request, res:Response, next:Function
  * StartDate
  * EndDate
  * @param {Request} req - Express Request.
- * @param {Response} res - Express Response.
- * @param {Function} next - NextFunction.
- * @returns {Function} next()
+ * @param {Response} _res - Express Response.
+ * @param {NextFunction} next - NextFunction.
+ * @returns {NextFunction} next()
  */
-export const newContractToWorkContract = (req:Request, _res:Response, next:Function) => {
+export const newContractToWorkContract = (req: Request, _res: Response, next: NextFunction) => {
   const { body, params } = req
   try {
     body.workContractUpdate = {
@@ -696,11 +697,11 @@ export const newContractToWorkContract = (req:Request, _res:Response, next:Funct
  * This middleware is used to populate body.workContractUpdate.
  * Changes acceptedAgency to true or acceptedBusiness to true depending wich user is using the route.
  * @param {Request} req - Express Request.
- * @param {Response} res - Express Response.
- * @param {Function} next - NextFunction.
- * @returns {Function} next()
+ * @param {Response} _res - Express Response.
+ * @param {NextFunction} next - NextFunction.
+ * @returns {NextFunction} next()
  */
-export const acceptWorkContract = (req:Request, _res:Response, next:Function) => {
+export const acceptWorkContract = (req: Request, _res: Response, next: NextFunction) => {
   const { body,params } = req
   try {
     if (body.business === undefined || null) {

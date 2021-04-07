@@ -7,8 +7,10 @@ import Business from "../models/Business"
 import Agency from "../models/Agency"
 import { needsToBeAgencyOrBusiness } from "../utils/middleware"
 import { getAgencyOrBusinessOwnForms } from "../utils/common"
-import {CallbackError, DocumentDefinition, Model, Schema, PaginateResult} from "mongoose"
-import {IAgency, IBusiness, IForm} from "../objecttypes/modelTypes"
+import {CallbackError, DocumentDefinition, Model, PaginateResult, Types} from "mongoose"
+import {AnyQuestion, IAgency, IBusiness, IForm} from "../objecttypes/modelTypes"
+import {IBaseBody, IBodyWithForm} from "../objecttypes/otherTypes"
+import {ParamsDictionary} from "express-serve-static-core"
 
 const formsRouter = express.Router()
 
@@ -16,7 +18,7 @@ const formsRouter = express.Router()
  * Returns the added form.
  * Route for agency/business to add a form. Form given in body according to its schema model.
  */
-formsRouter.post("/", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request, res: Response, next: NextFunction) => {
+formsRouter.post("/", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request<unknown, unknown, IBodyWithForm>, res: Response, next: NextFunction) => {
   try {
     const { body } = req
 
@@ -35,9 +37,9 @@ formsRouter.post("/", authenticateToken, needsToBeAgencyOrBusiness, async (req: 
       }
 
       if (body.agency) {
-        return addFormToAgencyOrBusiness( Agency, res.locals.decoded.id, result, res, next)
+        return addFormToAgencyOrBusiness(Agency, res.locals.decoded.id, result, res, next)
       } else if (body.business) {
-        return addFormToAgencyOrBusiness( Business, res.locals.decoded.id, result, res, next)
+        return addFormToAgencyOrBusiness(Business, res.locals.decoded.id, result, res, next)
       } else {
         _error("Could not determine whether user is agency or business")
         return res.status(500).send( { error: "Could not determine whether user is agency or business" })
@@ -56,7 +58,7 @@ formsRouter.post("/", authenticateToken, needsToBeAgencyOrBusiness, async (req: 
  * @param res
  * @param next
  */
-const addFormToAgencyOrBusiness = (AgencyOrBusiness: Model<IAgency>|Model<IBusiness>, id: string, form: IForm, res: Response, next: NextFunction) => {
+const addFormToAgencyOrBusiness = (AgencyOrBusiness: Model<IAgency> | Model<IBusiness>, id: string, form: IForm, res: Response, next: NextFunction) => {
   try {
     AgencyOrBusiness.findByIdAndUpdate(
       id,
@@ -78,10 +80,10 @@ const addFormToAgencyOrBusiness = (AgencyOrBusiness: Model<IAgency>|Model<IBusin
  * Route for agency/business to get their own forms
  * returns an array. response.body: [{tags: [], title: "title", description: "description", id: "id"}, {...}, ...] //TODO update return in docs
  */
-formsRouter.get("/me", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request, res: Response, next: NextFunction) => {
+formsRouter.get("/me", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request<unknown, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { query, body } = req
   try {
-    let ownForms: Array<Schema.Types.ObjectId> | null = getAgencyOrBusinessOwnForms(body)
+    let ownForms: Array<Types.ObjectId> | null = getAgencyOrBusinessOwnForms(body)
     if (!ownForms) {
       return res.status(500).send( { error: "Error determining whether user is agency or business" })
     }
@@ -96,7 +98,7 @@ formsRouter.get("/me", authenticateToken, needsToBeAgencyOrBusiness, async (req:
     }
     // Get limit's amount of own forms in specified page
     Form.paginate({ _id: { $in: ownForms } },
-      { projection: "title description tags", page: page, limit: limit, lean: true, leanWithId: false },
+      { projection: "title description tags", page: page, limit: limit, lean: true, leanWithId: false }, // Typing when using projection!?
       (error: CallbackError, result: PaginateResult<DocumentDefinition<IForm>>) => {
         if (error || !result) {
           return res.status(500).send( error || { message: "Did not receive a result from database" })
@@ -116,10 +118,10 @@ formsRouter.get("/me", authenticateToken, needsToBeAgencyOrBusiness, async (req:
  * Route for agency/business to get all public forms, excluding their own forms.
  * returns an array. response.body: [{tags: [], title: "title", description: "description", id: "id"}, {...}, ...]
  */
-formsRouter.get("/", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request, res: Response, next: NextFunction) => {
+formsRouter.get("/", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request<unknown, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { body, query } = req
   try {
-    let ownForms: Array<Schema.Types.ObjectId> | null = getAgencyOrBusinessOwnForms(body)
+    let ownForms: Array<Types.ObjectId> | null = getAgencyOrBusinessOwnForms(body)
     if (!ownForms) {
       return res.status(500).send( { error: "Error determining whether user is agency or business" })
     }
@@ -153,11 +155,11 @@ formsRouter.get("/", authenticateToken, needsToBeAgencyOrBusiness, async (req: R
  * Route for agency/business to search public forms with a search string. Does not include their own forms.
  * req.query: q, page, limit
  */
-formsRouter.get("/search", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request, res: Response, next: NextFunction) => {
+formsRouter.get("/search", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request<unknown, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { query, body } = req
 
   try {
-    let ownForms: Array<Schema.Types.ObjectId> | null = getAgencyOrBusinessOwnForms(body)
+    let ownForms: Array<Types.ObjectId> | null = getAgencyOrBusinessOwnForms(body)
     if (!ownForms) {
       return res.status(500).send( { error: "Error determining whether user is agency or business" })
     }
@@ -202,11 +204,11 @@ formsRouter.get("/search", authenticateToken, needsToBeAgencyOrBusiness, async (
  * Route for agency/business to search their own forms with a search string.
  * req.query: q, page, limit
  */
-formsRouter.get("/me/search", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request, res: Response, next: NextFunction) => {
+formsRouter.get("/me/search", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request<unknown, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { query, body } = req
 
   try {
-    let ownForms: Array<Schema.Types.ObjectId> | null = getAgencyOrBusinessOwnForms(body)
+    let ownForms: Array<Types.ObjectId> | null = getAgencyOrBusinessOwnForms(body)
     if (!ownForms) {
       return res.status(500).send( { error: "Error determining whether user is agency or business" })
     }
@@ -263,7 +265,7 @@ formsRouter.get("/:formId", authenticateToken, needsToBeAgencyOrBusiness, async 
         return res.status(404).send(error || { message: `Could not find form with id ${params.formId}` })
       }
       // Adding questions into an array in order according to the "ordering" property in each object.
-      let newQuestions: Array<any> = [] // Has to be any if we want to have different types of objects in the array.
+      let newQuestions: Array<AnyQuestion> = []
       const questions = form.questions
       for (const property in questions) {
         if (Object.prototype.hasOwnProperty.call(questions, property)) {
@@ -273,7 +275,7 @@ formsRouter.get("/:formId", authenticateToken, needsToBeAgencyOrBusiness, async 
           }
         }
       }
-      let newForm: any = form
+      let newForm: any = form // Can't really change this from any
       newForm.questions = newQuestions
       return res.status(200).send(newForm)
     })
@@ -288,7 +290,7 @@ formsRouter.get("/:formId", authenticateToken, needsToBeAgencyOrBusiness, async 
  * If you only need to update title, isPublic, or description field, you can just give that in the body, like: { "isPublic": false }
  * When updating any questions, give the full form object or the full questions object in it, in the body.
  */
-formsRouter.put("/:formId", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request, res: Response, next: NextFunction) => {
+formsRouter.put("/:formId", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { body } = req
 
   try {
@@ -312,7 +314,7 @@ formsRouter.put("/:formId", authenticateToken, needsToBeAgencyOrBusiness, async 
  * @param next
  * @returns {*}
  */
-const updateForm = (agencyOrBusinessObject: any, req: Request, res: Response, next: NextFunction) => {
+const updateForm = (agencyOrBusinessObject: IAgency | IBusiness, req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { params } = req
   try {
     const formId: string = params.formId
@@ -320,7 +322,7 @@ const updateForm = (agencyOrBusinessObject: any, req: Request, res: Response, ne
     if (agencyOrBusinessObject.forms.length === 0) {
       return res.status(403).send({ message: "You are not authorized to update this form" })
     }
-    for (const form of agencyOrBusinessObject.forms) {
+    for (const form of (agencyOrBusinessObject.forms as Array<Types.ObjectId>)) {
       if (form.equals(formId)) {
         found = true
         Form.findByIdAndUpdate(
@@ -348,7 +350,7 @@ const updateForm = (agencyOrBusinessObject: any, req: Request, res: Response, ne
 /**
  * Route for agency/business to delete a single form. Has to be their own form, cannot delete public forms.
  */
-formsRouter.delete("/:formId", authenticateToken, needsToBeAgencyOrBusiness, async (req, res, next) => {
+formsRouter.delete("/:formId", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { params, body } = req
 
   try {
@@ -369,17 +371,17 @@ formsRouter.delete("/:formId", authenticateToken, needsToBeAgencyOrBusiness, asy
  * @param agencyOrBusiness Agency or Business model
  * @param agencyOrBusinessObject request.agency or request.business. Depending on which one is trying to delete the form
  * @param formId request.params.formId. The id of the form that you want to delete
- * @param response
+ * @param res
  * @param next
  * @returns {*}
  */
-const deleteForm = (agencyOrBusiness: Model<IAgency> | Model<IBusiness>, agencyOrBusinessObject: any, formId: string, res: Response, next: Function) => {
+const deleteForm = (agencyOrBusiness: Model<IAgency> | Model<IBusiness>, agencyOrBusinessObject: IAgency | IBusiness, formId: string, res: Response, next: Function) => {
   try {
     let found: boolean = false
     if (agencyOrBusinessObject.forms.length === 0) {
       return res.status(403).send({ message: "You are not authorized to delete this form" })
     }
-    for (const form of agencyOrBusinessObject.forms) {
+    for (const form of (agencyOrBusinessObject.forms as Array<Types.ObjectId>)) {
       if (form.equals(formId)) {
         found = true
         Form.findByIdAndDelete(
@@ -389,7 +391,7 @@ const deleteForm = (agencyOrBusiness: Model<IAgency> | Model<IBusiness>, agencyO
             if (!result || error) {
               return res.status(500).send(error || { message: "Did not receive any result from database when deleting form" })
             } else {
-              agencyOrBusiness.findByIdAndUpdate( // Once form is deleted, it also needs to be deleted from agency's or business' forms array
+              return agencyOrBusiness.findByIdAndUpdate( // Once form is deleted, it also needs to be deleted from agency's or business' forms array
                 agencyOrBusinessObject._id,
                 { $pull: { forms: { $in: [formId] } } },
                 undefined,
@@ -402,7 +404,6 @@ const deleteForm = (agencyOrBusiness: Model<IAgency> | Model<IBusiness>, agencyO
                 }
               )
             }
-            return result
           }
         )
       }

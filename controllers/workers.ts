@@ -206,11 +206,10 @@ workersRouter.get("/businesscontracts", authenticateToken, needsToBeWorker, asyn
 
         if (index === contractIds.length-1) { // If this was the last contract to find, send res
           info("BusinessContracts to Response: " + contracts)
-          return res
+          res
             .status(200)
             .json(contracts)
         }
-        return
       })
     } else { // No contractIds in Worker, respond with empty array
       return res

@@ -305,6 +305,10 @@ const formSchema = new Schema({
       questionType: {
         type: String,
         match: "^datepicker$"
+      },
+      optional: {
+        type: Boolean,
+        required: true
       }
     }],
     time_picker: [{
@@ -332,6 +336,10 @@ const formSchema = new Schema({
       questionType: {
         type: String,
         match: "^timepicker$"
+      },
+      optional: {
+        type: Boolean,
+        required: true
       }
     }]
   },

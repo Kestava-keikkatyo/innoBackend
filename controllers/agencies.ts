@@ -253,20 +253,22 @@ agenciesRouter.post("/workers", authenticateToken, needsToBeAgency, (req, res, n
           undefined,
           (error: Error, result: any) => {
             if (error || !result) {
-              return res
+              res
                 .status(400)
                 .json({ error: "Could not add all Workers to Agency, so added none." })
+            } else {
+              // There were some ok worker ids to add
+              res
+                .status(200)
+                .header({ Location: domainUrl + agencyApiPath + agencyId + workersPath })
+                .json({ success: true, workersAdded: workerIdsToAdd, workersNotAdded: workerIdsNotOk })
             }
-            // There were some ok worker ids to add
-            return res
-              .status(200)
-              .header({ Location: domainUrl + agencyApiPath + agencyId + workersPath })
-              .json({ success: true, workersAdded: workerIdsToAdd, workersNotAdded: workerIdsNotOk })
           })
+        } else {
+          res
+            .status(400)
+            .json({ error: "All of the sent Worker Ids were either erroneous or could not be matched with an existing worker." })
         }
-        return res
-          .status(400)
-          .json({ error: "All of the sent Worker Ids were either erronous or could not be matched with an existing worker." })
       } )
     }
   } catch (exception) {

@@ -176,7 +176,7 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
     if (body.commonContractIndex === -1) {
       return res.status(400).json({ message: "The logged in Agency has no BusinessContracts with Business or Agency" }).end()
     }
-    //Initialize workcontracts fields
+    //Initialize workontracts fields
     let createFields = {
       business: body.businessId,
       agency: res.locals.decoded.id,
@@ -189,12 +189,12 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
       { $addToSet: { workContracts: contractToCreate._id } },
       { lean: true },
       async (error: Error, result: any) => {
-      if (error || !result) {
-        return res
-          .status(400)
-          .send({ error, message: "Could not add WorkContract to Business  with ID" + body.businessId + ". No WorkContract created." })
-      }
-      return result
+        if (error || !result) {
+          return res
+            .status(400)
+            .send({ error, message: "Could not add WorkContract to Business  with ID" + body.businessId + ". No WorkContract created." })
+        }
+        return result
     })
     let noErrorInDelete: boolean | undefined;
     await Agency.findOneAndUpdate(
@@ -205,7 +205,7 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
       if (error || !result) {
         await deleteTracesOfFailedWorkContract(null, body.businessId, res.locals.decoded.id, contractToCreate._id.toString(),
           (result: any) => {
-            noErrorInDelete = result.success
+            noErrorInDelete = result.success // TODO Where does the .success come from?
           })
         if (noErrorInDelete) {
           return res

@@ -9,15 +9,16 @@ import Business from "../models/Business"
 import Agency from "../models/Agency"
 
 import { error as _error } from "../utils/logger"
-import {CallbackError, Schema} from "mongoose"
-import {IWorker} from "../objecttypes/modelTypes";
+import {CallbackError, /*Model,*/ Schema, Types} from "mongoose"
+import {IAgency, IBusiness, /*IBusinessContract, IWorkContract,*/ IWorker} from "../objecttypes/modelTypes";
+import {IBaseBody} from "../objecttypes/otherTypes";
 /**
  * Checks if a worker with param id exists.
  * @param {string} id
  * @param {Function} callback
  * @returns Worker Object if worker exists, null if not.
 */
-export const workerExists = (id: string, callback: (result: IWorker | null) => void): void => {
+export const workerExists = (id: string | Schema.Types.ObjectId, callback: (result: IWorker | null) => void): void => {
   try {
     Worker.findById(id, (error: CallbackError, result: IWorker | null) => {
       if (error || !result) {
@@ -39,20 +40,20 @@ export const workerExists = (id: string, callback: (result: IWorker | null) => v
  * @param {Function} callback
  * @returns {JSON} {existingWorkerIds: existingWorkerIds, nonExistingWorkerIds: nonExistingWorkerIds}
  */
-export const whichWorkersExist = (workerIdArray:Array<string>, callback:Function) => {
+export const whichWorkersExist = (workerIdArray: Array<string>, callback: (workerResult: any) => void) => {
   try {
     let existingWorkerIds: string[] = []
     let nonExistingWorkerIds: string[] = []
-    if (Array.isArray(workerIdArray)) {
+    if (Array.isArray(workerIdArray)) { // TODO Why? We don't need this with typescript, no? Also, if this is false callback is never called
       for (let i = 0; i < workerIdArray.length; i++) {
-        Worker.findById(workerIdArray[i], (err:CallbackError, result:any) => {
+        Worker.findById(workerIdArray[i], (err: CallbackError, result: IWorker | null) => {
           if (err || !result) {
             nonExistingWorkerIds.push(workerIdArray[i])
           } else {
             existingWorkerIds.push(workerIdArray[i])
           }
 
-          if (i === workerIdArray.length-1) {
+          if (i === workerIdArray.length-1) { // TODO If for some reason an earlier find took longer to execute, this array could be missing some Ids
             callback({
               existingWorkerIds: existingWorkerIds,
               nonExistingWorkerIds: nonExistingWorkerIds
@@ -62,7 +63,7 @@ export const whichWorkersExist = (workerIdArray:Array<string>, callback:Function
       }
     }
   } catch (exception) {
-    callback(exception)
+    // TODO callback(exception)
   }
 }
 
@@ -71,13 +72,16 @@ export const whichWorkersExist = (workerIdArray:Array<string>, callback:Function
  * Gives all matching contracts to callback
  * @param {BusinessContract|WorkContract} contractType
  * @param {Array} contracts
- * @param {string} workerId
+ * @param {string} _workerId
  * @param {Function} callback
  * @returns {Array} contractsArray
  */
-export const workerExistsInContracts = (contractType:any, contracts:Array<string>, _workerId:string,callback:Function) => {
+/*
+export const workerExistsInContracts = (contractType: Model<IWorkContract> | Model<IBusinessContract>, contracts: Array<string>, _workerId: string, callback: (contracts: Array<IWorkContract> | Array<IBusinessContract>) => void) => {
   try {
-    contractType.find({ _id: { $in: contracts } }, (error:CallbackError, result:any) => {
+    contractType.find(
+        { _id: { $in: contracts } },
+        (error: CallbackError, result: Array<IWorkContract> | Array<IBusinessContract>) => {
       if (error) {
         _error(`error message: ${error.message}\n${error}`)
       }
@@ -87,25 +91,24 @@ export const workerExistsInContracts = (contractType:any, contracts:Array<string
     callback(exception)
   }
 }
-
+*/
 /**
  * Checks if a business with param id exists.
  * @param {String} id
  * @param {Function} callback
- * @returns {IBusiness|Boolean} Business Object, if worker exists. False, if not.
+ * @returns {IBusiness|null} Business Object if worker exists, null if not.
 */
-export const businessExists = (id:string,callback:Function): any => {
+export const businessExists = (id: string, callback: (result: IBusiness | null) => void): void => {
   try {
-    return Business.findById({ _id: id }, (error:Error, result:any) => {
+    Business.findById({ _id: id }, (error:Error, result:any) => {
       if (error || !result) {
-        callback(false)
+        callback(null)
       } else {
         callback(result)
       }
     })
   } catch (exception) {
     callback(exception)
-    return
   }
 }
 /**
@@ -119,18 +122,18 @@ export const businessExists = (id:string,callback:Function): any => {
  * @param {Function} callback
  * @returns {Boolean} {workerTraceRemoved,businessTraceRemoved,agencyTraceRemoved}
  */
-export const deleteTracesOfFailedWorkContract = async (workerId:string|null, businessId:string|null, agencyId:string|null, contractToCreateid:string, callback:Function) => {
+export const deleteTracesOfFailedWorkContract = async (workerId: string | null, businessId: string | null, agencyId: string | null, contractToCreateid: string, callback: Function) => {
   try { //Needs somekind of check
-    let workerTraceRemoved = undefined
-    let businessTraceRemoved = undefined
-    let agencyTraceRemoved = undefined
+    let workerTraceRemoved: boolean | undefined = undefined
+    let businessTraceRemoved: boolean | undefined = undefined
+    let agencyTraceRemoved: boolean | undefined = undefined
     //if business
     if (businessId !== null) {
       await Business.findByIdAndUpdate(
         { _id: businessId },
         { $pull: { workContracts : { $in: [contractToCreateid.toString()] } } },
         { multi: false },
-        (err,result) => {
+        (err: CallbackError, result: IBusiness | null) => {
           if (err || !result) {
             businessTraceRemoved = false
           } else {
@@ -145,7 +148,7 @@ export const deleteTracesOfFailedWorkContract = async (workerId:string|null, bus
         { _id: agencyId },
         { $pull: { workContracts : { $in: [contractToCreateid.toString()] } } },
         { multi: false },
-        (err,result) => {
+        (err: CallbackError, result: IAgency | null) => {
           if (err || !result) {
             agencyTraceRemoved = false
           } else {
@@ -160,7 +163,7 @@ export const deleteTracesOfFailedWorkContract = async (workerId:string|null, bus
         { _id: workerId },
         { $pull: { workContracts : { $in: [contractToCreateid.toString()] } } },
         { multi: false },
-        (err,result) => {
+        (err: CallbackError, result: IWorker | null) => {
           if (err || !result) {
             workerTraceRemoved = false
           } else {
@@ -169,7 +172,7 @@ export const deleteTracesOfFailedWorkContract = async (workerId:string|null, bus
         }
       )
     }
-    return callback({ workerTraceRemoved,businessTraceRemoved,agencyTraceRemoved })
+    return callback({ workerTraceRemoved, businessTraceRemoved, agencyTraceRemoved })
   } catch (exception) {
     callback(exception)
   }
@@ -177,22 +180,22 @@ export const deleteTracesOfFailedWorkContract = async (workerId:string|null, bus
 
 /**
  * Deletes leftover traces in agencys businessContracts array list
- * @param {string} agencyid AgencyId - used to findAndUpdate Agency
- * @param {string} contractid BusinessContractId - used to pull correct from Agency
+ * @param {string} agencyId AgencyId - used to findAndUpdate Agency
+ * @param {string} contractId BusinessContractId - used to pull correct from Agency
  * @param {Function} callback
  * @return {Boolean} request.success = true/false
  */
-export const deleteAgencyTracesOfBusinessContract = async (agencyid:string, contractid:string, callback:Function) => {
+export const deleteAgencyTracesOfBusinessContract = async (agencyId: string, contractId: string, callback: Function) => {
   try {
     await Agency.findByIdAndUpdate(
-      agencyid,
-      { $pull: { businessContracts :  { $in : [contractid.toString()] } } },
+      agencyId,
+      { $pull: { businessContracts :  { $in : [contractId.toString()] } } },
       { multi: false },
       (error,result) => {
         if (error || !result) {
-          return callback( { success:false,errormsg:"Could not find and update Agency with ID" } )
+          return callback( { success: false, errormsg: "Could not find and update Agency with ID" } )
         } else {
-          return callback( { success:true } )
+          return callback( { success: true } )
         }
       }
     )
@@ -209,7 +212,7 @@ export const deleteAgencyTracesOfBusinessContract = async (agencyid:string, cont
  * @param {Function} callback
  * @returns {Boolean} workerTraceRemoved, boolean businessTraceRemoved, boolean agencyTraceRemoved
  */
-export const deleteTracesOfBusinessContract = async (contract:any, callback:Function) => {
+export const deleteTracesOfBusinessContract = async (contract: any, callback: Function) => {
   try {
     let workerTraceRemoved: boolean | undefined = undefined
     let businessTraceRemoved: boolean | undefined = undefined
@@ -220,7 +223,7 @@ export const deleteTracesOfBusinessContract = async (contract:any, callback:Func
         contract.worker._id,
         { $pull: { businessContracts : { $in: [contract._id.toString()] } } },
         { multi: false },
-        (error,result) => {
+        (error: CallbackError, result: IWorker | null) => {
           if (error || !result) {
             workerTraceRemoved = false
           } else {
@@ -235,7 +238,7 @@ export const deleteTracesOfBusinessContract = async (contract:any, callback:Func
         contract.business._id,
         { $pull: { businessContracts :  { $in : [contract._id.toString()] } } },
         { multi: false },
-        (error,result) => {
+        (error: CallbackError, result: IBusiness | null) => {
           if (error || !result) {
             businessTraceRemoved = false
           } else {
@@ -245,17 +248,17 @@ export const deleteTracesOfBusinessContract = async (contract:any, callback:Func
       )
     }
     else {
-      callback( { success:false,errormsg:"ContractType not worker or business" } )
+      callback( { success: false, errormsg: "ContractType not worker or business" } )
     }
     await Agency.findByIdAndUpdate(
       contract.agency._id,
       { $pull: { businessContracts :  { $in : [contract._id.toString()] } } },
       { multi: false },
-      (error,result) => {
+      (error: CallbackError, result: IAgency | null) => {
         if (error || !result) {
-          return callback( { workerTraceRemoved,businessTraceRemoved,agencyTraceRemoved:false,errormsg:"Could not find and update Agency with ID" } )
+          return callback( { workerTraceRemoved, businessTraceRemoved, agencyTraceRemoved: false, errormsg: "Could not find and update Agency with ID" } )
         } else {
-          return callback( { workerTraceRemoved,businessTraceRemoved,agencyTraceRemoved:true } )
+          return callback( { workerTraceRemoved, businessTraceRemoved, agencyTraceRemoved: true } )
         }
       }
     )
@@ -268,13 +271,13 @@ export const deleteTracesOfBusinessContract = async (contract:any, callback:Func
  * Function that returns the forms of the agency or business, depending on which is provided in the body.
  * @param body the body of the request
  */
-export const getAgencyOrBusinessOwnForms = (body: any): Array<Schema.Types.ObjectId> | null => {
+export const getAgencyOrBusinessOwnForms = (body: IBaseBody): Array<Types.ObjectId> | null => {
   try {
     let myForms = null
     if (body.agency) {
-      myForms = body.agency.forms
+      myForms = body.agency.forms as Array<Types.ObjectId>
     } else if (body.business) {
-      myForms = body.business.forms
+      myForms = body.business.forms as Array<Types.ObjectId>
     }
     return myForms
   } catch (exception) {
@@ -289,7 +292,7 @@ export const getAgencyOrBusinessOwnForms = (body: any): Array<Schema.Types.Objec
  * @param limit
  * @param arrayToPaginate
  */
-export const buildPaginatedObjectFromArray: any = (page: number, limit: number, arrayToPaginate: any) => {
+export const buildPaginatedObjectFromArray = (page: number, limit: number, arrayToPaginate: Array<any>) => {
   let paginationObject: any = {
     docs: arrayToPaginate.slice((page-1)*limit, page*limit), // Using Array.slice() to paginate feelings.
     totalDocs: arrayToPaginate.length,
