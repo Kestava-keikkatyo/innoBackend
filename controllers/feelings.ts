@@ -14,9 +14,9 @@ import {ParamsDictionary} from "express-serve-static-core";
 const feelingsRouter = express.Router()
 /**
  * Returns response.body: { The updated Worker object }
- * Route for user to add a feeling.
+ * Route for worker to add a feeling.
  * request.body requirements: {value: Int}. That is the minimum, can also be {value: Int, note: "note"}
- * Must be logged in as user.
+ * Must be logged in as worker.
  */
 feelingsRouter.post("/", authenticateToken, needsToBeWorker, async (req: Request<unknown, unknown, IBodyWithFeelings>, res: Response, next: NextFunction) => {
   const { body } = req

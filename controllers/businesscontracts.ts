@@ -22,13 +22,14 @@ import { error as _error, info } from "../utils/logger"
 import Agency from "../models/Agency"
 import Worker from "../models/Worker"
 import Business from "../models/Business"
-import { deleteTracesOfBusinessContract } from "../utils/common"
+import { buildPaginatedObjectFromArray, deleteTracesOfBusinessContract } from "../utils/common"
 
 const businesscontractsRouter = express.Router()
 const domainUrl = "http://localhost:3000/"
 const businessContractsApiPath = "api/businesscontracts/"
 
 /**
+ * TODO:THIS ROUTE DOESNT WORK RIGHT
  * Route for getting one specific businessContract.
  * Requires user logged in as a participant of this specific BusinessContract.
  * @name GET /businesscontracts/:businessContractId
@@ -80,19 +81,13 @@ businesscontractsRouter.get(
  * @throws {JSON} Status 400 - response.body: { message:"Token didn't have any users." }
  * @returns {JSON} Status 200 - response.body: { All users BusinessContract objects }
  */
-businesscontractsRouter.get("/",
-
-  authenticateToken,
-
-    needsToBeAgencyBusinessOrWorker,
-  async (req, res, next) => {
+businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWorker, async (req, res, next) => {
     const { query, body } = req
     try {
       //Initialise page,limit,myId,model
-      const page: any = query.page
-      const limit: any = query.limit
-      let myId = null
-      let model: any = null
+      const page: number = parseInt(query.page as string, 10)
+      const limit: number = parseInt(query.limit as string, 10)
+      let array: {}
       //Check that page and limit exist and are not bellow 1
       if (page < 1 || !page) {
         return res.status(400).send({ message: "Missing or incorrect page parameter" })
@@ -102,33 +97,24 @@ businesscontractsRouter.get("/",
       }
       //Which id is in question
       if (body.agency !== undefined) {
-        myId = body.agency._id
-        model = Agency
+        array = {_id: {$in: body.agency.businessContracts}}
       }
       else if (body.business !== undefined) {
-        myId = body.business._id
-        model = Business
+        array = {_id: {$in: body.business.businessContracts}}
       }
       else if (body.worker !== undefined) {
-        myId = body.worker.id
-        model = Worker
+        array =  {_id: {$in: body.worker.businessContracts}}
       }
       else {
         return res.status(400).send({ message:"Token didn't have any users." })
       }
-      //Do the pagination
-      model.paginate({ _id: { $in: myId } },
-        { projection:"businessContracts", populate: {path:"businessContracts", model: "BusinessContract", page: page, limit: limit}, lean: true, leanWithId: false },
-        (error: any, result: any) => {
-          if (error || !result) {
-            return res.status(500).send( { error: error } || { message: "Did not receive a result from database." })
-          } else {
-            if (result.docs.length === 0) {
-              return res.status(404).send( { message: "Could not find any BusinessContracts." })
-            }
-            return res.status(200).send(result)
-          }
-        })
+      return await BusinessContract.find(array,(err,result) => {
+        if (err || !result) {
+          return res.status(404).send({ error:err.message, message:"Couldn't find any BusinessContracts" })
+        } else {
+          return res.status(200).send(buildPaginatedObjectFromArray(page,limit,result))
+        }
+      })
     } catch (exception) {
       return next(exception)
     }
@@ -170,12 +156,12 @@ async (req, res, next) => {
     if (body.contractType === "Worker") { //request.contractType is from bodyWorkerOrBusinessExists() middleware
       contractToCreate = {
         agency: res.locals.decoded.id,
-        user: body.workerId,
+        worker: body.workerId,
         contractType: "Worker"
       }
       const commonContractsArray = await BusinessContract.find({ // Check if worker has allready businessContract with agency.
         agency: contractToCreate.agency,
-        user: contractToCreate.user,
+        worker: contractToCreate.worker,
       },
       undefined,
       { lean: true })
@@ -367,7 +353,7 @@ async (req, res, next) => {
  * @param {String} participants.workerId - Worker to be saved to the BusinessContract
  */
 const createBusinessContract = (contractToCreate: any, response: Response, callback: Function) => {
-  if (contractToCreate.business && contractToCreate.user) {
+  if (contractToCreate.business && contractToCreate.worker) {
     callback(
       new Error(
         "Both businessId and workerId given to createBusinessContract(), can take only either one."
@@ -381,8 +367,8 @@ const createBusinessContract = (contractToCreate: any, response: Response, callb
     agency: contractToCreate.agency,
   })
   //Checks which contract is made  a) Agency and Worker or b) Agency and Business.
-  if (contractToCreate.user && !contractToCreate.business) {
-    businessContract.user = contractToCreate.user
+  if (contractToCreate.worker && !contractToCreate.business) {
+    businessContract.worker = contractToCreate.worker
     businessContract.contractType = contractToCreate.contractType
   } else {
     businessContract.business = contractToCreate.business
@@ -477,16 +463,16 @@ const addBusinessContractToParticipants = async (contract: any, callback: Functi
       null
     )
   } else {
-    if (contract.user) {
+    if (contract.worker) {
       // add to worker
       const worker = await Worker.findOneAndUpdate(
-        { _id: contract.user },
+        { _id: contract.worker },
         { $addToSet: field }
       )
       if (!worker) {
         const error: any = {
           needToCleanUp: { agency: contract.agency },
-          message: `Could not add the BusinessContract to Worker with ID ${contract.user}.`,
+          message: `Could not add the BusinessContract to Worker with ID ${contract.worker}.`,
         }
         // No worker found or error happened
         callback(

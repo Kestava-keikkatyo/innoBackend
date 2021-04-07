@@ -14,7 +14,6 @@ import { body as _body } from "express-validator"
 import Agency from "../models/Agency"
 import Business from "../models/Business"
 import WorkContract from "../models/WorkContract"
-import Worker from "../models/Worker"
 import authenticateToken from "../utils/auhenticateToken"
 import {
   needsToBeAgency,
@@ -29,16 +28,18 @@ import {
   needsToBeAgencyOrBusiness,
   needsToBeWorker,
   acceptWorkContract,
-  addWorkerToWorkContract} from "../utils/middleware"
-import { deleteTracesOfFailedWorkContract } from "../utils/common"
-import {IWorkContract} from "../objecttypes/modelTypes";
-
+  addWorkerToWorkContract,
+  needsToBeBusiness,
+  addTraceToWorker} from "../utils/middleware"
+import { buildPaginatedObjectFromArray, deleteTracesOfFailedWorkContract } from "../utils/common"
+import { IWorkContract } from "../objecttypes/modelTypes"
 const workcontractsRouter = express.Router()
 
 const domainUrl = "http://localhost:8000/"
 const workContractsApiPath = "workcontracts/"
 
 /**
+ * TODO:THIS ROUTE DOESNT WORK RIGHT
  * Route is used to get one users workContract with :contractId
  * Requires that the logged in user is authored to see this contract.
  * @name GET /workcontracts
@@ -80,17 +81,19 @@ workcontractsRouter.get("/:contractId", authenticateToken, needsToBeAgencyBusine
  * @param {callback} authenticateToken - Decodes token.
  * @param {callback} needsToBeAgencyBusinessOrWorker - Checks if the logged in user is Agency, Business or Worker.
  * <pre>Full description: {@link needsToBeAgencyBusinessOrWorker}</pre>
- * @throws {JSON} Status 400 - res.body: { message:"Token didn't have any users." }
+ * @throws {JSON} Status 400 - res.body: { message: "Missing or incorrect page parameter" }
+ * @throws {JSON} Status 400 - res.body: { message: "Missing or incorrect limit parameter" }
+ * @throws {JSON} Status 404 - res.body: { message: "Couldn't find any workcontracts" }
  * @returns {JSON} Status 200 - res.body: { All users WorkContract objects }
  */
 workcontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWorker, async (req, res, next) => {
   const { query, body } = req
   try {
     //Initialise page,limit,myId,model
-    const page: any = query.page
-    const limit: any = query.limit
-    let myId = null
-    let model: any = null
+    const page: number = parseInt(query.page as string, 10)
+    const limit: number = parseInt(query.limit as string, 10)
+    let array: {}
+    let projection:String = ''
     //Check that page and limit exist and are not bellow 1
     if (page < 1 || !page) {
       return res.status(400).send({ message: "Missing or incorrect page parameter" })
@@ -100,35 +103,25 @@ workcontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWorker,
     }
     //Which id is in question
     if (body.agency !== undefined) {
-      myId = body.agency._id
-      model = Agency
+      array = {_id: {$in: body.agency.workContracts}}
     }
     else if (body.business !== undefined) {
-      myId = body.business._id
-      model = Business
+      array = {_id: {$in: body.business.workContracts}}
     }
     else if (body.worker !== undefined) {
-      myId = body.worker._id
-      model = Worker
+      array =  {'contracts._id': {$in: body.worker.workContracts}}
+      projection = 'contracts.$'
     }
     else {
       return res.status(400).send({ message:"Token didn't have any users." })
     }
-    //Do the pagination
-    // TODO: proper type checking
-    //TODO: Update to manual pagination
-    model.paginate({ _id: { $in: myId } },
-      { projection:"workContracts", populate: {path:"workContracts", model: "WorkContract", page: page, limit: limit}, lean: true, leanWithId: false },
-      (error:Error, result:any) => {
-        if (error || !result) {
-          return res.status(500).send( error.message || { message: "Did not receive a result from database." })
-        } else {
-          if (result.docs.length === 0) {
-            return res.status(404).send( { message: "Could not find any WorkContracts." })
-          }
-          return res.status(200).json(result)
-        }
-      })
+    return await WorkContract.find(array,projection,null,(err,result) => {
+      if (err || !result) {
+        return res.status(404).send({ error:err.message, message:"Couldn't find any workcontracts" })
+      } else {
+        return res.status(200).send(buildPaginatedObjectFromArray(page,limit,result))
+      }
+    })
   } catch (exception) {
     return next(exception)
   }
@@ -221,30 +214,6 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
       }
       return result
     })
-    // await User.findOneAndUpdate(
-    //   { _id: body.workerId },
-    //   { $addToSet: { workContracts: contractToCreate._id } },
-    //   { lean: true },
-    //   async (error: any, result: any) => {
-    //   if (error || !result) {
-    //     await deleteTracesOfFailedWorkContract(body.workerId, body.businessId, res.locals.decoded.id, contractToCreate._id,
-    //       (result: any) => {
-    //         noErrorInDelete = result.success
-    //       })
-    //     if (noErrorInDelete) {
-    //       return res
-    //         .status(500)
-    //         .send({ error,
-    //           message: "Could not add WorkContract to User  with ID" + body.workerId + ". No WorkContract created but references were deleted." })
-    //     } else {
-    //       return res
-    //         .status(500)
-    //         .send({ error,
-    //           message: "Could not add WorkContract to User  with ID" + body.workerId + ". No WorkContract created and references were not deleted." })
-    //     }
-    //   }
-    //   return result
-    // })
     //Next check that workContract doesn't allready exist
     let contract = undefined
     const commonWorkContractArray = await WorkContract.find({
@@ -282,29 +251,56 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
 })
 
 /**
- * Route used to update a WorkContract.
- * Requires that the logged in user is authored for this workContract.
- * @name PUT /workcontracts/:contractId
+ * Route used by Business to make new contract.
+ * Requires that Business has made BusinessContract with agency.
+ * @name PUT /workcontracts/:contractId/new
  * @function
  * @memberof module:controllers/workcontracts~workcontractsRouter
  * @inner
  * @param {String} path - Express path.
  * @param {callback} authenticateToken - Decodes token.
- * @param {callback} needsToBeAgencyBusinessOrWorker - Checks if the logged in user is Agency, Business or Worker.
- * <pre>Full description: {@link needsToBeAgencyBusinessOrWorker}</pre>
- * @param {callback} workContractExists - Checks if a WorkContract with url param :contractId exists.
- * <pre>Full description: {@link workContractExists}</pre>
- * @param {callback} workContractIncludesUser - Checks if user who is using route is in workcontract.
- * <pre>Full description: {@link workContractIncludesUser}</pre>
- * @param {callback} updateWorkContract - Updates workContract object with given req.params.contractId in database.
+ * @param {callback} needsToBeBusiness - Checks if the logged in user is Business. <pre>Full description: {@link needsToBeBusiness}</pre>
+ * @param {callback} workContractExists - Checks if a WorkContract with url param :contractId exists. <pre>Full description: {@link workContractExists}</pre>
+ * @param {callback} workContractIncludesUser - Checks if user who is using route is in workcontract. <pre>Full description: {@link workContractIncludesUser}</pre>
+ * @param {callback} checkUserInWorkContract - Checks workContractIncludesUser functions result. <pre>Full description: {@link checkUserInWorkContract}</pre>
+ * @param {callback} updateWorkContract - Updates workContract object with given req.params.contractId in database. <pre>Full description: {@link updateWorkContract}</pre>
  * @returns {JSON} Status 200 - res.body: { The updated workcontract object }
  */
-workcontractsRouter.put("/:contractId/new", authenticateToken, needsToBeAgency, workContractExists, workContractIncludesUser, checkUserInWorkContract,
+workcontractsRouter.put("/:contractId/new", authenticateToken, needsToBeBusiness, workContractExists, workContractIncludesUser, checkUserInWorkContract,
   newContractToWorkContract, updateWorkContract)
 
-workcontractsRouter.put("/:contractId/:contractsId/add", authenticateToken, needsToBeWorker,  workContractExists,
-  addWorkerToWorkContract, updateWorkContract)
+/**
+ * Route used to add worker to contract workers array list.
+ * @name PUT /workcontracts/:contractId/:contractsId/add
+ * @function
+ * @memberof module:controllers/workcontracts~workcontractsRouter
+ * @inner
+ * @param {String} path - Express path.
+ * @param {callback} authenticateToken - Decodes token. <pre>Full description: {@link authenticateToken}</pre>
+ * @param {callback} needsToBeWorker - Checks that user is worker. <pre>Full description: {@link needsToBeWorker}</pre>
+ * @param {callback} workContractExists - Checks that WorkContract with :contractId exist. <pre>Full description: {@link workContractExists}</pre>
+ * @param {callback} addWorkerToWorkContract - Initializes update fields (adds worker to list). <pre>Full description: {@link addWorkerToWorkContract}</pre>
+ * @param {callback} updateWorkContract - Updates WorkContract in database. <pre>Full description: {@link updateWorkContract}</pre>
+ */
+workcontractsRouter.put("/:contractId/:contractsId/add", authenticateToken, needsToBeWorker,  workContractExists, 
+  addWorkerToWorkContract, addTraceToWorker, updateWorkContract)
 
+/**
+ * Route is used by Business and Agency to accept contract
+ * that Business has created.
+ * @name PUT /workcontracts/:contractId/:contractsId/accept
+ * @function
+ * @memberof module:controllers/workcontracts~workcontractsRouter
+ * @inner
+ * @param {String} path - Express path.
+ * @param {callback} authenticateToken - Decodes token.
+ * @param {callback} needsToBeAgencyOrBusiness - Checks that user is Agency or Business. <pre>Full description: {@link needsToBeAgencyOrBusiness}</pre>
+ * @param {callback} workContractExists - Checks that WorkContract with :contractId exist. <pre>Full description: {@link workContractExists}</pre>
+ * @param {callback} workContractIncludesUser - Checks that WorkContract includes user. <pre>Full description: {@link workContractIncludesUser}</pre>
+ * @param {callback} checkUserInWorkContract - Checks workContractIncludesUser functions result. <pre>Full description: {@link checkUserInWorkContract}</pre>
+ * @param {callback} acceptWorkContract - Initializes accept update fields. <pre>Full description: {@link acceptWorkContract}</pre>
+ * @param {callback} updateWorkContract - Updates WorkContract in database. <pre>Full description: {@link updateWorkContract}</pre>
+ */  
 workcontractsRouter.put("/:contractId/:contractsId/accept", authenticateToken, needsToBeAgencyOrBusiness, workContractExists, workContractIncludesUser, checkUserInWorkContract,
   acceptWorkContract, updateWorkContract)
 

@@ -648,14 +648,56 @@ export const checkAgencyBusinessContracts = async (req: Request, res: Response, 
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next - NextFunction.
+ * @throws {JSON} Status 400 - res.body: { error:err, message:"Something went wrong with find query." }
+ * @throws {JSON} Status 404 - res.body: { message:"No BusinessContract made with agency and worker." }
  * @returns {NextFunction} next()
  */
 export const addWorkerToWorkContract = (req: Request, res: Response, next: NextFunction) => {
   const { body,params } = req
-  try { //Täytyy tarkistaa onko Worker ja Agency solminut työsopimuksen keskenään.
-    body.workContractUpdate = { $addToSet: { 'contracts.$.workers': res.locals.decoded.id }}
-    body.updateFilterQuery = { 'contracts._id': params.contractsId }
-    next()
+  try {
+    return BusinessContract.find({
+      worker: res.locals.decoded.id,
+      agency: body.workContract.agency,
+      contractMade: true
+    }, (err,result) => {
+      if (err || !result) {
+        return res.status(400).send({ error:err.message, message:"Something went wrong with find query." })
+      } else {
+        if (result.length === 1) {
+          body.workContractUpdate = { $addToSet: { 'contracts.$.workers': res.locals.decoded.id }}
+          body.updateFilterQuery = { 'contracts._id': params.contractsId }
+          return next()
+        } else {
+          return res.status(404).send({ message:"No BusinessContract made with agency and worker." })
+        }
+      }
+    })
+  } catch (exception) {
+    return next(exception)
+  }
+}
+/**
+ * Middleware function is used in add route to add trace to worker workContract array.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {Function} next - NextFunction.
+ * @throws {JSON} Status 400 - res.body: { error:err, message:"Something went wrong wwith update" }
+ */
+export const addTraceToWorker = (req:Request, res:Response, next:Function) => {
+  try {
+    const { params } = req
+    return Worker.findOneAndUpdate(
+      { _id: res.locals.decoded.id },
+      { $addToSet: { workContracts: params.contractsId } },
+      undefined,
+      (err,result) => {
+        if (err || !result) {
+          return res.status(400).send({ error:err.message, message:"Something went wrong wwith update" })
+        } else {
+          return next()
+        }
+      }
+    )
   } catch (exception) {
     return next(exception)
   }
