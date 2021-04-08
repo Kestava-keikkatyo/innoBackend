@@ -547,6 +547,8 @@ export const needsToBeAgencyBusinessOrWorker = (req: Request, res: Response, nex
                 req.body.business = result
                 return next()
               }
+            } else {
+              return res.status(400).send({ message: "Business find coused error." })
             }
           })
         } else {
