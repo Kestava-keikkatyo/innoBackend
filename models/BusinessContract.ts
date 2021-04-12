@@ -3,33 +3,37 @@ import uniqueValidator from "mongoose-unique-validator"
 import {IBusinessContract} from "../objecttypes/modelTypes"
 
 const businessContractSchema = new Schema({
-  contractMade: {
-    default: false,
-    type: Boolean
+  agency: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "agency",
+    immutable: true
   },
   createdAt: {
     type: Date,
     default: Date.now,
     immutable: true
   },
-  business: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "business",
+  madeContracts: {
+    businesses: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "businesses"
+    }],
+    workers: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "workers"
+    }]
   },
-  worker: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "worker"
-  },
-  agency: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "agency"
-  },
-  contractType: {
-    type: String,
-    ref: "ContractType"
+  requestContracts: {
+    businesses: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "businesses"
+    }],
+    workers: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "workers"
+    }]
   }
 })
-
 
 businessContractSchema.plugin(uniqueValidator)
 

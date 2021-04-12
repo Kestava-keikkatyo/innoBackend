@@ -126,12 +126,16 @@ export interface IBusiness extends Document {
 
 export interface IBusinessContract extends Document {
   _id: Types.ObjectId,
-  contractMade: boolean,
-  createdAt: Date,
-  worker: IWorker['_id'] | IWorker, // Todo can't some of these be optional?
-  business: IBusiness['_id'] | IBusiness,
   agency: IAgency['_id'] | IAgency,
-  contractType: string
+  createdAt: Date,
+  madeContracts: {
+    businesses: Array<IBusiness['_id'] | IBusiness>
+    workers: Array<IWorker['_id'] | IWorker>
+  },
+  requestContracts: {
+    businesses: Array<IBusiness['_id'] | IBusiness>
+    workers: Array<IWorker['_id'] | IWorker>
+  }
 }
 
 export interface IWorkContract extends Document {
