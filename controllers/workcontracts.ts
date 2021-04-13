@@ -21,7 +21,6 @@ import {
   workContractExists,
   needsToBeAgencyBusinessOrWorker,
   workContractIncludesUser,
-  checkAgencyBusinessContracts,
   updateWorkContract,
   newContractToWorkContract,
   checkUserInWorkContract,
@@ -33,6 +32,7 @@ import {
   addTraceToWorker} from "../utils/middleware"
 import { buildPaginatedObjectFromArray, deleteTracesOfFailedWorkContract } from "../utils/common"
 import { IWorkContractDocument } from "../objecttypes/modelTypes"
+import BusinessContract from "../models/BusinessContract"
 const workcontractsRouter = express.Router()
 
 const domainUrl = "http://localhost:8000/"
@@ -58,9 +58,10 @@ const workContractsApiPath = "workcontracts/"
  * @returns {JSON} Status 200 - res.body: { The found WorkContract object }
 */
 workcontractsRouter.get("/:contractId", authenticateToken, needsToBeAgencyBusinessOrWorker, workContractExists, workContractIncludesUser, (req, res, next) => {
+  const { body } = req
   try {
-    if (req.body.userInWorkContract === true) {
-      return res.status(200).send(req.body.workContract)
+    if (body.userInWorkContract === true) {
+      return res.status(200).send(body.workContract)
     } else {
       return res.status(400).send({ message:"User who is trying to use this route is not in workcontract" })
     }
@@ -162,11 +163,13 @@ workcontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWorker,
  * message: "Could not make WorkContract. No WorkContract created and references were not deleted. WorkContract allready exist"}
  * @returns {JSON} Status 201 - res.body: { created: domainUrl + workContractsApiPath + contract._id }
  */
-workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessExists, checkAgencyBusinessContracts, async (req, res, next) => {
+workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessExists, async (req, res, next) => {
   const { body } = req
   try {
+    const commonContractIndex = await BusinessContract.find(
+      { agency: res.locals.decoded.id, 'madeContracts.businesses': body.businessId })
     //checkAgencyBusinessContracts function checks commonContractIndex
-    if (body.commonContractIndex === -1) {
+    if (commonContractIndex.length !== 1) {
       return res.status(400).json({ message: "The logged in Agency has no BusinessContracts with Business or Agency" }).end()
     }
     //Initialize workontracts fields
@@ -176,7 +179,7 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
       contracts: []
     }
     const contractToCreate: IWorkContractDocument = new WorkContract(createFields)
-    //Next add traces to Business, Agency and Worker.
+    //Next add traces to Business and Agency
     await Business.findOneAndUpdate(
       { _id: body.businessId },
       { $addToSet: { workContracts: contractToCreate._id } },
@@ -229,17 +232,16 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
     if (!contract) {
       await deleteTracesOfFailedWorkContract(null, body.businessId, res.locals.decoded.id, contractToCreate._id.toString(),
         (result: any) => {
-          noErrorInDelete = result.success
+          if (result.businessTraceRemoved && result.agencyTraceRemoved) {
+            return res
+              .status(400)
+              .send({ message: "Could not make WorkContract because agency and business allready have WorkContract. No WorkContract created but references were deleted." })
+          } else {
+            return res
+              .status(400)
+              .send({ message: "Could not make WorkContract. No WorkContract created and references were not deleted. WorkContract allready exist" })
+          }
         })
-      if (noErrorInDelete) {
-        return res
-          .status(400)
-          .send({ message: "Could not make WorkContract because agency and business allready have WorkContract. No WorkContract created but references were deleted." })
-      } else {
-        return res
-          .status(400)
-          .send({ message: "Could not make WorkContract. No WorkContract created and references were not deleted. WorkContract allready exist" })
-      }
     } else {
       return res
         .status(201)

@@ -1,9 +1,18 @@
-import {IAgencyDocument, IBusinessDocument, IFeelings, IForm, IWorkerDocument} from "./modelTypes";
+import {IAgencyDocument, IBusinessDocument, IBusinessContractDocument, IFeelings, IForm, IWorkContractDocument, IWorkerDocument} from "./modelTypes";
 
 export interface IBaseBody {
   agency?: IAgencyDocument,
   business?: IBusinessDocument,
-  worker?: IWorkerDocument
+  worker?: IWorkerDocument,
+  userInWorkContract?: boolean,
+  userInBusinessContract?: boolean,
+  workContract?: IWorkContractDocument,
+  workContractUpdate?: {},
+  updateFilterQuery?: {},
+  businessContract?: IBusinessContractDocument,
+  businessContractUpdate?: {},
+  businessContractUpdateFilterQuery?: {},
+  workerCount?: number
 }
 
 export interface IBodyWithForm extends IBaseBody, IForm {}

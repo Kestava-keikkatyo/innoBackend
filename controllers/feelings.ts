@@ -105,15 +105,15 @@ feelingsRouter.get("/:workerId", authenticateToken, needsToBeAgencyOrBusiness, a
                 return res.status(500).send(`error message: ${error.message}\n${error}`)
               }
               for (let i = 0; i < contracts.length; i++) {
-                if (contracts[i].worker && contracts[i].worker instanceof Types.ObjectId && (contracts[i].worker as Types.ObjectId).equals(workerId)) {
-                  if (contracts[i].contractMade) {
-                    // Contract with worker found, so agency is allowed to see worker feelings.
-                    return res.status(200).send(buildPaginatedObjectFromArray(page, limit, worker.feelings))
-                  } else {
-                    // Contract found, but contractMade is false, so worker hasn't approved it yet.
-                    return res.status(403).send( { message: "Worker has yet to approve contract." })
-                  }
-                }
+                // if (contracts[i].worker && contracts[i].worker instanceof Types.ObjectId && (contracts[i].worker as Types.ObjectId).equals(workerId)) {
+                //   if (contracts[i].contractMade) {
+                //     // Contract with worker found, so agency is allowed to see worker feelings.
+                //     return res.status(200).send(buildPaginatedObjectFromArray(page, limit, worker.feelings))
+                //   } else {
+                //     // Contract found, but contractMade is false, so worker hasn't approved it yet.
+                //     return res.status(403).send( { message: "Worker has yet to approve contract." })
+                //   }
+                // }
               }
               // Contract with worker was not found. Not allowed to see feelings.
               return res.status(403).send( { message: "Not allowed to see worker feelings if no contract has been made with them." })

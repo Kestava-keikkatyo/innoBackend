@@ -145,19 +145,29 @@ export interface IBusinessDocument extends Document, Omit<IBusiness, "forms" | "
 }
 
 export interface IBusinessContract {
-  contractMade: boolean,
-  worker: IWorkerDocument['_id'], // Todo can't some of these be optional?
-  business: IBusinessDocument['_id'],
   agency: IAgencyDocument['_id'],
-  contractType: string
+  madeContracts: {
+    businesses: Array<IBusinessDocument['_id']>,
+    workers: Array<IWorkerDocument['_id']>
+  },
+  requestContracts: {
+    businesses: Array<IBusinessDocument['_id']>,
+    workers: Array<IWorkerDocument['_id']>
+  }
 }
 
-export interface IBusinessContractDocument extends Document, Omit<IBusinessContract, "worker" | "business" | "agency"> {
+export interface IBusinessContractDocument extends Document, Omit<IBusinessContract, "agency" | "madeContracts" | "requestContracts"> {
   _id: Types.ObjectId,
   createdAt: Date,
-  worker: IWorkerDocument['_id'] | IWorkerDocument, // Todo can't some of these be optional?
-  business: IBusinessDocument['_id'] | IBusinessDocument,
   agency: IAgencyDocument['_id'] | IAgencyDocument,
+  madeContracts: {
+    businesses: Array<IBusinessDocument['_id']> | IBusinessDocument,
+    workers: Array<IWorkerDocument['_id']> | IWorkerDocument
+  },
+  requestContracts: {
+    businesses: Array<IBusinessDocument['_id']> | IBusinessDocument,
+    workers: Array<IWorkerDocument['_id']> | IWorkerDocument
+  }
 }
 
 export interface IWorkContract {
