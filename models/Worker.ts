@@ -1,7 +1,7 @@
 import mongoose, {Schema} from "mongoose"
 //const uniqueValidator = require("mongoose-unique-validator")
 import mongoosePaginate from 'mongoose-paginate-v2'
-import {IWorker} from "../objecttypes/modelTypes"
+import {IWorkerDocument} from "../objecttypes/modelTypes"
 //https://mongoosejs.com/docs/validation.html
 // todo email validator tarkistettava toimiiko halutulla tavalla, samoin phonenumber validator
 
@@ -84,4 +84,4 @@ workerSchema.set("toJSON", {
   }
 })
 
-export default mongoose.model<IWorker>('Worker', workerSchema)
+export default mongoose.model<IWorkerDocument>('Worker', workerSchema)

@@ -9,7 +9,7 @@
  * @const
  * @namespace agenciesRouter
 */
-import express from 'express'
+import express, {NextFunction, Request, Response} from 'express'
 import { info, error as _error} from "../utils/logger"
 import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
@@ -20,7 +20,9 @@ import { Promise as _Promise } from "bluebird";
 import Worker from "../models/Worker"
 import BusinessContract from "../models/BusinessContract"
 import { whichWorkersExist, workerExists } from '../utils/common'
-import {IWorker} from "../objecttypes/modelTypes";
+import {IAgency, IAgencyDocument, IBusinessContractDocument, IWorkerDocument} from "../objecttypes/modelTypes";
+import {CallbackError, DocumentDefinition, Types} from "mongoose";
+import {IBaseBody} from "../objecttypes/otherTypes";
 
 const agenciesRouter = express.Router()
 const domainUrl = "http://localhost:3000/"
@@ -37,32 +39,32 @@ const workersPath = "workers/"
  * @memberof module:controllers/agencies~agenciesRouter
  * @inner
  */
-agenciesRouter.post("/", async (req, res, next) => {
+agenciesRouter.post("/", async (req: Request<unknown, unknown, IAgency>, res: Response, next: NextFunction) => {
   const { body } = req
 
   try {
-    const passwordLength = body.password ? body.password.length : 0
+    const passwordLength: number = body.password ? body.password.length : 0
     if (passwordLength < 3) {
       return res
         .status(400)
         .json({ error: "password length less than 3 characters" })
     }
-    const saltRounds = 10
-    const passwordHash = await bcrypt.hash(body.password, saltRounds)
+    const saltRounds: number = 10
+    const passwordHash: string = await bcrypt.hash(body.password, saltRounds)
 
-    const agencyToCreate = new Agency({
+    const agencyToCreate: IAgencyDocument = new Agency({
       name: body.name,
       email: body.email,
       passwordHash,
     })
-    const agency = await agencyToCreate.save() //TODO use callback and check for errors
+    const agency: IAgencyDocument = await agencyToCreate.save() //TODO use callback and check for errors
 
     const agencyForToken = {
       email: agency.email,
       id: agency._id,
     }
 
-    const token = jwt.sign(agencyForToken, process.env.SECRET || '')
+    const token: string = jwt.sign(agencyForToken, process.env.SECRET || '')
 
     return res
       .status(200)
@@ -78,12 +80,14 @@ agenciesRouter.post("/", async (req, res, next) => {
  * @memberof module:controllers/agencies~agenciesRouter
  * @inner
  */
-agenciesRouter.get("/me", authenticateToken, (_req, res, next) => {
+agenciesRouter.get("/me", authenticateToken, (_req: Request, res: Response, next: NextFunction) => {
   try {
-    //Decodatun tokenin arvo haetaan middlewarelta
-    const decoded = res.locals.decoded
+    //Decodatun tokenin arvo haetaan middlewarelta (res.locals.decoded)
     //Tokeni pitää sisällään userid jolla etsitään oikean käyttäjän tiedot
-    Agency.findById({ _id: decoded.id }, (error: Error, result: any) => {
+    Agency.findById(res.locals.decoded.id,
+      undefined,
+      { lean: true },
+      (error: CallbackError, result: DocumentDefinition<IAgencyDocument> | null) => {
       //Jos ei resultia niin käyttäjän tokenilla ei löydy käyttäjää
       if (!result || error) {
         return res.status(401).send(error || { message: "Not authorized" })
@@ -96,12 +100,12 @@ agenciesRouter.get("/me", authenticateToken, (_req, res, next) => {
   }
 })
 
-/**
- * Get route for agency to get all agencys Workers.
+/** @deprecated Workers aren't stored in agencies anymore.
+ * Get route for agency to get all agency's Workers.
  * Return just an array of workerIds who belong to this Agency.
  * @returns Array of WorkerIds
  */
-agenciesRouter.get("/workerIds", authenticateToken, needsToBeAgency, (req, res, next) => {
+agenciesRouter.get("/workerIds", authenticateToken, needsToBeAgency, (req: Request, res: Response, next: NextFunction) => {
   const { body } = req
 
   try {
@@ -118,7 +122,7 @@ agenciesRouter.get("/workerIds", authenticateToken, needsToBeAgency, (req, res, 
  * @deprecated Workers are not listed under Agency/Business anymore: Workers are connected to Business/Agency through business/workcontracts
  * Return an array of full worker objects who belong to this Agency
  */
-agenciesRouter.get("/workers", authenticateToken, needsToBeAgency, (req, res, next) => {
+agenciesRouter.get("/workers", authenticateToken, needsToBeAgency, (req: Request, res: Response, next: NextFunction) => {
   const { body } = req
 
   try {
@@ -150,21 +154,20 @@ agenciesRouter.get("/workers", authenticateToken, needsToBeAgency, (req, res, ne
  * @memberof module:controllers/agencies~agenciesRouter
  * @inner
  */
-agenciesRouter.put("/", authenticateToken, async (req, res, next) => {
+agenciesRouter.put("/", authenticateToken, async (req: Request<unknown, unknown, IAgency>, res: Response, next: NextFunction) => {
   const { body } = req
-  const decoded = res.locals.decoded
-  let passwordHash
+  let passwordHash: string | undefined
 
   try {
     // Salataan uusi salasana
     if (body.password) {
-      const passwordLength = body.password ? body.password.length : 0
+      const passwordLength: number = body.password ? body.password.length : 0
       if (passwordLength < 3) {
         return res
           .status(400)
           .json({ error: "Password length less than 3 characters" })
       }
-      const saltRounds = 10
+      const saltRounds: number = 10
       passwordHash = await bcrypt.hash(body.password, saltRounds)
     }
 
@@ -182,7 +185,7 @@ agenciesRouter.put("/", authenticateToken, async (req, res, next) => {
 
     // https://mongoosejs.com/docs/tutorials/findoneandupdate.html
     // https://mongoosejs.com/docs/api.html#model_Model.findByIdAndUpdate
-    const updatedAgency = await Agency.findByIdAndUpdate(decoded.id, updateFields,
+    const updatedAgency: IAgencyDocument | null = await Agency.findByIdAndUpdate(res.locals.decoded.id, updateFields,
       { new: true, omitUndefined: true, runValidators: true })
 
     if (!updatedAgency) {
@@ -205,7 +208,7 @@ agenciesRouter.put("/", authenticateToken, async (req, res, next) => {
  * Successful res.body: { success: true, workersAdded: [workerId1, id2...], workersNotAdded: [workerId1, id2...] }
  * res.header.Location: Url to this agency's workers resource
  */
-agenciesRouter.post("/workers", authenticateToken, needsToBeAgency, (req, res, next) => {
+agenciesRouter.post("/workers", authenticateToken, needsToBeAgency, (req: Request, res: Response, next: NextFunction) => {
   const { body } = req
   // needsToBeAgency middleware saves Agency object to request.agency
   let agencyId = body.agency._id
@@ -216,7 +219,7 @@ agenciesRouter.post("/workers", authenticateToken, needsToBeAgency, (req, res, n
       let workerId = body.worker
       // addToSet operation adds an item to a mongoose array, if that item is not already present.
 
-      workerExists(workerId, (worker: IWorker | null) => {
+      workerExists(workerId, (worker: IWorkerDocument | null) => {
         if (worker) {
           Agency.findOneAndUpdate(
               { _id: agencyId },
@@ -286,7 +289,7 @@ agenciesRouter.post("/workers", authenticateToken, needsToBeAgency, (req, res, n
  * @memberof module:controllers/agencies~agenciesRouter
  * @inner
  */
-agenciesRouter.get("/businesscontracts", authenticateToken, needsToBeAgency, async (req, res, next) => {
+agenciesRouter.get("/businesscontracts", authenticateToken, needsToBeAgency, async (req: Request, res: Response, next: NextFunction) => {
   const { body } = req
   const agency = body.agency
   try {
@@ -321,24 +324,22 @@ agenciesRouter.get("/businesscontracts", authenticateToken, needsToBeAgency, asy
  * A quality of life method which should maybe be removed later. Get all businesscontract info as an outsider, no validation yet. Should probably be updated to
  * "return businesscontracts in this Agency, that I am involved in"
  */
-agenciesRouter.get("/:agencyId/businesscontracts", authenticateToken, async (req, res, next) => {
+agenciesRouter.get("/:agencyId/businesscontracts", authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const agencyId = req.params.agencyId
+    const agencyId: string = req.params.agencyId
     info("Finding BusinessContracts for Agency " + agencyId)
-    Agency.findById(req.params.agencyId, (error: Error, agency: any) => {
+    Agency.findById(req.params.agencyId, (error: CallbackError, agency: IAgencyDocument) => {
       if (error || !agency) {
-        return res
-          .status(404)
-          .json({ message: "Could not find Agency ID " + agencyId })
+        return res.status(404).json({ message: "Could not find Agency ID " + agencyId })
       } else {
-        const contractIds = agency.businessContracts
-        let temp: any
-        let contracts: any = []
+        const contractIds: Array<Types.ObjectId> = agency.businessContracts as Array<Types.ObjectId>
+        let temp: IBusinessContractDocument | null
+        let contracts: Array<IBusinessContractDocument> = []
         if (contractIds) { // TODO contractIds is not undefined since there is an empty array in db, so code'll get stuck here
           info("Searching database for BusinessContracts: " + contractIds)
           // Go through every contractId and, find contract data and push it to array "contracts".
           // TODO: Refactor to basic for-loop.
-          return contractIds.forEach(async (contractId: string, index: number, contractIds: string[]) => {
+          return contractIds.forEach(async (contractId: Types.ObjectId, index: number, contractIds: Array<Types.ObjectId>) => {
             temp = await BusinessContract.findById(contractId).exec()
             info("Current contract: " + temp)
             if (temp) {
@@ -349,16 +350,12 @@ agenciesRouter.get("/:agencyId/businesscontracts", authenticateToken, async (req
             info("contractIds.length" + contractIds.length)
             if (index === contractIds.length-1) { // If this was the last contract to find, send Response
               info("BusinessContracts to Response: " + contracts)
-              return res
-                .status(200)
-                .json(contracts)
+              return res.status(200).json(contracts)
             }
             return
           })
         } else { // No contractIds in Agency, respond with empty array
-          return res
-            .status(200)
-            .json(contracts)
+          return res.status(200).json(contracts)
         }
       }
     })
@@ -368,27 +365,26 @@ agenciesRouter.get("/:agencyId/businesscontracts", authenticateToken, async (req
   }
 })
 
-/**
+/** @deprecated Is this used anywhere?? // TODO
  * Pop the last added businessContract from Agency
  */
-agenciesRouter.put("/businesscontracts", authenticateToken, needsToBeAgency, async (req, res, next) => {
+agenciesRouter.put("/businesscontracts", authenticateToken, needsToBeAgency, async (req: Request<unknown, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { body } = req
 
   try {
-    if (body.agency.businessContracts) {
-      body.agency.businessContracts.pop()
-      body.agency.save((error: Error, result: any) => {
-        if (error || !result) {
-          return res
-            .status(500)
-            .json({ message: "Unable to save Agency object." })
-        } else {
-          return res
-            .status(200)
-            .json({ message: "Last businessContract popped." })
-        }
-      })
+    if (body.agency) {
+      if (body.agency.businessContracts) {
+        body.agency.businessContracts.pop()
+        body.agency.save((error: CallbackError, result: IAgencyDocument) => {
+          if (error || !result) {
+            return res.status(500).json({message: "Unable to save Agency object."})
+          } else {
+            return res.status(200).json({message: "Last businessContract popped."})
+          }
+        })
+      }
     }
+    return res.status(500).send({ error: "Agency was for some reason undefined" })
 
   } catch (exception) {
     _error(exception.message)

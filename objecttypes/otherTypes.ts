@@ -1,11 +1,16 @@
-import {IAgency, IBusiness, IFeelings, IFormDoc, IWorker} from "./modelTypes";
+import {IAgencyDocument, IBusinessDocument, IFeelings, IForm, IWorkerDocument} from "./modelTypes";
 
 export interface IBaseBody {
-  agency?: IAgency,
-  business?: IBusiness,
-  worker?: IWorker
+  agency?: IAgencyDocument,
+  business?: IBusinessDocument,
+  worker?: IWorkerDocument
 }
 
-export interface IBodyWithForm extends IBaseBody, IFormDoc {}
+export interface IBodyWithForm extends IBaseBody, IForm {}
 
 export interface IBodyWithFeelings extends IBaseBody, IFeelings {}
+
+export interface IBodyLogin {
+  email: string,
+  password: string
+}

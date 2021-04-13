@@ -16,8 +16,8 @@ import Worker from "../models/Worker"
 import BusinessContract from "../models/BusinessContract"
 import WorkContract from "../models/WorkContract"
 import { deleteAgencyTracesOfBusinessContract } from "./common"
-import { IBusinessContract } from "../objecttypes/modelTypes"
-import { CallbackError } from "mongoose"
+import {IBusinessContractDocument, IWorkerDocument} from "../objecttypes/modelTypes"
+import {CallbackError, DocumentDefinition, Types} from "mongoose"
 
 export const requestLogger = (req: Request, _res: Response, next: NextFunction) => {
   info("Method:", req.method)
@@ -577,7 +577,7 @@ export const checkAgencyBusinessContracts = async (req: Request, res: Response, 
     req.body.commonContractIndex = -1
     if (req.body.agency.businessContracts || req.body.agency.businessContracts.length > 0) {
       await Promise.all(req.body.agency.businessContracts.map(async (element: any) => {
-        await BusinessContract.findById(element._id,{ business: 1, user: 1, contractMade: 1  },null, async (err: CallbackError, contract: IBusinessContract | null) => {
+        await BusinessContract.findById(element._id,{ business: 1, user: 1, contractMade: 1  },null, async (err: CallbackError, contract: IBusinessContractDocument | null) => {
           if (err) {
             req.body.commonContractIndex = -1
           } else {
@@ -661,7 +661,7 @@ export const addWorkerToWorkContract = (req: Request, res: Response, next: NextF
       contractMade: true
     }, (err,result) => {
       if (err || !result) {
-        return res.status(400).send({ error:err.message, message:"Something went wrong with find query." })
+        return res.status(400).send({ error:err.message, message:"Something went wrong with find query." }) // TODO don't do this. If no error, err.message will throw exception.
       } else {
         if (result.length === 1) {
           body.workContractUpdate = { $addToSet: { 'contracts.$.workers': res.locals.decoded.id }}
@@ -677,22 +677,23 @@ export const addWorkerToWorkContract = (req: Request, res: Response, next: NextF
   }
 }
 /**
- * Middleware function is used in add route to add trace to worker workContract array.
+ * Middleware function is used in add-route to add trace to worker workContract array.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {Function} next - NextFunction.
- * @throws {JSON} Status 400 - res.body: { error:err, message:"Something went wrong wwith update" }
+ * @throws {JSON} Status 400 - res.body: { message:"Something went wrong with update" }
  */
 export const addTraceToWorker = (req:Request, res:Response, next:Function) => {
   try {
     const { params } = req
+    const ids: Types.ObjectId = Types.ObjectId(params.contractsId)
     return Worker.findOneAndUpdate(
       { _id: res.locals.decoded.id },
-      { $addToSet: { workContracts: params.contractsId } },
-      undefined,
-      (err,result) => {
+      { $addToSet: { workContracts: ids } },
+      { lean: true },
+      (err: CallbackError, result: DocumentDefinition<IWorkerDocument> | null) => {
         if (err || !result) {
-          return res.status(400).send({ error:err.message, message:"Something went wrong wwith update" })
+          return res.status(400).send( err ||{ message:"Something went wrong with update" })
         } else {
           return next()
         }

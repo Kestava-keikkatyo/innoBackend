@@ -1,6 +1,6 @@
 import mongoose, {Schema} from "mongoose"
 import uniqueValidator from "mongoose-unique-validator"
-import {IBusinessContract} from "../objecttypes/modelTypes"
+import {IBusinessContractDocument} from "../objecttypes/modelTypes"
 
 const businessContractSchema = new Schema({
   contractMade: {
@@ -33,4 +33,4 @@ const businessContractSchema = new Schema({
 
 businessContractSchema.plugin(uniqueValidator)
 
-export default mongoose.model<IBusinessContract>("BusinessContract", businessContractSchema)
+export default mongoose.model<IBusinessContractDocument>("BusinessContract", businessContractSchema)

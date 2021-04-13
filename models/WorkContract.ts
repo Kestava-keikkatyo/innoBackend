@@ -1,6 +1,6 @@
 import mongoose, {Schema} from "mongoose"
 import uniqueValidator from "mongoose-unique-validator"
-import {IWorkContract} from "../objecttypes/modelTypes"
+import {IWorkContractDocument} from "../objecttypes/modelTypes"
 
 const subContractSchema = new Schema({
   workers: [{
@@ -45,4 +45,4 @@ const workContractSchema = new Schema({
 
 workContractSchema.plugin(uniqueValidator)
 
-export default mongoose.model<IWorkContract>("WorkContract", workContractSchema)
+export default mongoose.model<IWorkContractDocument>("WorkContract", workContractSchema)

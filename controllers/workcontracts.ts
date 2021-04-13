@@ -32,7 +32,7 @@ import {
   needsToBeBusiness,
   addTraceToWorker} from "../utils/middleware"
 import { buildPaginatedObjectFromArray, deleteTracesOfFailedWorkContract } from "../utils/common"
-import { IWorkContract } from "../objecttypes/modelTypes"
+import { IWorkContractDocument } from "../objecttypes/modelTypes"
 const workcontractsRouter = express.Router()
 
 const domainUrl = "http://localhost:8000/"
@@ -175,7 +175,7 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
       agency: res.locals.decoded.id,
       contracts: []
     }
-    const contractToCreate: IWorkContract = new WorkContract(createFields)
+    const contractToCreate: IWorkContractDocument = new WorkContract(createFields)
     //Next add traces to Business, Agency and Worker.
     await Business.findOneAndUpdate(
       { _id: body.businessId },
@@ -282,7 +282,7 @@ workcontractsRouter.put("/:contractId/new", authenticateToken, needsToBeBusiness
  * @param {callback} addWorkerToWorkContract - Initializes update fields (adds worker to list). <pre>Full description: {@link addWorkerToWorkContract}</pre>
  * @param {callback} updateWorkContract - Updates WorkContract in database. <pre>Full description: {@link updateWorkContract}</pre>
  */
-workcontractsRouter.put("/:contractId/:contractsId/add", authenticateToken, needsToBeWorker,  workContractExists, 
+workcontractsRouter.put("/:contractId/:contractsId/add", authenticateToken, needsToBeWorker,  workContractExists,
   addWorkerToWorkContract, addTraceToWorker, updateWorkContract)
 
 /**
@@ -300,7 +300,7 @@ workcontractsRouter.put("/:contractId/:contractsId/add", authenticateToken, need
  * @param {callback} checkUserInWorkContract - Checks workContractIncludesUser functions result. <pre>Full description: {@link checkUserInWorkContract}</pre>
  * @param {callback} acceptWorkContract - Initializes accept update fields. <pre>Full description: {@link acceptWorkContract}</pre>
  * @param {callback} updateWorkContract - Updates WorkContract in database. <pre>Full description: {@link updateWorkContract}</pre>
- */  
+ */
 workcontractsRouter.put("/:contractId/:contractsId/accept", authenticateToken, needsToBeAgencyOrBusiness, workContractExists, workContractIncludesUser, checkUserInWorkContract,
   acceptWorkContract, updateWorkContract)
 

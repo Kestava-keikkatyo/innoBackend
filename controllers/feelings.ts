@@ -5,7 +5,7 @@ import BusinessContract from "../models/BusinessContract"
 import WorkContract from "../models/WorkContract"
 import { needsToBeWorker, needsToBeAgencyOrBusiness } from "../utils/middleware"
 import { workerExists, buildPaginatedObjectFromArray } from "../utils/common"
-import {IBusinessContract, IFeelings, IWorkContract, IWorker} from "../objecttypes/modelTypes";
+import {IBusinessContractDocument, IFeelings, IWorkContractDocument, IWorkerDocument} from "../objecttypes/modelTypes";
 import {CallbackError, DocumentDefinition, Types} from "mongoose";
 import {error as _error, info as _info} from "../utils/logger";
 import {IBaseBody, IBodyWithFeelings} from "../objecttypes/otherTypes";
@@ -28,7 +28,7 @@ feelingsRouter.post("/", authenticateToken, needsToBeWorker, async (req: Request
         res.locals.decoded.id,
         { $addToSet: { feelings: feelingsObject } },
         { new: true, omitUndefined: true, runValidators: true, lean: true },
-        (error: CallbackError, result: DocumentDefinition<IWorker> | null) => {
+        (error: CallbackError, result: DocumentDefinition<IWorkerDocument> | null) => {
           if (!result || error) {
             res.status(401).send(error || { message: "Received no result when updating user" })
           } else {
@@ -90,7 +90,7 @@ feelingsRouter.get("/:workerId", authenticateToken, needsToBeAgencyOrBusiness, a
     }
 
     const workerId: string = params.workerId
-    workerExists(workerId, (worker: IWorker | null) => {
+    workerExists(workerId, (worker: IWorkerDocument | null) => {
       if (!worker) {
         return res.status(404).send( { message: "Worker with ID " + workerId + " not found" })
       }
@@ -100,7 +100,7 @@ feelingsRouter.get("/:workerId", authenticateToken, needsToBeAgencyOrBusiness, a
         const contractIds = body.agency.businessContracts
         return BusinessContract.find(
             { _id: { $in: contractIds } },
-            (error: CallbackError, contracts: Array<IBusinessContract>) => {
+            (error: CallbackError, contracts: Array<IBusinessContractDocument>) => {
               if (error) {
                 return res.status(500).send(`error message: ${error.message}\n${error}`)
               }
@@ -125,7 +125,7 @@ feelingsRouter.get("/:workerId", authenticateToken, needsToBeAgencyOrBusiness, a
         const contractIds = body.business.workContracts
         return WorkContract.find(
             { _id: { $in: contractIds } },
-            (error: CallbackError, result: Array<IWorkContract>) => {
+            (error: CallbackError, result: Array<IWorkContractDocument>) => {
               if (error) {
                 res.status(500).send(`error message: ${error.message}\n${error}`)
               }
@@ -179,7 +179,7 @@ feelingsRouter.delete("/:feelingId", authenticateToken, needsToBeWorker, async (
           body.worker._id,
           {$pull: {feelings: {_id: params.feelingId}}},
           {lean: true},
-          (error: CallbackError, result: DocumentDefinition<IWorker> | null) => {
+          (error: CallbackError, result: DocumentDefinition<IWorkerDocument> | null) => {
             if (!result || error) {
               return res.status(500).send(error || {message: "Did not receive any result from database"})
             } else {

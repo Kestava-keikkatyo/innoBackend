@@ -8,7 +8,7 @@ import Agency from "../models/Agency"
 import { needsToBeAgencyOrBusiness } from "../utils/middleware"
 import { getAgencyOrBusinessOwnForms } from "../utils/common"
 import {CallbackError, DocumentDefinition, Model, PaginateResult, Types} from "mongoose"
-import {AnyQuestion, IAgency, IBusiness, IForm} from "../objecttypes/modelTypes"
+import {AnyQuestion, IAgencyDocument, IBusinessDocument, IFormDocument} from "../objecttypes/modelTypes"
 import {IBaseBody, IBodyWithForm} from "../objecttypes/otherTypes"
 import {ParamsDictionary} from "express-serve-static-core"
 
@@ -23,7 +23,7 @@ formsRouter.post("/", authenticateToken, needsToBeAgencyOrBusiness, async (req: 
     const { body } = req
 
     // Form validation and checking happens in schema itself
-    const newForm: IForm = new Form({
+    const newForm: IFormDocument = new Form({
       title: body.title,
       isPublic: body.isPublic,
       questions: body.questions
@@ -31,7 +31,7 @@ formsRouter.post("/", authenticateToken, needsToBeAgencyOrBusiness, async (req: 
     if (body.description) {
       newForm.description = body.description
     }
-    newForm.save((error: CallbackError, result: IForm) => {
+    newForm.save((error: CallbackError, result: IFormDocument) => {
       if (error || !result) {
         return res.status(500).json( error || { message: "Unable to save form object." })
       }
@@ -58,13 +58,13 @@ formsRouter.post("/", authenticateToken, needsToBeAgencyOrBusiness, async (req: 
  * @param res
  * @param next
  */
-const addFormToAgencyOrBusiness = (AgencyOrBusiness: Model<IAgency> | Model<IBusiness>, id: string, form: IForm, res: Response, next: NextFunction) => {
+const addFormToAgencyOrBusiness = (AgencyOrBusiness: Model<IAgencyDocument> | Model<IBusinessDocument>, id: string, form: IFormDocument, res: Response, next: NextFunction) => {
   try {
     AgencyOrBusiness.findByIdAndUpdate(
       id,
       { $addToSet: { forms: form } },
       { new: true, omitUndefined: true, runValidators: true, lean: true },
-      (error: CallbackError, result: DocumentDefinition<IAgency|IBusiness> | null) => {
+      (error: CallbackError, result: DocumentDefinition<IAgencyDocument|IBusinessDocument> | null) => {
         if (!result || error) {
           return res.status(500).send(error || { message: "Received no result when updating user" })
         } else {
@@ -99,7 +99,7 @@ formsRouter.get("/me", authenticateToken, needsToBeAgencyOrBusiness, async (req:
     // Get limit's amount of own forms in specified page
     Form.paginate({ _id: { $in: ownForms } },
       { projection: "title description tags", page: page, limit: limit, lean: true, leanWithId: false }, // Typing when using projection!?
-      (error: CallbackError, result: PaginateResult<DocumentDefinition<IForm>>) => {
+      (error: CallbackError, result: PaginateResult<DocumentDefinition<IFormDocument>>) => {
         if (error || !result) {
           return res.status(500).send( error || { message: "Did not receive a result from database" })
         } else {
@@ -136,7 +136,7 @@ formsRouter.get("/", authenticateToken, needsToBeAgencyOrBusiness, async (req: R
     // Get limit's amount of public forms in specified page, except forms with ids that are in ownForms
     Form.paginate({ _id: { $nin: ownForms }, isPublic: true },
       { projection: "title description tags", page: page, limit: limit, lean: true, leanWithId: false },
-      (error: CallbackError, result: PaginateResult<DocumentDefinition<IForm>>) => {
+      (error: CallbackError, result: PaginateResult<DocumentDefinition<IFormDocument>>) => {
         if (error || !result) {
           return res.status(500).send( error || { message: "Did not receive a result from database" })
         } else {
@@ -185,7 +185,7 @@ formsRouter.get("/search", authenticateToken, needsToBeAgencyOrBusiness, async (
           lean: true,
           leanWithId: false
         },
-        (error: CallbackError, result: PaginateResult<DocumentDefinition<IForm>>) => {
+        (error: CallbackError, result: PaginateResult<DocumentDefinition<IFormDocument>>) => {
           if (error || !result) {
             return res.status(500).send( error || { message: "Did not receive a result from database" })
           } else {
@@ -234,7 +234,7 @@ formsRouter.get("/me/search", authenticateToken, needsToBeAgencyOrBusiness, asyn
           lean: true,
           leanWithId: false
         },
-        (error: CallbackError, result: PaginateResult<DocumentDefinition<IForm>>) => {
+        (error: CallbackError, result: PaginateResult<DocumentDefinition<IFormDocument>>) => {
           if (error || !result) {
             return res.status(500).send( error || { message: "Did not receive a result from database" })
           } else {
@@ -260,7 +260,7 @@ formsRouter.get("/:formId", authenticateToken, needsToBeAgencyOrBusiness, async 
     Form.findById(params.formId,
         undefined,
         { lean: true },
-        (error: CallbackError, form: DocumentDefinition<IForm> | null) => {
+        (error: CallbackError, form: DocumentDefinition<IFormDocument> | null) => {
       if (error || !form) {
         return res.status(404).send(error || { message: `Could not find form with id ${params.formId}` })
       }
@@ -314,7 +314,7 @@ formsRouter.put("/:formId", authenticateToken, needsToBeAgencyOrBusiness, async 
  * @param next
  * @returns {*}
  */
-const updateForm = (agencyOrBusinessObject: IAgency | IBusiness, req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
+const updateForm = (agencyOrBusinessObject: IAgencyDocument | IBusinessDocument, req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { params } = req
   try {
     const formId: string = params.formId
@@ -329,7 +329,7 @@ const updateForm = (agencyOrBusinessObject: IAgency | IBusiness, req: Request<Pa
           formId,
           { ...req.body }, // Give the full form object, or the full questions object in said object, in body when updating questions. Otherwise all other questions are deleted.
           { new: true, runValidators: true, lean: true },
-          (error: CallbackError, result: DocumentDefinition<IForm> | null) => {
+          (error: CallbackError, result: DocumentDefinition<IFormDocument> | null) => {
             if (error || !result) {
               return res.status(500).send(error || { message: "Didn't get a result from database while updating form" })
             } else {
@@ -375,7 +375,7 @@ formsRouter.delete("/:formId", authenticateToken, needsToBeAgencyOrBusiness, asy
  * @param next
  * @returns {*}
  */
-const deleteForm = (agencyOrBusiness: Model<IAgency> | Model<IBusiness>, agencyOrBusinessObject: IAgency | IBusiness, formId: string, res: Response, next: Function) => {
+const deleteForm = (agencyOrBusiness: Model<IAgencyDocument> | Model<IBusinessDocument>, agencyOrBusinessObject: IAgencyDocument | IBusinessDocument, formId: string, res: Response, next: Function) => {
   try {
     let found: boolean = false
     if (agencyOrBusinessObject.forms.length === 0) {
@@ -387,7 +387,7 @@ const deleteForm = (agencyOrBusiness: Model<IAgency> | Model<IBusiness>, agencyO
         Form.findByIdAndDelete(
           formId,
           undefined,
-          (error: CallbackError, result: IForm | null) => {
+          (error: CallbackError, result: IFormDocument | null) => {
             if (!result || error) {
               return res.status(500).send(error || { message: "Did not receive any result from database when deleting form" })
             } else {
@@ -395,7 +395,7 @@ const deleteForm = (agencyOrBusiness: Model<IAgency> | Model<IBusiness>, agencyO
                 agencyOrBusinessObject._id,
                 { $pull: { forms: { $in: [formId] } } },
                 undefined,
-                (error: CallbackError, result: IAgency | IBusiness | null) => {
+                (error: CallbackError, result: IAgencyDocument | IBusinessDocument | null) => {
                   if (error || !result) {
                     return res.status(500).send(error || { message: "Did not receive any result from database when deleting form's id from array" })
                   } else {

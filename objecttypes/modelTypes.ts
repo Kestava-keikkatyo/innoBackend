@@ -76,22 +76,27 @@ export interface IQuestions {
   [key: string]: Array<AnyQuestion>
 }
 
-export interface IWorker extends Document {
-  _id: Types.ObjectId,
+export interface IWorker {
   name: string,
   email: string,
+  password: string,
   passwordHash?: string,
-  createdAt: Date,
   phonenumber: string,
   lisences: Array<string>,
-  businessContracts: Array<IBusinessContract['_id']> | Array<IBusinessContract>,
-  workContracts: Array<IWorkContract['_id']> | Array<IWorkContract>,
+  businessContracts: Array<IBusinessContractDocument['_id']>,
+  workContracts: Array<IWorkContractDocument['_id']>,
   feelings: Array<IFeelings>,
   userType: string
 }
 
-export interface IAgency extends Document {
+export interface IWorkerDocument extends Document, Omit<IWorker, "businessContracts" | "workContracts"> {
   _id: Types.ObjectId,
+  createdAt: Date,
+  businessContracts: Array<IBusinessContractDocument['_id']> | Array<IBusinessContractDocument>,
+  workContracts: Array<IWorkContractDocument['_id']> | Array<IWorkContractDocument>,
+}
+
+export interface IAgency {
   name: string,
   email: string,
   city: string,
@@ -99,16 +104,23 @@ export interface IAgency extends Document {
   address: string,
   phonenumber: string,
   securityOfficer: string,
+  password: string,
   passwordHash?: string,
-  createdAt: Date,
-  forms: Array<IForm['_id']> | Array<IForm>,
-  businessContracts: Array<IBusinessContract['_id']> | Array<IBusinessContract>,
-  workContracts: Array<Types.ObjectId> | Array<IWorkContract>,
+  forms: Array<IFormDocument['_id']>,
+  businessContracts: Array<IBusinessContractDocument['_id']>,
+  workContracts: Array<IWorkContractDocument['_id']>,
   userType: string
 }
 
-export interface IBusiness extends Document {
+export interface IAgencyDocument extends Document, Omit<IAgency, "forms" | "businessContracts" | "workContracts"> {
   _id: Types.ObjectId,
+  createdAt: Date,
+  forms: Array<IFormDocument['_id']> | Array<IFormDocument>,
+  businessContracts: Array<IBusinessContractDocument['_id']> | Array<IBusinessContractDocument>,
+  workContracts: Array<Types.ObjectId> | Array<IWorkContractDocument>
+}
+
+export interface IBusiness {
   name: string,
   email: string,
   city: string,
@@ -116,45 +128,68 @@ export interface IBusiness extends Document {
   address: string,
   phonenumber: string,
   securityOfficer: string,
+  password: string,
   passwordHash?: string,
-  createdAt: Date,
-  forms: Array<IForm['_id']> | Array<IForm>,
-  businessContracts: Array<IBusinessContract['_id']> | Array<IBusinessContract>,
-  workContracts: Array<Types.ObjectId> | Array<IWorkContract>,
+  forms: Array<IFormDocument['_id']>,
+  businessContracts: Array<IBusinessContractDocument['_id']>,
+  workContracts: Array<Types.ObjectId>,
   userType: string
 }
 
-export interface IBusinessContract extends Document {
+export interface IBusinessDocument extends Document, Omit<IBusiness, "forms" | "businessContracts" | "workContracts"> {
   _id: Types.ObjectId,
+  createdAt: Date,
+  forms: Array<IFormDocument['_id']> | Array<IFormDocument>,
+  businessContracts: Array<IBusinessContractDocument['_id']> | Array<IBusinessContractDocument>,
+  workContracts: Array<Types.ObjectId> | Array<IWorkContractDocument>
+}
+
+export interface IBusinessContract {
   contractMade: boolean,
-  createdAt: Date,
-  worker: IWorker['_id'] | IWorker, // Todo can't some of these be optional?
-  business: IBusiness['_id'] | IBusiness,
-  agency: IAgency['_id'] | IAgency,
+  worker: IWorkerDocument['_id'], // Todo can't some of these be optional?
+  business: IBusinessDocument['_id'],
+  agency: IAgencyDocument['_id'],
   contractType: string
 }
 
-export interface IWorkContract extends Document {
+export interface IBusinessContractDocument extends Document, Omit<IBusinessContract, "worker" | "business" | "agency"> {
   _id: Types.ObjectId,
-  business: IBusiness['_id'] | IBusiness,
-  agency: IAgency['_id'] | IAgency,
-  contracts: Array<ISubContract>
+  createdAt: Date,
+  worker: IWorkerDocument['_id'] | IWorkerDocument, // Todo can't some of these be optional?
+  business: IBusinessDocument['_id'] | IBusinessDocument,
+  agency: IAgencyDocument['_id'] | IAgencyDocument,
 }
 
-export interface ISubContract extends Document {
+export interface IWorkContract {
+  business: IBusinessDocument['_id'],
+  agency: IAgencyDocument['_id'],
+  contracts: Array<ISubContractDocument>
+}
+
+export interface IWorkContractDocument extends Document, Omit<IWorkContract, "business" | "agency"> {
   _id: Types.ObjectId,
-  workers: Array<IWorker['_id'] | IWorker>,
+  business: IBusinessDocument['_id'] | IBusinessDocument,
+  agency: IAgencyDocument['_id'] | IAgencyDocument
+}
+
+export interface ISubContract {
+  workers: Array<IWorkerDocument['_id']>,
   workerCount: number,
   acceptedAgency: boolean,
   acceptedBusiness: boolean,
-  createdAt: Date,
   validityPeriod: {
     startDate: Date,
     endDate: Date
   }
 }
-// Used when we want to type docs given in req.body. For calls with {lean: true} option, use DocumentDefinition<IForm> for result type
-export interface IFormDoc {
+
+export interface ISubContractDocument extends Document, Omit<ISubContract, "workers"> {
+  _id: Types.ObjectId,
+  createdAt: Date,
+  workers: Array<IWorkerDocument['_id'] | IWorkerDocument>
+}
+// Used when we want to type docs given in req.body. For calls with {lean: true} option, use DocumentDefinition<IFormDocument> for result type
+export interface IForm {
   title: string,
   isPublic: boolean,
   description?: string,
@@ -162,7 +197,7 @@ export interface IFormDoc {
   tags?: Array<string>,
 }
 
-export interface IForm extends Document, IFormDoc {
+export interface IFormDocument extends Document, IForm {
   _id: Types.ObjectId,
   createdAt: Date
 }

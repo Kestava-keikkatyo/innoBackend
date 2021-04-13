@@ -1,7 +1,7 @@
 import mongoose, {Schema} from "mongoose"
 //const uniqueValidator = require("mongoose-unique-validator")
 import mongoosePaginate from 'mongoose-paginate-v2'
-import {IAgency} from "../objecttypes/modelTypes"
+import {IAgencyDocument} from "../objecttypes/modelTypes"
 //https://mongoosejs.com/docs/validation.html
 //email validator tarkistettava toimiiko halutulla tavalla
 
@@ -84,4 +84,4 @@ agencySchema.set("toJSON", {
   },
 })
 
-export default mongoose.model<IAgency>("Agency", agencySchema)
+export default mongoose.model<IAgencyDocument>("Agency", agencySchema)

@@ -10,7 +10,7 @@ import Agency from "../models/Agency"
 
 import { error as _error } from "../utils/logger"
 import {CallbackError, /*Model,*/ Schema, Types} from "mongoose"
-import {IAgency, IBusiness, /*IBusinessContract, IWorkContract,*/ IWorker} from "../objecttypes/modelTypes";
+import {IAgencyDocument, IBusinessDocument, /*IBusinessContract, IWorkContract,*/ IWorkerDocument} from "../objecttypes/modelTypes";
 import {IBaseBody} from "../objecttypes/otherTypes";
 /**
  * Checks if a worker with param id exists.
@@ -18,9 +18,9 @@ import {IBaseBody} from "../objecttypes/otherTypes";
  * @param {Function} callback
  * @returns Worker Object if worker exists, null if not.
 */
-export const workerExists = (id: string | Schema.Types.ObjectId, callback: (result: IWorker | null) => void): void => {
+export const workerExists = (id: string | Schema.Types.ObjectId, callback: (result: IWorkerDocument | null) => void): void => {
   try {
-    Worker.findById(id, (error: CallbackError, result: IWorker | null) => {
+    Worker.findById(id, (error: CallbackError, result: IWorkerDocument | null) => {
       if (error || !result) {
         callback(null)
       } else {
@@ -46,7 +46,7 @@ export const whichWorkersExist = (workerIdArray: Array<string>, callback: (worke
     let nonExistingWorkerIds: string[] = []
     if (Array.isArray(workerIdArray)) { // TODO Why? We don't need this with typescript, no? Also, if this is false callback is never called
       for (let i = 0; i < workerIdArray.length; i++) {
-        Worker.findById(workerIdArray[i], (err: CallbackError, result: IWorker | null) => {
+        Worker.findById(workerIdArray[i], (err: CallbackError, result: IWorkerDocument | null) => {
           if (err || !result) {
             nonExistingWorkerIds.push(workerIdArray[i])
           } else {
@@ -96,9 +96,9 @@ export const workerExistsInContracts = (contractType: Model<IWorkContract> | Mod
  * Checks if a business with param id exists.
  * @param {String} id
  * @param {Function} callback
- * @returns {IBusiness|null} Business Object if worker exists, null if not.
+ * @returns {IBusinessDocument|null} Business Object if worker exists, null if not.
 */
-export const businessExists = (id: string, callback: (result: IBusiness | null) => void): void => {
+export const businessExists = (id: string, callback: (result: IBusinessDocument | null) => void): void => {
   try {
     Business.findById({ _id: id }, (error:Error, result:any) => {
       if (error || !result) {
@@ -133,7 +133,7 @@ export const deleteTracesOfFailedWorkContract = async (workerId: string | null, 
         { _id: businessId },
         { $pull: { workContracts : { $in: [contractToCreateid.toString()] } } },
         { multi: false },
-        (err: CallbackError, result: IBusiness | null) => {
+        (err: CallbackError, result: IBusinessDocument | null) => {
           if (err || !result) {
             businessTraceRemoved = false
           } else {
@@ -148,7 +148,7 @@ export const deleteTracesOfFailedWorkContract = async (workerId: string | null, 
         { _id: agencyId },
         { $pull: { workContracts : { $in: [contractToCreateid.toString()] } } },
         { multi: false },
-        (err: CallbackError, result: IAgency | null) => {
+        (err: CallbackError, result: IAgencyDocument | null) => {
           if (err || !result) {
             agencyTraceRemoved = false
           } else {
@@ -163,7 +163,7 @@ export const deleteTracesOfFailedWorkContract = async (workerId: string | null, 
         { _id: workerId },
         { $pull: { workContracts : { $in: [contractToCreateid.toString()] } } },
         { multi: false },
-        (err: CallbackError, result: IWorker | null) => {
+        (err: CallbackError, result: IWorkerDocument | null) => {
           if (err || !result) {
             workerTraceRemoved = false
           } else {
@@ -223,7 +223,7 @@ export const deleteTracesOfBusinessContract = async (contract: any, callback: Fu
         contract.worker._id,
         { $pull: { businessContracts : { $in: [contract._id.toString()] } } },
         { multi: false },
-        (error: CallbackError, result: IWorker | null) => {
+        (error: CallbackError, result: IWorkerDocument | null) => {
           if (error || !result) {
             workerTraceRemoved = false
           } else {
@@ -238,7 +238,7 @@ export const deleteTracesOfBusinessContract = async (contract: any, callback: Fu
         contract.business._id,
         { $pull: { businessContracts :  { $in : [contract._id.toString()] } } },
         { multi: false },
-        (error: CallbackError, result: IBusiness | null) => {
+        (error: CallbackError, result: IBusinessDocument | null) => {
           if (error || !result) {
             businessTraceRemoved = false
           } else {
@@ -254,7 +254,7 @@ export const deleteTracesOfBusinessContract = async (contract: any, callback: Fu
       contract.agency._id,
       { $pull: { businessContracts :  { $in : [contract._id.toString()] } } },
       { multi: false },
-      (error: CallbackError, result: IAgency | null) => {
+      (error: CallbackError, result: IAgencyDocument | null) => {
         if (error || !result) {
           return callback( { workerTraceRemoved, businessTraceRemoved, agencyTraceRemoved: false, errormsg: "Could not find and update Agency with ID" } )
         } else {

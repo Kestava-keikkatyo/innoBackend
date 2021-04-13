@@ -9,7 +9,7 @@
  * @const
  * @namespace workersRouter
 */
-import express from "express"
+import express, {NextFunction, Request, Response} from "express"
 import { hash } from "bcryptjs"
 import { sign } from "jsonwebtoken"
 import { info, error as _error } from "../utils/logger"
@@ -19,6 +19,9 @@ import Worker from "../models/Worker"
 import Agency from "../models/Agency"
 import BusinessContract from "../models/BusinessContract"
 import { needsToBeWorker } from "../utils/middleware"
+import {IAgencyDocument, IBusinessContractDocument, IWorker, IWorkerDocument} from "../objecttypes/modelTypes";
+import {CallbackError, DocumentDefinition, Types} from "mongoose";
+import {IBaseBody} from "../objecttypes/otherTypes";
 
 
 const workersRouter = express.Router()
@@ -33,34 +36,30 @@ const workersRouter = express.Router()
  * @inner
  * @returns {JSON} response.body: { token, name: worker.name, email: worker.email, role: "worker" }
  */
-workersRouter.post("/", async (req, res, next) => {
+workersRouter.post("/", async (req: Request<unknown, unknown, IWorker>, res: Response, next: NextFunction) => {
   try {
-    const body = req.body
-    const passwordLength = body.password ? body.password.length : 0
+    const { body } = req
+    const passwordLength: number = body.password ? body.password.length : 0
     if (passwordLength < 3) {
-      return res
-        .status(400)
-        .json({ error: "Password length less than 3 characters" })
+      return res.status(400).json({ error: "Password length less than 3 characters" })
     }
-    const saltRounds = 10
-    const passwordHash = await hash(body.password, saltRounds)
-    const workerToCreate: any = new Worker({ // TODO change any to IWorker after it has been finished
+    const saltRounds: number = 10
+    const passwordHash: string = await hash(body.password, saltRounds)
+    const workerToCreate: IWorkerDocument = new Worker({
       name: body.name,
       email: body.email,
       passwordHash,
     })
-    const worker = await workerToCreate.save() //TODO use callback and check for errors
+    const worker: IWorkerDocument = await workerToCreate.save() //TODO use callback and check for errors
 
     const workerForToken = {
       email: worker.email,
       id: workerToCreate._id,
     }
 
-    const token = sign(workerForToken, process.env.SECRET || '')
+    const token: string = sign(workerForToken, process.env.SECRET || '')
 
-    res
-      .status(200)
-      .send({ token, name: worker.name, email: worker.email, role: "worker" })
+    res.status(200).send({ token, name: worker.name, email: worker.email, role: "worker" })
   } catch (exception) {
     return next(exception)
   }
@@ -75,12 +74,14 @@ workersRouter.post("/", async (req, res, next) => {
  * @inner
  * @returns {JSON} res.body: { The found Worker object }
  */
-workersRouter.get("/me", authenticateToken, async (_req, res, next) => {
+workersRouter.get("/me", authenticateToken, async (_req: Request, res: Response, next: NextFunction) => {
   try {
     //Decodatun tokenin arvo haetaan middlewarelta
-    const decoded = res.locals.decoded
     //Tokeni pitää sisällään workerid jolla etsitään oikean käyttäjän tiedot
-    Worker.findById({ _id: decoded.id }, (error: any, result: any) => {
+    Worker.findById(res.locals.decoded.id,
+      undefined,
+      { lean: true },
+      (error: CallbackError, result: DocumentDefinition<IWorkerDocument> | null) => {
       //Jos ei resultia niin käyttäjän tokenilla ei löydy käyttäjää
       if (!result || error) {
         res.status(401).send(error || { message: "Not authorized" })
@@ -102,21 +103,18 @@ workersRouter.get("/me", authenticateToken, async (_req, res, next) => {
  * @inner
  * @returns {JSON} res.body: { The found Worker object }
  */
-workersRouter.put("/", authenticateToken, async (req, res, next) => {
-  const body = req.body
-  const decoded = res.locals.decoded
-  let passwordHash
+workersRouter.put("/", authenticateToken, async (req: Request<unknown, unknown, IWorker>, res: Response, next: NextFunction) => {
+  const { body } = req
+  let passwordHash: string | undefined
 
   try {
     // Salataan uusi salasana
-    if (req.body.password) {
-      const passwordLength = body.password ? body.password.length : 0
+    if (body.password) {
+      const passwordLength: number = body.password ? body.password.length : 0
       if (passwordLength < 3) {
-        return res
-          .status(400)
-          .json({ error: "password length less than 3 characters" })
+        return res.status(400).json({ error: "password length less than 3 characters" })
       }
-      const saltRounds = 10
+      const saltRounds: number = 10
       passwordHash = await hash(body.password, saltRounds)
     }
 
@@ -134,7 +132,7 @@ workersRouter.put("/", authenticateToken, async (req, res, next) => {
 
     // https://mongoosejs.com/docs/tutorials/findoneandupdate.html
     // https://mongoosejs.com/docs/api.html#model_Model.findByIdAndUpdate
-    const updatedWorker = await Worker.findByIdAndUpdate(decoded.id, updateFields,
+    const updatedWorker: IWorkerDocument | null = await Worker.findByIdAndUpdate(res.locals.decoded.id, updateFields,
       { new: true, omitUndefined: true, runValidators: true })
 
     if (!updatedWorker) {
@@ -158,17 +156,20 @@ workersRouter.put("/", authenticateToken, async (req, res, next) => {
  * @inner
  * @returns {JSON} res.body: { List of workers }
  */
-workersRouter.get("/", authenticateToken, async (req, res, next) => {
-  const decoded = res.locals.decoded
-  const name = req.query.name
+workersRouter.get("/", authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
+  const { query } = req
+
+  let name: string | undefined
+  if (query.name) {
+    name = query.name as string
+  }
 
   try {
-    const agency = await Agency.findById(decoded.id)
+    const agency: IAgencyDocument | null = await Agency.findById(res.locals.decoded.id)
     if (agency && name) {
       // Työntekijät haetaan SQL:n LIKE operaattorin tapaisesti
       // Työpassit jätetään hausta pois
-      const findName: any = { $regex: name, $options: "i" }
-      const workers = await Worker.find({ name: findName }, { licenses: 0 })
+      const workers: Array<IWorkerDocument> = await Worker.find({ name: { $regex: name, $options: "i" } }, { licenses: 0 })
       if (workers) {
         return res.status(200).json(workers)
       }
@@ -188,16 +189,19 @@ workersRouter.get("/", authenticateToken, async (req, res, next) => {
  * @inner
  * @returns {JSON} response.body: { [{businessContract1}, {businessContract2},...] }
  */
-workersRouter.get("/businesscontracts", authenticateToken, needsToBeWorker, async (req, res, next) => {
+workersRouter.get("/businesscontracts", authenticateToken, needsToBeWorker, async (req: Request<unknown, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { body } = req
-  const contractIds = body.worker.businessContracts
-  let contracts: any = []
-  let temp: any;
+  let contractIds: Array<Types.ObjectId> | undefined
+  if (body.worker) {
+    contractIds = body.worker.businessContracts as Array<Types.ObjectId>
+  }
+  let contracts: Array<IBusinessContractDocument> = []
+  let temp: IBusinessContractDocument | null
   try {
     if (contractIds) {
       info("Searching database for BusinessContracts: " + contractIds)
       // Go through every contractId and, find contract data and push it to array "contracts".
-      contractIds.forEach(async (contractId: string, index: number, contractIds: string[]) => {
+      contractIds.forEach(async (contractId: Types.ObjectId, index: number, contractIds: Array<Types.ObjectId>) => {
         temp = await BusinessContract.findById(contractId).exec()
         if (temp) {
           contracts.push(temp)
@@ -206,15 +210,11 @@ workersRouter.get("/businesscontracts", authenticateToken, needsToBeWorker, asyn
 
         if (index === contractIds.length-1) { // If this was the last contract to find, send res
           info("BusinessContracts to Response: " + contracts)
-          res
-            .status(200)
-            .json(contracts)
+          res.status(200).json(contracts)
         }
       })
     } else { // No contractIds in Worker, respond with empty array
-      return res
-        .status(200)
-        .json(contracts)
+      return res.status(200).json(contracts)
     }
   } catch (exception) {
     _error(exception)

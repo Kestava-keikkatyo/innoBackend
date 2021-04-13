@@ -1,7 +1,7 @@
 import mongoose, {Schema} from "mongoose"
 //const uniqueValidator = require("mongoose-unique-validator")
 import mongoosePaginate from 'mongoose-paginate-v2';
-import {IBusiness} from "../objecttypes/modelTypes"
+import {IBusinessDocument} from "../objecttypes/modelTypes"
 
 const businessSchema = new Schema({
   name: {
@@ -80,4 +80,4 @@ businessSchema.set("toJSON", {
   },
 })
 
-export default mongoose.model<IBusiness>("Business", businessSchema)
+export default mongoose.model<IBusinessDocument>("Business", businessSchema)
