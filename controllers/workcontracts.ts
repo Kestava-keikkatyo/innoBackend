@@ -91,16 +91,16 @@ workcontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWorker,
   const { query, body } = req
   try {
     //Initialise page,limit,myId,model
-    const page: number = parseInt(query.page as string, 10)
-    const limit: number = parseInt(query.limit as string, 10)
+    let page: number = parseInt(query.page as string, 10)
+    let limit: number = parseInt(query.limit as string, 10)
     let array: {}
     let projection:String = ''
     //Check that page and limit exist and are not bellow 1
     if (page < 1 || !page) {
-      return res.status(400).send({ message: "Missing or incorrect page parameter" })
+      page == 1
     }
     if (limit < 1 || !limit) {
-      return res.status(400).send({ message: "Missing or incorrect limit parameter" })
+      limit == 1
     }
     //Which id is in question
     if (body.agency !== undefined) {
@@ -305,6 +305,12 @@ workcontractsRouter.put("/:contractId/:contractsId/add", authenticateToken, need
  */
 workcontractsRouter.put("/:contractId/:contractsId/accept", authenticateToken, needsToBeAgencyOrBusiness, workContractExists, workContractIncludesUser, checkUserInWorkContract,
   acceptWorkContract, updateWorkContract)
+
+/**
+ * TODO:
+ * Route jolla voi poistaa työntekijän WorkContractin contract objectista. (Agency ja Business)
+ * (TULEVAISUUDESSA: route jolla voi poistaa contract objectin WorkContractista. <TÄMÄN ROUTEN TÄYTYY POISTAA KAIKKI YHTEYDET TYÖNTEKIJÖILTÄ JOTKA OVAT TÄSSÄ>)
+ */
 
 /**
  * Route for agency to delete workcontract. For this route to work, user must be logged in as a agency and workcontract must exist.

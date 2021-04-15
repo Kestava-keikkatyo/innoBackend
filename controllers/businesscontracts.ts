@@ -23,11 +23,11 @@ import { businessContractExists,
   declineBusinessContract} from "../utils/middleware"
 import { error as _error} from "../utils/logger"
 import { buildPaginatedObjectFromArray } from "../utils/common"
+import { CallbackError } from "mongoose"
 
 const businesscontractsRouter = express.Router()
 
 /**
- * TODO:THIS ROUTE DOESNT WORK RIGHT
  * Route for getting one specific businessContract.
  * Requires user logged in as a participant of this specific BusinessContract.
  * @name GET /businesscontracts/:businessContractId
@@ -45,11 +45,7 @@ const businesscontractsRouter = express.Router()
  * @throws {JSON} Status 400 - response.body: { message: "User who is trying to use this route is not in workcontract" }
  * @returns {JSON} Status 200 - response.body: { businessContract: TheWholeBusinessContractObject }
  */
-businesscontractsRouter.get(
-  "/:businessContractId",
-  authenticateToken,
-  businessContractExists,
-  businessContractIncludesUser,
+businesscontractsRouter.get("/:businessContractId",authenticateToken,businessContractExists,businessContractIncludesUser,
   async (req, res, next) => {
     const { body } = req
     try {
@@ -83,15 +79,16 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
     const { query, body } = req
     try {
       //Initialise page,limit,myId,model
-      const page: number = parseInt(query.page as string, 10)
-      const limit: number = parseInt(query.limit as string, 10)
+      let page: number = parseInt(query.page as string, 10)
+      let limit: number = parseInt(query.limit as string, 10)
       let array: {}
+      let projection: String = ''
       //Check that page and limit exist and are not bellow 1
       if (page < 1 || !page) {
-        return res.status(400).send({ message: "Missing or incorrect page parameter" })
+        page = 1
       }
       if (limit < 1 || !limit) {
-        return res.status(400).send({ message: "Missing or incorrect limit parameter" })
+        limit = 5
       }
       //Which id is in question
       if (body.agency !== undefined) {
@@ -99,16 +96,18 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
       }
       else if (body.business !== undefined) {
         array = {_id: {$in: body.business.businessContracts}}
+        projection = 'agency'
       }
       else if (body.worker !== undefined) {
         array =  {_id: {$in: body.worker.businessContracts}}
+        projection = 'agency'
       }
       else {
         return res.status(400).send({ message:"Token didn't have any users." })
       }
-      return await BusinessContract.find(array,(err,result) => {
+      return await BusinessContract.find(array,projection,null,(err:CallbackError,result) => {
         if (err || !result) {
-          return res.status(404).send({ error:err.message, message:"Couldn't find any BusinessContracts" })
+          return res.status(404).send(err || { message:"Couldn't find any BusinessContracts" })
         } else {
           return res.status(200).send(buildPaginatedObjectFromArray(page,limit,result))
         }
@@ -194,5 +193,8 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
   */
  businesscontractsRouter.put("/:businessContractId/:userId/decline",authenticateToken, needsToBeAgency, businessContractExists, declineBusinessContract, businessContractUpdate)
 
-
+/**
+ * TODO:
+ * route jolla voi poistaa solmitun BusinessContractin eli poistaa madeContract objectista idn jommasta kummasta array listasta.
+ */
 export default businesscontractsRouter
