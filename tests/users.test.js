@@ -1,31 +1,28 @@
-import User, { deleteMany } from "../models/User"
+/* eslint-disable no-unused-vars */
+import Worker from "../models/Worker"
+import Business from "../models/Business"
+import Agency from "../models/Agency"
 import supertest from "supertest"
-import { connection } from "mongoose"
+import mongoose from "mongoose"
 import { usersInDb } from "./test_helper"
+import bcrypt from "bcryptjs"
 import app from "../app"
 
+const api = supertest(app)
 
 
 describe("when there is initially one user at db", () => {
   beforeEach(async () => {
-    await deleteMany({})
-    // const user = new User({ name: "root", email: "test@adad.com", password: "sekret" })
+    await Worker.deleteMany({})
     const hash = await bcrypt.hash("salis", 10)
-    const user = new User({ name: "testiukkeli", email: "testiukkeli@testi.org", passwordHash: hash })
+    const user = new Worker({ name: "testiukkeli", email: "testiukkeli@testi.org", passwordHash: hash })
     await user.save()
   })
 
   test("creation succeeds with a fresh name", async () => {
     const usersAtStart = await usersInDb()
-
-    // const newUser = {
-    //   name: "testi",
-    //   email: "test@test.com",
-    //   password: "salasana",
-    // }
-
     const hash = await bcrypt.hash("salis", 10)
-    const newUser = new User({ name: "testiukkeli2", email: "testiukkeli2@testi.org", passwordHash: hash })
+    const newUser = new Worker({ name: "testiukkeli2", email: "testiukkeli2@testi.org", passwordHash: hash })
 
     await api
       .post("/api/users")
@@ -41,6 +38,6 @@ describe("when there is initially one user at db", () => {
   })
 })
 
-afterAll(() => {
-  connection.close()
-})
+// afterAll(() => {
+//   connection.close()
+// })
