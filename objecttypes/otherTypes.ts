@@ -1,6 +1,7 @@
 import {IAgencyDocument, IBusinessDocument, IBusinessContractDocument, IFeelings, IForm, IWorkContractDocument, IWorkerDocument} from "./modelTypes";
 
 export interface IBaseBody {
+  userId: string,
   agency?: IAgencyDocument,
   business?: IBusinessDocument,
   worker?: IWorkerDocument,
