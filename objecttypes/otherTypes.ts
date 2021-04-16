@@ -23,3 +23,15 @@ export interface IBodyLogin {
   email: string,
   password: string
 }
+
+export interface IRemovedTraces {
+  workerTraceRemoved?: boolean,
+  businessTraceRemoved?: boolean,
+  agencyTraceRemoved?: boolean,
+  error?: string
+}
+
+export interface IContractTracesRemoved {
+  success: boolean,
+  error?: string
+}

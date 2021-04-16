@@ -79,6 +79,7 @@ const addFormToAgencyOrBusiness = (AgencyOrBusiness: Model<IAgencyDocument> | Mo
 /**
  * Route for agency/business to get their own forms
  * returns an array. response.body: [{tags: [], title: "title", description: "description", id: "id"}, {...}, ...] //TODO update return in docs
+ * req.query: page, limit
  */
 formsRouter.get("/me", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request<unknown, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { query, body } = req
@@ -117,6 +118,7 @@ formsRouter.get("/me", authenticateToken, needsToBeAgencyOrBusiness, async (req:
 /**
  * Route for agency/business to get all public forms, excluding their own forms.
  * returns an array. response.body: [{tags: [], title: "title", description: "description", id: "id"}, {...}, ...]
+ * req.query: page, limit
  */
 formsRouter.get("/", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request<unknown, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { body, query } = req

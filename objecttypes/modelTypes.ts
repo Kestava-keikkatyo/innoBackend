@@ -206,7 +206,7 @@ export interface IForm {
   questions?: IQuestions,
   tags?: Array<string>,
 }
-
+// Used for typing results gotten from db calls.
 export interface IFormDocument extends Document, IForm {
   _id: Types.ObjectId,
   createdAt: Date

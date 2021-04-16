@@ -71,10 +71,10 @@ feelingsRouter.get("/", authenticateToken, needsToBeWorker, async (req: Request<
   }
 })
 
-// TODO mention query parameters in docs
 /**
  * Returns a list of feelings. response.body: [{ feeling object }, { feeling object }, ...]
  * Route for agency/business to get a list of a worker's feelings they have a contract with.
+ * req.query: page, limit
  */
 feelingsRouter.get("/:workerId", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { query, params, body } = req
@@ -129,7 +129,7 @@ feelingsRouter.get("/:workerId", authenticateToken, needsToBeAgencyOrBusiness, a
               if (error) {
                 res.status(500).send(`error message: ${error.message}\n${error}`)
               }
-              for (let i = 0; i < result.length; i++) {
+              for (let i = 0; i < result.length; i++) { // TODO Can this be done with just the find query?
                 for (let j = 0; j < result[i].contracts.length; j++) {
                   for (let k = 0; k < result[i].contracts[j].workers.length; k++) {
                     if (result[i].contracts[j].workers[k] instanceof Types.ObjectId && (result[i].contracts[j].workers[k] as Types.ObjectId).equals(workerId)) {

@@ -17,7 +17,7 @@ const agencySchema = new Schema({
     required: true,
     immutable: true,
     validate: {
-      validator: (value: any) => {
+      validator: (value: string) => {
         return /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(value)
       },
       message: (props: any) => `${props.value} is not a valid email address`
@@ -35,9 +35,9 @@ const agencySchema = new Schema({
   phonenumber: {
     type: String,
     validate: {
-      validator: (value: any) => {
+      validator: (value: string) => {
         // https://regexr.com/3c53v
-        return /^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s./0-9]*$/g.test(value)
+        return /^[+]*[(]?[0-9]{1,4}[)]?[-\s.\/0-9]*$/g.test(value)
       },
       message: (props: any) => `${props.value} is not a valid phone number`
     }

@@ -344,14 +344,14 @@ async (req, res, next) => {
     return res.status(401).send( { message: "This route is only available to Agency who is in this contract." })
 
   try {
-    deleteTracesOfFailedWorkContract(
+    await deleteTracesOfFailedWorkContract(
       null,
       body.workContract.business,
       body.workContract.agency,
       params.contractId,
       async (result: any) => {
         if (result.businessTraceRemoved === true && result.agencyTraceRemoved === true) {
-          return await WorkContract.findByIdAndDelete(
+          return WorkContract.findByIdAndDelete(
             body.workContract._id,
             undefined,
             (error: Error, result: any) => {
@@ -367,7 +367,7 @@ async (req, res, next) => {
                 return res.status(204).send()
               }
             }
-          )
+          );
         } else {
           return res.status(406).json({
             message:
