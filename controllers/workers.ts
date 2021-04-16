@@ -12,16 +12,13 @@
 import express, {NextFunction, Request, Response} from "express"
 import { hash } from "bcryptjs"
 import { sign } from "jsonwebtoken"
-import { info, error as _error } from "../utils/logger"
+import { error as _error } from "../utils/logger"
 import authenticateToken from "../utils/auhenticateToken"
 
 import Worker from "../models/Worker"
 import Agency from "../models/Agency"
-import BusinessContract from "../models/BusinessContract"
-import { needsToBeWorker } from "../utils/middleware"
-import {IAgencyDocument, IBusinessContractDocument, IWorker, IWorkerDocument} from "../objecttypes/modelTypes";
-import {CallbackError, DocumentDefinition, Types} from "mongoose";
-import {IBaseBody} from "../objecttypes/otherTypes";
+import {IAgencyDocument, IWorker, IWorkerDocument} from "../objecttypes/modelTypes";
+import {CallbackError, DocumentDefinition} from "mongoose";
 
 
 const workersRouter = express.Router()
@@ -180,46 +177,5 @@ workersRouter.get("/", authenticateToken, async (req: Request, res: Response, ne
   }
 })
 
-/**
- * Requires user logged in as a Worker.
- * Route for getting full data of all BusinessContracts that the logged in Worker has.
- * @name GET /workers/businesscontracts
- * @function
- * @memberof module:controllers/workers~workersRouter
- * @inner
- * @returns {JSON} response.body: { [{businessContract1}, {businessContract2},...] }
- */
-workersRouter.get("/businesscontracts", authenticateToken, needsToBeWorker, async (req: Request<unknown, unknown, IBaseBody>, res: Response, next: NextFunction) => {
-  const { body } = req
-  let contractIds: Array<Types.ObjectId> | undefined
-  if (body.worker) {
-    contractIds = body.worker.businessContracts as Array<Types.ObjectId>
-  }
-  let contracts: Array<IBusinessContractDocument> = []
-  let temp: IBusinessContractDocument | null
-  try {
-    if (contractIds) {
-      info("Searching database for BusinessContracts: " + contractIds)
-      // Go through every contractId and, find contract data and push it to array "contracts".
-      contractIds.forEach(async (contractId: Types.ObjectId, index: number, contractIds: Array<Types.ObjectId>) => {
-        temp = await BusinessContract.findById(contractId).exec()
-        if (temp) {
-          contracts.push(temp)
-          temp = null
-        }
-
-        if (index === contractIds.length-1) { // If this was the last contract to find, send res
-          info("BusinessContracts to Response: " + contracts)
-          res.status(200).json(contracts)
-        }
-      })
-    } else { // No contractIds in Worker, respond with empty array
-      return res.status(200).json(contracts)
-    }
-  } catch (exception) {
-    _error(exception)
-    return next(exception)
-  }
-})
 
 export default workersRouter

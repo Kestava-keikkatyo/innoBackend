@@ -7,18 +7,17 @@
 import Worker from "../models/Worker"
 import Business from "../models/Business"
 import Agency from "../models/Agency"
-
 import { error as _error } from "../utils/logger"
 import {CallbackError, PaginateResult, /*Model,*/ Types} from "mongoose"
 import {IAgencyDocument, IBusinessDocument, /*IBusinessContract, IWorkContract,*/ IWorkerDocument} from "../objecttypes/modelTypes";
-import {IBaseBody, IContractTracesRemoved, IRemovedTraces} from "../objecttypes/otherTypes";
+import {IBaseBody, IRemovedTraces} from "../objecttypes/otherTypes";
 /**
  * Checks if a worker with param id exists.
  * @param {string} id
  * @param {Function} callback
  * @returns Worker Object if worker exists, null if not.
 */
-export const workerExists = (id: string | Types.ObjectId, callback: (result: IWorkerDocument | null) => void): void => {
+export const workerExistsCallback = (id: string | Types.ObjectId, callback: (result: IWorkerDocument | null) => void): void => {
   try {
     Worker.findById(id, (error: CallbackError, result: IWorkerDocument | null) => {
       if (error || !result) {
@@ -34,69 +33,12 @@ export const workerExists = (id: string | Types.ObjectId, callback: (result: IWo
 }
 
 /**
- * Checks through an array of worker ids,and returns an array of ids that exist.
- * Returned list may contain duplicates, if the param array had them.
- * @param {Array} workerIdArray
- * @param {Function} callback
- * @returns {JSON} {existingWorkerIds: existingWorkerIds, nonExistingWorkerIds: nonExistingWorkerIds} // TODO callback?
- */
-export const whichWorkersExist = (workerIdArray: Array<string>, callback: (workerResult: any) => void): void => {
-  try {
-    let existingWorkerIds: string[] = []
-    let nonExistingWorkerIds: string[] = []
-    for (let i = 0; i < workerIdArray.length; i++) {
-      Worker.findById(workerIdArray[i], (err: CallbackError, result: IWorkerDocument | null) => {
-        if (err || !result) {
-          nonExistingWorkerIds.push(workerIdArray[i])
-        } else {
-          existingWorkerIds.push(workerIdArray[i])
-        }
-
-        if (i === workerIdArray.length-1) { // TODO If for some reason an earlier find took longer to execute, this array could be missing some Ids
-          callback({
-            existingWorkerIds: existingWorkerIds,
-            nonExistingWorkerIds: nonExistingWorkerIds
-          })
-        }
-      })
-    }
-  } catch (exception) {
-    // TODO callback(exception)
-  }
-}
-
-/**
- * Checks if the given worker is in a business/work contract in the given array.
- * Gives all matching contracts to callback
- * @param {BusinessContract|WorkContract} contractType
- * @param {Array} contracts
- * @param {string} _workerId
- * @param {Function} callback
- * @returns {Array} contractsArray
- */
-/*
-export const workerExistsInContracts = (contractType: Model<IWorkContract> | Model<IBusinessContract>, contracts: Array<string>, _workerId: string, callback: (contracts: Array<IWorkContract> | Array<IBusinessContract>) => void) => {
-  try {
-    contractType.find(
-        { _id: { $in: contracts } },
-        (error: CallbackError, result: Array<IWorkContract> | Array<IBusinessContract>) => {
-      if (error) {
-        _error(`error message: ${error.message}\n${error}`)
-      }
-      callback(result)
-    })
-  } catch (exception) {
-    callback(exception)
-  }
-}
-*/
-/**
  * Checks if a business with param id exists.
  * @param {String} id
  * @param {Function} callback
  * @returns {IBusinessDocument|null} Business Object if worker exists, null if not.
 */
-export const businessExists = (id: string, callback: (result: IBusinessDocument | null) => void): void => {
+export const businessExistsCallback = (id: string, callback: (result: IBusinessDocument | null) => void): void => {
   try {
     Business.findById({ _id: id }, (error:Error, result:any) => {
       if (error || !result) {
@@ -110,6 +52,7 @@ export const businessExists = (id: string, callback: (result: IBusinessDocument 
     callback(null)
   }
 }
+
 /**
  * Deletes traces of failed WorkContract from business, agency and user collection.
  * If you don't wanna delete some references you can leave id value ass null.
@@ -178,32 +121,6 @@ export const deleteTracesOfFailedWorkContract = async (workerId: string | null, 
 }
 
 /**
- * Deletes leftover traces in agencys businessContracts array list
- * @param {string} agencyId AgencyId - used to findAndUpdate Agency
- * @param {string} contractId BusinessContractId - used to pull correct from Agency
- * @param {Function} callback
- * @return {Boolean} request.success = true/false
- */
-export const deleteAgencyTracesOfBusinessContract = async (agencyId: string, contractId: string, callback: (result: IContractTracesRemoved) => void): Promise<void> => {
-  try {
-    await Agency.findByIdAndUpdate(
-      agencyId,
-      { $pull: { businessContracts :  { $in : [contractId.toString()] } } },
-      { multi: false },
-      (error,result) => {
-        if (error || !result) {
-          callback( { success: false, error: "Could not find and update Agency with ID" } )
-        } else {
-          callback( { success: true } )
-        }
-      }
-    )
-  } catch (exception) {
-    callback(exception)
-  }
-}
-
-/** // TODO @deprecated ?
  * Deletes traces of business contract. Used businesscontract.delete route is used.
  * If trace is deleted adds boolean true to variable.
  * One of the returned values workerTraceRemoved or businessTraceRemoved is undefined.
@@ -211,16 +128,15 @@ export const deleteAgencyTracesOfBusinessContract = async (agencyId: string, con
  * @param {Function} callback
  * @returns {Boolean} workerTraceRemoved, boolean businessTraceRemoved, boolean agencyTraceRemoved
  */
-export const deleteTracesOfBusinessContract = async (contract: any, callback: (result: IRemovedTraces) => void): Promise<void> => {
+export const deleteTracesOfBusinessContract = async (workerId: string | null, businessId: string | null, contractToCreateid: string, callback: Function) => {
   try {
     let workerTraceRemoved: boolean | undefined = undefined
     let businessTraceRemoved: boolean | undefined = undefined
     //check which businesscontract is in question
-    if (contract.contractType.toString() === "Worker")
-    {
+    if (workerId !== null) {
       await Worker.findByIdAndUpdate(
-        contract.worker._id,
-        { $pull: { businessContracts : { $in: [contract._id.toString()] } } },
+        workerId,
+        { $pull: { businessContracts : { $in: [contractToCreateid] } } },
         { multi: false },
         (error: CallbackError, result: IWorkerDocument | null) => {
           if (error || !result) {
@@ -231,11 +147,10 @@ export const deleteTracesOfBusinessContract = async (contract: any, callback: (r
         }
       )
     }
-    else if (contract.contractType.toString() === "Business")
-    {
+    if (businessId !== null) {
       await Business.findByIdAndUpdate(
-        contract.business._id,
-        { $pull: { businessContracts :  { $in : [contract._id.toString()] } } },
+        businessId,
+        { $pull: { businessContracts :  { $in : [contractToCreateid] } } },
         { multi: false },
         (error: CallbackError, result: IBusinessDocument | null) => {
           if (error || !result) {
@@ -246,21 +161,7 @@ export const deleteTracesOfBusinessContract = async (contract: any, callback: (r
         }
       )
     }
-    else {
-     // callback( { success: false, error: "ContractType not worker or business" } ) Ei callbackissä voi palauttaa eri asioita miten huvittaa!
-    }
-    await Agency.findByIdAndUpdate(
-      contract.agency._id,
-      { $pull: { businessContracts :  { $in : [contract._id.toString()] } } },
-      { multi: false },
-      (error: CallbackError, result: IAgencyDocument | null) => {
-        if (error || !result) {
-          return callback( { workerTraceRemoved, businessTraceRemoved, agencyTraceRemoved: false, error: "Could not find and update Agency with ID" } )
-        } else {
-          return callback( { workerTraceRemoved, businessTraceRemoved, agencyTraceRemoved: true } )
-        }
-      }
-    )
+    callback( { workerTraceRemoved,businessTraceRemoved } )
   } catch (exception) {
     callback(exception)
   }

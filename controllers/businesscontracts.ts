@@ -23,11 +23,11 @@ import { businessContractExists,
   declineBusinessContract} from "../utils/middleware"
 import { error as _error} from "../utils/logger"
 import { buildPaginatedObjectFromArray } from "../utils/common"
+import { CallbackError } from "mongoose"
 
 const businesscontractsRouter = express.Router()
 
 /**
- * TODO:THIS ROUTE DOESNT WORK RIGHT
  * Route for getting one specific businessContract.
  * Requires user logged in as a participant of this specific BusinessContract.
  * @name GET /businesscontracts/:businessContractId
@@ -45,11 +45,7 @@ const businesscontractsRouter = express.Router()
  * @throws {JSON} Status 400 - response.body: { message: "User who is trying to use this route is not in workcontract" }
  * @returns {JSON} Status 200 - response.body: { businessContract: TheWholeBusinessContractObject }
  */
-businesscontractsRouter.get(
-  "/:businessContractId",
-  authenticateToken,
-  businessContractExists,
-  businessContractIncludesUser,
+businesscontractsRouter.get("/:businessContractId",authenticateToken,businessContractExists,businessContractIncludesUser,
   async (req, res, next) => {
     const { body } = req
     try {
@@ -68,7 +64,7 @@ businesscontractsRouter.get(
 /**
  * Route for getting all users businessContract.
  * Requires token for use.
- * @name GET /businesscontracts/:businessContractId
+ * @name GET /businesscontracts/
  * @function
  * @memberof module:controllers/businesscontracts~businesscontractsRouter
  * @inner
@@ -83,15 +79,16 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
     const { query, body } = req
     try {
       //Initialise page,limit,myId,model
-      const page: number = parseInt(query.page as string, 10)
-      const limit: number = parseInt(query.limit as string, 10)
+      let page: number = parseInt(query.page as string, 10)
+      let limit: number = parseInt(query.limit as string, 10)
       let array: {}
+      let projection: String = ''
       //Check that page and limit exist and are not bellow 1
       if (page < 1 || !page) {
-        return res.status(400).send({ message: "Missing or incorrect page parameter" })
+        page = 1
       }
       if (limit < 1 || !limit) {
-        return res.status(400).send({ message: "Missing or incorrect limit parameter" })
+        limit = 5
       }
       //Which id is in question
       if (body.agency !== undefined) {
@@ -99,16 +96,18 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
       }
       else if (body.business !== undefined) {
         array = {_id: {$in: body.business.businessContracts}}
+        projection = 'agency'
       }
       else if (body.worker !== undefined) {
         array =  {_id: {$in: body.worker.businessContracts}}
+        projection = 'agency'
       }
       else {
         return res.status(400).send({ message:"Token didn't have any users." })
       }
-      return await BusinessContract.find(array,(err,result) => {
+      return await BusinessContract.find(array,projection,null,(err:CallbackError,result) => {
         if (err || !result) {
-          return res.status(404).send({ error:err.message, message:"Couldn't find any BusinessContracts" })
+          return res.status(404).send(err || { message:"Couldn't find any BusinessContracts" })
         } else {
           return res.status(200).send(buildPaginatedObjectFromArray(page,limit,result))
         }
@@ -120,22 +119,82 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
 
 /**
  * Route to initialize BusinessContract for agency.
- * This route is runned when Agency first makes Account to platform.
+ * This route is runned when Agency first makes Account to the platform.
+ * Creates BusinessContract object to database for agency.
+ * @name POST /businesscontracts/
+ * @function
+ * @memberof module:controllers/businesscontracts~businesscontractsRouter
+ * @inner
+ * @param {String} path - Express path.
+ * @param {callback} authenticateToken - Decodes token.
+ * @param {callback} needsToBeAgency - Checks that user is agency. 
+ * <pre>Full description: {@link needsToBeAgency}</pre>
+ * @param {callback} makeBusinessContract - Makes BusinessContract object for agency. 
+ * <pre>Full description: {@link makeBusinessContract}</pre>
  */
  businesscontractsRouter.post("/",authenticateToken,needsToBeAgency,makeBusinessContract)
  /**
-  * Route to add worker or business to BusinessContract
-  * @todo When agency adds worker or business
+  * Route to add worker or business to BusinessContract.
+  * All users can use this route. If Business or Worker uses this route
+  * usersId is added to BusinessContracts requestContract object.
+  * If Agency uses this route agency must provide userId in body. 
+  * And UserId is added to madeContracts object.
+  * @name PUT /businesscontracts/:businessContractId/add
+  * @function
+  * @memberof module:controllers/businesscontracts~businesscontractsRouter
+  * @inner
+  * @param {String} path - Express path.
+  * @param {callback} authenticateToken - Decodes token.
+  * @param {callback} needsToBeAgencyBusinessOrWorker - Checks that user is Agency,Business or Worker.
+  * <pre>Full description: {@link needsToBeAgencyBusinessOrWorker}</pre>
+  * @param {callback} businessContractExists - Checks that BusinessContract exists in database.
+  * <pre>Full description: {@link businessContractExists}</pre>
+  * @param {callback} addContractToBusinessContract - Initializes update that adds userid to BusinessContract requestContract object.
+  * <pre>Full description: {@link addContractToBusinessContract}</pre>
+  * @param {callback} businessContractUpdate - Runs update.<pre>Full description: {@link businessContractUpdate}</pre>
   */
  businesscontractsRouter.put("/:businessContractId/add",authenticateToken,needsToBeAgencyBusinessOrWorker,businessContractExists,addContractToBusinessContract,businessContractUpdate)
  /**
-  * Route for agency to accept BusinessContract
+  * Route for agency to accept BusinessContract.
+  * This route can be used when agency has users in BusinessContracts requestContract object.
+  * UserId is deleted from requestContract object and moved to madeContracts object.
+  * @name PUT /businesscontracts/:businessContractId/:userId/accept
+  * @function
+  * @memberof module:controllers/businesscontracts~businesscontractsRouter
+  * @inner
+  * @param {String} path - Express path.
+  * @param {callback} authenticateToken - Decodes token.
+  * @param {callback} needsToBeAgency - Checks that user is Agency.
+  * <pre>Full description: {@link needsToBeAgency}</pre>
+  * @param {callback} businessContractExists - Checks that BusinessContract exists in database.
+  * <pre>Full description: {@link businessContractExists}</pre>
+  * @param {callback} acceptBusinessContract - Initializes update that accepts userid from requestContract object and changes its location to madeContracts object.
+  * <pre>Full description: {@link acceptBusinessContract}</pre>
+  * @param {callback} businessContractUpdate - Runs update.<pre>Full description: {@link businessContractUpdate}</pre>
   */
  businesscontractsRouter.put("/:businessContractId/:userId/accept",authenticateToken,needsToBeAgency,businessContractExists,acceptBusinessContract,businessContractUpdate)
  /**
-  * Route for agency to decline BusinessContract
+  * Route for agency to decline BusinessContract.
+  * With this route agency can decline BusinessContract request from Business or Worker.
+  * UserId is deleted from requestContract.
+  * @name PUT /businesscontracts/:businessContractId/:userId/decline
+  * @function
+  * @memberof module:controllers/businesscontracts~businesscontractsRouter
+  * @inner
+  * @param {String} path - Express path.
+  * @param {callback} authenticateToken - Decodes token.
+  * @param {callback} needsToBeAgency - Checks that user is Agency.
+  * <pre>Full description: {@link needsToBeAgency}</pre>
+  * @param {callback} businessContractExists - Checks that BusinessContract exists in database.
+  * <pre>Full description: {@link businessContractExists}</pre>
+  * @param {callback} declineBusinessContract - Initializes update that removes userid from requestContract object.
+  * <pre>Full description: {@link declineBusinessContract}</pre>
+  * @param {callback} businessContractUpdate - Runs update.<pre>Full description: {@link businessContractUpdate}</pre>
   */
  businesscontractsRouter.put("/:businessContractId/:userId/decline",authenticateToken, needsToBeAgency, businessContractExists, declineBusinessContract, businessContractUpdate)
 
-
+/**
+ * TODO:
+ * route jolla voi poistaa solmitun BusinessContractin eli poistaa madeContract objectista idn jommasta kummasta array listasta.
+ */
 export default businesscontractsRouter

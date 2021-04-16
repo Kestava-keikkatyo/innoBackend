@@ -21,6 +21,7 @@ import {
   IWorkContractDocument,
   IWorkerDocument
 } from "../objecttypes/modelTypes"
+import { businessExistsCallback, workerExistsCallback } from "../utils/common"
 import { CallbackError, DocumentDefinition, Types } from "mongoose"
 import { IBaseBody } from "../objecttypes/otherTypes"
 import { ParamsDictionary } from "express-serve-static-core"
@@ -784,7 +785,6 @@ export const makeBusinessContract = (_req:Request, res:Response, next:NextFuncti
 }
 /**
  * This middleware function is used to add worker or business to BusinessContract.
- * TODO: If Agency sends BusinessContract add Users ID to madeContracts.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next - NextFunction.
@@ -793,12 +793,63 @@ export const makeBusinessContract = (_req:Request, res:Response, next:NextFuncti
 export const addContractToBusinessContract = (req:Request<ParamsDictionary,unknown,IBaseBody>, res:Response, next:NextFunction) => {
   const { body,params } = req
   const id:Types.ObjectId = Types.ObjectId(params.businessContractId)
+  body.businessContractUpdateFilterQuery =  { _id: id }
   try {
     //Check if worker is trying to make BusinessContract
     if (body.worker === undefined || null) {
       //If worker is null check business
       if (body.business === undefined || null) {
-        return res.status(400).send({message:"Could not identify who tried to create the contract."})
+        //If business is null check agency
+        if (body.agency === undefined || null || body.userId === undefined || null) {
+          return res.status(400).send({message:"Could not identify who tried to create the contract or userId was undefined."})
+        } else {
+          //If agency is trying to make BusinessContract
+          //Then we check wich user agency wants to add
+          return businessExistsCallback(body.userId, (result:IBusinessDocument | null) => {
+            if (result == null) {
+              return workerExistsCallback(body.userId, (result:IWorkerDocument | null) => {
+                if (result == null) {
+                  return res.status(404).send({ message:"Couldn't find user with userId:"+body.userId })
+                } else {
+                  body.businessContractUpdate = {
+                    $addToSet: {
+                      'madeContracts.workers': body.userId
+                    }
+                  }
+                  return Worker.findOneAndUpdate(
+                    { _id: body.userId },
+                    { $addToSet: { businessContracts: id } },
+                    { lean: true },
+                    (err:CallbackError, result:DocumentDefinition<IWorkerDocument> | null) => {
+                      if (err || !result) {
+                        return res.status(400).send(err || {  message:"Something went wrong with adding trace to Worker" })
+                      } else {
+                        return next()
+                      }
+                    })
+                }
+              })
+            } else {
+              body.businessContractUpdate = {
+                $addToSet: {
+                  'madeContracts.businesses': body.userId
+                }
+              }
+              //Now we can add trace to Business businessContracts list.
+              return Business.findOneAndUpdate(
+                { _id: body.userId },
+                { $addToSet: { businessContracts: id } },
+                { lean: true },
+                (err:CallbackError, result:DocumentDefinition<IBusinessDocument> | null) => {
+                  if (err || !result) {
+                    return res.status(400).send(err || {  message:"Something went wrong with adding trace to Business" })
+                  } else {
+                    return next()
+                  } 
+                })
+            }
+          })
+        }
       } else {
         //If business is trying to make BusinessContract
         body.businessContractUpdate = {
@@ -806,7 +857,6 @@ export const addContractToBusinessContract = (req:Request<ParamsDictionary,unkno
             'requestContracts.businesses': body.business._id
           }
         }
-        body.businessContractUpdateFilterQuery =  { _id: id }
         //Now we can add trace to Business businessContracts list.
         return Business.findOneAndUpdate(
         { _id: res.locals.decoded.id },
@@ -827,7 +877,6 @@ export const addContractToBusinessContract = (req:Request<ParamsDictionary,unkno
           'requestContracts.workers': body.worker._id
         }
       }
-      body.businessContractUpdateFilterQuery =  { _id: id }
       //Now we can add trace to Workers businessContracts list.
       return Worker.findOneAndUpdate(
       { _id: res.locals.decoded.id },

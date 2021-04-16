@@ -4,7 +4,7 @@ import Worker from "../models/Worker"
 import BusinessContract from "../models/BusinessContract"
 import WorkContract from "../models/WorkContract"
 import { needsToBeWorker, needsToBeAgencyOrBusiness } from "../utils/middleware"
-import { workerExists, buildPaginatedObjectFromArray } from "../utils/common"
+import { workerExistsCallback, buildPaginatedObjectFromArray } from "../utils/common"
 import {IBusinessContractDocument, IFeelings, IWorkContractDocument, IWorkerDocument} from "../objecttypes/modelTypes";
 import {CallbackError, DocumentDefinition, Types} from "mongoose";
 import {error as _error, info as _info} from "../utils/logger";
@@ -90,7 +90,7 @@ feelingsRouter.get("/:workerId", authenticateToken, needsToBeAgencyOrBusiness, a
     }
 
     const workerId: string = params.workerId
-    workerExists(workerId, (worker: IWorkerDocument | null) => {
+    workerExistsCallback(workerId, (worker: IWorkerDocument | null) => {
       if (!worker) {
         return res.status(404).send( { message: "Worker with ID " + workerId + " not found" })
       }
