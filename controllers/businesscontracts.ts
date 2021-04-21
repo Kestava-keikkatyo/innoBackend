@@ -155,7 +155,7 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
   */
  businesscontractsRouter.put("/:businessContractId/add",authenticateToken,needsToBeAgencyBusinessOrWorker,businessContractExists,addContractToBusinessContract,businessContractUpdate)
  /**
-  * Route for agency to accept BusinessContract.
+  * Route for agency to accept BusinessContract with Business or Worker.
   * This route can be used when agency has users in BusinessContracts requestContract object.
   * UserId is deleted from requestContract object and moved to madeContracts object.
   * @name PUT /businesscontracts/:businessContractId/:userId/accept

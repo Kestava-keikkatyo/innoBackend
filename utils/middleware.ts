@@ -633,10 +633,10 @@ export const addWorkerToWorkContract = (req: Request, res: Response, next: NextF
  * Middleware function is used in add-route to add trace to worker workContract array.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
- * @param {Function} next - NextFunction.
+ * @param {NextFunction} next - NextFunction.
  * @throws {JSON} Status 400 - res.body: { message:"Something went wrong with update" }
  */
-export const addTraceToWorker = (req:Request, res:Response, next:Function) => {
+export const addTraceToWorker = (req:Request, res:Response, next:NextFunction) => {
   try {
     const { params } = req
     const ids: Types.ObjectId = Types.ObjectId(params.contractsId)
@@ -932,44 +932,52 @@ export const addContractToBusinessContract = (req:Request<ParamsDictionary,unkno
           })
         }
       } else {
-        //If business is trying to make BusinessContract
+        //If business is trying to make BusinessContract we first check that is Business already in contract.
+        if (body.businessContract?.madeContracts.businesses.includes(res.locals.decoded.id)) {
+          return res.status(401).send({ message: "User is already in contract."})
+        } else {
+          body.businessContractUpdate = {
+            $addToSet: {
+              'requestContracts.businesses': body.business._id
+            }
+          }
+          //Now we can add trace to Business businessContracts list.
+          return Business.findOneAndUpdate(
+          { _id: res.locals.decoded.id },
+          { $addToSet: { businessContracts: id } },
+          { lean: true },
+          (err:CallbackError, result:DocumentDefinition<IBusinessDocument> | null) => {
+            if (err || !result) {
+              return res.status(400).send(err || {  message:"Something went wrong with adding trace to Business" })
+            } else {
+              return next()
+            }
+          })
+        }
+      }
+    } else {
+      //If worker is trying to make BusinessContract we first check that is Worker already in contract.
+      if (body.businessContract?.madeContracts.workers.includes(res.locals.decoded.id)) {
+        return res.status(401).send({ message: "User is already in contract."})
+      } else {
         body.businessContractUpdate = {
           $addToSet: {
-            'requestContracts.businesses': body.business._id
+            'requestContracts.workers': body.worker._id
           }
         }
-        //Now we can add trace to Business businessContracts list.
-        return Business.findOneAndUpdate(
+        //Now we can add trace to Workers businessContracts list.
+        return Worker.findOneAndUpdate(
         { _id: res.locals.decoded.id },
         { $addToSet: { businessContracts: id } },
         { lean: true },
-        (err:CallbackError, result:DocumentDefinition<IBusinessDocument> | null) => {
+        (err:CallbackError, result:DocumentDefinition<IWorkerDocument> | null) => {
           if (err || !result) {
-            return res.status(400).send(err || {  message:"Something went wrong with adding trace to Business" })
+            return res.status(400).send(err || {  message:"Something went wrong with adding trace to Worker" })
           } else {
             return next()
           }
         })
       }
-    } else {
-      //If worker is trying to make BusinessContract
-      body.businessContractUpdate = {
-        $addToSet: {
-          'requestContracts.workers': body.worker._id
-        }
-      }
-      //Now we can add trace to Workers businessContracts list.
-      return Worker.findOneAndUpdate(
-      { _id: res.locals.decoded.id },
-      { $addToSet: { businessContracts: id } },
-      { lean: true },
-      (err:CallbackError, result:DocumentDefinition<IWorkerDocument> | null) => {
-        if (err || !result) {
-          return res.status(400).send(err || {  message:"Something went wrong with adding trace to Worker" })
-        } else {
-          return next()
-        }
-      })
     }
   } catch (exception) {
     return res.status(500).send({ exception })
@@ -1065,10 +1073,9 @@ export const declineBusinessContract = async (req:Request<ParamsDictionary,unkno
  * Runs updateOne query to BusinessContract. Used as last middleware to run update.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
- * @param {NextFunction} next - NextFunction.
- * @returns {JSON} Status 200: doc -
+ * @returns {JSON} Status 200: doc 
  */
-export const businessContractUpdate = (req:Request<ParamsDictionary,unknown,IBaseBody>, res:Response, next:NextFunction) => {
+export const businessContractUpdate = (req:Request<ParamsDictionary,unknown,IBaseBody>, res:Response) => {
   const { body, params } = req
   try {
     const updateFields = body.businessContractUpdate
@@ -1081,7 +1088,7 @@ export const businessContractUpdate = (req:Request<ParamsDictionary,unknown,IBas
       }
     })
   } catch (exception) {
-    return next(exception)
+    return res.status(500).send({ exception })
   }
 }
 export default {}
