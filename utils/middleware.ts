@@ -23,7 +23,7 @@ import {
 } from "../objecttypes/modelTypes"
 import { businessExistsCallback, workerExistsCallback } from "../utils/common"
 import { CallbackError, DocumentDefinition, Types } from "mongoose"
-import { IBaseBody } from "../objecttypes/otherTypes"
+import {IBaseBody, IBodyWithIds} from "../objecttypes/otherTypes"
 import { ParamsDictionary } from "express-serve-static-core"
 
 export const requestLogger = (req: Request, _res: Response, next: NextFunction) => {
@@ -59,10 +59,14 @@ export const errorHandler = (err: any, _req: Request, res: Response, next: NextF
  * @throws {JSON} Status 400 - response.body: { error: "No businessId in request body." }
  * @returns {NextFunction} next()
  */
-export const bodyBusinessExists = (req: Request, res: Response, next: NextFunction): any => {
+export const bodyBusinessExists = (req: Request<unknown, unknown, IBodyWithIds>, res: Response, next: NextFunction): any => {
+  const { body } = req
   try {
-    if (req.body.businessId) {
-      return Business.findById({ _id: req.body.businessId }, (err: CallbackError, result: IBusinessDocument | null) => {
+    if (body.businessId) {
+      return Business.findById({ _id: body.businessId },
+        undefined,
+        { lean: true },
+        (err: CallbackError, result: DocumentDefinition<IBusinessDocument> | null) => {
         if (err || !result) {
           return res.status(404).send({ error: "No business found with the request businessId." })
         } else {
@@ -86,10 +90,14 @@ export const bodyBusinessExists = (req: Request, res: Response, next: NextFuncti
  * @throws {JSON} Status 400 - response.body: { error: "No workerId in request body." }
  * @returns {NextFunction} next()
 */
-export const bodyWorkerExists = (req: Request, res: Response, next: NextFunction) => {
+export const bodyWorkerExists = (req: Request<unknown, unknown, IBodyWithIds>, res: Response, next: NextFunction) => {
+  const { body } = req
   try {
-    if (req.body.workerId) {
-      return Worker.findById({ _id: req.body.workerId }, (err: CallbackError, result: IWorkerDocument | null) => {
+    if (body.workerId) {
+      return Worker.findById({ _id: body.workerId },
+        undefined,
+        { lean: true },
+        (err: CallbackError, result: DocumentDefinition<IWorkerDocument> | null) => {
         if (err || !result) {
           return res.status(404).send({ error: "No worker found with the request workerId." })
         } else {
@@ -119,24 +127,25 @@ export const bodyWorkerExists = (req: Request, res: Response, next: NextFunction
  * @returns {NextFunction} next()
 */
 export const bodyWorkerOrBusinessExists = (req: Request, res: Response, next: NextFunction) => {
+  const { body } = req
   try {
-    if (req.body.workerId && !req.body.businessId) {
-      return Worker.findById({ _id: req.body.workerId }, (err:CallbackError, result: IWorkerDocument | null) => {
+    if (body.workerId && !body.businessId) {
+      return Worker.findById(body.workerId, (err: CallbackError, result: IWorkerDocument | null) => {
         if (err || !result) {
           return res.status(404).send({ error: "No worker found with the request workerId." })
         } else {
-          req.body.worker = result
-          req.body.contractType = "Worker"
+          body.worker = result
+          body.contractType = "Worker" // TODO Function unused. Also, contractType isn't used anymore, right?
           return next()
         }
       })
-    } else if (!req.body.workerId && req.body.businessId) {
-      return Business.findById({ _id: req.body.businessId }, (err: CallbackError, result: IBusinessDocument | null) => {
+    } else if (!body.workerId && body.businessId) {
+      return Business.findById(body.businessId, (err: CallbackError, result: IBusinessDocument | null) => {
         if (err || !result) {
-          return res.status(404).send({ error: "No business found with the request businessId." })
+          return res.status(404).send({ error: "No business found with the requested businessId." })
         } else {
-          req.body.business = result
-          req.body.contractType = "Business"
+          body.business = result
+          body.contractType = "Business"
           return next()
         }
       })
@@ -160,13 +169,14 @@ export const bodyWorkerOrBusinessExists = (req: Request, res: Response, next: Ne
  * @returns {NextFunction} next()
 */
 export const agencyExists = (req: Request, res: Response, next: NextFunction) => {
+  const { params, body } = req
   try {
-    if (req.params.agencyId) {
-      return Agency.findById({ _id: req.params.agencyId }, (err: CallbackError, result: IAgencyDocument | null) => {
+    if (params.agencyId) {
+      return Agency.findById(params.agencyId, (err: CallbackError, result: IAgencyDocument | null) => {
         if (err || !result) {
           return res.status(404).send({ error: "No Agency found with the request :agencyId." })
         } else {
-          req.body.agency = result
+          body.agency = result
           return next()
         }
       })
@@ -190,13 +200,14 @@ export const agencyExists = (req: Request, res: Response, next: NextFunction) =>
  * @returns {NextFunction} next()
 */
 export const businessExists = (req: Request, res: Response, next: NextFunction) => {
+  const { params, body } = req
   try {
-    if (req.params.businessId) {
-      return Business.findById({ _id: req.params.businessId }, (err: CallbackError, result: IBusinessDocument | null) => {
+    if (params.businessId) {
+      return Business.findById(params.businessId, (err: CallbackError, result: IBusinessDocument | null) => {
         if (err || !result) {
           return res.status(404).send({ error: "No Business found with the request :businessId." })
         } else {
-          req.body.business = result
+          body.business = result
           return next()
         }
       })
@@ -220,10 +231,10 @@ export const businessExists = (req: Request, res: Response, next: NextFunction) 
  * @returns {NextFunction} next()
 */
 export const businessContractExists = (req: Request<ParamsDictionary,unknown,IBaseBody>, res: Response, next: NextFunction) => {
-  const { body,params } = req
+  const { body, params } = req
   try {
     if (params.businessContractId) {
-      return BusinessContract.findById({ _id: params.businessContractId }, (err: CallbackError, result:IBusinessContractDocument | null) => {
+      return BusinessContract.findById(params.businessContractId, (err: CallbackError, result: IBusinessContractDocument | null) => {
         if (err || !result) {
           return res.status(404).send({ error: "No BusinessContract found with the request :businessContractId." })
         } else {
@@ -249,21 +260,22 @@ export const businessContractExists = (req: Request<ParamsDictionary,unknown,IBa
  * @throws {JSON} Status 500 - response.body: { exception }
  * @returns {NextFunction} next()
  */
-export const businessContractIncludesUser = (req: Request,res: Response,next: NextFunction) => {
+export const businessContractIncludesUser = (req: Request, res: Response, next: NextFunction) => {
+  const { body } = req
   try {
-    if (req.body.businessContract !== undefined) {
-      if (req.body.businessContract.agency._id.toString() === res.locals.decoded.id.toString()) { // TODO Agency hasn't been populated, so _id is undefined, so an exception will be caught.
-        req.body.userInBusinessContract = true
+    if (body.businessContract !== undefined) {
+      if (body.businessContract.agency._id.toString() === res.locals.decoded.id.toString()) { // TODO Agency hasn't been populated, so _id is undefined, so an exception will be caught.
+        body.userInBusinessContract = true
       } else {
-        switch (req.body.businessContract.worker) {
+        switch (body.businessContract.worker) {
         case undefined:
-          if (req.body.businessContract.business._id.toString() === res.locals.decoded.id.toString()) {
-            req.body.userInBusinessContract = true
+          if (body.businessContract.business._id.toString() === res.locals.decoded.id.toString()) {
+            body.userInBusinessContract = true
           }
           break
         default:
-          if (req.body.businessContract.worker._id.toString() === res.locals.decoded.id.toString()) {
-            req.body.userInBusinessContract = true
+          if (body.businessContract.worker._id.toString() === res.locals.decoded.id.toString()) {
+            body.userInBusinessContract = true
           }
           break
         }
@@ -291,13 +303,14 @@ export const businessContractIncludesUser = (req: Request,res: Response,next: Ne
  * @returns {NextFunction} next()
 */
 export const workContractExists = (req: Request,res: Response, next: NextFunction) => {
+  const { body, params } = req
   try {
-    if (req.params.contractId) {
-      return WorkContract.findById({ _id: req.params.contractId }, (err: CallbackError, result: IWorkContractDocument | null) => {
+    if (params.contractId) {
+      return WorkContract.findById(params.contractId, (err: CallbackError, result: IWorkContractDocument | null) => {
         if (err || !result) {
           return res.status(404).send({ error: "No WorkContract found with the request :contractId." })
         } else {
-          req.body.workContract = result
+          body.workContract = result
           return next()
         }
       })
@@ -321,22 +334,23 @@ export const workContractExists = (req: Request,res: Response, next: NextFunctio
  * @returns {NextFunction} next()
  */
 export const workContractIncludesUser = (req: Request, res: Response, next: NextFunction) => {
+  const { body } = req
   try {
-    if (req.body.workContract !== undefined) {
+    if (body.workContract !== undefined) {
       // if (req.body.workContract.user._id.toString() === res.locals.decoded.id.toString()) {
       //   req.body.userInWorkContract = true
       // }
-      if (req.body.workContract.business._id.toString() === res.locals.decoded.id.toString()) {
-        req.body.userInWorkContract = true
+      if (body.workContract.business._id.toString() === res.locals.decoded.id.toString()) {
+        body.userInWorkContract = true
       }
-      else if (req.body.workContract.agency._id.toString() === res.locals.decoded.id.toString()) {
-        req.body.userInWorkContract = true
+      else if (body.workContract.agency._id.toString() === res.locals.decoded.id.toString()) {
+        body.userInWorkContract = true
       }
       else {
-        req.body.userInWorkContract = false
+        body.userInWorkContract = false
       }
     } else {
-      req.body.userInWorkContract = false
+      body.userInWorkContract = false
     }
     return next()
   } catch (exception) {
@@ -345,7 +359,7 @@ export const workContractIncludesUser = (req: Request, res: Response, next: Next
 }
 /**
  * This middleware is used to check previous middleware workContractIncludesUser
- * to avoid dupplicate code.
+ * to avoid duplicate code.
  * @param {Boolean} req.body.userInWorkContract - Boolean that indicates user who is trying to use route is found in contract.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
@@ -368,7 +382,7 @@ export const checkUserInWorkContract = (req: Request, res: Response, next: NextF
 
 /**
  * Checks if the logged in user is an Agency.
- * Agency object from database is populated to request.body.agency
+ * Agency object from database is populated to req.body.agency
  * @param {String} res.locals.decoded.id - UsersId (AgencyId) from token.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
@@ -378,12 +392,13 @@ export const checkUserInWorkContract = (req: Request, res: Response, next: NextF
  * @returns {NextFunction} next()
 */
 export const needsToBeAgency = (req: Request, res: Response, next: NextFunction) => {
+  const { body } = req
   try {
-    return Agency.findById({ _id: res.locals.decoded.id }, (err: CallbackError, result: IAgencyDocument | null) => {
+    return Agency.findById(res.locals.decoded.id, (err: CallbackError, result: IAgencyDocument | null) => {
       if (err || !result) {
         return res.status(401).send(err || { message: "This route is only available to Agency users." })
       } else {
-        req.body.agency = result
+        body.agency = result
         return next()
       }
     })
@@ -404,12 +419,13 @@ export const needsToBeAgency = (req: Request, res: Response, next: NextFunction)
  * @returns {NextFunction} next()
 */
 export const needsToBeBusiness = (req: Request, res: Response, next: NextFunction) => {
+  const { body } = req
   try {
-    return Business.findById({ _id: res.locals.decoded.id }, (err: CallbackError, result: IBusinessDocument | null) => {
+    return Business.findById(res.locals.decoded.id, (err: CallbackError, result: IBusinessDocument | null) => {
       if (err || !result) {
         return res.status(401).send(err || { message: "This route only available to Business users." })
       } else {
-        req.body.business = result
+        body.business = result
         return next()
       }
     })
@@ -430,12 +446,13 @@ export const needsToBeBusiness = (req: Request, res: Response, next: NextFunctio
  * @returns {NextFunction} next()
 */
 export const needsToBeWorker = (req: Request, res: Response, next: NextFunction) => {
+  const { body } = req
   try {
-    return Worker.findById({ _id: res.locals.decoded.id }, (err: CallbackError, result: IWorkerDocument | null) => {
+    return Worker.findById(res.locals.decoded.id, (err: CallbackError, result: IWorkerDocument | null) => {
       if (err || !result) {
         return res.status(401).send(err || { message: "This route only available to Worker users." })
       } else {
-        req.body.worker = result
+        body.worker = result
         return next()
       }
     })
@@ -458,20 +475,21 @@ export const needsToBeWorker = (req: Request, res: Response, next: NextFunction)
  * @returns {NextFunction} next()
  */
 export const needsToBeAgencyOrBusiness = (req: Request, res: Response, next: NextFunction) => {
+  const { body } = req
   try {
-    return Agency.findById( { _id: res.locals.decoded.id }, (err: CallbackError, result: IAgencyDocument | null) => {
+    return Agency.findById(res.locals.decoded.id, (err: CallbackError, result: IAgencyDocument | null) => {
       if (!err) {
         if (!result) {
-          Business.findById({ _id: res.locals.decoded.id }, (err: CallbackError, result: IBusinessDocument | null) => {
+          Business.findById(res.locals.decoded.id, (err: CallbackError, result: IBusinessDocument | null) => {
             if (err || !result) {
               res.status(401).send(err || { message: "This route is only available to Agency or Business users." })
             } else {
-              req.body.business = result
+              body.business = result
               return next()
             }
           })
         } else {
-          req.body.agency = result
+          body.agency = result
           return next()
         }
       } else {
@@ -499,10 +517,10 @@ export const needsToBeAgencyOrBusiness = (req: Request, res: Response, next: Nex
 export const needsToBeBusinessOrWorker = (req: Request<unknown, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { body } = req
   try {
-    return Business.findById( { _id: res.locals.decoded.id }, (err: CallbackError, result:  IBusinessDocument | null) => {
+    return Business.findById(res.locals.decoded.id, (err: CallbackError, result:  IBusinessDocument | null) => {
       if (!err) {
         if (!result) {
-          Worker.findById( { _id: res.locals.decoded.id }, (err: CallbackError, result: IWorkerDocument | null) => {
+          Worker.findById(res.locals.decoded.id, (err: CallbackError, result: IWorkerDocument | null) => {
             if (err || !result) {
               return res.status(401).send( err || { message: "This route is only available to Business or Worker users" })
             } else {
@@ -539,13 +557,13 @@ export const needsToBeBusinessOrWorker = (req: Request<unknown, unknown, IBaseBo
 export const needsToBeAgencyBusinessOrWorker = (req: Request<unknown, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { body } = req
   try {
-    return Agency.findById({ _id: res.locals.decoded.id }, (err: CallbackError, result: IAgencyDocument | null) => {
+    return Agency.findById(res.locals.decoded.id, (err: CallbackError, result: IAgencyDocument | null) => {
       if (!err) {
         if (!result) {
-          Business.findById({ _id: res.locals.decoded.id }, (err: CallbackError, result: IBusinessDocument | null) => {
+          Business.findById(res.locals.decoded.id, (err: CallbackError, result: IBusinessDocument | null) => {
             if (!err) {
               if (!result) {
-                Worker.findById({ _id: res.locals.decoded.id }, (err: CallbackError, result: IWorkerDocument | null) => {
+                Worker.findById(res.locals.decoded.id, (err: CallbackError, result: IWorkerDocument | null) => {
                   if (err || !result) {
                     return res.status(401).send(err || { message: "This route is only available to Agency, Business or Worker users." })
                   } else {
@@ -558,7 +576,7 @@ export const needsToBeAgencyBusinessOrWorker = (req: Request<unknown, unknown, I
                 return next()
               }
             } else {
-              return res.status(400).send({ message: "Business find coused error." })
+              return res.status(400).send({ message: "Business find caused an error." })
             }
           })
         } else {
@@ -590,12 +608,14 @@ export const needsToBeAgencyBusinessOrWorker = (req: Request<unknown, unknown, I
   const { body } = req
   try {
     const updateFields = body.workContractUpdate
-    return WorkContract.updateOne( body.updateFilterQuery , updateFields, { new: true, omitUndefined: true, runValidators: false, lean: true },
-      (error:CallbackError, doc:DocumentDefinition<IWorkContractDocument> | null) => {
+    return WorkContract.updateOne(body.updateFilterQuery,
+      updateFields,
+      { omitUndefined: true },
+      (error: CallbackError, doc: IWorkContractDocument | null) => {
       if (!doc || error) {
         return res.status(400).send(error || { success: false, error: "Could not update WorkContract with id " + req.params.contractId })
       } else {
-        return res.status(200).send(doc)
+        return res.status(200).send(doc) // TODO updateOne doesn't return doc.
       }
     })
   } catch (exception) {
@@ -612,24 +632,29 @@ export const needsToBeAgencyBusinessOrWorker = (req: Request<unknown, unknown, I
  * @returns {NextFunction} next()
  */
 export const addWorkerToWorkContract = (req: Request, res: Response, next: NextFunction) => {
-  const { body,params } = req
+  const { body, params } = req
   try {
-    return BusinessContract.find({
-      agency: body.workContract.agency,
-      'madeContracts.workers': body.worker._id
-    },undefined,{lean:true}, (err: CallbackError, doc: DocumentDefinition<IBusinessContractDocument>[] | null) => {
-      if (err || !doc) {
-        return res.status(400).send(err || { message:"Something went wrong with find query." })
-      } else {
-        if (doc.length === 1) {
-          body.workContractUpdate = { $addToSet: { 'contracts.$.workers': res.locals.decoded.id }}
-          body.updateFilterQuery = { 'contracts._id': params.contractsId }
-          return next()
+    return BusinessContract.find(
+      {
+        agency: body.workContract.agency,
+        'madeContracts.workers': body.worker._id
+      },
+      undefined,
+      { lean: true },
+      (err: CallbackError, doc: DocumentDefinition<IBusinessContractDocument>[] | null) => {
+        if (err || !doc) {
+          return res.status(400).send(err || { message:"Something went wrong with find query." })
         } else {
-          return res.status(404).send({ message:"No BusinessContract made with agency and worker." })
+          if (doc.length === 1) {
+            body.workContractUpdate = { $addToSet: { 'contracts.$.workers': res.locals.decoded.id }}
+            body.updateFilterQuery = { 'contracts._id': params.contractsId }
+            return next()
+          } else {
+            return res.status(404).send({ message:"No BusinessContract made with agency and worker." })
+          }
         }
       }
-    })
+    )
   } catch (exception) {
     return next(exception)
   }
@@ -641,7 +666,7 @@ export const addWorkerToWorkContract = (req: Request, res: Response, next: NextF
  * @param {Function} next - NextFunction.
  * @throws {JSON} Status 400 - res.body: { message:"Something went wrong with update" }
  */
-export const addTraceToWorker = (req:Request, res:Response, next:Function) => {
+export const addTraceToWorker = (req: Request, res: Response, next: NextFunction) => {
   try {
     const { params } = req
     const ids: Types.ObjectId = Types.ObjectId(params.contractsId)
@@ -672,18 +697,19 @@ export const addTraceToWorker = (req:Request, res:Response, next:Function) => {
  * @param {NextFunction} next - NextFunction.
  * @returns {NextFunction} next()
  */
-export const newContractToWorkContract = (req: Request<ParamsDictionary,unknown,IBaseBody>, _res: Response, next: NextFunction) => {
+export const newContractToWorkContract = (req: Request<ParamsDictionary, unknown, IBaseBody>, _res: Response, next: NextFunction) => {
   const { body, params } = req
   try {
     body.workContractUpdate = {
-      $addToSet: { contracts: {
-        workers: [],
-        workerCount: body.workerCount,
-        acceptedAgency: false,
-        acceptedBusiness: false,
-        validityPeriod: {
-          startDate: Date.now(),
-          endDate: Date.now()
+      $addToSet: {
+        contracts: {
+          workers: [],
+          workerCount: body.workerCount,
+          acceptedAgency: false,
+          acceptedBusiness: false,
+          validityPeriod: {
+            startDate: new Date(),
+            endDate: new Date() // TODO endDate ???
           },
         }
       }
@@ -702,8 +728,8 @@ export const newContractToWorkContract = (req: Request<ParamsDictionary,unknown,
  * @param {NextFunction} next - NextFunction.
  * @returns {NextFunction} next()
  */
-export const acceptWorkContract = (req: Request<ParamsDictionary,unknown,IBaseBody>, _res: Response, next: NextFunction) => {
-  const { body,params } = req
+export const acceptWorkContract = (req: Request<ParamsDictionary, unknown, IBaseBody>, _res: Response, next: NextFunction) => {
+  const { body, params } = req
   try {
     if (body.business === undefined || null) {
       body.workContractUpdate = {
@@ -729,14 +755,17 @@ export const acceptWorkContract = (req: Request<ParamsDictionary,unknown,IBaseBo
  * @param {NextFunction} next - NextFunction.
  * @returns {JSON} Status 201 - Header: { Location: domainUrl + businessContractsApiPath + contract._id }, Response.body: { contract }
  */
-export const makeBusinessContract = (_req:Request, res:Response, next:NextFunction) => {
-  const domainUrl = "http://localhost:3000/"
-  const businessContractsApiPath = "api/businesscontracts/"
+export const makeBusinessContract = (_req: Request, res: Response, next: NextFunction) => {
+  const domainUrl: string = "http://localhost:3000/"
+  const businessContractsApiPath: string = "api/businesscontracts/"
   try {
-    //First check that Agency doesn't allready have BusinessContract
-    BusinessContract.find({ // Check if worker has allready businessContract with agency.
+    //First check that Agency doesn't already have BusinessContract
+    BusinessContract.find({ // Check if worker has already businessContract with agency.
       agency: res.locals.decoded.id
-    },undefined,{lean:true},(err:CallbackError, docs:DocumentDefinition<IBusinessContractDocument>[] | null) => {
+    },
+    undefined,
+    { lean: true },
+    (err: CallbackError, docs: DocumentDefinition<IBusinessContractDocument>[] | null) => {
       if (err) {
         return res.status(400).send({ message: "Something caused an error in find query."})
       } else {
@@ -744,7 +773,7 @@ export const makeBusinessContract = (_req:Request, res:Response, next:NextFuncti
           return res.status(500).send({ message: "Docs was null" })
         }
         if (docs.length >= 1) {
-          return res.status(302).send({ doc: docs,message:"Agency already has BusinessContract."})
+          return res.status(302).send({ doc: docs, message:"Agency already has BusinessContract."})
         }
         else {
           //Next initialize BusinessContract fields.
@@ -766,13 +795,16 @@ export const makeBusinessContract = (_req:Request, res:Response, next:NextFuncti
           } else {
             info("BusinessContract created with ID " + businessContract._id)
             //Link BusinessContract to Agency
-            return Agency.findOneAndUpdate({ _id: res.locals.decoded.id }, { $addToSet: { businessContracts: businessContract._id }},{lean:true},
-              (err:CallbackError,doc:DocumentDefinition<IAgencyDocument> | null) => {
+            return Agency.findOneAndUpdate(
+              { _id: res.locals.decoded.id },
+              { $addToSet: { businessContracts: businessContract._id }},
+              { lean: true },
+              (err: CallbackError, doc: DocumentDefinition<IAgencyDocument> | null) => {
                 if (err || !doc) {
                 //Delete contract if failed
                   return res.status(400).send({ message: "Something went wrong, BusinessContract couldn't be linked to Agency."})
                 } else {
-                  return res.status(201).header({ Location: domainUrl + businessContractsApiPath + contract._id,}).json({ contract })
+                  return res.status(201).header({ Location: domainUrl + businessContractsApiPath + contract._id.toString(),}).json({ contract })
                 }
               })
           }})
@@ -790,26 +822,26 @@ export const makeBusinessContract = (_req:Request, res:Response, next:NextFuncti
  * @param {NextFunction} next - NextFunction.
  * @returns {NextFunction} next()
  */
-export const addContractToBusinessContract = (req:Request<ParamsDictionary,unknown,IBaseBody>, res:Response, next:NextFunction) => {
-  const { body,params } = req
-  const id:Types.ObjectId = Types.ObjectId(params.businessContractId)
+export const addContractToBusinessContract = (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
+  const { body, params } = req
+  const id: Types.ObjectId = Types.ObjectId(params.businessContractId)
   body.businessContractUpdateFilterQuery =  { _id: id }
   try {
     //Check if worker is trying to make BusinessContract
-    if (body.worker === undefined || null) {
+    if (!body.worker) {
       //If worker is null check business
-      if (body.business === undefined || null) {
+      if (!body.business) {
         //If business is null check agency
-        if (body.agency === undefined || null || body.userId === undefined || null) {
-          return res.status(400).send({message:"Could not identify who tried to create the contract or userId was undefined."})
+        if (!body.agency || !body.userId) {
+          return res.status(400).send({ message: "Could not identify who tried to create the contract or userId was undefined." })
         } else {
           //If agency is trying to make BusinessContract
-          //Then we check wich user agency wants to add
-          return businessExistsCallback(body.userId, (result:IBusinessDocument | null) => {
-            if (result == null) {
-              return workerExistsCallback(body.userId, (result:IWorkerDocument | null) => {
-                if (result == null) {
-                  return res.status(404).send({ message:"Couldn't find user with userId:"+body.userId })
+          //Then we check which user agency wants to add
+          return businessExistsCallback(body.userId, (result: IBusinessDocument | null) => {
+            if (!result) {
+              return workerExistsCallback(body.userId, (result: IWorkerDocument | null) => {
+                if (!result) {
+                  return res.status(404).send({ message: "Couldn't find user with userId:" + body.userId })
                 } else {
                   body.businessContractUpdate = {
                     $addToSet: {
@@ -820,9 +852,9 @@ export const addContractToBusinessContract = (req:Request<ParamsDictionary,unkno
                     { _id: body.userId },
                     { $addToSet: { businessContracts: id } },
                     { lean: true },
-                    (err:CallbackError, result:DocumentDefinition<IWorkerDocument> | null) => {
+                    (err: CallbackError, result: DocumentDefinition<IWorkerDocument> | null) => {
                       if (err || !result) {
-                        return res.status(400).send(err || {  message:"Something went wrong with adding trace to Worker" })
+                        return res.status(400).send(err || {  message: "Something went wrong with adding trace to Worker" })
                       } else {
                         return next()
                       }
@@ -840,12 +872,12 @@ export const addContractToBusinessContract = (req:Request<ParamsDictionary,unkno
                 { _id: body.userId },
                 { $addToSet: { businessContracts: id } },
                 { lean: true },
-                (err:CallbackError, result:DocumentDefinition<IBusinessDocument> | null) => {
+                (err: CallbackError, result: DocumentDefinition<IBusinessDocument> | null) => {
                   if (err || !result) {
-                    return res.status(400).send(err || {  message:"Something went wrong with adding trace to Business" })
+                    return res.status(400).send(err || {  message: "Something went wrong with adding trace to Business" })
                   } else {
                     return next()
-                  } 
+                  }
                 })
             }
           })
@@ -862,7 +894,7 @@ export const addContractToBusinessContract = (req:Request<ParamsDictionary,unkno
         { _id: res.locals.decoded.id },
         { $addToSet: { businessContracts: id } },
         { lean: true },
-        (err:CallbackError, result:DocumentDefinition<IBusinessDocument> | null) => {
+        (err: CallbackError, result: DocumentDefinition<IBusinessDocument> | null) => {
           if (err || !result) {
             return res.status(400).send(err || {  message:"Something went wrong with adding trace to Business" })
           } else {
@@ -882,7 +914,7 @@ export const addContractToBusinessContract = (req:Request<ParamsDictionary,unkno
       { _id: res.locals.decoded.id },
       { $addToSet: { businessContracts: id } },
       { lean: true },
-      (err:CallbackError, result:DocumentDefinition<IWorkerDocument> | null) => {
+      (err: CallbackError, result: DocumentDefinition<IWorkerDocument> | null) => {
         if (err || !result) {
           return res.status(400).send(err || {  message:"Something went wrong with adding trace to Worker" })
         } else {
@@ -903,12 +935,12 @@ export const addContractToBusinessContract = (req:Request<ParamsDictionary,unkno
  * @param {NextFunction} next - NextFunction.
  * @returns {NextFunction} next()
  */
-export const acceptBusinessContract  = async (req:Request<ParamsDictionary,unknown,IBaseBody>, res:Response, next:NextFunction) => {
-  const { body,params } = req
-  const businessContractId:Types.ObjectId = Types.ObjectId(params.businessContractId)
-  const userId:Types.ObjectId = Types.ObjectId(params.userId)
+export const acceptBusinessContract  = async (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
+  const { body, params } = req
+  const businessContractId: Types.ObjectId = Types.ObjectId(params.businessContractId)
+  const userId: Types.ObjectId = Types.ObjectId(params.userId)
   try {
-    const index = await Business.find({_id: userId})
+    const index: IBusinessDocument[] = await Business.find({_id: userId})
     if (index.length == 1) {
       body.businessContractUpdate = {
         $pull: {
@@ -920,7 +952,7 @@ export const acceptBusinessContract  = async (req:Request<ParamsDictionary,unkno
       }
       body.businessContractUpdateFilterQuery =  { _id: businessContractId }
     } else {
-      const index = await Worker.find({_id:userId})
+      const index: IWorkerDocument[] = await Worker.find({_id:userId})
       if (index.length == 1) {
         body.businessContractUpdate = {
           $pull: {
@@ -932,7 +964,7 @@ export const acceptBusinessContract  = async (req:Request<ParamsDictionary,unkno
         }
         body.businessContractUpdateFilterQuery =  { _id: businessContractId }
       } else {
-        return res.status(404).send({ message: "Couldn't find user who matches"+userId })
+        return res.status(404).send({ message: "Couldn't find user who matches" + userId })
       }
     }
     return next()
@@ -948,12 +980,12 @@ export const acceptBusinessContract  = async (req:Request<ParamsDictionary,unkno
  * @param {NextFunction} next - NextFunction.
  * @returns {NextFunction} next()
  */
-export const declineBusinessContract = async (req:Request<ParamsDictionary,unknown,IBaseBody>, res:Response, next:NextFunction) => {
-  const { body,params } = req
-  const businessContractId:Types.ObjectId = Types.ObjectId(params.businessContractId)
-  const userId:Types.ObjectId = Types.ObjectId(params.userId)
+export const declineBusinessContract = async (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
+  const { body, params } = req
+  const businessContractId: Types.ObjectId = Types.ObjectId(params.businessContractId)
+  const userId: Types.ObjectId = Types.ObjectId(params.userId)
   try {
-    const index = await Business.find({_id: userId})
+    const index: IBusinessDocument[] = await Business.find({ _id: userId })
     if (index.length == 1) {
       body.businessContractUpdate = {
         $pull: {
@@ -962,7 +994,7 @@ export const declineBusinessContract = async (req:Request<ParamsDictionary,unkno
       }
       body.businessContractUpdateFilterQuery =  { _id: businessContractId }
     } else {
-      const index = await Worker.find({_id:userId})
+      const index: IWorkerDocument[] = await Worker.find({ _id: userId })
       if (index.length == 1) {
         body.businessContractUpdate = {
           $pull: {
@@ -971,7 +1003,7 @@ export const declineBusinessContract = async (req:Request<ParamsDictionary,unkno
         }
         body.businessContractUpdateFilterQuery =  { _id: businessContractId }
       } else {
-        return res.status(404).send({ message: "Couldn't find user who matches"+userId })
+        return res.status(404).send({ message: "Couldn't find user who matches" + userId })
       }
     }
     return next()
@@ -987,16 +1019,18 @@ export const declineBusinessContract = async (req:Request<ParamsDictionary,unkno
  * @param {NextFunction} next - NextFunction.
  * @returns {JSON} Status 200: doc -
  */
-export const businessContractUpdate = (req:Request<ParamsDictionary,unknown,IBaseBody>, res:Response, next:NextFunction) => {
+export const businessContractUpdate = (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { body, params } = req
   try {
     const updateFields = body.businessContractUpdate
-    return BusinessContract.updateOne( body.businessContractUpdateFilterQuery , updateFields, { new: true, omitUndefined: true, runValidators: false },
-      (error:CallbackError, doc:any) => {
+    return BusinessContract.updateOne( body.businessContractUpdateFilterQuery,
+      updateFields,
+      { omitUndefined: true },
+      (error: CallbackError, doc: any) => {
       if (!doc || error) {
         return res.status(400).send(error || { success: false, error: "Could not update BusinessContract with id " + params.contractId })
       } else {
-        return res.status(200).send(doc)
+        return res.status(200).send(doc) // TODO updateOne doesn't return doc.
       }
     })
   } catch (exception) {

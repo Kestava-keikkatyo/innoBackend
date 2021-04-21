@@ -9,7 +9,7 @@
  * @const
  * @namespace workcontractsRouter
 */
-import express from "express"
+import express, {NextFunction, Request, Response} from "express"
 import { body as _body } from "express-validator"
 import Agency from "../models/Agency"
 import Business from "../models/Business"
@@ -31,8 +31,16 @@ import {
   needsToBeBusiness,
   addTraceToWorker} from "../utils/middleware"
 import { buildPaginatedObjectFromArray, deleteTracesOfFailedWorkContract } from "../utils/common"
-import { IWorkContractDocument } from "../objecttypes/modelTypes"
+import {
+  IAgencyDocument,
+  IBusinessContractDocument,
+  IBusinessDocument,
+  IWorkContractDocument
+} from "../objecttypes/modelTypes"
 import BusinessContract from "../models/BusinessContract"
+import {IBaseBody, IBodyWithIds, IRemovedTraces} from "../objecttypes/otherTypes"
+import {CallbackError, DocumentDefinition, Types} from "mongoose"
+import {ParamsDictionary} from "express-serve-static-core"
 const workcontractsRouter = express.Router()
 
 const domainUrl = "http://localhost:8000/"
@@ -57,7 +65,7 @@ const workContractsApiPath = "workcontracts/"
  * @throws {JSON} Status 400 - res.body: { message: "User who is trying to use this route is not in workcontract" }
  * @returns {JSON} Status 200 - res.body: { The found WorkContract object }
 */
-workcontractsRouter.get("/:contractId", authenticateToken, needsToBeAgencyBusinessOrWorker, workContractExists, workContractIncludesUser, (req, res, next) => {
+workcontractsRouter.get("/:contractId", authenticateToken, needsToBeAgencyBusinessOrWorker, workContractExists, workContractIncludesUser, (req: Request<unknown, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { body } = req
   try {
     if (body.userInWorkContract === true) {
@@ -87,38 +95,41 @@ workcontractsRouter.get("/:contractId", authenticateToken, needsToBeAgencyBusine
  * @throws {JSON} Status 404 - res.body: { message: "Couldn't find any workcontracts" }
  * @returns {JSON} Status 200 - res.body: { All users WorkContract objects }
  */
-workcontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWorker, async (req, res, next) => {
+workcontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWorker, async (req: Request<unknown, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { query, body } = req
   try {
     //Initialise page,limit,myId,model
     let page: number = parseInt(query.page as string, 10)
     let limit: number = parseInt(query.limit as string, 10)
     let array: {}
-    let projection:String = ''
+    let projection: string = ''
     //Check that page and limit exist and are not bellow 1
     if (page < 1 || !page) {
-      page == 1
+      page = 1
     }
     if (limit < 1 || !limit) {
-      limit == 1
+      limit = 1
     }
     //Which id is in question
-    if (body.agency !== undefined) {
+    if (body.agency) {
       array = {_id: {$in: body.agency.workContracts}}
     }
-    else if (body.business !== undefined) {
+    else if (body.business) {
       array = {_id: {$in: body.business.workContracts}}
     }
-    else if (body.worker !== undefined) {
+    else if (body.worker) {
       array =  {'contracts._id': {$in: body.worker.workContracts}}
       projection = 'contracts.$'
     }
     else {
       return res.status(400).send({ message:"Token didn't have any users." })
     }
-    return await WorkContract.find(array,projection,null,(err,result) => {
+    return await WorkContract.find(array,
+      projection,
+      { lean: true },
+      (err: CallbackError, result: Array<DocumentDefinition<IWorkContractDocument>>) => {
       if (err || !result) {
-        return res.status(404).send({ error:err.message, message:"Couldn't find any workcontracts" })
+        return res.status(404).send( err || { message:"Couldn't find any workcontracts" })
       } else {
         return res.status(200).send(buildPaginatedObjectFromArray(page,limit,result))
       }
@@ -163,16 +174,21 @@ workcontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWorker,
  * message: "Could not make WorkContract. No WorkContract created and references were not deleted. WorkContract allready exist"}
  * @returns {JSON} Status 201 - res.body: { created: domainUrl + workContractsApiPath + contract._id }
  */
-workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessExists, async (req, res, next) => {
+workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessExists, async (req: Request<unknown, unknown, IBodyWithIds>, res: Response, next: NextFunction) => {
   const { body } = req
   try {
-    const commonContractIndex = await BusinessContract.find(
-      { agency: res.locals.decoded.id, 'madeContracts.businesses': body.businessId })
+    if (!body.businessId) {
+      return res.status(400).send({ message: "No business id was provided in request body" })
+    }
+    const commonContractIndex: DocumentDefinition<IBusinessContractDocument>[] = await BusinessContract.find(
+      { agency: res.locals.decoded.id, 'madeContracts.businesses': body.businessId },
+      undefined,
+      { lean: true })
     //checkAgencyBusinessContracts function checks commonContractIndex
     if (commonContractIndex.length !== 1) {
       return res.status(400).json({ message: "The logged in Agency has no BusinessContracts with Business or Agency" }).end()
     }
-    //Initialize workontracts fields
+    //Initialize workContracts fields
     let createFields = {
       business: body.businessId,
       agency: res.locals.decoded.id,
@@ -184,27 +200,27 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
       { _id: body.businessId },
       { $addToSet: { workContracts: contractToCreate._id } },
       { lean: true },
-      async (error: Error, result: any) => {
+      async (error: CallbackError, result: DocumentDefinition<IBusinessDocument> | null) => {
         if (error || !result) {
-          return res
+          return res // TODO this only returns from the callback, not from the whole function.
             .status(400)
             .send({ error, message: "Could not add WorkContract to Business  with ID" + body.businessId + ". No WorkContract created." })
         }
         return result
     })
-    let noErrorInDelete: boolean | undefined;
+    let noErrorInDelete: boolean | undefined
     await Agency.findOneAndUpdate(
       { _id: res.locals.decoded.id },
       { $addToSet: { workContracts: contractToCreate._id } },
       { lean: true },
-      async (error: Error, result: any) => {
+      async (error: CallbackError, result: DocumentDefinition<IAgencyDocument> | null) => {
       if (error || !result) {
-        await deleteTracesOfFailedWorkContract(null, body.businessId, res.locals.decoded.id, contractToCreate._id.toString(),
-          (result: any) => {
-            noErrorInDelete = result.success // TODO Where does the .success come from?
+        await deleteTracesOfFailedWorkContract(null, body.businessId as string, res.locals.decoded.id, contractToCreate._id.toString(),
+          (result: IRemovedTraces) => {
+            noErrorInDelete = result // TODO Where does the .success come from?
           })
         if (noErrorInDelete) {
-          return res
+          return res // TODO As with above, this only returns from the callback, not from the whole function.
             .status(400)
             .send({ error,
               message: "Could not add WorkContract to Agency  with ID" + res.locals.decoded.id + ". No WorkContract created but references were deleted." })
@@ -217,21 +233,22 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
       }
       return result
     })
-    //Next check that workContract doesn't allready exist
-    let contract = undefined
-    const commonWorkContractArray = await WorkContract.find({
-      business:  body.businessId,
-      agency:  res.locals.decoded.id
-    })
+    //Next check that workContract doesn't already exist
+    let contract: IWorkContractDocument | null
+    const commonWorkContractArray: DocumentDefinition<IWorkContractDocument>[] = await WorkContract.find(
+      { business:  body.businessId, agency:  res.locals.decoded.id },
+      undefined,
+      { lean: true }
+    )
     if (commonWorkContractArray[0]) {
       contract = null
     } else {
       contract = await contractToCreate.save()
     }
-    //If contract allready exist deleteTraces, if not return res url.
+    //If contract already exist deleteTraces, if not return res url.
     if (!contract) {
       await deleteTracesOfFailedWorkContract(null, body.businessId, res.locals.decoded.id, contractToCreate._id.toString(),
-        (result: any) => {
+        (result: IRemovedTraces) => {
           if (result.businessTraceRemoved && result.agencyTraceRemoved) {
             return res
               .status(400)
@@ -343,28 +360,32 @@ authenticateToken,
 needsToBeAgency,
 workContractExists,
 workContractIncludesUser,
-async (req, res, next) => {
+async (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { body, params } = req
 
   if (body.userInWorkContract !== true)
     return res.status(401).send( { message: "This route is only available to Agency who is in this contract." })
-
+  if (!body.workContract) {
+    return res.status(500).send({ error: "Work contract was undefined for some reason"})
+  }
   try {
     await deleteTracesOfFailedWorkContract(
       null,
-      body.workContract.business,
-      body.workContract.agency,
+      (body.workContract.business as Types.ObjectId).toString(),
+      (body.workContract.agency as Types.ObjectId).toString(),
       params.contractId,
-      async (result: any) => {
+      async (result: IRemovedTraces) => {
         if (result.businessTraceRemoved === true && result.agencyTraceRemoved === true) {
           return WorkContract.findByIdAndDelete(
+            // @ts-ignore Complains that body.workContract can be undefined, even though it can't because it's checked higher up
             body.workContract._id,
             undefined,
-            (error: Error, result: any) => {
+            (error: CallbackError, result: IWorkContractDocument | null) => {
               if (error || !result) {
                 return res.status(400).json({
                   message:
                     "Deleted references to WorkContract with ID " +
+                    // @ts-ignore
                     body.workContract._id +
                     " but could not remove the contract itself. Possible error: " +
                     error,
@@ -373,7 +394,7 @@ async (req, res, next) => {
                 return res.status(204).send()
               }
             }
-          );
+          )
         } else {
           return res.status(406).json({
             message:

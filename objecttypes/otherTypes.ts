@@ -1,4 +1,12 @@
-import {IAgencyDocument, IBusinessDocument, IBusinessContractDocument, IFeelings, IForm, IWorkContractDocument, IWorkerDocument} from "./modelTypes";
+import {
+  IAgencyDocument,
+  IBusinessDocument,
+  IBusinessContractDocument,
+  IFeelings,
+  IForm,
+  IWorkContractDocument,
+  IWorkerDocument
+} from "./modelTypes";
 
 export interface IBaseBody {
   userId: string,
@@ -35,4 +43,10 @@ export interface IRemovedTraces {
 export interface IContractTracesRemoved {
   success: boolean,
   error?: string
+}
+
+export interface IBodyWithIds extends IBaseBody {
+  businessId?: string,
+  agencyId?: string,
+  workerId?: string
 }

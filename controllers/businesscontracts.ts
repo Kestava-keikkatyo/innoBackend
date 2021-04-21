@@ -9,7 +9,7 @@
  * @const
  * @namespace businesscontractsRouter
 */
-import express from "express"
+import express, {NextFunction, Request, Response} from "express"
 import authenticateToken from "../utils/auhenticateToken"
 import BusinessContract from "../models/BusinessContract"
 import { businessContractExists,
@@ -23,7 +23,9 @@ import { businessContractExists,
   declineBusinessContract} from "../utils/middleware"
 import { error as _error} from "../utils/logger"
 import { buildPaginatedObjectFromArray } from "../utils/common"
-import { CallbackError } from "mongoose"
+import {CallbackError, DocumentDefinition} from "mongoose"
+import {IBaseBody} from "../objecttypes/otherTypes";
+import {IBusinessContractDocument} from "../objecttypes/modelTypes";
 
 const businesscontractsRouter = express.Router()
 
@@ -45,8 +47,8 @@ const businesscontractsRouter = express.Router()
  * @throws {JSON} Status 400 - response.body: { message: "User who is trying to use this route is not in workcontract" }
  * @returns {JSON} Status 200 - response.body: { businessContract: TheWholeBusinessContractObject }
  */
-businesscontractsRouter.get("/:businessContractId",authenticateToken,businessContractExists,businessContractIncludesUser,
-  async (req, res, next) => {
+businesscontractsRouter.get("/:businessContractId", authenticateToken, businessContractExists, businessContractIncludesUser,
+  async (req: Request<unknown, unknown, IBaseBody>, res: Response, next: NextFunction) => {
     const { body } = req
     try {
       if (body.userInBusinessContract) {
@@ -55,7 +57,7 @@ businesscontractsRouter.get("/:businessContractId",authenticateToken,businessCon
         return res.status(400).send({ message:"User who is trying to use this route is not in workcontract" })
       }
     } catch (exception) {
-      console.log(exception.message)
+      _error(exception.message)
       return next(exception)
     }
   }
@@ -75,15 +77,15 @@ businesscontractsRouter.get("/:businessContractId",authenticateToken,businessCon
  * @throws {JSON} Status 400 - response.body: { message:"Token didn't have any users." }
  * @returns {JSON} Status 200 - response.body: { All users BusinessContract objects }
  */
-businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWorker, async (req, res, next) => {
+businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWorker, async (req: Request<unknown, unknown, IBaseBody>, res: Response, next: NextFunction) => {
     const { query, body } = req
     try {
-      //Initialise page,limit,myId,model
+      //Initialise page, limit, myId, model
       let page: number = parseInt(query.page as string, 10)
       let limit: number = parseInt(query.limit as string, 10)
       let array: {}
-      let projection: String = ''
-      //Check that page and limit exist and are not bellow 1
+      let projection: string = ''
+      //Check that page and limit exist and are not below 1
       if (page < 1 || !page) {
         page = 1
       }
@@ -91,25 +93,28 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
         limit = 5
       }
       //Which id is in question
-      if (body.agency !== undefined) {
+      if (body.agency) {
         array = {_id: {$in: body.agency.businessContracts}}
       }
-      else if (body.business !== undefined) {
+      else if (body.business) {
         array = {_id: {$in: body.business.businessContracts}}
         projection = 'agency'
       }
-      else if (body.worker !== undefined) {
+      else if (body.worker) {
         array =  {_id: {$in: body.worker.businessContracts}}
         projection = 'agency'
       }
       else {
         return res.status(400).send({ message:"Token didn't have any users." })
       }
-      return await BusinessContract.find(array,projection,null,(err:CallbackError,result) => {
+      return await BusinessContract.find(array,
+        projection,
+        { lean: true },
+        (err: CallbackError, result: DocumentDefinition<IBusinessContractDocument>[]) => {
         if (err || !result) {
           return res.status(404).send(err || { message:"Couldn't find any BusinessContracts" })
         } else {
-          return res.status(200).send(buildPaginatedObjectFromArray(page,limit,result))
+          return res.status(200).send(buildPaginatedObjectFromArray(page, limit, result))
         }
       })
     } catch (exception) {
@@ -127,9 +132,9 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
  * @inner
  * @param {String} path - Express path.
  * @param {callback} authenticateToken - Decodes token.
- * @param {callback} needsToBeAgency - Checks that user is agency. 
+ * @param {callback} needsToBeAgency - Checks that user is agency.
  * <pre>Full description: {@link needsToBeAgency}</pre>
- * @param {callback} makeBusinessContract - Makes BusinessContract object for agency. 
+ * @param {callback} makeBusinessContract - Makes BusinessContract object for agency.
  * <pre>Full description: {@link makeBusinessContract}</pre>
  */
  businesscontractsRouter.post("/",authenticateToken,needsToBeAgency,makeBusinessContract)
@@ -137,7 +142,7 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
   * Route to add worker or business to BusinessContract.
   * All users can use this route. If Business or Worker uses this route
   * usersId is added to BusinessContracts requestContract object.
-  * If Agency uses this route agency must provide userId in body. 
+  * If Agency uses this route agency must provide userId in body.
   * And UserId is added to madeContracts object.
   * @name PUT /businesscontracts/:businessContractId/add
   * @function
