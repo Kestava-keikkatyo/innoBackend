@@ -92,8 +92,8 @@ export interface IWorker {
 export interface IWorkerDocument extends Document, Omit<IWorker, "businessContracts" | "workContracts"> {
   _id: Types.ObjectId,
   createdAt: Date,
-  businessContracts: Array<IBusinessContractDocument['_id']> | Array<IBusinessContractDocument>,
-  workContracts: Array<IWorkContractDocument['_id']> | Array<IWorkContractDocument>,
+  businessContracts: Array<IBusinessContractDocument['_id']>,
+  workContracts: Array<IWorkContractDocument['_id']>,
 }
 
 export interface IAgency {

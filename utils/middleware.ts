@@ -606,20 +606,32 @@ export const needsToBeAgencyBusinessOrWorker = (req: Request<unknown, unknown, I
  * @throws {JSON} Status 404 - res.body: { message:"No BusinessContract made with agency and worker." }
  * @returns {NextFunction} next()
  */
-export const addWorkerToWorkContract = (req: Request, res: Response, next: NextFunction) => {
+export const addWorkerToWorkContract = (req: Request<ParamsDictionary,unknown,IBaseBody>, res: Response, next: NextFunction) => {
   const { body,params } = req
+  let id: Types.ObjectId
   try {
+    id = Types.ObjectId(params.contractsId)
+  } catch (exception) {
+    return res.status(403).send({ message: "ContractsId must be string."})
+  }
+  try {
+    //First we check that Worker has made BusinessContract with Agency.
     return BusinessContract.find({
-      agency: body.workContract.agency,
-      'madeContracts.workers': body.worker._id
+      agency: body.workContract?.agency,
+      'madeContracts.workers': body.worker?._id
     },undefined,{lean:true}, (err: CallbackError, doc: DocumentDefinition<IBusinessContractDocument>[] | null) => {
       if (err || !doc) {
         return res.status(400).send(err || { message:"Something went wrong with find query." })
       } else {
         if (doc.length === 1) {
-          body.workContractUpdate = { $addToSet: { 'contracts.$.requestWorkers': res.locals.decoded.id }}
-          body.updateFilterQuery = { 'contracts._id': params.contractsId }
-          return next()
+          //Then we check that is user already add accepted to the contract.
+          if (body.worker?.workContracts.includes(id)) {
+            return res.status(403).send({ message:" Worker has already added to the contract."})
+          } else {
+            body.workContractUpdate = { $addToSet: { 'contracts.$.requestWorkers': res.locals.decoded.id }}
+            body.updateFilterQuery = { 'contracts._id': id }
+            return next()
+          }
         } else {
           return res.status(404).send({ message:"No BusinessContract made with agency and worker." })
         }
@@ -637,9 +649,14 @@ export const addWorkerToWorkContract = (req: Request, res: Response, next: NextF
  * @throws {JSON} Status 400 - res.body: { message:"Something went wrong with update" }
  */
 export const addTraceToWorker = (req:Request, res:Response, next:NextFunction) => {
+  const { params } = req
+  let ids: Types.ObjectId
   try {
-    const { params } = req
-    const ids: Types.ObjectId = Types.ObjectId(params.contractsId)
+    ids = Types.ObjectId(params.contractsId)
+  } catch (exception) {
+    return res.status(403).send({ message: "Note contractsId must be string."})
+  }
+  try {
     return Worker.findOneAndUpdate(
       { _id: res.locals.decoded.id },
       { $addToSet: { workContracts: ids } },
@@ -669,6 +686,12 @@ export const addTraceToWorker = (req:Request, res:Response, next:NextFunction) =
  */
 export const newContractToWorkContract = (req: Request<ParamsDictionary,unknown,IBaseBody>, res: Response, next: NextFunction) => {
   const { body, params } = req
+  let id: Types.ObjectId
+  try {
+    id = Types.ObjectId(params.contractId)
+  } catch (exception) {
+    return res.status(403).send({ message: "Note: contractId must be string."})
+  }
   try {
     body.workContractUpdate = {
       $addToSet: { contracts: {
@@ -683,7 +706,7 @@ export const newContractToWorkContract = (req: Request<ParamsDictionary,unknown,
         }
       }
     }
-    body.updateFilterQuery = { _id: params.contractId }
+    body.updateFilterQuery = { _id: id }
     return next()
   } catch (exception) {
     return res.status(500).send({ exception })
@@ -699,6 +722,12 @@ export const newContractToWorkContract = (req: Request<ParamsDictionary,unknown,
  */
 export const acceptWorkContract = (req: Request<ParamsDictionary,unknown,IBaseBody>, res: Response, next: NextFunction) => {
   const { body,params } = req
+  let id: Types.ObjectId
+  try {
+    id = Types.ObjectId(params.contractsId)
+  } catch (exception) {
+    return res.status(403).send({ message: "Note: contractsId must be string."})
+  }
   try {
     if (body.business === undefined || null && body.agency !== undefined || null) {
       body.workContractUpdate = {
@@ -711,7 +740,7 @@ export const acceptWorkContract = (req: Request<ParamsDictionary,unknown,IBaseBo
     } else {
       res.status(401).send({ message: "User is not Business or Agency."})
     }
-    body.updateFilterQuery = { 'contracts._id': params.contractsId }
+    body.updateFilterQuery = { 'contracts._id': id }
     return next()
   } catch (exception) {
     return res.status(500).send({ exception })
@@ -728,6 +757,12 @@ export const acceptWorkContract = (req: Request<ParamsDictionary,unknown,IBaseBo
  */
 export const acceptWorkers = (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { body,params } = req
+  let id: Types.ObjectId
+  try {
+    id = Types.ObjectId(params.contractsId)
+  } catch (exception) {
+    return res.status(403).send({ message: "Note: contractsId must be string."})
+  }
   try { 
     body.workContractUpdate = {
       $pull: {
@@ -740,7 +775,7 @@ export const acceptWorkers = (req: Request<ParamsDictionary, unknown, IBaseBody>
         'contracts.$.acceptedBusiness': false
       }
     }
-    body.updateFilterQuery = { 'contracts._id': params.contractsId }
+    body.updateFilterQuery = { 'contracts._id': id }
     return next()
   } catch (exception) {
     return res.status(500).send({ exception })
@@ -757,6 +792,12 @@ export const acceptWorkers = (req: Request<ParamsDictionary, unknown, IBaseBody>
  */
 export const revertWorkers = (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { body,params } = req
+  let id: Types.ObjectId
+  try {
+    id = Types.ObjectId(params.contractsId)
+  } catch (exception) {
+    return res.status(403).send({ message: "Note: contractsId must be string."})
+  }
   try { 
     body.workContractUpdate = {
       $pull: {
@@ -769,7 +810,7 @@ export const revertWorkers = (req: Request<ParamsDictionary, unknown, IBaseBody>
         'contracts.$.acceptedBusiness': false
       }
     }
-    body.updateFilterQuery = { 'contracts._id': params.contractsId }
+    body.updateFilterQuery = { 'contracts._id': id }
     return next()
   } catch (exception) {
     return res.status(500).send({ exception })
@@ -786,6 +827,12 @@ export const revertWorkers = (req: Request<ParamsDictionary, unknown, IBaseBody>
  */
 export const declineWorkers = (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { body,params } = req
+  let id: Types.ObjectId
+  try {
+    id = Types.ObjectId(params.contractsId)
+  } catch (exception) {
+    return res.status(403).send({ message: "Note: contractsId must be string."})
+  }
   try { 
     body.workContractUpdate = {
       $pull: {
@@ -797,7 +844,7 @@ export const declineWorkers = (req: Request<ParamsDictionary, unknown, IBaseBody
         'contracts.$.acceptedAgency': false
       }
     }
-    body.updateFilterQuery = { 'contracts._id': params.contractsId }
+    body.updateFilterQuery = { 'contracts._id': id }
     return next()
   } catch (exception) {
     return res.status(500).send({ exception })
@@ -873,8 +920,13 @@ export const makeBusinessContract = (_req:Request, res:Response) => {
  */
 export const addContractToBusinessContract = (req:Request<ParamsDictionary,unknown,IBaseBody>, res:Response, next:NextFunction) => {
   const { body,params } = req
-  const id:Types.ObjectId = Types.ObjectId(params.businessContractId)
-  body.businessContractUpdateFilterQuery =  { _id: id }
+  let id:Types.ObjectId
+  try {
+    id = Types.ObjectId(params.businessContractId)
+    body.businessContractUpdateFilterQuery =  { _id: id }
+  } catch (exception) {
+    return res.status(403).send({ message: "Note: businessContractId must be string."})
+  }
   try {
     //Check if worker is trying to make BusinessContract
     if (body.worker === undefined || null) {
@@ -994,8 +1046,14 @@ export const addContractToBusinessContract = (req:Request<ParamsDictionary,unkno
  */
 export const acceptBusinessContract  = async (req:Request<ParamsDictionary,unknown,IBaseBody>, res:Response, next:NextFunction) => {
   const { body,params } = req
-  const businessContractId:Types.ObjectId = Types.ObjectId(params.businessContractId)
-  const userId:Types.ObjectId = Types.ObjectId(params.userId)
+  let businessContractId:Types.ObjectId
+  let userId:Types.ObjectId
+  try {
+    businessContractId = Types.ObjectId(params.businessContractId)
+    userId = Types.ObjectId(params.userId)
+  } catch (exception) {
+    return res.status(403).send({ message: "Note: businessContractId and userId must be string."})
+  }
   try {
     const index = await Business.find({_id: userId})
     if (index.length == 1) {
@@ -1039,8 +1097,14 @@ export const acceptBusinessContract  = async (req:Request<ParamsDictionary,unkno
  */
 export const declineBusinessContract = async (req:Request<ParamsDictionary,unknown,IBaseBody>, res:Response, next:NextFunction) => {
   const { body,params } = req
-  const businessContractId:Types.ObjectId = Types.ObjectId(params.businessContractId)
-  const userId:Types.ObjectId = Types.ObjectId(params.userId)
+  let businessContractId:Types.ObjectId
+  let userId:Types.ObjectId
+  try {
+    businessContractId = Types.ObjectId(params.businessContractId)
+    userId = Types.ObjectId(params.userId)
+  } catch (exception) {
+    return res.status(403).send({ message: "Note: businessContractId and userId must be string."})
+  }
   try {
     const index = await Business.find({_id: userId})
     if (index.length == 1) {
@@ -1077,12 +1141,18 @@ export const declineBusinessContract = async (req:Request<ParamsDictionary,unkno
  */
 export const businessContractUpdate = (req:Request<ParamsDictionary,unknown,IBaseBody>, res:Response) => {
   const { body, params } = req
+  let id: Types.ObjectId
+  try {
+    id = Types.ObjectId(params.contractId)
+  } catch (exception) {
+    return res.status(403).send({ message: "Note: contractId must be string."})
+  }
   try {
     const updateFields = body.businessContractUpdate
     return BusinessContract.updateOne( body.businessContractUpdateFilterQuery , updateFields, { new: true, omitUndefined: true, runValidators: false },
       (error:CallbackError, doc:any) => {
       if (!doc || error) {
-        return res.status(400).send(error || { success: false, error: "Could not update BusinessContract with id " + params.contractId })
+        return res.status(400).send(error || { success: false, error: "Could not update BusinessContract with id " + id })
       } else {
         return res.status(200).send(doc)
       }
