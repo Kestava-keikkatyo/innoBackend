@@ -161,12 +161,12 @@ export interface IBusinessContractDocument extends Document, Omit<IBusinessContr
   createdAt: Date,
   agency: IAgencyDocument['_id'] | IAgencyDocument,
   madeContracts: {
-    businesses: Array<IBusinessDocument['_id']> | IBusinessDocument,
-    workers: Array<IWorkerDocument['_id']> | IWorkerDocument
+    businesses: Array<IBusinessDocument['_id']>,
+    workers: Array<IWorkerDocument['_id']> 
   },
   requestContracts: {
-    businesses: Array<IBusinessDocument['_id']> | IBusinessDocument,
-    workers: Array<IWorkerDocument['_id']> | IWorkerDocument
+    businesses: Array<IBusinessDocument['_id']>,
+    workers: Array<IWorkerDocument['_id']> 
   }
 }
 
@@ -183,7 +183,8 @@ export interface IWorkContractDocument extends Document, Omit<IWorkContract, "bu
 }
 
 export interface ISubContract {
-  workers: Array<IWorkerDocument['_id']>,
+  acceptedWorkers: Array<IWorkerDocument['_id']>,
+  requestWorkers: Array<IWorkerDocument['_id']>,
   workerCount: number,
   acceptedAgency: boolean,
   acceptedBusiness: boolean,

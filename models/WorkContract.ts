@@ -3,9 +3,13 @@ import uniqueValidator from "mongoose-unique-validator"
 import {IWorkContractDocument} from "../objecttypes/modelTypes"
 
 const subContractSchema = new Schema({
-  workers: [{
+  acceptedWorkers: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: "workers"
+    ref: "acceptedWorkers"
+  }],
+  requestWorkers: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref:"requestWorkers"
   }],
   workerCount: {
     type: Number

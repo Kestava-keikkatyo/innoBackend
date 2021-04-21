@@ -9,6 +9,7 @@ export interface IBaseBody {
   userInBusinessContract?: boolean,
   workContract?: IWorkContractDocument,
   workContractUpdate?: {},
+  workersArray?: Array<IWorkerDocument['_id']>,
   updateFilterQuery?: {},
   businessContract?: IBusinessContractDocument,
   businessContractUpdate?: {},

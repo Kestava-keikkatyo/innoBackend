@@ -249,27 +249,21 @@ export const businessContractExists = (req: Request<ParamsDictionary,unknown,IBa
  * @throws {JSON} Status 500 - response.body: { exception }
  * @returns {NextFunction} next()
  */
-export const businessContractIncludesUser = (req: Request,res: Response,next: NextFunction) => {
+export const businessContractIncludesUser = (req: Request<unknown,unknown,IBaseBody>,res: Response,next: NextFunction) => {
+  const { body } = req
   try {
-    if (req.body.businessContract !== undefined) {
-      if (req.body.businessContract.agency._id.toString() === res.locals.decoded.id.toString()) { // TODO Agency hasn't been populated, so _id is undefined, so an exception will be caught.
-        req.body.userInBusinessContract = true
+    if (body.businessContract !== undefined) {
+      if (body.businessContract.agency.toString() === res.locals.decoded.id.toString()) { // TODO Agency hasn't been populated, so _id is undefined, so an exception will be caught.
+        body.userInBusinessContract = true
       } else {
-        switch (req.body.businessContract.worker) {
-        case undefined:
-          if (req.body.businessContract.business._id.toString() === res.locals.decoded.id.toString()) {
-            req.body.userInBusinessContract = true
-          }
-          break
-        default:
-          if (req.body.businessContract.worker._id.toString() === res.locals.decoded.id.toString()) {
-            req.body.userInBusinessContract = true
-          }
-          break
+        if (body.businessContract.madeContracts.businesses.includes(res.locals.decoded.id)) {
+          body.userInBusinessContract = true
+        } else if (body.businessContract.madeContracts.workers.includes(res.locals.decoded.id)) {
+          body.userInBusinessContract = true
         }
       }
     } else {
-      req.body.userInBusinessContract = false
+      body.userInBusinessContract = false
     }
     return next()
   } catch (exception) {
@@ -279,7 +273,7 @@ export const businessContractIncludesUser = (req: Request,res: Response,next: Ne
 }
 
 /**
- * Checks if a WorkContract with url param :contractId exists.
+ * Checks if a WorkContract with PATH VARIABLE (url param :contractId) exists.
  * Saves found WorkContract to request.body.workContract if workContract exists.
  * @param {String} req.params.contractId - ContractId from parameters (url).
  * @param {Request} req - Express Request.
@@ -290,14 +284,15 @@ export const businessContractIncludesUser = (req: Request,res: Response,next: Ne
  * @throws {JSON} Status 500 - response.body: { exception }
  * @returns {NextFunction} next()
 */
-export const workContractExists = (req: Request,res: Response, next: NextFunction) => {
+export const pathWorkContractExists = (req: Request,res: Response, next: NextFunction) => {
+  const { body,params } = req
   try {
-    if (req.params.contractId) {
-      return WorkContract.findById({ _id: req.params.contractId }, (err: CallbackError, result: IWorkContractDocument | null) => {
+    if (params.contractId) {
+      return WorkContract.findById({ _id: params.contractId }, (err: CallbackError, result: IWorkContractDocument | null) => {
         if (err || !result) {
           return res.status(404).send({ error: "No WorkContract found with the request :contractId." })
         } else {
-          req.body.workContract = result
+          body.workContract = result
           return next()
         }
       })
@@ -310,8 +305,9 @@ export const workContractExists = (req: Request,res: Response, next: NextFunctio
 }
 
 /**
- * Checks if user who is using route is in workcontract.
- * For this to work token must be authenticated with authenticateToken function and workContract must exist use workContractExists function.
+ * Checks if user who is using route is in workcontract. Works for Business and Agency!
+ * For this to work token must be authenticated with authenticateToken function and workContract must exist. 
+ * Use this after pathWorkContractExists function.
  * Saves to request.body.userInWorkContract true if workContract includes user.
  * @param {WorkContract} req.body.workContract - WorkContract
  * @param {Request} req - Express Request.
@@ -579,12 +575,11 @@ export const needsToBeAgencyBusinessOrWorker = (req: Request<unknown, unknown, I
  * Gets update from req.body.workContractUpdate.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
- * @param {NextFunction} next - NextFunction.
  * @throws {JSON} Status 401 - res.body: { message: "This route is only available to Agency,Business and Worker who are in this contract." }
  * @throws {JSON} Status 400 - res.body: { success: false, error: "Could not update WorkContract with id " + req.params.contractId }
- * @returns {NextFunction} next()
+ * @returns {JSON} Status 200 - res.body: { doc } 
  */
- export const updateWorkContract = (req: Request, res: Response, next: NextFunction) => {
+ export const updateWorkContract = (req: Request, res: Response) => {
   // TODO: Validate the id, check that the logged in user is authored for this
   // TODO: What form the end date need to be?
   const { body } = req
@@ -599,7 +594,7 @@ export const needsToBeAgencyBusinessOrWorker = (req: Request<unknown, unknown, I
       }
     })
   } catch (exception) {
-    return next(exception)
+    return res.status(500).send({ exception })
   }
 }
 /**
@@ -622,7 +617,7 @@ export const addWorkerToWorkContract = (req: Request, res: Response, next: NextF
         return res.status(400).send(err || { message:"Something went wrong with find query." })
       } else {
         if (doc.length === 1) {
-          body.workContractUpdate = { $addToSet: { 'contracts.$.workers': res.locals.decoded.id }}
+          body.workContractUpdate = { $addToSet: { 'contracts.$.requestWorkers': res.locals.decoded.id }}
           body.updateFilterQuery = { 'contracts._id': params.contractsId }
           return next()
         } else {
@@ -631,7 +626,7 @@ export const addWorkerToWorkContract = (req: Request, res: Response, next: NextF
       }
     })
   } catch (exception) {
-    return next(exception)
+    return res.status(500).send({ exception })
   }
 }
 /**
@@ -658,7 +653,7 @@ export const addTraceToWorker = (req:Request, res:Response, next:Function) => {
       }
     )
   } catch (exception) {
-    return next(exception)
+    return res.status(500).send({ exception })
   }
 }
 /**
@@ -668,11 +663,11 @@ export const addTraceToWorker = (req:Request, res:Response, next:Function) => {
  * StartDate
  * EndDate
  * @param {Request} req - Express Request.
- * @param {Response} _res - Express Response.
+ * @param {Response} res - Express Response.
  * @param {NextFunction} next - NextFunction.
  * @returns {NextFunction} next()
  */
-export const newContractToWorkContract = (req: Request<ParamsDictionary,unknown,IBaseBody>, _res: Response, next: NextFunction) => {
+export const newContractToWorkContract = (req: Request<ParamsDictionary,unknown,IBaseBody>, res: Response, next: NextFunction) => {
   const { body, params } = req
   try {
     body.workContractUpdate = {
@@ -689,52 +684,138 @@ export const newContractToWorkContract = (req: Request<ParamsDictionary,unknown,
       }
     }
     body.updateFilterQuery = { _id: params.contractId }
-    next()
+    return next()
   } catch (exception) {
-    return next(exception)
+    return res.status(500).send({ exception })
   }
 }
 /**
  * This middleware is used to populate body.workContractUpdate.
  * Changes acceptedAgency to true or acceptedBusiness to true depending wich user is using the route.
  * @param {Request} req - Express Request.
- * @param {Response} _res - Express Response.
+ * @param {Response} res - Express Response.
  * @param {NextFunction} next - NextFunction.
  * @returns {NextFunction} next()
  */
-export const acceptWorkContract = (req: Request<ParamsDictionary,unknown,IBaseBody>, _res: Response, next: NextFunction) => {
+export const acceptWorkContract = (req: Request<ParamsDictionary,unknown,IBaseBody>, res: Response, next: NextFunction) => {
   const { body,params } = req
   try {
-    if (body.business === undefined || null) {
+    if (body.business === undefined || null && body.agency !== undefined || null) {
       body.workContractUpdate = {
         $set: { 'contracts.$.acceptedAgency': true }
       }
-    } else {
+    } else if (body.business !== undefined || null && body.agency === undefined || null) {
       body.workContractUpdate = {
         $set: { 'contracts.$.acceptedBusiness': true }
       }
+    } else {
+      res.status(401).send({ message: "User is not Business or Agency."})
     }
     body.updateFilterQuery = { 'contracts._id': params.contractsId }
-    next()
+    return next()
   } catch (exception) {
-    return next(exception)
+    return res.status(500).send({ exception })
   }
 }
-
 /**
- * This middleware is used to make BusinessContract for agency in
- * BusinessContract.ts post route.
+ * This middleware function is used to initialize update that moves workerIds
+ * from requestWorkers array to acceptedWorkers array.
+ * Also changes acceptedBusiness to false.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next - NextFunction.
+ * @returns {NextFunction} next()
+ */
+export const acceptWorkers = (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
+  const { body,params } = req
+  try { 
+    body.workContractUpdate = {
+      $pull: {
+        'contracts.$.requestWorkers': { $in: body.workersArray }
+      },
+      $addToSet: {
+        'contracts.$.acceptedWorkers': { $each: body.workersArray }
+      },
+      $set: {
+        'contracts.$.acceptedBusiness': false
+      }
+    }
+    body.updateFilterQuery = { 'contracts._id': params.contractsId }
+    return next()
+  } catch (exception) {
+    return res.status(500).send({ exception })
+  }
+}
+/**
+ * This middleware function is used to initialize update that moves workerIds
+ * from acceptedWorkers array to requestWorkers array.
+ * Also changes acceptedBusiness to false.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next - NextFunction.
+ * @returns {NextFunction} next()
+ */
+export const revertWorkers = (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
+  const { body,params } = req
+  try { 
+    body.workContractUpdate = {
+      $pull: {
+        'contracts.$.acceptedWorkers': { $in: body.workersArray }
+      },
+      $addToSet: {
+        'contracts.$.requestWorkers': { $each: body.workersArray }
+      },
+      $set: {
+        'contracts.$.acceptedBusiness': false
+      }
+    }
+    body.updateFilterQuery = { 'contracts._id': params.contractsId }
+    return next()
+  } catch (exception) {
+    return res.status(500).send({ exception })
+  }
+}
+/**
+ * This middleware function is used to initialize update that removes workerIds
+ * from acceptedWorkers array and requestWorkers array.
+ * Also changes acceptedBusiness and accpetedAgency to false.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next - NextFunction.
+ * @returns {NextFunction} next()
+ */
+export const declineWorkers = (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
+  const { body,params } = req
+  try { 
+    body.workContractUpdate = {
+      $pull: {
+        'contracts.$.acceptedWorkers': { $in: body.workersArray },
+        'contracts.$.requestWorkers': { $in: body.workersArray }
+      },
+      $set: {
+        'contracts.$.acceptedBusiness': false,
+        'contracts.$.acceptedAgency': false
+      }
+    }
+    body.updateFilterQuery = { 'contracts._id': params.contractsId }
+    return next()
+  } catch (exception) {
+    return res.status(500).send({ exception })
+  }
+}
+/**
+ * This middleware is used to make BusinessContract for agency in
+ * BusinessContract.ts post route.
+ * @param {Request} _req - Express Request.
+ * @param {Response} res - Express Response.
  * @returns {JSON} Status 201 - Header: { Location: domainUrl + businessContractsApiPath + contract._id }, Response.body: { contract }
  */
-export const makeBusinessContract = (_req:Request, res:Response, next:NextFunction) => {
+export const makeBusinessContract = (_req:Request, res:Response) => {
   const domainUrl = "http://localhost:3000/"
   const businessContractsApiPath = "api/businesscontracts/"
   try {
     //First check that Agency doesn't allready have BusinessContract
-    BusinessContract.find({ // Check if worker has allready businessContract with agency.
+    return BusinessContract.find({ // Check if worker has allready businessContract with agency.
       agency: res.locals.decoded.id
     },undefined,{lean:true},(err:CallbackError, docs:DocumentDefinition<IBusinessContractDocument>[] | null) => {
       if (err) {
@@ -780,7 +861,7 @@ export const makeBusinessContract = (_req:Request, res:Response, next:NextFuncti
       }
     })
   } catch (exception) {
-    return next(exception)
+    return res.status(500).send({ exception })
   }
 }
 /**
@@ -891,7 +972,7 @@ export const addContractToBusinessContract = (req:Request<ParamsDictionary,unkno
       })
     }
   } catch (exception) {
-    return next(exception)
+    return res.status(500).send({ exception })
   }
 }
 /**
@@ -937,7 +1018,7 @@ export const acceptBusinessContract  = async (req:Request<ParamsDictionary,unkno
     }
     return next()
   } catch (exception) {
-    return next()
+    return res.status(500).send({ exception })
   }
 }
 /**
@@ -976,7 +1057,7 @@ export const declineBusinessContract = async (req:Request<ParamsDictionary,unkno
     }
     return next()
   } catch (exception) {
-    return next()
+    return res.status(500).send({ exception })
   }
 }
 /**
