@@ -9,7 +9,7 @@
  * @const
  * @namespace workcontractsRouter
 */
-import express from "express"
+import express, { NextFunction,Request, Response } from "express"
 import { body as _body } from "express-validator"
 import Agency from "../models/Agency"
 import Business from "../models/Business"
@@ -34,8 +34,9 @@ import {
   declineWorkers,
   pathWorkContractExists} from "../utils/middleware"
 import { buildPaginatedObjectFromArray, deleteTracesOfFailedWorkContract } from "../utils/common"
-import { IWorkContractDocument } from "../objecttypes/modelTypes"
+import { ISubContractDocument, IWorkContractDocument } from "../objecttypes/modelTypes"
 import BusinessContract from "../models/BusinessContract"
+import { IBaseBody } from "../objecttypes/otherTypes"
 const workcontractsRouter = express.Router()
 
 const domainUrl = "http://localhost:8000/"
@@ -60,11 +61,27 @@ const workContractsApiPath = "workcontracts/"
  * @throws {JSON} Status 400 - res.body: { message: "User who is trying to use this route is not in workcontract" }
  * @returns {JSON} Status 200 - res.body: { The found WorkContract object }
 */
-workcontractsRouter.get("/:contractId", authenticateToken, needsToBeAgencyBusinessOrWorker, pathWorkContractExists, workContractIncludesUser, (req, res, next) => {
+workcontractsRouter.get("/:contractId", authenticateToken, needsToBeAgencyBusinessOrWorker, pathWorkContractExists, workContractIncludesUser, 
+(req:Request<unknown,unknown,IBaseBody>, res:Response, next:NextFunction) => {
   const { body } = req
   try {
     if (body.userInWorkContract === true) {
-      return res.status(200).send(body.workContract)
+      if (body.agency !== undefined) {
+        return res.status(200).send(body.workContract)
+      }
+      else if (body.business !== undefined) { //WORKS BUT NOT THE BEST
+        body.workContract?.contracts.forEach(contract => {
+          contract.requestWorkers = []
+        });
+        return res.status(200).send(body.workContract)
+      }
+      else if (body.worker !== undefined) { //WORKS BUT NOT THE BEST
+        let contract: ISubContractDocument | undefined
+        body.worker.workContracts.some(id => {
+          return contract = body.workContract?.contracts.find( contract => contract._id = id)
+        })
+        return res.status(200).send(contract)
+      }
     } else {
       return res.status(400).send({ message:"User who is trying to use this route is not in workcontract" })
     }
@@ -408,14 +425,14 @@ async (req, res, next) => {
       async (result: any) => {
         if (result.businessTraceRemoved === true && result.agencyTraceRemoved === true) {
           return WorkContract.findByIdAndDelete(
-            body.workContract._id,
+            body.workContract?._id,
             undefined,
             (error: Error, result: any) => {
               if (error || !result) {
                 return res.status(400).json({
                   message:
                     "Deleted references to WorkContract with ID " +
-                    body.workContract._id +
+                    body.workContract?._id +
                     " but could not remove the contract itself. Possible error: " +
                     error,
                 })

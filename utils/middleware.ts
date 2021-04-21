@@ -221,9 +221,15 @@ export const businessExists = (req: Request, res: Response, next: NextFunction) 
 */
 export const businessContractExists = (req: Request<ParamsDictionary,unknown,IBaseBody>, res: Response, next: NextFunction) => {
   const { body,params } = req
+  let businessContractId:Types.ObjectId
   try {
-    if (params.businessContractId) {
-      return BusinessContract.findById({ _id: params.businessContractId }, (err: CallbackError, result:IBusinessContractDocument | null) => {
+    businessContractId = Types.ObjectId(params.businessContractId)
+  } catch (exception) {
+    return res.status(403).send( { message: "Note: businessContractId must be string." } )
+  }
+  try {
+    if (businessContractId) {
+      return BusinessContract.findById({ _id: businessContractId }, (err: CallbackError, result:IBusinessContractDocument | null) => {
         if (err || !result) {
           return res.status(404).send({ error: "No BusinessContract found with the request :businessContractId." })
         } else {
@@ -316,23 +322,29 @@ export const pathWorkContractExists = (req: Request,res: Response, next: NextFun
  * @throws {JSON} Status 500 - response.body: { exception }
  * @returns {NextFunction} next()
  */
-export const workContractIncludesUser = (req: Request, res: Response, next: NextFunction) => {
+export const workContractIncludesUser = (req: Request<unknown,unknown,IBaseBody>, res: Response, next: NextFunction) => {
+  const {body} = req
   try {
-    if (req.body.workContract !== undefined) {
-      // if (req.body.workContract.user._id.toString() === res.locals.decoded.id.toString()) {
-      //   req.body.userInWorkContract = true
-      // }
-      if (req.body.workContract.business._id.toString() === res.locals.decoded.id.toString()) {
-        req.body.userInWorkContract = true
+    if (body.workContract !== undefined) {
+      if (body.workContract.business.toString() === res.locals.decoded.id.toString()) {
+        body.userInWorkContract = true
       }
-      else if (req.body.workContract.agency._id.toString() === res.locals.decoded.id.toString()) {
-        req.body.userInWorkContract = true
+      else if (body.workContract.agency.toString() === res.locals.decoded.id.toString()) {
+        body.userInWorkContract = true
       }
-      else {
-        req.body.userInWorkContract = false
+      else { //Finding workers from WorkContract is very slow and ugly operation.
+        if (body.worker) {
+          body.workContract.contracts.some(contract => {
+            if (body.worker?.workContracts.includes(contract._id)) { 
+              return body.userInWorkContract = true 
+            } else {
+              return false
+            }
+          });
+        } else { body.userInWorkContract = false}
       }
     } else {
-      req.body.userInWorkContract = false
+      body.userInWorkContract = false
     }
     return next()
   } catch (exception) {
