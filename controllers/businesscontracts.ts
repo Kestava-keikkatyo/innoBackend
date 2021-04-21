@@ -47,12 +47,21 @@ const businesscontractsRouter = express.Router()
  * @throws {JSON} Status 400 - response.body: { message: "User who is trying to use this route is not in workcontract" }
  * @returns {JSON} Status 200 - response.body: { businessContract: TheWholeBusinessContractObject }
  */
-businesscontractsRouter.get("/:businessContractId", authenticateToken, businessContractExists, businessContractIncludesUser,
+businesscontractsRouter.get("/:businessContractId", authenticateToken, needsToBeAgencyBusinessOrWorker,businessContractExists, businessContractIncludesUser,
   async (req: Request<unknown, unknown, IBaseBody>, res: Response, next: NextFunction) => {
     const { body } = req
     try {
       if (body.userInBusinessContract) {
-        return res.status(200).send(body.businessContract)
+         //Which id is in question
+        if (body.agency !== undefined) {
+          return res.status(200).send(body.businessContract)
+        }
+        else if (body.business !== undefined) {
+          return res.status(200).send({ "id":body.businessContract?._id,"agency": body.businessContract?.agency})
+        }
+        else if (body.worker !== undefined) {
+          return res.status(200).send({ "id":body.businessContract?._id,"agency": body.businessContract?.agency})
+        }
       } else {
         return res.status(400).send({ message:"User who is trying to use this route is not in workcontract" })
       }
@@ -160,7 +169,7 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
   */
  businesscontractsRouter.put("/:businessContractId/add",authenticateToken,needsToBeAgencyBusinessOrWorker,businessContractExists,addContractToBusinessContract,businessContractUpdate)
  /**
-  * Route for agency to accept BusinessContract.
+  * Route for agency to accept BusinessContract with Business or Worker.
   * This route can be used when agency has users in BusinessContracts requestContract object.
   * UserId is deleted from requestContract object and moved to madeContracts object.
   * @name PUT /businesscontracts/:businessContractId/:userId/accept
@@ -179,7 +188,7 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
   */
  businesscontractsRouter.put("/:businessContractId/:userId/accept",authenticateToken,needsToBeAgency,businessContractExists,acceptBusinessContract,businessContractUpdate)
  /**
-  * Route for agency to decline BusinessContract.
+  * Route for agency to decline BusinessContract with Business or Worker.
   * With this route agency can decline BusinessContract request from Business or Worker.
   * UserId is deleted from requestContract.
   * @name PUT /businesscontracts/:businessContractId/:userId/decline
