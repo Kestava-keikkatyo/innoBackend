@@ -133,7 +133,15 @@ export interface IBusiness {
   forms: Array<IFormDocument['_id']>,
   businessContracts: Array<IBusinessContractDocument['_id']>,
   workContracts: Array<Types.ObjectId>,
-  userType: string
+  userType: string,
+  videoUriId: string,
+  instructions: Array<string>,
+  workingHours: {
+    start: number,
+    end: number
+  },
+  contactPreference: string,
+  socialMedias: Array<string>
 }
 
 export interface IBusinessDocument extends Document, Omit<IBusiness, "forms" | "businessContracts" | "workContracts"> {
@@ -162,11 +170,11 @@ export interface IBusinessContractDocument extends Document, Omit<IBusinessContr
   agency: IAgencyDocument['_id'] | IAgencyDocument,
   madeContracts: {
     businesses: Array<IBusinessDocument['_id']>,
-    workers: Array<IWorkerDocument['_id']> 
+    workers: Array<IWorkerDocument['_id']>
   },
   requestContracts: {
     businesses: Array<IBusinessDocument['_id']>,
-    workers: Array<IWorkerDocument['_id']> 
+    workers: Array<IWorkerDocument['_id']>
   }
 }
 

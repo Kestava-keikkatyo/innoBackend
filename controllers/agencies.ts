@@ -49,7 +49,7 @@ agenciesRouter.post("/", async (req: Request<unknown, unknown, IAgency>, res: Re
       email: body.email,
       passwordHash,
     })
-    const agency: IAgencyDocument = await agencyToCreate.save() //TODO use callback and check for errors
+    const agency: IAgencyDocument = await agencyToCreate.save() // TODO use callback and check for errors
 
     const agencyForToken = {
       email: agency.email,
@@ -80,12 +80,13 @@ agenciesRouter.get("/me", authenticateToken, (_req: Request, res: Response, next
       undefined,
       { lean: true },
       (error: CallbackError, result: DocumentDefinition<IAgencyDocument> | null) => {
-      //Jos ei resultia niin käyttäjän tokenilla ei löydy käyttäjää
-      if (!result || error) {
-        return res.status(401).send(error || { message: "Not authorized" })
-      } else {
-        return res.status(200).send(result)
-      }
+        if (error) {
+          return res.status(500).send(error)
+        } else if (!result) { //Jos ei resultia niin käyttäjän tokenilla ei löydy käyttäjää
+          return res.status(401).send({ message: "Not authorized" })
+        } else {
+          return res.status(200).send(result)
+        }
     })
   } catch (exception) {
     return next(exception)

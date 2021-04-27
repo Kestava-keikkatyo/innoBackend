@@ -19,20 +19,12 @@ import {
   needsToBeAgency,
   bodyBusinessExists,
   needsToBeAgencyBusinessOrWorker,
-  workContractIncludesUser,
-  updateWorkContract,
-  newContractToWorkContract,
-  checkUserInWorkContract,
   needsToBeAgencyOrBusiness,
   needsToBeWorker,
-  acceptWorkContract,
-  addWorkerToWorkContract,
   needsToBeBusiness,
-  addTraceToWorker,
   acceptWorkers,
   revertWorkers,
-  declineWorkers,
-  pathWorkContractExists} from "../utils/middleware"
+  declineWorkers} from "../utils/middleware"
 import { buildPaginatedObjectFromArray, deleteTracesOfFailedWorkContract } from "../utils/common"
 import {
   IAgencyDocument,
@@ -45,6 +37,12 @@ import BusinessContract from "../models/BusinessContract"
 import {IBaseBody, IBodyWithIds, IRemovedTraces} from "../objecttypes/otherTypes"
 import {CallbackError, DocumentDefinition, Types} from "mongoose"
 import {ParamsDictionary} from "express-serve-static-core"
+import {
+  acceptWorkContract,
+  addTraceToWorker,
+  addWorkerToWorkContract, checkUserInWorkContract,
+  newContractToWorkContract, pathWorkContractExists, updateWorkContract, workContractIncludesUser
+} from "../utils/workContractMiddleware";
 const workcontractsRouter = express.Router()
 
 const domainUrl = "http://localhost:8000/"
@@ -148,11 +146,13 @@ workcontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWorker,
     return await WorkContract.find(array,
       projection,
       { lean: true },
-      (err: CallbackError, result: Array<DocumentDefinition<IWorkContractDocument>>) => {
-      if (err || !result) {
-        return res.status(404).send(err || { message:"Couldn't find any workcontracts" })
+      (error: CallbackError, result: DocumentDefinition<IWorkContractDocument>[]) => {
+      if (error) {
+        return res.status(500).send(error)
+      } else if (result.length === 0) {
+        return res.status(404).send({ message:"Couldn't find any WorkContracts" })
       } else {
-        return res.status(200).send(buildPaginatedObjectFromArray(page,limit,result))
+        return res.status(200).send(buildPaginatedObjectFromArray(page, limit, result))
       }
     })
   } catch (exception) {
@@ -223,7 +223,7 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
       async (error: CallbackError, result: DocumentDefinition<IBusinessDocument> | null) => {
         if (error || !result) {
           return res // TODO this only returns from the callback, not from the whole function.
-            .status(400)
+            .status(500)
             .send({ error, message: "Could not add WorkContract to Business  with ID" + body.businessId + ". No WorkContract created." })
         }
         return result
@@ -238,12 +238,12 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
           (result: IRemovedTraces) => {
             if (result.businessTraceRemoved && result.agencyTraceRemoved) {
               return res // TODO As with above, this only returns from the callback, not from the whole function.
-                .status(400)
+                .status(500)
                 .send({ error,
                   message: "Could not add WorkContract to Agency  with ID" + res.locals.decoded.id + ". No WorkContract created but references were deleted." })
             } else {
               return res
-                .status(400)
+                .status(500)
                 .send({ error,
                   message: "Could not add WorkContract to Agency  with ID" + res.locals.decoded.id + ". No WorkContract created and references were not deleted." })
             }
@@ -263,18 +263,18 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
     } else {
       contract = await contractToCreate.save()
     }
-    //If contract already exist deleteTraces, if not return res url.
+    //If contract already exists deleteTraces, if not return res url.
     if (!contract) {
       await deleteTracesOfFailedWorkContract(null, body.businessId, res.locals.decoded.id, contractToCreate._id.toString(),
         (result: IRemovedTraces) => {
           if (result.businessTraceRemoved && result.agencyTraceRemoved) {
             return res
-              .status(400)
-              .send({ message: "Could not make WorkContract because agency and business allready have WorkContract. No WorkContract created but references were deleted." })
+              .status(500)
+              .send({ message: "Could not make WorkContract because agency and business already have WorkContract. No WorkContract created but references were deleted." })
           } else {
             return res
-              .status(400)
-              .send({ message: "Could not make WorkContract. No WorkContract created and references were not deleted. WorkContract allready exist" })
+              .status(500)
+              .send({ message: "Could not make WorkContract. No WorkContract created and references were not deleted. WorkContract already exist" })
           }
         })
     } else {
@@ -443,23 +443,25 @@ async (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: 
         if (result.businessTraceRemoved === true && result.agencyTraceRemoved === true) {
           return WorkContract.findByIdAndDelete(
             body.workContract?._id,
-            undefined,
-            (error: CallbackError, result: IWorkContractDocument | null) => {
-              if (error || !result) {
-                return res.status(400).json({
+            { lean: true },
+            (error: CallbackError, result: DocumentDefinition<IWorkContractDocument> | null) => {
+              if (error) {
+                return res.status(500).json({
                   message:
                     "Deleted references to WorkContract with ID " +
                     body.workContract?._id +
                     " but could not remove the contract itself. Possible error: " +
-                    error,
+                    error
                 })
+              } else if (!result) {
+                return res.status(500).json({ message: "Didn't receive a result from database whilst deleting WorkContract" })
               } else {
                 return res.status(204).send()
               }
             }
           )
         } else {
-          return res.status(406).json({
+          return res.status(406).json({ // TODO 406???
             message:
              "Couldn't delete references of this WorkContract"+
              ", WorkerTraceRemoved: "+result.workerTraceRemoved+

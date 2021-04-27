@@ -69,7 +69,15 @@ const businessSchema = new Schema({
   userType: {
     type: String,
     default: "Business"
-  }
+  },
+  videoUriId: String,
+  instructions: [String],
+  workingHours: {
+    start: Number,
+    end: Number
+  },
+  contactPreference: String,
+  socialMedias: [String]
 })
 
 businessSchema.plugin(mongoosePaginate)

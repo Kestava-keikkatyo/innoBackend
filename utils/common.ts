@@ -20,7 +20,10 @@ import {IBaseBody, IRemovedTraces} from "../objecttypes/otherTypes";
 export const workerExistsCallback = (id: string | Types.ObjectId, callback: (result: IWorkerDocument | null) => void): void => {
   try {
     Worker.findById(id, (error: CallbackError, result: IWorkerDocument | null) => {
-      if (error || !result) {
+      if (error) {
+        _error(error)
+        callback(null)
+      } else if (!result) {
         callback(null)
       } else {
         callback(result)
@@ -41,7 +44,10 @@ export const workerExistsCallback = (id: string | Types.ObjectId, callback: (res
 export const businessExistsCallback = (id: string, callback: (result: IBusinessDocument | null) => void): void => {
   try {
     Business.findById(id, (error: CallbackError, result: IBusinessDocument | null) => {
-      if (error || !result) {
+      if (error) {
+        _error(error)
+        callback(null)
+      } else if (!result) {
         callback(null)
       } else {
         callback(result)
@@ -65,7 +71,7 @@ export const businessExistsCallback = (id: string, callback: (result: IBusinessD
  * @returns {Boolean} {workerTraceRemoved,businessTraceRemoved,agencyTraceRemoved}
  */
 export const deleteTracesOfFailedWorkContract = async (workerId: string | null, businessId: string | null, agencyId: string | null, contractToCreateid: string, callback: (result: IRemovedTraces) => void ): Promise<void> => {
-  try { //Needs somekind of check
+  try { //Needs some kind of check
     let workerTraceRemoved: boolean | undefined
     let businessTraceRemoved: boolean | undefined
     let agencyTraceRemoved: boolean | undefined
@@ -75,8 +81,8 @@ export const deleteTracesOfFailedWorkContract = async (workerId: string | null, 
         { _id: businessId },
         { $pull: { workContracts : { $in: [contractToCreateid.toString()] } } },
         { multi: false, lean: true },
-        (err: CallbackError, result: DocumentDefinition<IBusinessDocument> | null) => {
-          businessTraceRemoved = !(err || !result) // False if error or !result, true otherwise
+        (error: CallbackError, result: DocumentDefinition<IBusinessDocument> | null) => {
+          businessTraceRemoved = !(error || !result) // False if error or !result, true otherwise
         }
       )
     }
@@ -86,8 +92,8 @@ export const deleteTracesOfFailedWorkContract = async (workerId: string | null, 
         { _id: agencyId },
         { $pull: { workContracts : { $in: [contractToCreateid.toString()] } } },
         { multi: false, lean: true },
-        (err: CallbackError, result: DocumentDefinition<IAgencyDocument> | null) => {
-          agencyTraceRemoved = !(err || !result) // False if error or !result, true otherwise
+        (error: CallbackError, result: DocumentDefinition<IAgencyDocument> | null) => {
+          agencyTraceRemoved = !(error || !result) // False if error or !result, true otherwise
         }
       )
     }
@@ -97,8 +103,8 @@ export const deleteTracesOfFailedWorkContract = async (workerId: string | null, 
         { _id: workerId },
         { $pull: { workContracts : { $in: [contractToCreateid.toString()] } } },
         { multi: false, lean: true },
-        (err: CallbackError, result: DocumentDefinition<IWorkerDocument> | null) => {
-          workerTraceRemoved = !(err || !result) // False if error or !result, true otherwise
+        (error: CallbackError, result: DocumentDefinition<IWorkerDocument> | null) => {
+          workerTraceRemoved = !(error || !result) // False if error or !result, true otherwise
         }
       )
     }
@@ -127,11 +133,7 @@ export const deleteTracesOfBusinessContract = async (workerId: string | null, bu
         { $pull: { businessContracts : { $in: [contractToCreateid] } } },
         { multi: false, lean: true },
         (error: CallbackError, result: DocumentDefinition<IWorkerDocument> | null) => {
-          if (error || !result) {
-            workerTraceRemoved = false
-          } else {
-            workerTraceRemoved = true
-          }
+          workerTraceRemoved = !(error || !result) // if error or !result it's false, otherwise true
         }
       )
     }
@@ -141,11 +143,7 @@ export const deleteTracesOfBusinessContract = async (workerId: string | null, bu
         { $pull: { businessContracts :  { $in : [contractToCreateid] } } },
         { multi: false, lean: true },
         (error: CallbackError, result: DocumentDefinition<IBusinessDocument> | null) => {
-          if (error || !result) {
-            businessTraceRemoved = false
-          } else {
-            businessTraceRemoved = true
-          }
+          businessTraceRemoved = !(error || !result) // if error or !result it's false, otherwise true
         }
       )
     }

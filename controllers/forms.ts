@@ -7,7 +7,7 @@ import Business from "../models/Business"
 import Agency from "../models/Agency"
 import { needsToBeAgencyOrBusiness } from "../utils/middleware"
 import { getAgencyOrBusinessOwnForms } from "../utils/common"
-import {CallbackError, DocumentDefinition, Model, PaginateResult, Types} from "mongoose"
+import {CallbackError, DocumentDefinition, PaginateResult, Types} from "mongoose"
 import {AnyQuestion, IAgencyDocument, IBusinessDocument, IFormDocument} from "../objecttypes/modelTypes"
 import {IBaseBody, IBodyWithForm} from "../objecttypes/otherTypes"
 import {ParamsDictionary} from "express-serve-static-core"
@@ -37,9 +37,9 @@ formsRouter.post("/", authenticateToken, needsToBeAgencyOrBusiness, async (req: 
       }
 
       if (body.agency) {
-        return addFormToAgencyOrBusiness(Agency, res.locals.decoded.id, result, res, next)
+        return addFormToAgencyOrBusiness("Agency", res.locals.decoded.id, result, res, next)
       } else if (body.business) {
-        return addFormToAgencyOrBusiness(Business, res.locals.decoded.id, result, res, next)
+        return addFormToAgencyOrBusiness("Business", res.locals.decoded.id, result, res, next)
       } else {
         _error("Could not determine whether user is agency or business")
         return res.status(500).send( { error: "Could not determine whether user is agency or business" })
@@ -52,25 +52,41 @@ formsRouter.post("/", authenticateToken, needsToBeAgencyOrBusiness, async (req: 
 
 /**
  * Helper function for adding form to agency's or business' forms array
- * @param AgencyOrBusiness Agency or Business model
- * @param id id of the agency or business in question
- * @param form the form we are adding to agency/business
- * @param res
- * @param next
+ * @param agencyOrBusiness - string that tells whether to use Agency or Business Model. Can either be "Agency" or "Business"
+ * @param id - id of the agency or business in question
+ * @param form - the form we are adding to agency/business
+ * @param res - Response
+ * @param next - NextFunction
  */
-const addFormToAgencyOrBusiness = (AgencyOrBusiness: Model<IAgencyDocument> | Model<IBusinessDocument>, id: string, form: IFormDocument, res: Response, next: NextFunction) => {
+const addFormToAgencyOrBusiness = (agencyOrBusiness: string, id: string, form: IFormDocument, res: Response, next: NextFunction) => {
   try {
-    AgencyOrBusiness.findByIdAndUpdate(
-      id,
-      { $addToSet: { forms: form } },
-      { new: true, omitUndefined: true, runValidators: true, lean: true },
-      (error: CallbackError, result: DocumentDefinition<IAgencyDocument|IBusinessDocument> | null) => {
-        if (!result || error) {
-          return res.status(500).send(error || { message: "Received no result when updating user" })
-        } else {
-          return res.status(200).send(form)
-        }
-      })
+    if (agencyOrBusiness === "Agency") {
+      Agency.findByIdAndUpdate(
+        id,
+        { $addToSet: { forms: form } },
+        { new: true, omitUndefined: true, runValidators: true, lean: true },
+        (error: CallbackError, result: DocumentDefinition<IAgencyDocument|IBusinessDocument> | null) => {
+          if (error || !result) {
+            return res.status(500).send(error || { message: "Received no result when updating user" })
+          } else {
+            return res.status(200).send(form)
+          }
+        })
+    } else if (agencyOrBusiness === "Business") {
+      Business.findByIdAndUpdate(
+        id,
+        { $addToSet: { forms: form } },
+        { new: true, omitUndefined: true, runValidators: true, lean: true },
+        (error: CallbackError, result: DocumentDefinition<IAgencyDocument|IBusinessDocument> | null) => {
+          if (error || !result) {
+            return res.status(500).send(error || { message: "Received no result when updating user" })
+          } else {
+            return res.status(200).send(form)
+          }
+        })
+    } else {
+      return res.status(500).send({ error: "addFormToAgencyOrBusiness function called with an incorrect agencyOrBusiness parameter"})
+    }
   } catch (exception) {
     return next(exception)
   }
@@ -99,14 +115,13 @@ formsRouter.get("/me", authenticateToken, needsToBeAgencyOrBusiness, async (req:
     }
     // Get limit's amount of own forms in specified page
     Form.paginate({ _id: { $in: ownForms } },
-      { projection: "title description tags", page: page, limit: limit, lean: true, leanWithId: false }, // Typing when using projection!?
+      { projection: "title description tags", page: page, limit: limit, lean: true, leanWithId: false },
       (error: CallbackError, result: PaginateResult<DocumentDefinition<IFormDocument>>) => {
-        if (error || !result) {
-          return res.status(500).send( error || { message: "Did not receive a result from database" })
+        if (error) {
+          return res.status(500).send(error)
+        } else if (result.docs.length === 0) {
+          return res.status(204).send()
         } else {
-          if (result.docs.length === 0) {
-            return res.status(204).send()
-          }
           return res.status(200).send(result)
         }
       })
@@ -139,13 +154,12 @@ formsRouter.get("/", authenticateToken, needsToBeAgencyOrBusiness, async (req: R
     Form.paginate({ _id: { $nin: ownForms }, isPublic: true },
       { projection: "title description tags", page: page, limit: limit, lean: true, leanWithId: false },
       (error: CallbackError, result: PaginateResult<DocumentDefinition<IFormDocument>>) => {
-        if (error || !result) {
-          return res.status(500).send( error || { message: "Did not receive a result from database" })
+        if (error) {
+          return res.status(500).send(error)
+        } else if (result.docs.length === 0) {
+          return res.status(204).send()
         } else {
-          if (result.docs.length === 0) {
-            return res.status(204).send()
-          }
-          return res.status(200).json(result)
+          return res.status(200).send(result)
         }
       })
   } catch (exception) {
@@ -188,12 +202,11 @@ formsRouter.get("/search", authenticateToken, needsToBeAgencyOrBusiness, async (
           leanWithId: false
         },
         (error: CallbackError, result: PaginateResult<DocumentDefinition<IFormDocument>>) => {
-          if (error || !result) {
-            return res.status(500).send( error || { message: "Did not receive a result from database" })
+          if (error) {
+            return res.status(500).send(error)
+          } else if (result.docs.length === 0) {
+            return res.status(204).send()
           } else {
-            if (result.docs.length === 0) {
-              return res.status(204).send()
-            }
             return res.status(200).send(result)
           }
         })
@@ -237,12 +250,11 @@ formsRouter.get("/me/search", authenticateToken, needsToBeAgencyOrBusiness, asyn
           leanWithId: false
         },
         (error: CallbackError, result: PaginateResult<DocumentDefinition<IFormDocument>>) => {
-          if (error || !result) {
-            return res.status(500).send( error || { message: "Did not receive a result from database" })
+          if (error) {
+            return res.status(500).send(error)
+          } else if (result.docs.length === 0) {
+            return res.status(204).send()
           } else {
-            if (result.docs.length === 0) {
-              return res.status(204).send()
-            }
             return res.status(200).send(result)
           }
         })
@@ -260,26 +272,28 @@ formsRouter.get("/:formId", authenticateToken, needsToBeAgencyOrBusiness, async 
 
   try {
     Form.findById(params.formId,
-        undefined,
-        { lean: true },
-        (error: CallbackError, form: DocumentDefinition<IFormDocument> | null) => {
-      if (error || !form) {
-        return res.status(404).send(error || { message: `Could not find form with id ${params.formId}` })
-      }
-      // Adding questions into an array in order according to the "ordering" property in each object.
-      let newQuestions: Array<AnyQuestion> = []
-      const questions = form.questions
-      for (const property in questions) {
-        if (Object.prototype.hasOwnProperty.call(questions, property)) {
-          for (const question of questions[property]) {
-            newQuestions[question.ordering] = question
-            newQuestions[question.ordering].questionType = property
+      undefined,
+      { lean: true },
+      (error: CallbackError, form: DocumentDefinition<IFormDocument> | null) => {
+        if (error) {
+          return res.status(500).send(error)
+        } else if (!form) {
+          return res.status(404).send({ message: `Could not find form with id ${params.formId}` })
+        }
+        // Adding questions into an array in order according to the "ordering" property in each object.
+        let newQuestions: Array<AnyQuestion> = []
+        const questions = form.questions
+        for (const property in questions) {
+          if (Object.prototype.hasOwnProperty.call(questions, property)) {
+            for (const question of questions[property]) {
+              newQuestions[question.ordering] = question
+              newQuestions[question.ordering].questionType = property
+            }
           }
         }
-      }
-      let newForm: any = form // Can't really change this from any
-      newForm.questions = newQuestions
-      return res.status(200).send(newForm)
+        let newForm: any = form // Can't really change this from any. Blame front-end for wanting it this way lol.
+        newForm.questions = newQuestions
+        return res.status(200).send(newForm)
     })
   } catch (exception) {
     return next(exception)
@@ -357,9 +371,9 @@ formsRouter.delete("/:formId", authenticateToken, needsToBeAgencyOrBusiness, asy
 
   try {
     if (body.agency) {
-      deleteForm(Agency, body.agency, params.formId, res, next)
+      deleteForm("Agency", body.agency, params.formId, res, next)
     } else if (body.business) {
-      deleteForm(Business, body.business, params.formId, res, next)
+      deleteForm("Business", body.business, params.formId, res, next)
     } else {
       return res.status(500).send( { error: "Error determining whether user is agency or business" })
     }
@@ -377,7 +391,7 @@ formsRouter.delete("/:formId", authenticateToken, needsToBeAgencyOrBusiness, asy
  * @param next
  * @returns {*}
  */
-const deleteForm = (agencyOrBusiness: Model<IAgencyDocument> | Model<IBusinessDocument>, agencyOrBusinessObject: IAgencyDocument | IBusinessDocument, formId: string, res: Response, next: Function) => {
+const deleteForm = (agencyOrBusiness: string, agencyOrBusinessObject: IAgencyDocument | IBusinessDocument, formId: string, res: Response, next: Function) => {
   try {
     let found: boolean = false
     if (agencyOrBusinessObject.forms.length === 0) {
@@ -388,23 +402,40 @@ const deleteForm = (agencyOrBusiness: Model<IAgencyDocument> | Model<IBusinessDo
         found = true
         Form.findByIdAndDelete(
           formId,
-          undefined,
-          (error: CallbackError, result: IFormDocument | null) => {
-            if (!result || error) {
+          { lean: true },
+          (error: CallbackError, result: DocumentDefinition<IFormDocument> | null) => {
+            if (error || !result) {
               return res.status(500).send(error || { message: "Did not receive any result from database when deleting form" })
             } else {
-              return agencyOrBusiness.findByIdAndUpdate( // Once form is deleted, it also needs to be deleted from agency's or business' forms array
-                agencyOrBusinessObject._id,
-                { $pull: { forms: { $in: [formId] } } },
-                undefined,
-                (error: CallbackError, result: IAgencyDocument | IBusinessDocument | null) => {
-                  if (error || !result) {
-                    return res.status(500).send(error || { message: "Did not receive any result from database when deleting form's id from array" })
-                  } else {
-                    return res.status(204).send()
+              if (agencyOrBusiness === "Agency") {
+                return Agency.findByIdAndUpdate( // Once form is deleted, it also needs to be deleted from agency's forms array
+                  agencyOrBusinessObject._id,
+                  { $pull: { forms: { $in: [formId] } } },
+                  { lean: true },
+                  (error: CallbackError, result: DocumentDefinition<IAgencyDocument> | null) => {
+                    if (error || !result) {
+                      return res.status(500).send(error || { message: "Did not receive any result from database when deleting form's id from array" })
+                    } else {
+                      return res.status(204).send()
+                    }
                   }
-                }
-              )
+                )
+              } else if (agencyOrBusiness === "Business") {
+                return Business.findByIdAndUpdate( // Once form is deleted, it also needs to be deleted from business' forms array
+                  agencyOrBusinessObject._id,
+                  { $pull: { forms: { $in: [formId] } } },
+                  { lean: true },
+                  (error: CallbackError, result: DocumentDefinition<IBusinessDocument> | null) => {
+                    if (error || !result) {
+                      return res.status(500).send(error || { message: "Did not receive any result from database when deleting form's id from array" })
+                    } else {
+                      return res.status(204).send()
+                    }
+                  }
+                )
+              } else {
+                return res.status(500).send({ error: "deleteForm function called with an incorrect agencyOrBusiness parameter. References to deleted form in Agency or Business were not able to be deleted"})
+              }
             }
           }
         )

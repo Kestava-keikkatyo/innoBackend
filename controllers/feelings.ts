@@ -29,10 +29,10 @@ feelingsRouter.post("/", authenticateToken, needsToBeWorker, async (req: Request
         { $addToSet: { feelings: feelingsObject } },
         { new: true, omitUndefined: true, runValidators: true, lean: true },
         (error: CallbackError, result: DocumentDefinition<IWorkerDocument> | null) => {
-          if (!result || error) {
-            res.status(401).send(error || { message: "Received no result when updating user" })
+          if (error || !result) {
+            return res.status(500).send(error || { message: "Received no result when updating user" })
           } else {
-            res.status(200).send({ value: body.value, note: body.note })
+            return res.status(200).send({ value: body.value, note: body.note })
           }
         })
     } else {
@@ -104,7 +104,7 @@ feelingsRouter.get("/:workerId", authenticateToken, needsToBeAgencyOrBusiness, a
               if (error) {
                 return res.status(500).send(`error message: ${error.message}\n${error}`)
               }
-              for (let i = 0; i < contracts.length; i++) {
+              for (let i = 0; i < contracts.length; i++) { // TODO
                 // if (contracts[i].worker && contracts[i].worker instanceof Types.ObjectId && (contracts[i].worker as Types.ObjectId).equals(workerId)) {
                 //   if (contracts[i].contractMade) {
                 //     // Contract with worker found, so agency is allowed to see worker feelings.

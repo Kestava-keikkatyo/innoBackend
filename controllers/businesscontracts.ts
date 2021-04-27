@@ -12,20 +12,18 @@
 import express, {NextFunction, Request, Response} from "express"
 import authenticateToken from "../utils/auhenticateToken"
 import BusinessContract from "../models/BusinessContract"
-import { businessContractExists,
-  needsToBeAgency,
-  businessContractIncludesUser,
-  needsToBeAgencyBusinessOrWorker,
-  makeBusinessContract,
-  businessContractUpdate,
-  addContractToBusinessContract,
-  acceptBusinessContract,
-  declineBusinessContract} from "../utils/middleware"
+import { needsToBeAgency,
+  needsToBeAgencyBusinessOrWorker} from "../utils/middleware"
 import { error as _error} from "../utils/logger"
 import { buildPaginatedObjectFromArray } from "../utils/common"
 import {CallbackError, DocumentDefinition} from "mongoose"
 import {IBaseBody} from "../objecttypes/otherTypes";
 import {IBusinessContractDocument} from "../objecttypes/modelTypes";
+import {
+  acceptBusinessContract, addContractToBusinessContract, businessContractExists, businessContractIncludesUser,
+  businessContractUpdate,
+  declineBusinessContract, makeBusinessContract
+} from "../utils/businessContractMiddleware";
 
 const businesscontractsRouter = express.Router()
 
@@ -57,13 +55,13 @@ businesscontractsRouter.get("/:businessContractId", authenticateToken, needsToBe
           return res.status(200).send(body.businessContract)
         }
         else if (body.business !== undefined) {
-          return res.status(200).send({ "id":body.businessContract?._id,"agency": body.businessContract?.agency})
+          return res.status(200).send({ "id": body.businessContract?._id, "agency": body.businessContract?.agency })
         }
         else if (body.worker !== undefined) {
-          return res.status(200).send({ "id":body.businessContract?._id,"agency": body.businessContract?.agency})
+          return res.status(200).send({ "id": body.businessContract?._id, "agency": body.businessContract?.agency })
         }
       } else {
-        return res.status(400).send({ message:"User who is trying to use this route is not in workcontract" })
+        return res.status(400).send({ message: "User who is trying to use this route is not in workcontract" })
       }
     } catch (exception) {
       _error(exception.message)
@@ -119,12 +117,14 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
       return await BusinessContract.find(array,
         projection,
         { lean: true },
-        (err: CallbackError, result: DocumentDefinition<IBusinessContractDocument>[]) => {
-        if (err || !result) {
-          return res.status(404).send(err || { message:"Couldn't find any BusinessContracts" })
-        } else {
-          return res.status(200).send(buildPaginatedObjectFromArray(page, limit, result))
-        }
+        (error: CallbackError, result: DocumentDefinition<IBusinessContractDocument>[]) => {
+          if (error) {
+            return res.status(500).send(error)
+          } else if (result.length === 0) {
+            return res.status(404).send({ message: "Couldn't find any BusinessContracts" })
+          } else {
+            return res.status(200).send(buildPaginatedObjectFromArray(page, limit, result))
+          }
       })
     } catch (exception) {
       return next(exception)

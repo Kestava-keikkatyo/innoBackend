@@ -79,9 +79,10 @@ workersRouter.get("/me", authenticateToken, async (_req: Request, res: Response,
       undefined,
       { lean: true },
       (error: CallbackError, result: DocumentDefinition<IWorkerDocument> | null) => {
-      //Jos ei resultia niin käyttäjän tokenilla ei löydy käyttäjää
-      if (!result || error) {
-        res.status(401).send(error || { message: "Not authorized" })
+      if (error) {
+        res.status(500).send(error)
+      } else if (!result) { //Jos ei resultia niin käyttäjän tokenilla ei löydy käyttäjää
+        res.status(401).send({ message: "Not authorized" })
       } else {
         res.status(200).send(result)
       }
