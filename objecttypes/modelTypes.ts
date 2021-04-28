@@ -202,12 +202,13 @@ export interface ISubContract {
   }
 }
 
-export interface ISubContractDocument extends Document, Omit<ISubContract, "workers"> {
+export interface ISubContractDocument extends Document, Omit<ISubContract, "acceptedWorkers" | "requestWorkers"> {
   _id: Types.ObjectId,
   createdAt: Date,
-  workers: Array<IWorkerDocument['_id'] | IWorkerDocument>
+  acceptedWorkers: Array<IWorkerDocument['_id']> | Array<IWorkerDocument>,
+  requestWorkers: Array<IWorkerDocument['_id']> | Array<IWorkerDocument>
 }
-// Used when we want to type docs given in req.body. For calls with {lean: true} option, use DocumentDefinition<IFormDocument> for result type
+// Used when we want to type docs given in req.body for example. For calls with {lean: true} option, use DocumentDefinition<IFormDocument> for result type
 export interface IForm {
   title: string,
   isPublic: boolean,

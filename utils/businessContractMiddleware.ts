@@ -67,7 +67,7 @@ export const businessContractIncludesUser = (req: Request<unknown, unknown, IBas
   const {body} = req
   try {
     if (body.businessContract !== undefined) {
-      if (body.businessContract.agency.toString() === res.locals.decoded.id.toString()) { // TODO Agency hasn't been populated, so _id is undefined, so an exception will be caught.
+      if (body.businessContract.agency.toString() === res.locals.decoded.id.toString()) {
         body.userInBusinessContract = true
       } else {
         if (body.businessContract.madeContracts.businesses.includes(res.locals.decoded.id)) {
@@ -390,16 +390,17 @@ export const businessContractUpdate = (req: Request<ParamsDictionary, unknown, I
     return BusinessContract.updateOne(body.businessContractUpdateFilterQuery,
       updateFields,
       {omitUndefined: true},
-      (error: CallbackError, doc: any) => {
+      (error: CallbackError, rawResult: any) => {
         if (error) {
           return res.status(500).send(error)
-        } else if (!doc) {
+        } else if (!rawResult) {
           return res.status(400).send({success: false, error: "Could not update BusinessContract with id " + id})
         } else {
-          return res.status(200).send(doc) // TODO updateOne doesn't return doc.
+          return res.status(200).send(rawResult) // TODO Halutaanko palauttaa rawResult?
         }
       })
   } catch (exception) {
     return res.status(500).send({exception})
   }
 }
+export default {}

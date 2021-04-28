@@ -21,10 +21,7 @@ import {
   needsToBeAgencyBusinessOrWorker,
   needsToBeAgencyOrBusiness,
   needsToBeWorker,
-  needsToBeBusiness,
-  acceptWorkers,
-  revertWorkers,
-  declineWorkers} from "../utils/middleware"
+  needsToBeBusiness} from "../utils/middleware"
 import { buildPaginatedObjectFromArray, deleteTracesOfFailedWorkContract } from "../utils/common"
 import {
   IAgencyDocument,
@@ -38,10 +35,10 @@ import {IBaseBody, IBodyWithIds, IRemovedTraces} from "../objecttypes/otherTypes
 import {CallbackError, DocumentDefinition, Types} from "mongoose"
 import {ParamsDictionary} from "express-serve-static-core"
 import {
-  acceptWorkContract,
+  acceptWorkContract, acceptWorkers,
   addTraceToWorker,
-  addWorkerToWorkContract, checkUserInWorkContract,
-  newContractToWorkContract, pathWorkContractExists, updateWorkContract, workContractIncludesUser
+  addWorkerToWorkContract, checkUserInWorkContract, declineWorkers,
+  newContractToWorkContract, workContractExists, revertWorkers, updateWorkContract, workContractIncludesUser
 } from "../utils/workContractMiddleware";
 const workcontractsRouter = express.Router()
 
@@ -49,7 +46,6 @@ const domainUrl = "http://localhost:8000/"
 const workContractsApiPath = "workcontracts/"
 
 /**
- * TODO:THIS ROUTE DOESNT WORK RIGHT
  * Route is used to get one users workContract with :contractId
  * Requires that the logged in user is authored to see this contract.
  * @name GET /workcontracts
@@ -61,13 +57,13 @@ const workContractsApiPath = "workcontracts/"
  * @param {callback} needsToBeAgencyBusinessOrWorker - Checks if the logged in user is Agency, Business or Worker.
  * <pre>Full description: {@link needsToBeAgencyBusinessOrWorker}</pre>
  * @param {callback} pathWorkContractExists - Checks if a WorkContract with url param :contractId exists.
- * <pre>Full description: {@link pathWorkContractExists}</pre>
+ * <pre>Full description: {@link workContractExists}</pre>
  * @param {callback} workContractIncludesUser - Checks if user who is using route is in workcontract.
  * <pre>Full description: {@link workContractIncludesUser}</pre>
  * @throws {JSON} Status 400 - res.body: { message: "User who is trying to use this route is not in workcontract" }
  * @returns {JSON} Status 200 - res.body: { The found WorkContract object }
 */
-workcontractsRouter.get("/:contractId", authenticateToken, needsToBeAgencyBusinessOrWorker, pathWorkContractExists, workContractIncludesUser,
+workcontractsRouter.get("/:contractId", authenticateToken, needsToBeAgencyBusinessOrWorker, workContractExists, workContractIncludesUser,
 (req: Request<unknown, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { body } = req
   try {
@@ -296,13 +292,13 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
  * @param {String} path - Express path.
  * @param {callback} authenticateToken - Decodes token.
  * @param {callback} needsToBeBusiness - Checks if the logged in user is Business. <pre>Full description: {@link needsToBeBusiness}</pre>
- * @param {callback} pathWorkContractExists - Checks if a WorkContract with url param :contractId exists. <pre>Full description: {@link pathWorkContractExists}</pre>
+ * @param {callback} pathWorkContractExists - Checks if a WorkContract with url param :contractId exists. <pre>Full description: {@link workContractExists}</pre>
  * @param {callback} workContractIncludesUser - Checks if user who is using route is in workcontract. <pre>Full description: {@link workContractIncludesUser}</pre>
  * @param {callback} checkUserInWorkContract - Checks workContractIncludesUser functions result. <pre>Full description: {@link checkUserInWorkContract}</pre>
  * @param {callback} updateWorkContract - Updates workContract object with given req.params.contractId in database. <pre>Full description: {@link updateWorkContract}</pre>
  * @returns {JSON} Status 200 - res.body: { The updated workcontract object }
  */
-workcontractsRouter.put("/:contractId/new", authenticateToken, needsToBeBusiness, pathWorkContractExists, workContractIncludesUser, checkUserInWorkContract,
+workcontractsRouter.put("/:contractId/new", authenticateToken, needsToBeBusiness, workContractExists, workContractIncludesUser, checkUserInWorkContract,
   newContractToWorkContract, updateWorkContract)
 /**
  * Route used to add worker to contract workers array list.
@@ -313,11 +309,11 @@ workcontractsRouter.put("/:contractId/new", authenticateToken, needsToBeBusiness
  * @param {String} path - Express path.
  * @param {callback} authenticateToken - Decodes token. <pre>Full description: {@link authenticateToken}</pre>
  * @param {callback} needsToBeWorker - Checks that user is worker. <pre>Full description: {@link needsToBeWorker}</pre>
- * @param {callback} pathWorkContractExists - Checks that WorkContract with :contractId exist. <pre>Full description: {@link pathWorkContractExists}</pre>
+ * @param {callback} pathWorkContractExists - Checks that WorkContract with :contractId exist. <pre>Full description: {@link workContractExists}</pre>
  * @param {callback} addWorkerToWorkContract - Initializes update fields (adds worker to list). <pre>Full description: {@link addWorkerToWorkContract}</pre>
  * @param {callback} updateWorkContract - Updates WorkContract in database. <pre>Full description: {@link updateWorkContract}</pre>
  */
-workcontractsRouter.put("/:contractId/:contractsId/add", authenticateToken, needsToBeWorker,  pathWorkContractExists,
+workcontractsRouter.put("/:contractId/:contractsId/add", authenticateToken, needsToBeWorker,  workContractExists,
   addWorkerToWorkContract, addTraceToWorker, updateWorkContract)
 /**
  * Route is used by Business and Agency to accept contract
@@ -329,13 +325,13 @@ workcontractsRouter.put("/:contractId/:contractsId/add", authenticateToken, need
  * @param {String} path - Express path.
  * @param {callback} authenticateToken - Decodes token.
  * @param {callback} needsToBeAgencyOrBusiness - Checks that user is Agency or Business. <pre>Full description: {@link needsToBeAgencyOrBusiness}</pre>
- * @param {callback} pathWorkContractExists - Checks that WorkContract with :contractId exist. <pre>Full description: {@link pathWorkContractExists}</pre>
+ * @param {callback} pathWorkContractExists - Checks that WorkContract with :contractId exist. <pre>Full description: {@link workContractExists}</pre>
  * @param {callback} workContractIncludesUser - Checks that WorkContract includes user. <pre>Full description: {@link workContractIncludesUser}</pre>
  * @param {callback} checkUserInWorkContract - Checks workContractIncludesUser functions result. <pre>Full description: {@link checkUserInWorkContract}</pre>
  * @param {callback} acceptWorkContract - Initializes accept update fields. <pre>Full description: {@link acceptWorkContract}</pre>
  * @param {callback} updateWorkContract - Updates WorkContract in database. <pre>Full description: {@link updateWorkContract}</pre>
  */
-workcontractsRouter.put("/:contractId/:contractsId/accept", authenticateToken, needsToBeAgencyOrBusiness, pathWorkContractExists, workContractIncludesUser, checkUserInWorkContract,
+workcontractsRouter.put("/:contractId/:contractsId/accept", authenticateToken, needsToBeAgencyOrBusiness, workContractExists, workContractIncludesUser, checkUserInWorkContract,
   acceptWorkContract, updateWorkContract)
 /**
  * Route is used by Agency to accept workers who have send request to the contract.
@@ -347,13 +343,13 @@ workcontractsRouter.put("/:contractId/:contractsId/accept", authenticateToken, n
  * @param {String} path - Express path.
  * @param {callback} authenticateToken - Decodes token.
  * @param {callback} needsToBeAgency - Checks that user is Agency. <pre> Full description: {@link needsToBeAgency}</pre>
- * @param {callback} pathWorkContractExists - Checks that WorkContract with :contractId exist. <pre>Full description: {@link pathWorkContractExists}</pre>
+ * @param {callback} pathWorkContractExists - Checks that WorkContract with :contractId exist. <pre>Full description: {@link workContractExists}</pre>
  * @param {callback} workContractIncludesUser - Checks that WorkContract includes user. <pre>Full description: {@link workContractIncludesUser}</pre>
  * @param {callback} checkUserInWorkContract - Checks workContractIncludesUser functions result. <pre>Full description: {@link checkUserInWorkContract}</pre>
  * @param {callback} acceptWorkers - Initializes update that moves selected workers from requestWorkers array to acceptWorkers array. <pre>Full description:{@link acceptWorkers}</pre>
  * @param {callback} updateWorkContract - Updates WorkContract in database. <pre>Full description: {@link updateWorkContract}</pre>
  */
-workcontractsRouter.put("/:contractId/:contractsId/acceptWorkers",authenticateToken,needsToBeAgency,pathWorkContractExists,workContractIncludesUser,checkUserInWorkContract,
+workcontractsRouter.put("/:contractId/:contractsId/acceptWorkers",authenticateToken,needsToBeAgency,workContractExists,workContractIncludesUser,checkUserInWorkContract,
 acceptWorkers, updateWorkContract)
 /**
  * Route is used by Agency to revert workers who have been accepted to the contract.
@@ -365,13 +361,13 @@ acceptWorkers, updateWorkContract)
  * @param {String} path - Express path.
  * @param {callback} authenticateToken - Decodes token.
  * @param {callback} needsToBeAgency - Checks that user is Agency. <pre> Full description: {@link needsToBeAgency}</pre>
- * @param {callback} pathWorkContractExists - Checks that WorkContract with :contractId exist. <pre>Full description: {@link pathWorkContractExists}</pre>
+ * @param {callback} pathWorkContractExists - Checks that WorkContract with :contractId exist. <pre>Full description: {@link workContractExists}</pre>
  * @param {callback} workContractIncludesUser - Checks that WorkContract includes user. <pre>Full description: {@link workContractIncludesUser}</pre>
  * @param {callback} checkUserInWorkContract - Checks workContractIncludesUser functions result. <pre>Full description: {@link checkUserInWorkContract}</pre>
  * @param {callback} revertWorkers - Initializes update that moves selected workers from acceptWorkers array to requestWorkers array. <pre>Full description:{@link revertWorkers}</pre>
  * @param {callback} updateWorkContract - Updates WorkContract in database. <pre>Full description: {@link updateWorkContract}</pre>
  */
-workcontractsRouter.put("/:contractId/:contractsId/revertWorkers",authenticateToken,needsToBeAgency,pathWorkContractExists,workContractIncludesUser,checkUserInWorkContract,
+workcontractsRouter.put("/:contractId/:contractsId/revertWorkers",authenticateToken,needsToBeAgency,workContractExists,workContractIncludesUser,checkUserInWorkContract,
 revertWorkers, updateWorkContract)
 /**
  * Route is used by Agency or Business to remove workers who have been accepted or have send request to the contract.
@@ -383,13 +379,13 @@ revertWorkers, updateWorkContract)
  * @param {String} path - Express path.
  * @param {callback} authenticateToken - Decodes token.
  * @param {callback} needsToBeAgency - Checks that user is Agency. <pre> Full description: {@link needsToBeAgency}</pre>
- * @param {callback} pathWorkContractExists - Checks that WorkContract with :contractId exist. <pre>Full description: {@link pathWorkContractExists}</pre>
+ * @param {callback} pathWorkContractExists - Checks that WorkContract with :contractId exist. <pre>Full description: {@link workContractExists}</pre>
  * @param {callback} workContractIncludesUser - Checks that WorkContract includes user. <pre>Full description: {@link workContractIncludesUser}</pre>
  * @param {callback} checkUserInWorkContract - Checks workContractIncludesUser functions result. <pre>Full description: {@link checkUserInWorkContract}</pre>
  * @param {callback} declineWorkers - Initializes update that removes selected workers from acceptWorkers array and requestWorkers array. <pre>Full description:{@link declineWorkers}</pre>
  * @param {callback} updateWorkContract - Updates WorkContract in database. <pre>Full description: {@link updateWorkContract}</pre>
  */
-workcontractsRouter.put("/:contractId/:contractsId/declineWorkers",authenticateToken,needsToBeAgencyOrBusiness,pathWorkContractExists,workContractIncludesUser,checkUserInWorkContract,
+workcontractsRouter.put("/:contractId/:contractsId/declineWorkers",authenticateToken,needsToBeAgencyOrBusiness,workContractExists,workContractIncludesUser,checkUserInWorkContract,
 declineWorkers, updateWorkContract)
 
 /**
@@ -410,7 +406,7 @@ declineWorkers, updateWorkContract)
  * @param {callback} needsToBeAgency - Checks if the logged in user is an Agency.
  * <pre>Full description: {@link needsToBeAgency}</pre>
  * @param {callback} pathWorkContractExists - Checks if a WorkContract with url param :contractId exists.
- * <pre>Full description: {@link pathWorkContractExists}</pre>
+ * <pre>Full description: {@link workContractExists}</pre>
  * @param {callback} workContractIncludesUser - Checks if user who is using route is in workcontract.
  * <pre>Full description: {@link workContractIncludesUser}</pre>
  * @throws {JSON} Status 401 - res.body: { message: "This route is only available to Agency who is in this contract." }
@@ -426,7 +422,7 @@ declineWorkers, updateWorkContract)
 workcontractsRouter.delete("/:contractId",
 authenticateToken,
 needsToBeAgency,
-pathWorkContractExists,
+workContractExists,
 workContractIncludesUser,
 async (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { body, params } = req
@@ -461,7 +457,7 @@ async (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: 
             }
           )
         } else {
-          return res.status(406).json({ // TODO 406???
+          return res.status(406).json({
             message:
              "Couldn't delete references of this WorkContract"+
              ", WorkerTraceRemoved: "+result.workerTraceRemoved+

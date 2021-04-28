@@ -104,7 +104,7 @@ feelingsRouter.get("/:workerId", authenticateToken, needsToBeAgencyOrBusiness, a
               if (error) {
                 return res.status(500).send(`error message: ${error.message}\n${error}`)
               }
-              for (let i = 0; i < contracts.length; i++) { // TODO
+              for (let i = 0; i < contracts.length; i++) { // TODO madeContract.workers
                 // if (contracts[i].worker && contracts[i].worker instanceof Types.ObjectId && (contracts[i].worker as Types.ObjectId).equals(workerId)) {
                 //   if (contracts[i].contractMade) {
                 //     // Contract with worker found, so agency is allowed to see worker feelings.
@@ -131,8 +131,8 @@ feelingsRouter.get("/:workerId", authenticateToken, needsToBeAgencyOrBusiness, a
               }
               for (let i = 0; i < result.length; i++) { // TODO Can this be done with just the find query?
                 for (let j = 0; j < result[i].contracts.length; j++) {
-                  for (let k = 0; k < result[i].contracts[j].workers.length; k++) {
-                    if (result[i].contracts[j].workers[k] instanceof Types.ObjectId && (result[i].contracts[j].workers[k] as Types.ObjectId).equals(workerId)) {
+                  for (let k = 0; k < result[i].contracts[j].acceptedWorkers.length; k++) {
+                    if (result[i].contracts[j].acceptedWorkers[k] instanceof Types.ObjectId && (result[i].contracts[j].acceptedWorkers[k] as Types.ObjectId).equals(workerId)) {
                       if (Date.now() >= result[i].contracts[j].validityPeriod.startDate.getTime() && Date.now() <= result[i].contracts[j].validityPeriod.endDate.getTime()) {
                         // Contract with worker found, so business is allowed to see worker feelings.
                         return res.status(200).send(buildPaginatedObjectFromArray(page, limit, worker.feelings))

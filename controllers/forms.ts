@@ -384,7 +384,7 @@ formsRouter.delete("/:formId", authenticateToken, needsToBeAgencyOrBusiness, asy
 
 /**
  * Helper function for deleting the form. Helps reduce duplicate code.
- * @param agencyOrBusiness Agency or Business model
+ * @param agencyOrBusiness string that tells whether to use Agency or Business Model. Can either be "Agency" or "Business"
  * @param agencyOrBusinessObject request.agency or request.business. Depending on which one is trying to delete the form
  * @param formId request.params.formId. The id of the form that you want to delete
  * @param res

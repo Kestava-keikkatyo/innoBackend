@@ -11,9 +11,8 @@ import Business from "../models/Business"
 import Agency from "../models/Agency"
 import Worker from "../models/Worker"
 import {IAgencyDocument, IBusinessDocument, IWorkerDocument} from "../objecttypes/modelTypes"
-import {CallbackError, DocumentDefinition, Types} from "mongoose"
+import {CallbackError, DocumentDefinition} from "mongoose"
 import {IBaseBody, IBodyWithIds} from "../objecttypes/otherTypes"
-import {ParamsDictionary} from "express-serve-static-core"
 
 export const requestLogger = (req: Request, _res: Response, next: NextFunction) => {
   info("Method:", req.method)
@@ -107,8 +106,8 @@ export const bodyWorkerExists = (req: Request<unknown, unknown, IBodyWithIds>, r
 
 /**
  * Checks if a Business with request.body.businessId or Worker with request.body.workerId exists.
- * IF Worker exists populate Worker Object to request.body.worker and populates request.body.contractType with "Worker" String.
- * IF Business exists populate Business Object to request.body.business and populates request.body.contractType with "Business" String.
+ * IF Worker exists populate Worker Object to request.body.worker.
+ * IF Business exists populate Business Object to request.body.business.
  * @param {String} req.body.workerId - WorkerId from body.
  * @param {String} req.body.businessId - BusinessId from body.
  * @param {Request} req - Express Request.
@@ -130,7 +129,6 @@ export const bodyWorkerOrBusinessExists = (req: Request, res: Response, next: Ne
           return res.status(404).send({ error: "No worker found with the request workerId." })
         } else {
           body.worker = result
-          body.contractType = "Worker" // TODO Function unused. Also, contractType isn't used anymore, right?
           return next()
         }
       })
@@ -142,7 +140,6 @@ export const bodyWorkerOrBusinessExists = (req: Request, res: Response, next: Ne
           return res.status(404).send({ error: "No business found with the requested businessId." })
         } else {
           body.business = result
-          body.contractType = "Business"
           return next()
         }
       })
@@ -406,146 +403,38 @@ export const needsToBeBusinessOrWorker = (req: Request<unknown, unknown, IBaseBo
  */
 export const needsToBeAgencyBusinessOrWorker = (req: Request<unknown, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { body } = req
-  try { // TODO Possibly fix callback hell
+  try {
     return Agency.findById(res.locals.decoded.id, (error: CallbackError, result: IAgencyDocument | null) => {
-      if (!error) {
-        if (!result) {
-          Business.findById(res.locals.decoded.id, (error: CallbackError, result: IBusinessDocument | null) => {
-            if (!error) {
-              if (!result) {
-                Worker.findById(res.locals.decoded.id, (error: CallbackError, result: IWorkerDocument | null) => {
-                  if (error) {
-                    return res.status(500).send(error)
-                  } else if (!result) {
-                    return res.status(401).send({ message: "This route is only available to Agency, Business or Worker users." })
-                  } else {
-                    body.worker = result
-                    return next()
-                  }
-                })
-              } else {
-                body.business = result
-                return next()
-              }
-            } else {
-              return res.status(500).send(error)
-            }
-          })
-        } else {
-          body.agency = result
-          return next()
-        }
-      } else {
+      if (error) {
         return res.status(500).send(error)
       }
-    } )
+      if (result) {
+        body.agency = result
+        return next()
+      }
+      Business.findById(res.locals.decoded.id, (error: CallbackError, result: IBusinessDocument | null) => {
+        if (error) {
+          return res.status(500).send(error)
+        }
+        if (result) {
+          body.business = result
+          return next()
+        }
+        Worker.findById(res.locals.decoded.id, (error: CallbackError, result: IWorkerDocument | null) => {
+          if (error) {
+            return res.status(500).send(error)
+          } else if (!result) {
+            return res.status(401).send({ message: "This route is only available to Agency, Business or Worker users." })
+          } else {
+            body.worker = result
+            return next()
+          }
+        })
+      })
+    })
   } catch (error) {
     return res.status(500).send({ error })
   }
 }
 
-/**
- * This middleware function is used to initialize update that moves workerIds
- * from requestWorkers array to acceptedWorkers array.
- * Also changes acceptedBusiness to false.
- * @param {Request} req - Express Request.
- * @param {Response} res - Express Response.
- * @param {NextFunction} next - NextFunction.
- * @returns {NextFunction} next()
- */
-export const acceptWorkers = (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
-  const { body,params } = req
-  let id: Types.ObjectId
-  try {
-    id = Types.ObjectId(params.contractsId)
-  } catch (exception) {
-    return res.status(403).send({ message: "Note: contractsId must be string."})
-  }
-  try {
-    body.workContractUpdate = {
-      $pull: {
-        'contracts.$.requestWorkers': { $in: body.workersArray }
-      },
-      $addToSet: {
-        'contracts.$.acceptedWorkers': { $each: body.workersArray }
-      },
-      $set: {
-        'contracts.$.acceptedBusiness': false
-      }
-    }
-    body.updateFilterQuery = { 'contracts._id': id }
-    return next()
-  } catch (exception) {
-    return res.status(500).send({ exception })
-  }
-}
-/**
- * This middleware function is used to initialize update that moves workerIds
- * from acceptedWorkers array to requestWorkers array.
- * Also changes acceptedBusiness to false.
- * @param {Request} req - Express Request.
- * @param {Response} res - Express Response.
- * @param {NextFunction} next - NextFunction.
- * @returns {NextFunction} next()
- */
-export const revertWorkers = (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
-  const { body,params } = req
-  let id: Types.ObjectId
-  try {
-    id = Types.ObjectId(params.contractsId)
-  } catch (exception) {
-    return res.status(403).send({ message: "Note: contractsId must be string."})
-  }
-  try {
-    body.workContractUpdate = {
-      $pull: {
-        'contracts.$.acceptedWorkers': { $in: body.workersArray }
-      },
-      $addToSet: {
-        'contracts.$.requestWorkers': { $each: body.workersArray }
-      },
-      $set: {
-        'contracts.$.acceptedBusiness': false
-      }
-    }
-    body.updateFilterQuery = { 'contracts._id': id }
-    return next()
-  } catch (exception) {
-    return res.status(500).send({ exception })
-  }
-}
-/**
- * This middleware function is used to initialize update that removes workerIds
- * from acceptedWorkers array and requestWorkers array.
- * Also changes acceptedBusiness and accpetedAgency to false.
- * @param {Request} req - Express Request.
- * @param {Response} res - Express Response.
- * @param {NextFunction} next - NextFunction.
- * @returns {NextFunction} next()
- */
-export const declineWorkers = (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
-  const { body,params } = req
-  let id: Types.ObjectId
-  try {
-    id = Types.ObjectId(params.contractsId)
-  } catch (exception) {
-    return res.status(403).send({ message: "Note: contractsId must be string."})
-  }
-  try {
-    body.workContractUpdate = {
-      $pull: {
-        'contracts.$.acceptedWorkers': { $in: body.workersArray },
-        'contracts.$.requestWorkers': { $in: body.workersArray }
-      },
-      $set: {
-        'contracts.$.acceptedBusiness': false,
-        'contracts.$.acceptedAgency': false
-      }
-    }
-    body.updateFilterQuery = { 'contracts._id': id }
-    return next()
-  } catch (exception) {
-    return res.status(500).send({ exception })
-  }
-}
 export default {}
