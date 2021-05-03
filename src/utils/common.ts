@@ -8,7 +8,7 @@ import Worker from "../models/Worker"
 import Business from "../models/Business"
 import Agency from "../models/Agency"
 
-import { error as _error } from "../utils/logger"
+import { error as _error } from "./logger"
 import {CallbackError, /*Model,*/ Schema, Types} from "mongoose"
 import {IAgencyDocument, IBusinessDocument, /*IBusinessContract, IWorkContract,*/ IWorkerDocument} from "../objecttypes/modelTypes";
 import {IBaseBody} from "../objecttypes/otherTypes";

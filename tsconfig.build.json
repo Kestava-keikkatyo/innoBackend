@@ -1,0 +1,10 @@
+{
+    "extends": "./tsconfig.json",
+    "exclude": [
+        "seed",
+        "jsdoc",
+        "tests",
+        "**/*.spec.ts",
+        "**/*.test.ts",
+    ]
+}

@@ -1,11 +1,11 @@
 const bcrypt = require("bcryptjs")
 const data = require("./data.json")
-const config = require("../utils/config")
-const logger = require("../utils/logger")
+const config = require("../src/utils/config")
+const logger = require("../src/utils/logger")
 const mongoose = require("mongoose")
-const User = require("../models/User")
-const Agency = require("../models/Agency")
-const Business = require("../models/Business")
+const User = require("../src/models/User")
+const Agency = require("../src/models/Agency")
+const Business = require("../src/models/Business")
 
 const getAgencySchema = (worker, hash) => new Agency({
   name: worker.name,
