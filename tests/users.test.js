@@ -1,12 +1,12 @@
 /* eslint-disable no-unused-vars */
-import Worker from "../models/Worker"
-import Business from "../models/Business"
-import Agency from "../models/Agency"
+import Worker from "../src/models/Worker"
+import Business from "../src/models/Business"
+import Agency from "../src/models/Agency"
 import supertest from "supertest"
 import mongoose from "mongoose"
 import { usersInDb } from "./test_helper"
 import bcrypt from "bcryptjs"
-import app from "../app"
+import app from "../src/app"
 
 const api = supertest(app)
 
