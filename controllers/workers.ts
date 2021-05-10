@@ -18,27 +18,65 @@ import authenticateToken from "../utils/auhenticateToken"
 import Worker from "../models/Worker"
 import Agency from "../models/Agency"
 import {IAgencyDocument, IWorker, IWorkerDocument} from "../objecttypes/modelTypes";
-import {CallbackError, DocumentDefinition} from "mongoose";
+import {CallbackError} from "mongoose";
 
 
 const workersRouter = express.Router()
 
 /**
- * req.body requirements: {name: "name", email: "email", password: "password"}
- * Route used for Worker registration.
- * Returns a token that is used for worker log in.
- * @name POST /workers
- * @function
- * @memberof module:controllers/workers~workersRouter
- * @inner
- * @returns {JSON} response.body: { token, name: worker.name, email: worker.email, role: "worker" }
+ * @openapi
+ * /workers:
+ *   post:
+ *     summary: Route for registering a new worker account
+ *     description: Returns a token that works like the token given when logging in.
+ *     tags: [Worker]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - email
+ *               - password
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *                 format: password
+ *             example:
+ *               name: John Doe
+ *               email: example.email@example.com
+ *               password: password123
+ *     responses:
+ *       "200":
+ *         description: |
+ *           New worker created.
+ *           For authentication, token needs to be put in a header called "x-access-token" in most other calls.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/LoginOrRegister"
+ *       "400":
+ *         description: Incorrect password
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Password length less than 3 characters
  */
 workersRouter.post("/", async (req: Request<unknown, unknown, IWorker>, res: Response, next: NextFunction) => {
   try {
     const { body } = req
     const passwordLength: number = body.password ? body.password.length : 0
     if (passwordLength < 3) {
-      return res.status(400).json({ error: "Password length less than 3 characters" })
+      return res.status(400).json({ message: "Password length less than 3 characters" })
     }
     const saltRounds: number = 10
     const passwordHash: string = await hash(body.password, saltRounds)
@@ -63,13 +101,39 @@ workersRouter.post("/", async (req: Request<unknown, unknown, IWorker>, res: Res
 })
 
 /**
- * Route used to find worker with decoded authenticateToken.
- * Requires user logged in as a Worker
- * @name GET /workers/me
- * @function
- * @memberof module:controllers/workers~workersRouter
- * @inner
- * @returns {JSON} res.body: { The found Worker object }
+ * @openapi
+ * /workers/me:
+ *   get:
+ *     summary: Route for worker to get their own info
+ *     tags: [Worker]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     responses:
+ *       "200":
+ *         description: Returns the worker object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Worker"
+ *       "401":
+ *         description: Incorrect token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Not authorized
+ *       "500":
+ *         description: An error occurred when calling the database.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
  */
 workersRouter.get("/me", authenticateToken, async (_req: Request, res: Response, next: NextFunction) => {
   try {
@@ -77,8 +141,8 @@ workersRouter.get("/me", authenticateToken, async (_req: Request, res: Response,
     //Tokeni pitää sisällään workerid jolla etsitään oikean käyttäjän tiedot
     Worker.findById(res.locals.decoded.id,
       undefined,
-      { lean: true },
-      (error: CallbackError, result: DocumentDefinition<IWorkerDocument> | null) => {
+      undefined,
+      (error: CallbackError, result: IWorkerDocument | null) => {
       if (error) {
         res.status(500).send(error)
       } else if (!result) { //Jos ei resultia niin käyttäjän tokenilla ei löydy käyttäjää
@@ -93,13 +157,52 @@ workersRouter.get("/me", authenticateToken, async (_req: Request, res: Response,
 })
 
 /**
- * Route used to update workers password.
- * Requires user logged in as a Worker. req.body OPTIONAL: Properties as per Worker model.
- * @name PUT /workers
- * @function
- * @memberof module:controllers/workers~workersRouter
- * @inner
- * @returns {JSON} res.body: { The found Worker object }
+ * Route used to update worker's information.
+ * @openapi
+ * /workers:
+ *   put:
+ *     summary: Route for worker to update their own info. For example password.
+ *     tags: [Worker]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     requestBody:
+ *       description: |
+ *         Any properties that want to be updated are given in request body.
+ *         Properties can be any updatable property in the worker object.
+ *       content:
+ *         application/json:
+ *           schema:
+ *             example:
+ *               password: newPass
+ *               phonenumber: "4321"
+ *     responses:
+ *       "200":
+ *         description: Worker information updated. Returns updated worker.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Worker"
+ *       "400":
+ *         description: Incorrect password
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Password length less than 3 characters
+ *       "404":
+ *         description: Worker wasn't found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Worker not found
  */
 workersRouter.put("/", authenticateToken, async (req: Request<unknown, unknown, IWorker>, res: Response, next: NextFunction) => {
   const { body } = req
@@ -110,7 +213,7 @@ workersRouter.put("/", authenticateToken, async (req: Request<unknown, unknown, 
     if (body.password) {
       const passwordLength: number = body.password ? body.password.length : 0
       if (passwordLength < 3) {
-        return res.status(400).json({ error: "password length less than 3 characters" })
+        return res.status(400).json({ message: "password length less than 3 characters" })
       }
       const saltRounds: number = 10
       passwordHash = await hash(body.password, saltRounds)
@@ -121,7 +224,7 @@ workersRouter.put("/", authenticateToken, async (req: Request<unknown, unknown, 
     // Salattu salasana luodaan ylempänä.
     delete body.passwordHash
 
-    // päivitetään bodyn kentät (mitä pystytään päivittämään, eli name ja phonenumber).
+    // päivitetään bodyn kentät (mitä pystytään päivittämään).
     // lisätään passwordHash päivitykseen, jos annetaan uusi salasana.
     const updateFields = {
       ...body,
@@ -134,7 +237,7 @@ workersRouter.put("/", authenticateToken, async (req: Request<unknown, unknown, 
       { new: true, omitUndefined: true, runValidators: true })
 
     if (!updatedWorker) {
-      return res.status(400).json({ error: "Worker not found" })
+      return res.status(404).json({ message: "Worker not found" })
     }
     return res.status(200).json(updatedWorker)
 
@@ -144,15 +247,43 @@ workersRouter.put("/", authenticateToken, async (req: Request<unknown, unknown, 
 })
 
 /**
- * Requires user logged in as an Agency. req.query.name: Worker name to be searched
- * Retrieves all workers that have a matching name pattern.
- * @example
- * http://localhost:3001/api/workers?name=jarmo
- * @name GET /workers
- * @function
- * @memberof module:controllers/workers~workersRouter
- * @inner
- * @returns {JSON} res.body: { List of workers }
+ * @openapi
+ * /workers:
+ *   get:
+ *     summary: Route for agency to search for workers by name
+ *     description: Need to be logged in as an agency.
+ *     tags: [Agency, Worker]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: query
+ *         name: name
+ *         description: Worker name we want to search for
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: jarmo
+ *     responses:
+ *       "200":
+ *         description: Returns found workers
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: "#/components/schemas/Worker"
+ *       "404":
+ *         description: No workers found with a matching name
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Workers not found
  */
 workersRouter.get("/", authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
   const { query } = req
@@ -172,7 +303,7 @@ workersRouter.get("/", authenticateToken, async (req: Request, res: Response, ne
         return res.status(200).json(workers)
       }
     }
-    return res.status(400).json({ error: "Workers not found" })
+    return res.status(400).json({ message: "Workers not found" })
   } catch (exception) {
     return next(exception)
   }

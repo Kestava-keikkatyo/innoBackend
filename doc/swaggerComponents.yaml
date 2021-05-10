@@ -1,0 +1,778 @@
+# This file includes definitions ("schemas") for objects in the openapi documentation.
+# TODO Possibly make different schemas for objects in req.body and response. req.body objects don't have e.g. _id most of the time, while responses do.
+# TODO some are missing examples. Add them.
+components:
+  schemas:
+    AccessToken:
+      type: string
+      example:
+        eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RvQHRlc3QuY29tIiwiaWQiOiI2MDkyYmUyN2M2NDc3MjNjYjg5NDBjMGEiLCJpYXQiOjE2MjAyMjk5NTR9.OtckVH7A-Re1GCtrbw_m10iphjqpQ6Sau23-AYTS9qY
+
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+
+    LoginOrRegister:
+      type: object
+      properties:
+        token:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+      example:
+        token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imphcm1vQHRlc3QuY29tIiwiaWQiOiI2MDE4MDEyYTg4YjgzNzU2MzBhNmEzYzQiLCJpYXQiOjE2MjAxNDczNjl9.m-9L0eGjThZKA7qQKleit7QtpS8ZtM2NeP4y37BO_0g
+        name: John Doe
+        email: fake@example.com
+        role: worker || business || agency
+
+    Worker:
+      type: object
+      properties:
+        _id:
+          type: string
+        createdAt:
+          type: string
+          format: date
+        businessContracts:
+          type: array
+          items:
+            type: string
+        workContracts:
+          type: array
+          items:
+            type: string
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        phonenumber:
+          type: string
+        licenses:
+          type: array
+          items:
+            type: string
+        feelings:
+          type: array
+          items:
+            allOf:
+              - $ref: "#/components/schemas/Feeling"
+              - type: object
+                properties:
+                  _id:
+                    type: string
+                  createdAt:
+                    type: string
+                    format: date
+        userType:
+          type: string
+          default: Worker
+      example:
+        _id: 6018012a88b8375630a6a3c4
+        createdAt: 2021-02-01T13:24:58.055Z
+        licenses: []
+        name: jarmo-worker
+        email: jarmo@test.com
+        __v: 0
+        phonenumber: "1234"
+        workContracts: [
+          6031524530c1de2568fb6606
+        ]
+        feelings: [
+          {
+            createdAt: 2021-02-10T21:24:23.182Z,
+            _id: 60244f24b890797620d4be05,
+            value: 0
+          },
+          {
+            createdAt: 2021-02-10T21:24:23.182Z,
+            _id: 60245185b890797620d4be0a,
+            value: 3,
+            note: Hyvä päivä. Oli ihan mukavaa :)
+          },
+          {
+            _id: 6031517730c1de2568fb6605,
+            value: 1,
+            note: Iha ok :|,
+            createdAt: 2021-02-20T18:14:15.623Z
+          },
+          {
+            _id: 6063c29a36faa95ccc41e61f,
+            value: 1,
+            createdAt: 2021-03-31T00:30:18.444Z
+          }
+        ]
+
+    Business:
+      type: object
+      properties:
+        _id:
+          type: string
+        createdAt:
+          type: string
+          format: date
+        forms:
+          type: array
+          items:
+            type: string
+        businessContracts:
+          type: array
+          items:
+            type: string
+        workContracts:
+          type: array
+          items:
+            type: string
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        city:
+          type: string
+        postnumber:
+          type: string
+        address:
+          type: string
+        phonenumber:
+          type: string
+        securityOfficer:
+          type: string
+        userType:
+          type: string
+          default: Business
+        videoUriId:
+          type: string
+        instructions:
+          type: array
+          items:
+            type: string
+        workingHours:
+          type: object
+          properties:
+            start:
+              type: number
+            end:
+              type: number
+        contactPreference:
+          type: string
+        socialMedias:
+          type: array
+          items:
+            type: string
+        __v:
+          type: integer
+      example:
+        forms: [
+          604206a03ac7182ec444d6cf,
+          6068f12c7516b02c54d86ae9
+        ]
+        workContracts: []
+        businessContracts: [
+          60306af11af8fd46d46f295c
+        ]
+        userType: Business
+        instructions: []
+        socialMedias: []
+        _id: 6018012a88b8375630a6a3c2
+        createdAt: 2021-02-01T13:24:58.074Z
+        name: jarmo-business
+        email: jarmo@test.com
+        __v: 0
+        address: Yritystie 69
+        city: Turku
+        phonenumber: "1234"
+        postnumber: "00920"
+        securityOfficer: Jarmo Turvamies
+
+    Agency:
+      type: object
+      properties:
+        _id:
+          type: string
+        createdAt:
+          type: string
+          format: date
+        forms:
+          type: array
+          items:
+            type: string
+        businessContracts:
+          type: array
+          items:
+            type: string
+        workContracts:
+          type: array
+          items:
+            type: string
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        city:
+          type: string
+        postnumber:
+          type: string
+        address:
+          type: string
+        phonenumber:
+          type: string
+        securityOfficer:
+          type: string
+        userType:
+          type: string
+          default: Agency
+        __v:
+          type: integer
+      example:
+        forms: [
+          604021e581a9626810885657,
+          604022d981a962681088566a,
+          604206a03ac7182ec444d6cf,
+          6068f12c7516b02c54d86ae9
+        ]
+        businessContracts: [
+          601f3fdf130ad04ad091eac0,
+          60306af11af8fd46d46f295c
+        ]
+        workContracts: [
+          6031524530c1de2568fb6606
+        ]
+        userType: Agency
+        _id: 6018012a88b8375630a6a3c0
+        createdAt: 2021-02-01T13:24:58.070Z
+        name: jarmo-agency
+        email: jarmo@test.com
+        __v: 1
+        address: Kivakatu 5K 105
+        city: Helsinki
+        phonenumber: "1234"
+        postnumber: "00920"
+        securityOfficer: Jarmo Turvamies
+
+    BusinessContract:
+      type: object
+      properties:
+        _id:
+          type: string
+        createdAt:
+          type: string
+          format: date
+        __v:
+          type: integer
+        agency:
+          type: string
+        madeContracts:
+          type: object
+          properties:
+            businesses:
+              type: string
+            workers:
+              type: string
+        requestContracts:
+          $ref: "#/components/schemas/BusinessContract/properties/madeContracts"
+
+    WorkContract:
+      type: object
+      properties:
+        _id:
+          type: string
+        createdAt:
+          type: string
+          format: date
+        __v:
+          type: integer
+        business:
+          type: string
+        agency:
+          type: string
+        contracts:
+          type: array
+          items:
+            $ref: "#/components/schemas/SubContract"
+
+    SubContract:
+      type: object
+      properties:
+        _id:
+          type: string
+        createdAt:
+          type: string
+          format: date
+        __v:
+          type: integer
+        acceptedWorkers:
+          type: array
+          items:
+            type: string
+        requestWorkers:
+          type: array
+          items:
+            type: string
+        workerCount:
+          type: integer
+        acceptedAgency:
+          type: boolean
+        acceptedBusiness:
+          type: boolean
+        validityPeriod:
+          type: object
+          properties:
+            startDate:
+              type: string
+              format: date
+            endDate:
+              type: string
+              format: date
+
+    Feeling:
+      type: object
+      required:
+        - value
+      properties:
+        value:
+          type: integer
+          minimum: 0
+        note:
+          type: string
+      example:
+        value: 0
+        note: I was bullied :(
+
+    Pagination:
+      type: object
+      properties:
+        docs:
+          type: array
+          items: {}
+        totalDocs:
+          type: integer
+        limit:
+          type: integer
+        totalPages:
+          type: integer
+        page:
+          type: integer
+        pagingCounter:
+          type: integer
+        hasPrevPage:
+          type: boolean
+        hasNextPage:
+          type: boolean
+        prevPage:
+          type: integer
+          nullable: true
+        nextPage:
+          type: integer
+          nullable: true
+
+    PaginatedFeelings:
+      allOf:
+        - $ref: "#/components/schemas/Pagination"
+        - type: object
+          properties:
+            docs:
+              type: array
+              items:
+                allOf:
+                  - $ref: "#/components/schemas/Feeling"
+                  - type: object
+                    properties:
+                      _id:
+                        type: string
+                      createdAt:
+                        type: string
+                        format: date
+          example:
+            docs: [
+              {
+                _id: 60243862d95c272d6067a8af,
+                value: 0,
+                note: I was bullied :(,
+                createdAt: 2021-02-10T19:47:21.263Z
+              }
+            ]
+            totalDocs: 3
+            limit: 1
+            totalPages: 3
+            page: 1
+            pagingCounter: 1
+            hasPrevPage: false
+            hasNextPage: true
+            prevPage: null
+            nextPage: 2
+
+    PaginatedForms:
+      allOf:
+        - $ref: "#/components/schemas/Pagination"
+        - type: object
+          properties:
+            docs:
+              type: array
+              items:
+                $ref: "#/components/schemas/Form" #TODO Missing _id and createdAt properties, that come from the db. Look at TODO at the top of the page
+
+    PaginatedBusinessContract:
+      allOf:
+        - $ref: "#/components/schemas/Pagination"
+        - type: object
+          properties:
+            docs:
+              type: array
+              items:
+                $ref: "#/components/schemas/BusinessContract"
+
+    PaginatedWorkContract:
+      allOf:
+        - $ref: "#/components/schemas/Pagination"
+        - type: object
+          properties:
+            docs:
+              type: array
+              items:
+                $ref: "#/components/schemas/WorkContract"
+
+    FormWithArrayQuestions:
+      allOf: # No way of overriding the old questions property in Form...
+        - $ref: "#/components/schemas/Form"
+        - type: object
+          properties:
+            questions:
+              type: array
+              items:
+                nullable: true
+                anyOf:
+                  - $ref: "#/components/schemas/FormComment"
+                  - $ref: "#/components/schemas/FormTextQuestion"
+                  - $ref: "#/components/schemas/FormTextareaQuestion"
+                  - $ref: "#/components/schemas/FormCheckboxQuestion"
+                  - $ref: "#/components/schemas/FormCheckboxGroupQuestion"
+                  - $ref: "#/components/schemas/FormRadiobuttonGroupQuestion"
+                  - $ref: "#/components/schemas/FormRadiobuttonGroupHorizontalQuestion"
+                  - $ref: "#/components/schemas/FormContactInformationQuestion"
+                  - $ref: "#/components/schemas/FormDatePickerQuestion"
+                  - $ref: "#/components/schemas/FormTimePickerQuestion"
+          example:
+            _id: 604021e581a9626810885657
+            title: Tyytyväisyyskysely
+            isPublic: false
+            questions: [
+              {
+                _id: 604021e581a9626810885658,
+                ordering: 0,
+                questionTitle: Vastaa mahdollisimman rehellisesti,
+                questionType: comment
+              },
+              {
+                _id: 604021e581a962681088565a,
+                ordering: 1,
+                questionTitle: Nimi,
+                questionSubTitle: Anna koko nimi muodossa Etunimi Sukunimi,
+                optional: false,
+                answerMaxLength: 100,
+                answerMinLength: 10,
+                questionType: text
+              },
+              {
+                _id: 604021e581a962681088565b,
+                ordering: 2,
+                questionTitle: Kymysys 1,
+                questionSubTitle: Feelikset just ny?,
+                optional: true,
+                answerMaxLength: 1000,
+                answerMinLength: 10,
+                questionType: textarea
+              },
+              {
+                options: [
+                    Vaihtoehto 1,
+                    Vaihtoehto 2,
+                    Vaihtoehto 3,
+                    Vaihtoehto jne...
+                ],
+                _id: 604021e581a962681088565d,
+                ordering: 3,
+                questionTitle: Kymysys 2,
+                questionSubTitle: Mitkä näistä asioista on totta?,
+                optional: true,
+                questionType: checkbox_group
+              },
+              {
+                options: [
+                    Vaihtoehto 1,
+                    Vaihtoehto 2,
+                    Vaihtoehto jne...
+                ],
+                _id: 604021e581a962681088565e,
+                ordering: 4,
+                questionTitle: Kymysys 3,
+                questionSubTitle: Mikä näistä kuvaa parhaiten tilannettasi?,
+                optional: true,
+                questionType: radiobutton_group
+              },
+              {
+                options: [
+                    Statement1,
+                    Statement2,
+                    jne...
+                ],
+                _id: 604021e581a962681088565f,
+                ordering: 5,
+                questionTitle: Kymysys 4,
+                questionSubTitle: Kuinka paljon tämä kuvaa tilannettasi?,
+                scale: 5,
+                scaleOptionTitleLeft: Eri mieltä,
+                scaleOptionTitleCenter: Ei eri eikä samaa mieltä,
+                scaleOptionTitleRight: Samaa mieltä,
+                optional: true,
+                questionType: radiobutton_group_horizontal
+              },
+              {
+                _id: 604021e581a9626810885659,
+                ordering: 6,
+                questionTitle: Kiitos vastauksistasi!,
+                questionType: comment
+              }
+            ]
+            createdAt: 2021-03-03T23:55:17.683Z
+            description: Tyytyväisyyskysely työntekijöille
+            __v: 0
+            tags: [
+                kysely,
+                lomake,
+                jne
+            ]
+
+    Form:
+      type: object
+      required:
+        - title
+        - isPublic
+      properties:
+        title:
+          type: string
+        isPublic:
+          type: boolean
+        description:
+          type: string
+        questions:
+          type: object
+          properties:
+            comment:
+              type: array
+              items:
+                $ref: "#/components/schemas/FormComment"
+            text:
+              type: array
+              items:
+                $ref: "#/components/schemas/FormTextQuestion"
+            textarea:
+              type: array
+              items:
+                $ref: "#/components/schemas/FormTextareaQuestion"
+            checkbox:
+              type: array
+              items:
+                $ref: "#/components/schemas/FormCheckboxQuestion"
+            checkbox_group:
+              type: array
+              items:
+                $ref: "#/components/schemas/FormCheckboxGroupQuestion"
+            radiobutton_group:
+              type: array
+              items:
+                $ref: "#/components/schemas/FormRadiobuttonGroupQuestion"
+            radiobutton_group_horizontal:
+              type: array
+              items:
+                $ref: "#/components/schemas/FormRadiobuttonGroupHorizontalQuestion"
+            contact_information:
+              type: array
+              items:
+                $ref: "#/components/schemas/FormContactInformationQuestion"
+            date_picker:
+              type: array
+              items:
+                $ref: "#/components/schemas/FormDatePickerQuestion"
+            time_picker:
+              type: array
+              items:
+                $ref: "#/components/schemas/FormTimePickerQuestion"
+        tags:
+          type: array
+          items:
+            type: string
+      example:
+        title: Tyytyväisyyskysely
+        isPublic: false
+        questions: [
+          {
+            ordering: 0,
+            questionTitle: Vastaa mahdollisimman rehellisesti,
+            questionType: comment
+          },
+          {
+            ordering: 1,
+            questionTitle: Nimi,
+            questionSubTitle: Anna koko nimi muodossa Etunimi Sukunimi,
+            optional: false,
+            answerMaxLength: 100,
+            answerMinLength: 10,
+            questionType: text
+          },
+          {
+            ordering: 2,
+            questionTitle: Kymysys 1,
+            questionSubTitle: Feelikset just ny?,
+            optional: true,
+            answerMaxLength: 1000,
+            answerMinLength: 10,
+            questionType: textarea
+          },
+          {
+            options: [
+                Vaihtoehto 1,
+                Vaihtoehto 2,
+                Vaihtoehto 3,
+                Vaihtoehto jne...
+            ],
+            ordering: 3,
+            questionTitle: Kymysys 2,
+            questionSubTitle: Mitkä näistä asioista on totta?,
+            optional: true,
+            questionType: checkbox_group
+          },
+          {
+            options: [
+                Vaihtoehto 1,
+                Vaihtoehto 2,
+                Vaihtoehto jne...
+            ],
+            ordering: 4,
+            questionTitle: Kymysys 3,
+            questionSubTitle: Mikä näistä kuvaa parhaiten tilannettasi?,
+            optional: true,
+            questionType: radiobutton_group
+          },
+          {
+            options: [
+                Statement1,
+                Statement2,
+                jne...
+            ],
+            ordering: 5,
+            questionTitle: Kymysys 4,
+            questionSubTitle: Kuinka paljon tämä kuvaa tilannettasi?,
+            scale: 5,
+            scaleOptionTitleLeft: Eri mieltä,
+            scaleOptionTitleCenter: Ei eri eikä samaa mieltä,
+            scaleOptionTitleRight: Samaa mieltä,
+            optional: true,
+            questionType: radiobutton_group_horizontal
+          },
+          {
+            ordering: 6,
+            questionTitle: Kiitos vastauksistasi!,
+            questionType: comment
+          }
+        ]
+        description: Tyytyväisyyskysely työntekijöille
+        tags: [
+            kysely,
+            lomake,
+            jne
+        ]
+
+# The rest are Form's question types.
+    FormComment:
+      type: object
+      properties:
+        ordering:
+          type: integer
+        title:
+          type: string
+        questionType:
+          type: string
+
+    FormBaseQuestion:
+      type: object
+      properties:
+        ordering:
+          type: integer
+        title:
+          type: string
+        subtitle:
+          type: string
+        optional:
+          type: boolean
+        questionType:
+          type: string
+
+    FormTextQuestion:
+      allOf:
+        - $ref: "#/components/schemas/FormBaseQuestion"
+        - type: object
+          properties:
+            answerMaxLength:
+              type: integer
+            answerMinLength:
+              type: integer
+
+    FormTextareaQuestion:
+      allOf:
+        - $ref: "#/components/schemas/FormTextQuestion"
+        - type: object
+          properties:
+            rows:
+              type: integer
+
+    FormCheckboxQuestion:
+      $ref: "#/components/schemas/FormBaseQuestion"
+
+    FormCheckboxGroupQuestion:
+      allOf:
+        - $ref: "#/components/schemas/FormBaseQuestion"
+        - type: object
+          properties:
+            options:
+              type: array
+              items:
+                type: string
+
+    FormRadiobuttonGroupQuestion:
+      $ref: "#/components/schemas/FormCheckboxGroupQuestion"
+
+    FormRadiobuttonGroupHorizontalQuestion:
+      allOf:
+        - $ref: "#/components/schemas/FormRadiobuttonGroupQuestion"
+        - type: object
+          properties:
+            scaleOptionTitleLeft:
+              type: string
+            scaleOptionTitleCenter:
+              type: string
+            scaleOptionTitleRight:
+              type: string
+
+    FormContactInformationQuestion:
+      $ref: "#/components/schemas/FormBaseQuestion"
+
+    FormDatePickerQuestion:
+      allOf:
+        - $ref: "#/components/schemas/FormBaseQuestion"
+        - type: object
+          properties:
+            isClosedTimeFrame:
+              type: boolean
+
+    FormTimePickerQuestion:
+      $ref: "#/components/schemas/FormDatePickerQuestion"
+

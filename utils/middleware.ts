@@ -249,7 +249,7 @@ export const needsToBeAgency = (req: Request, res: Response, next: NextFunction)
 /**
  * Checks if the logged in user is a Business.
  * Business object from database is populated to request.body.business
- * @param {String} res.locals.decoded.id - UsersId (AgencyId) from token.
+ * @param {String} res.locals.decoded.id - UsersId (BusinessId) from token.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next - NextFunction.
@@ -278,7 +278,7 @@ export const needsToBeBusiness = (req: Request, res: Response, next: NextFunctio
 /**
  * Checks if the logged in user is a Worker.
  * Worker object from database is populated to request.body.worker.
- * @param {String} res.locals.decoded.id - UsersId (AgencyId) from token.
+ * @param {String} res.locals.decoded.id - UsersId (WorkerId) from token.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next - NextFunction.
@@ -299,8 +299,8 @@ export const needsToBeWorker = (req: Request, res: Response, next: NextFunction)
         return next()
       }
     })
-  } catch (error) {
-    return res.status(500).send({ error })
+  } catch (exception) {
+    return res.status(500).send({ exception })
   }
 }
 

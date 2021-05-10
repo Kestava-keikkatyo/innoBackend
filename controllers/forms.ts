@@ -15,8 +15,39 @@ import {ParamsDictionary} from "express-serve-static-core"
 const formsRouter = express.Router()
 
 /**
- * Returns the added form.
  * Route for agency/business to add a form. Form given in body according to its schema model.
+ * @openapi
+ * /forms:
+ *   post:
+ *     summary: Route for agency/business to add a form.
+ *     description: Must be logged in as an agency or a business.
+ *     tags: [Agency, Business, Forms]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: "#/components/schemas/Form"
+ *     responses:
+ *       "200":
+ *         description: Form added. Returns added form object.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Form"
+ *       "500":
+ *         description: An error occurred. Either a problem with the database or middleware.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
  */
 formsRouter.post("/", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request<unknown, unknown, IBodyWithForm>, res: Response, next: NextFunction) => {
   try {
@@ -42,7 +73,7 @@ formsRouter.post("/", authenticateToken, needsToBeAgencyOrBusiness, async (req: 
         return addFormToAgencyOrBusiness("Business", res.locals.decoded.id, result, res, next)
       } else {
         _error("Could not determine whether user is agency or business")
-        return res.status(500).send( { error: "Could not determine whether user is agency or business" })
+        return res.status(500).send( { message: "Could not determine whether user is agency or business" })
       }
     })
   } catch (exception) {
@@ -51,7 +82,7 @@ formsRouter.post("/", authenticateToken, needsToBeAgencyOrBusiness, async (req: 
 })
 
 /**
- * Helper function for adding form to agency's or business' forms array
+ * Helper function for adding a form to agency's or business' forms array
  * @param agencyOrBusiness - string that tells whether to use Agency or Business Model. Can either be "Agency" or "Business"
  * @param id - id of the agency or business in question
  * @param form - the form we are adding to agency/business
@@ -85,24 +116,73 @@ const addFormToAgencyOrBusiness = (agencyOrBusiness: string, id: string, form: I
           }
         })
     } else {
-      return res.status(500).send({ error: "addFormToAgencyOrBusiness function called with an incorrect agencyOrBusiness parameter"})
+      return res.status(500).send({ message: "addFormToAgencyOrBusiness function called with an incorrect agencyOrBusiness parameter"})
     }
   } catch (exception) {
     return next(exception)
   }
 }
 
-/**
- * Route for agency/business to get their own forms
- * returns an array. response.body: [{tags: [], title: "title", description: "description", id: "id"}, {...}, ...] //TODO update return in docs
- * req.query: page, limit
+/** TODO Fix doc. Only title, description, and tags are returned. Not whole form.
+ * @openapi
+ * /forms/me:
+ *   get:
+ *     summary: Route for agency/business to get their own forms
+ *     description: Must be logged in as an agency or a business.
+ *     tags: [Agency, Business, Forms]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: query
+ *         name: page
+ *         description: Page number you want to view
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example:
+ *             1
+ *       - in: query
+ *         name: limit
+ *         description: The number of items you want to view per page
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example:
+ *             5
+ *     responses:
+ *       "200":
+ *         description: Returns the agency's/business' forms paginated.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/PaginatedForms"
+ *       "204":
+ *         description: Agency/business doesn't have any forms.
+ *       "400":
+ *         description: Page or limit parameter is missing or incorrect.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Missing or incorrect page/limit parameter
+ *       "500":
+ *         description: Either an error occurred while calling the database, or something's wrong with the middleware.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
  */
 formsRouter.get("/me", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request<unknown, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { query, body } = req
   try {
     let ownForms: Array<Types.ObjectId> | null = getAgencyOrBusinessOwnForms(body)
     if (!ownForms) {
-      return res.status(500).send( { error: "Error determining whether user is agency or business" })
+      return res.status(500).send( { message: "Error determining whether user is agency or business" })
     }
 
     const page: number = parseInt(query.page as string, 10)
@@ -130,17 +210,66 @@ formsRouter.get("/me", authenticateToken, needsToBeAgencyOrBusiness, async (req:
   }
 })
 
-/**
- * Route for agency/business to get all public forms, excluding their own forms.
- * returns an array. response.body: [{tags: [], title: "title", description: "description", id: "id"}, {...}, ...]
- * req.query: page, limit
+/** TODO Fix doc. Only title, description, and tags are returned. Not whole form.
+ * @openapi
+ * /forms:
+ *   get:
+ *     summary: Route for agency/business to get all public forms, excluding their own forms
+ *     description: Must be logged in as an agency or a business.
+ *     tags: [Agency, Business, Forms]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: query
+ *         name: page
+ *         description: Page number you want to view
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example:
+ *             1
+ *       - in: query
+ *         name: limit
+ *         description: The number of items you want to view per page
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example:
+ *             5
+ *     responses:
+ *       "200":
+ *         description: Returns the public forms paginated.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/PaginatedForms"
+ *       "204":
+ *         description: There are no public forms not made by the agency/business in question.
+ *       "400":
+ *         description: Page or limit parameter is missing or incorrect.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Missing or incorrect page/limit parameter
+ *       "500":
+ *         description: Either an error occurred while calling the database, or something's wrong with the middleware.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
  */
 formsRouter.get("/", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request<unknown, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { body, query } = req
   try {
     let ownForms: Array<Types.ObjectId> | null = getAgencyOrBusinessOwnForms(body)
     if (!ownForms) {
-      return res.status(500).send( { error: "Error determining whether user is agency or business" })
+      return res.status(500).send( { message: "Error determining whether user is agency or business" })
     }
     const page: number = parseInt(query.page as string, 10)
     const limit: number = parseInt(query.limit as string, 10)
@@ -167,9 +296,67 @@ formsRouter.get("/", authenticateToken, needsToBeAgencyOrBusiness, async (req: R
   }
 })
 
-/**
- * Route for agency/business to search public forms with a search string. Does not include their own forms.
- * req.query: q, page, limit
+/** TODO Fix doc. Only title, description, and tags are returned. Not whole form.
+ * @openapi
+ * /forms/search:
+ *   get:
+ *     summary: Route for agency/business to search public forms with a search string. Does not include their own forms.
+ *     description: Must be logged in a an agency or a business.
+ *     tags: [Agency, Business, Forms]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: query
+ *         name: page
+ *         description: Page number you want to view
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example:
+ *             2
+ *       - in: query
+ *         name: limit
+ *         description: The number of items you want to view per page
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example:
+ *             5
+ *       - in: query
+ *         name: q
+ *         description: Search string used for searching the forms.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example:
+ *             lomake
+ *     responses:
+ *       "200":
+ *         description: Returns public forms that matched the search string, paginated.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/PaginatedForms"
+ *       "204":
+ *         description: Search string didn't match any public form.
+ *       "400":
+ *         description: Page or limit parameter is missing or incorrect.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Missing or incorrect page/limit parameter
+ *       "500":
+ *         description: Either an error occurred while calling the database, or something's wrong with the middleware.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
  */
 formsRouter.get("/search", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request<unknown, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { query, body } = req
@@ -177,7 +364,7 @@ formsRouter.get("/search", authenticateToken, needsToBeAgencyOrBusiness, async (
   try {
     let ownForms: Array<Types.ObjectId> | null = getAgencyOrBusinessOwnForms(body)
     if (!ownForms) {
-      return res.status(500).send( { error: "Error determining whether user is agency or business" })
+      return res.status(500).send( { message: "Error determining whether user is agency or business" })
     }
 
     const page: number = parseInt(query.page as string, 10)
@@ -215,9 +402,67 @@ formsRouter.get("/search", authenticateToken, needsToBeAgencyOrBusiness, async (
   }
 })
 
-/**
- * Route for agency/business to search their own forms with a search string.
- * req.query: q, page, limit
+/** TODO Fix doc. Only title, description, and tags are returned. Not whole form.
+ * @openapi
+ * /forms/me/search:
+ *   get:
+ *     summary: Route for agency/business to search their own forms with a search string.
+ *     description: Must be logged in a an agency or a business.
+ *     tags: [Agency, Business, Forms]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: query
+ *         name: page
+ *         description: Page number you want to view
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example:
+ *             2
+ *       - in: query
+ *         name: limit
+ *         description: The number of items you want to view per page
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example:
+ *             5
+ *       - in: query
+ *         name: q
+ *         description: Search string used for searching the forms.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example:
+ *             lomake
+ *     responses:
+ *       "200":
+ *         description: Returns the agency's/business' forms that matched the search string, paginated.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/PaginatedForms"
+ *       "204":
+ *         description: Search string didn't match any of the agency's/business' forms.
+ *       "400":
+ *         description: Page or limit parameter is missing or incorrect.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Missing or incorrect page/limit parameter
+ *       "500":
+ *         description: Either an error occurred while calling the database, or something's wrong with the middleware.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
  */
 formsRouter.get("/me/search", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request<unknown, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { query, body } = req
@@ -225,7 +470,7 @@ formsRouter.get("/me/search", authenticateToken, needsToBeAgencyOrBusiness, asyn
   try {
     let ownForms: Array<Types.ObjectId> | null = getAgencyOrBusinessOwnForms(body)
     if (!ownForms) {
-      return res.status(500).send( { error: "Error determining whether user is agency or business" })
+      return res.status(500).send( { message: "Error determining whether user is agency or business" })
     }
 
     const page: number = parseInt(query.page as string, 10)
@@ -264,8 +509,48 @@ formsRouter.get("/me/search", authenticateToken, needsToBeAgencyOrBusiness, asyn
 })
 
 /** TODO Should probably check if the form is either public or their own. Otherwise able to get private forms by knowing the id
- * Route for agency/business to get the full form object by its id.
- * Returns the form object according to the Form model, except the questions property has been changed into a sorted array according to the "ordering" properties.
+ * Questions property has been changed into a sorted array according to the "ordering" properties.
+ * @openapi
+ * /forms/{formId}:
+ *   get:
+ *     summary: Route for agency/business to get the full form object with its id
+ *     description: Must be logged in as an agency or a business.
+ *     tags: [Agency, Business, Forms]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: formId
+ *         description: ID of the form which we want.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 604021e581a9626810885657
+ *     responses:
+ *       "200":
+ *         description: Returns the wanted form.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/FormWithArrayQuestions"
+ *       "404":
+ *         description: No form was found with the requested ID.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Could not find form with ID {formId}
+ *       "500":
+ *         description: An error occurred when calling the database.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
  */
 formsRouter.get("/:formId", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request, res: Response, next: NextFunction) => {
   const { params } = req
@@ -278,7 +563,7 @@ formsRouter.get("/:formId", authenticateToken, needsToBeAgencyOrBusiness, async 
         if (error) {
           return res.status(500).send(error)
         } else if (!form) {
-          return res.status(404).send({ message: `Could not find form with id ${params.formId}` })
+          return res.status(404).send({ message: `Could not find form with ID ${params.formId}` })
         }
         // Adding questions into an array in order according to the "ordering" property in each object.
         let newQuestions: Array<AnyQuestion> = []
@@ -301,10 +586,55 @@ formsRouter.get("/:formId", authenticateToken, needsToBeAgencyOrBusiness, async 
 })
 
 /**
- * Route for agency/business to update a single form.
- * Send updated form in body according to schema model
- * If you only need to update title, isPublic, or description field, you can just give that in the body, like: { "isPublic": false }
- * When updating any questions, give the full form object or the full questions object in it, in the body.
+ * @openapi
+ * /forms/{formId}:
+ *   put:
+ *     summary: Route for agency/business to update a single form
+ *     description: Must be logged in as an agency or a business.
+ *     tags: [Agency, Business, Forms]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: formId
+ *         description: ID of the form which we want to update.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 604021e581a9626810885657
+ *     requestBody:
+ *       description: |
+ *         If you only need to update title, isPublic, or description field, you can just give that in the body, like: { "isPublic": false }.
+ *         When updating any questions, give the full form object or just the full questions object, in the body. Otherwise all other questions get deleted.
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: "#/components/schemas/Form"
+ *     responses:
+ *       "200":
+ *         description: Returns the updated form.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Form"
+ *       "403":
+ *         description: Can't update forms that you didn't create
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: You are not authorized to update this form
+ *       "500":
+ *         description: Either an error occurred while calling the database, or something's wrong with the middleware.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
  */
 formsRouter.put("/:formId", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { body } = req
@@ -315,7 +645,7 @@ formsRouter.put("/:formId", authenticateToken, needsToBeAgencyOrBusiness, async 
     } else if (body.business) {
       updateForm(body.business, req, res, next)
     } else {
-      return res.status(500).send( { error: "Error determining whether user is agency or business" })
+      return res.status(500).send( { message: "Error determining whether user is agency or business" })
     }
   } catch (exception) {
     return next(exception)
@@ -325,10 +655,9 @@ formsRouter.put("/:formId", authenticateToken, needsToBeAgencyOrBusiness, async 
 /**
  * Helper function for updating the form. Helps reduce duplicate code.
  * @param agencyOrBusinessObject request.agency or request.business. Depending on which one is trying to update the form
- * @param req
- * @param res
- * @param next
- * @returns {*}
+ * @param req Request
+ * @param res Response
+ * @param next NextFunction
  */
 const updateForm = (agencyOrBusinessObject: IAgencyDocument | IBusinessDocument, req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { params } = req
@@ -364,7 +693,51 @@ const updateForm = (agencyOrBusinessObject: IAgencyDocument | IBusinessDocument,
 }
 
 /**
- * Route for agency/business to delete a single form. Has to be their own form, cannot delete public forms.
+ * @openapi
+ * /forms/{formId}:
+ *   delete:
+ *     summary: Route for agency/business to delete one of their own forms
+ *     description: Must be logged in as an agency or a business.
+ *     tags: [Agency, Business, Forms]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: formId
+ *         description: ID of the form which we want to delete.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 604021e581a9626810885657
+ *     responses:
+ *       "204":
+ *         description: Form was deleted successfully.
+ *       "403":
+ *         description: Can't delete forms you didn't create.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: You are not authorized to delete this form
+ *       "404":
+ *         description: No form was found with the requested ID.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Could not find form with ID {formId}
+ *       "500":
+ *         description: Either an error occurred while calling the database, or something's wrong with the middleware.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
  */
 formsRouter.delete("/:formId", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { params, body } = req
@@ -375,7 +748,7 @@ formsRouter.delete("/:formId", authenticateToken, needsToBeAgencyOrBusiness, asy
     } else if (body.business) {
       deleteForm("Business", body.business, params.formId, res, next)
     } else {
-      return res.status(500).send( { error: "Error determining whether user is agency or business" })
+      return res.status(500).send( { message: "Error determining whether user is agency or business" })
     }
   } catch (exception) {
     return next(exception)
@@ -387,9 +760,8 @@ formsRouter.delete("/:formId", authenticateToken, needsToBeAgencyOrBusiness, asy
  * @param agencyOrBusiness string that tells whether to use Agency or Business Model. Can either be "Agency" or "Business"
  * @param agencyOrBusinessObject request.agency or request.business. Depending on which one is trying to delete the form
  * @param formId request.params.formId. The id of the form that you want to delete
- * @param res
- * @param next
- * @returns {*}
+ * @param res Response
+ * @param next NextFunction
  */
 const deleteForm = (agencyOrBusiness: string, agencyOrBusinessObject: IAgencyDocument | IBusinessDocument, formId: string, res: Response, next: Function) => {
   try {
@@ -434,7 +806,7 @@ const deleteForm = (agencyOrBusiness: string, agencyOrBusinessObject: IAgencyDoc
                   }
                 )
               } else {
-                return res.status(500).send({ error: "deleteForm function called with an incorrect agencyOrBusiness parameter. References to deleted form in Agency or Business were not able to be deleted"})
+                return res.status(500).send({ message: "deleteForm function called with an incorrect agencyOrBusiness parameter. References to deleted form in Agency or Business were not able to be deleted"})
               }
             }
           }
@@ -442,7 +814,7 @@ const deleteForm = (agencyOrBusiness: string, agencyOrBusinessObject: IAgencyDoc
       }
     }
     if (!found) {
-      return res.status(404).send({ message: `Could not find form with id ${formId}` })
+      return res.status(404).send({ message: `Could not find form with ID ${formId}` })
     }
   } catch (exception) {
     return next(exception)

@@ -93,7 +93,7 @@ export const businessContractIncludesUser = (req: Request<unknown, unknown, IBas
  * @returns {JSON} Status 201 - Header: { Location: domainUrl + businessContractsApiPath + contract._id }, Response.body: { contract }
  */
 export const makeBusinessContract = (_req: Request, res: Response) => {
-  const domainUrl: string = "http://localhost:3000/"
+  const domainUrl: string = "http://localhost:3001/"
   const businessContractsApiPath: string = "api/businesscontracts/"
   try {
     //First check that Agency doesn't already have BusinessContract

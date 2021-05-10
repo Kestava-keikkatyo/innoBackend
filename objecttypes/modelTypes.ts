@@ -1,5 +1,6 @@
 import {Document, PaginateModel, Types} from "mongoose"
 
+// Typing for a workers feelings object
 export interface IFeelings {
   _id?: Types.ObjectId,
   value: number,
@@ -7,6 +8,7 @@ export interface IFeelings {
   createdAt?: Date
 }
 
+// Typings for Form's questions START
 export interface IComment {
   ordering: number,
   title: string,
@@ -61,7 +63,6 @@ export interface ITimePickerQuestion extends IBaseQuestion {
 
 export type AnyQuestion = IComment | ITextQuestion | ITextareaQuestion | ICheckboxQuestion | ICheckboxGroupQuestion | IRadiobuttonGroupQuestion | IRadiobuttonGroupHorizontalQuestion | IContactInformationQuestion | IDatePickerQuestion | ITimePickerQuestion
 
-
 export interface IQuestions {
   comment: Array<IComment>,
   text: Array<ITextQuestion>,
@@ -75,20 +76,23 @@ export interface IQuestions {
   time_picker: Array<ITimePickerQuestion>,
   [key: string]: Array<AnyQuestion>
 }
+// Typings for Form's questions END
 
+// Used when we want to type docs given in req.body for example. For calls with {lean: true} option, use DocumentDefinition<IWorkerDocument> for the result's type
 export interface IWorker {
   name: string,
   email: string,
   password: string,
   passwordHash?: string,
   phonenumber: string,
-  lisences: Array<string>,
+  licenses: Array<string>,
   businessContracts: Array<IBusinessContractDocument['_id']>,
   workContracts: Array<IWorkContractDocument['_id']>,
   feelings: Array<IFeelings>,
   userType: string
 }
 
+// Used for typing results gotten from db calls.
 export interface IWorkerDocument extends Document, Omit<IWorker, "businessContracts" | "workContracts"> {
   _id: Types.ObjectId,
   createdAt: Date,
@@ -96,6 +100,7 @@ export interface IWorkerDocument extends Document, Omit<IWorker, "businessContra
   workContracts: Array<IWorkContractDocument['_id']>,
 }
 
+// Used when we want to type docs given in req.body for example. For calls with {lean: true} option, use DocumentDefinition<IAgencyDocument> for the result's type
 export interface IAgency {
   name: string,
   email: string,
@@ -112,6 +117,7 @@ export interface IAgency {
   userType: string
 }
 
+// Used for typing results gotten from db calls.
 export interface IAgencyDocument extends Document, Omit<IAgency, "forms" | "businessContracts" | "workContracts"> {
   _id: Types.ObjectId,
   createdAt: Date,
@@ -120,6 +126,7 @@ export interface IAgencyDocument extends Document, Omit<IAgency, "forms" | "busi
   workContracts: Array<Types.ObjectId> | Array<IWorkContractDocument>
 }
 
+// Used when we want to type docs given in req.body for example. For calls with {lean: true} option, use DocumentDefinition<IBusinessDocument> for the result's type
 export interface IBusiness {
   name: string,
   email: string,
@@ -144,6 +151,7 @@ export interface IBusiness {
   socialMedias: Array<string>
 }
 
+// Used for typing results gotten from db calls.
 export interface IBusinessDocument extends Document, Omit<IBusiness, "forms" | "businessContracts" | "workContracts"> {
   _id: Types.ObjectId,
   createdAt: Date,
@@ -152,6 +160,7 @@ export interface IBusinessDocument extends Document, Omit<IBusiness, "forms" | "
   workContracts: Array<Types.ObjectId> | Array<IWorkContractDocument>
 }
 
+// Used when we want to type docs given in req.body for example. For calls with {lean: true} option, use DocumentDefinition<IBusinessContractDocument> for the result's type
 export interface IBusinessContract {
   agency: IAgencyDocument['_id'],
   madeContracts: {
@@ -164,6 +173,7 @@ export interface IBusinessContract {
   }
 }
 
+// Used for typing results gotten from db calls.
 export interface IBusinessContractDocument extends Document, Omit<IBusinessContract, "agency" | "madeContracts" | "requestContracts"> {
   _id: Types.ObjectId,
   createdAt: Date,
@@ -178,18 +188,22 @@ export interface IBusinessContractDocument extends Document, Omit<IBusinessContr
   }
 }
 
+// Used when we want to type docs given in req.body for example. For calls with {lean: true} option, use DocumentDefinition<IWorkContractDocument> for the result's type
 export interface IWorkContract {
   business: IBusinessDocument['_id'],
   agency: IAgencyDocument['_id'],
   contracts: Array<ISubContractDocument>
 }
 
+// Used for typing results gotten from db calls.
 export interface IWorkContractDocument extends Document, Omit<IWorkContract, "business" | "agency"> {
   _id: Types.ObjectId,
+  createdAt: Date,
   business: IBusinessDocument['_id'] | IBusinessDocument,
   agency: IAgencyDocument['_id'] | IAgencyDocument
 }
 
+// Used when we want to type docs given in req.body for example. For calls with {lean: true} option, use DocumentDefinition<ISubContractDocument> for the result's type
 export interface ISubContract {
   acceptedWorkers: Array<IWorkerDocument['_id']>,
   requestWorkers: Array<IWorkerDocument['_id']>,
@@ -202,13 +216,15 @@ export interface ISubContract {
   }
 }
 
+// Used for typing results gotten from db calls.
 export interface ISubContractDocument extends Document, Omit<ISubContract, "acceptedWorkers" | "requestWorkers"> {
   _id: Types.ObjectId,
   createdAt: Date,
   acceptedWorkers: Array<IWorkerDocument['_id']> | Array<IWorkerDocument>,
   requestWorkers: Array<IWorkerDocument['_id']> | Array<IWorkerDocument>
 }
-// Used when we want to type docs given in req.body for example. For calls with {lean: true} option, use DocumentDefinition<IFormDocument> for result type
+
+// Used when we want to type docs given in req.body for example. For calls with {lean: true} option, use DocumentDefinition<IFormDocument> for the result's type
 export interface IForm {
   title: string,
   isPublic: boolean,
@@ -216,10 +232,11 @@ export interface IForm {
   questions?: IQuestions,
   tags?: Array<string>,
 }
+
 // Used for typing results gotten from db calls.
 export interface IFormDocument extends Document, IForm {
   _id: Types.ObjectId,
   createdAt: Date
 }
 
-export interface FormModel<T extends Document> extends PaginateModel<T> {} // Used so Form.paginate can be used
+export interface FormModel<T extends Document> extends PaginateModel<T> {} // Used so Form.paginate has typing information

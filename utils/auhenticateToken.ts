@@ -1,4 +1,4 @@
-import jwt from "jsonwebtoken"
+import jwt, {VerifyErrors} from "jsonwebtoken"
 import {NextFunction, Request, Response} from "express";
 require("dotenv").config()
 
@@ -6,11 +6,11 @@ require("dotenv").config()
 const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
   const token: string = req.headers["x-access-token"] as string
   if (!token)
-    return res.status(401).send({ auth: false, message: "No token provided." })
+    return res.status(401).send({ message: "No token provided." })
 
-  return jwt.verify(token, process.env.SECRET || '', function (err: any, decoded: any) {
+  return jwt.verify(token, process.env.SECRET || '', function (err: VerifyErrors | null, decoded: any) {
     if (err) {
-      return res.status(500).send({ auth: false, message: "Failed to authenticate token." })
+      return res.status(500).send({ message: "Failed to authenticate token." })
     } else {
       res.locals.decoded = decoded
       return next()

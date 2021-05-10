@@ -17,26 +17,66 @@ import Agency from "../models/Agency"
 import Business from "../models/Business"
 import authenticateToken from "../utils/auhenticateToken"
 import {IAgencyDocument, IBusiness, IBusinessDocument} from "../objecttypes/modelTypes";
-import {CallbackError, DocumentDefinition} from "mongoose";
+import {CallbackError} from "mongoose";
+import {needsToBeAgency} from "../utils/middleware";
 
 const businessesRouter = express.Router()
 /**
- * Returns response.body: { token, name: savedBusiness.name, email: savedBusiness.email, role: "business" }
- * request.body requirements: {name: "name", email: "email", password: "password"}
- * Route to create a new Business account.
- * @name POST /businesses
- * @function
- * @memberof module:controllers/businesses~businessesRouter
- * @inner
+ * @openapi
+ * /businesses:
+ *   post:
+ *     summary: Route for registering a new business account
+ *     description: Returns a token that works like the token given when logging in.
+ *     tags: [Business]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - email
+ *               - password
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *                 format: password
+ *             example:
+ *               name: John Doe
+ *               email: example.email@example.com
+ *               password: password123
+ *     responses:
+ *       "200":
+ *         description: |
+ *           New business created.
+ *           For authentication, token needs to be put in a header called "x-access-token" in most other calls.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/LoginOrRegister"
+ *       "400":
+ *         description: Incorrect password
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Password length less than 3 characters
  */
 businessesRouter.post("/", async (req: Request<unknown, unknown, IBusiness>, res: Response, next: NextFunction) => {
   const { body } = req
 
   try {
-    // This could be separated into a validation middleware
+    // TODO This could be separated into a validation middleware
     const passwordLength: number = body.password ? body.password.length : 0
     if (passwordLength < 3) {
-      return res.status(400).json({ error: "password length less than 3 characters" })
+      return res.status(400).json({ message: "password length less than 3 characters" })
     }
     const saltRounds: number = 10
     const passwordHash: string = await bcrypt.hash(body.password, saltRounds)
@@ -65,13 +105,39 @@ businessesRouter.post("/", async (req: Request<unknown, unknown, IBusiness>, res
 })
 
 /**
- * Returns response.body: { The found Business object }
- * Requires user logged in as a Business
- * Route to get Business information
- * @name GET /businesses/me
- * @function
- * @memberof module:controllers/businesses~businessesRouter
- * @inner
+ * @openapi
+ * /businesses/me:
+ *   get:
+ *     summary: Route for business to get their own info
+ *     tags: [Business]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     responses:
+ *       "200":
+ *         description: Returns the business object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Business"
+ *       "401":
+ *         description: Incorrect token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Not authorized
+ *       "500":
+ *         description: An error occurred when calling the database.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
  */
 businessesRouter.get("/me", authenticateToken, (_req: Request, res: Response, next: NextFunction) => {
   try {
@@ -79,8 +145,8 @@ businessesRouter.get("/me", authenticateToken, (_req: Request, res: Response, ne
     //Tokeni pitää sisällään userid jolla etsitään oikean käyttäjän tiedot
     Business.findById(res.locals.decoded.id,
       undefined,
-      { lean: true },
-      (error: CallbackError, result: DocumentDefinition<IBusinessDocument> | null) => {
+      undefined,
+      (error: CallbackError, result: IBusinessDocument | null) => {
         if (error) {
           return res.status(500).send(error)
         } else if (!result) { //Jos ei resultia niin käyttäjän tokenilla ei löydy käyttäjää
@@ -95,13 +161,52 @@ businessesRouter.get("/me", authenticateToken, (_req: Request, res: Response, ne
 })
 
 /**
- * Returns response.body: { The updated Business object }
- * Requires user must be logged in as Business. request.body OPTIONAL: {property: "value", ....}. Properties need to match those of Business model in database.
- * Route to update Business information.
- * @name PUT /businesses/
- * @function
- * @memberof module:controllers/businesses~businessesRouter
- * @inner
+ * Route used to update business's information.
+ * @openapi
+ * /businesses:
+ *   put:
+ *     summary: Route for business to update their own info. For example password.
+ *     tags: [Business]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     requestBody:
+ *       description: |
+ *         Any properties that want to be updated are given in request body.
+ *         Properties can be any updatable property in the business object.
+ *       content:
+ *         application/json:
+ *           schema:
+ *             example:
+ *               password: newPass
+ *               phonenumber: "4321"
+ *     responses:
+ *       "200":
+ *         description: Business information updated. Returns updated business.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Business"
+ *       "400":
+ *         description: Incorrect password
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Password length less than 3 characters
+ *       "404":
+ *         description: Business wasn't found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Business not found
  */
 businessesRouter.put("/", authenticateToken, async (req: Request<unknown, unknown, IBusiness>, res: Response, next: NextFunction) => {
   const { body } = req
@@ -112,7 +217,7 @@ businessesRouter.put("/", authenticateToken, async (req: Request<unknown, unknow
     if (body.password) {
       const passwordLength: number = body.password ? body.password.length : 0
       if (passwordLength < 3) {
-        return res.status(400).json({ error: "Password length less than 3 characters" })
+        return res.status(400).json({ message: "Password length less than 3 characters" })
       }
       const saltRounds: number = 10
       passwordHash = await bcrypt.hash(body.password, saltRounds)
@@ -123,7 +228,7 @@ businessesRouter.put("/", authenticateToken, async (req: Request<unknown, unknow
     // Salattu salasana luodaan ylempänä.
     delete body.passwordHash
 
-    // päivitetään bodyn kentät (mitä pystytään päivittämään, eli name ja phonenumber).
+    // päivitetään bodyn kentät (mitä pystytään päivittämään).
     // lisätään passwordHash päivitykseen, jos annetaan uusi salasana.
     const updateFields = {
       ...body,
@@ -132,11 +237,11 @@ businessesRouter.put("/", authenticateToken, async (req: Request<unknown, unknow
 
     // https://mongoosejs.com/docs/tutorials/findoneandupdate.html
     // https://mongoosejs.com/docs/api.html#model_Model.findByIdAndUpdate
-    const updatedBusiness: IBusinessDocument | null = await Business.findByIdAndUpdate(res.locals.decoded.id, updateFields,
+    const updatedBusiness: IBusinessDocument | null = await Business.findByIdAndUpdate(res.locals.decoded.id, updateFields, // TODO use callback for error handling
       { new: true, omitUndefined: true, runValidators: true })
 
     if (!updatedBusiness) {
-      return res.status(400).json({ error: "Business not found" })
+      return res.status(404).json({ message: "Business not found" })
     }
     return res.status(200).json(updatedBusiness)
 
@@ -145,8 +250,46 @@ businessesRouter.put("/", authenticateToken, async (req: Request<unknown, unknow
   }
 })
 
-
-businessesRouter.get("/", authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
+/**
+ * @openapi
+ * /businesses:
+ *   get:
+ *     summary: Route for agency to search for businesses by name
+ *     description: Need to be logged in as an agency.
+ *     tags: [Agency, Business]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: query
+ *         name: name
+ *         description: Business name we want to search for
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: jarmo
+ *     responses:
+ *       "200":
+ *         description: Returns found businesses
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: "#/components/schemas/Business"
+ *       "404":
+ *         description: No businesses found with a matching name
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Businesses not found
+ */
+businessesRouter.get("/", authenticateToken, needsToBeAgency, async (req: Request, res: Response, next: NextFunction) => {
   const { query } = req
 
   let name: string | undefined
@@ -158,12 +301,12 @@ businessesRouter.get("/", authenticateToken, async (req: Request, res: Response,
     if (agency && name) {
       // Työntekijät haetaan SQL:n LIKE operaattorin tapaisesti
       // Työpassit jätetään hausta pois
-      const users: Array<IBusinessDocument> = await Business.find({ name: { $regex: name, $options: "i" } }, { licenses: 0 }) // TODO use callback for result and errors.
-      if (users) {
-        return res.status(200).json(users)
+      const businesses: Array<IBusinessDocument> = await Business.find({ name: { $regex: name, $options: "i" } }, { licenses: 0 }) // TODO use callback for result and errors.
+      if (businesses) {
+        return res.status(200).json(businesses)
       }
     }
-    return res.status(400).json({ error: "Users not found" })
+    return res.status(404).json({ message: "Businesses not found" })
   } catch (exception) {
     return next(exception)
   }

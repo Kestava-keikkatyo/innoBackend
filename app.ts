@@ -12,6 +12,8 @@ import workcontractRouter from "./controllers/workcontracts"
 import formsRouter from "./controllers/forms"
 import { errorHandler, requestLogger, unknownEndpoint } from "./utils/middleware"
 import {info, error as _error} from "./utils/logger"
+import swaggerUi from "swagger-ui-express"
+import swaggerDocument from "./doc/generateSwaggerDoc"
 
 const app = express()
 
@@ -45,6 +47,7 @@ app.use("/api/businesscontracts", businesscontractsRouter)
 app.use("/api/feelings", feelingsRouter)
 app.use("/api/workcontracts", workcontractRouter)
 app.use("/api/forms", formsRouter)
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 
 app.use(unknownEndpoint)
 app.use(errorHandler)

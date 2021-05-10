@@ -10,26 +10,63 @@
  * @namespace agenciesRouter
 */
 import express, {NextFunction, Request, Response} from 'express'
-import { error as _error} from "../utils/logger"
 import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
 import authenticateToken from "../utils/auhenticateToken"
 import Agency from "../models/Agency"
-import { Promise as _Promise } from "bluebird";
 import {IAgency, IAgencyDocument} from "../objecttypes/modelTypes";
-import {CallbackError, DocumentDefinition} from "mongoose";
+import {CallbackError} from "mongoose";
 
 const agenciesRouter = express.Router()
 
 
 /**
- * Returns a token that is used for user log in.
- * Request requirements:
- * Body.email, Body.name, Body.password
- * @name POST /agencies
- * @function
- * @memberof module:controllers/agencies~agenciesRouter
- * @inner
+ * @openapi
+ * /agencies:
+ *   post:
+ *     summary: Route for registering a new agency account
+ *     description: Returns a token that works like the token given when logging in.
+ *     tags: [Agency]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - email
+ *               - password
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *                 format: password
+ *             example:
+ *               name: John Doe
+ *               email: example.email@example.com
+ *               password: password123
+ *     responses:
+ *       "200":
+ *         description: |
+ *           New agency created.
+ *           For authentication, token needs to be put in a header called "x-access-token" in most other calls.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/LoginOrRegister"
+ *       "400":
+ *         description: Incorrect password
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Password length less than 3 characters
  */
 agenciesRouter.post("/", async (req: Request<unknown, unknown, IAgency>, res: Response, next: NextFunction) => {
   const { body } = req
@@ -39,7 +76,7 @@ agenciesRouter.post("/", async (req: Request<unknown, unknown, IAgency>, res: Re
     if (passwordLength < 3) {
       return res
         .status(400)
-        .json({ error: "password length less than 3 characters" })
+        .json({ message: "Password length less than 3 characters" })
     }
     const saltRounds: number = 10
     const passwordHash: string = await bcrypt.hash(body.password, saltRounds)
@@ -67,10 +104,39 @@ agenciesRouter.post("/", async (req: Request<unknown, unknown, IAgency>, res: Re
 })
 
 /**
- * @name get/me
- * @function
- * @memberof module:controllers/agencies~agenciesRouter
- * @inner
+ * @openapi
+ * /agencies/me:
+ *   get:
+ *     summary: Route for agency to get their own info
+ *     tags: [Agency]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     responses:
+ *       "200":
+ *         description: Returns the agency object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Agency"
+ *       "401":
+ *         description: Incorrect token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Not authorized
+ *       "500":
+ *         description: An error occurred when calling the database.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
  */
 agenciesRouter.get("/me", authenticateToken, (_req: Request, res: Response, next: NextFunction) => {
   try {
@@ -78,8 +144,8 @@ agenciesRouter.get("/me", authenticateToken, (_req: Request, res: Response, next
     //Tokeni pitää sisällään userid jolla etsitään oikean käyttäjän tiedot
     Agency.findById(res.locals.decoded.id,
       undefined,
-      { lean: true },
-      (error: CallbackError, result: DocumentDefinition<IAgencyDocument> | null) => {
+      undefined,
+      (error: CallbackError, result: IAgencyDocument | null) => {
         if (error) {
           return res.status(500).send(error)
         } else if (!result) { //Jos ei resultia niin käyttäjän tokenilla ei löydy käyttäjää
@@ -94,11 +160,52 @@ agenciesRouter.get("/me", authenticateToken, (_req: Request, res: Response, next
 })
 
 /**
- * Route used to update agency new password.
- * @name PUT /agencies
- * @function
- * @memberof module:controllers/agencies~agenciesRouter
- * @inner
+ * Route used to update agency's information.
+ * @openapi
+ * /agencies:
+ *   put:
+ *     summary: Route for agency to update their own info. For example password.
+ *     tags: [Agency]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     requestBody:
+ *       description: |
+ *         Any properties that want to be updated are given in request body.
+ *         Properties can be any updatable property in the agency object.
+ *       content:
+ *         application/json:
+ *           schema:
+ *             example:
+ *               password: newPass
+ *               securityOfficer: Uusi Heebo
+ *     responses:
+ *       "200":
+ *         description: Agency information updated. Returns updated agency.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Agency"
+ *       "400":
+ *         description: Incorrect password
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Password length less than 3 characters
+ *       "404":
+ *         description: Agency wasn't found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Agency not found
  */
 agenciesRouter.put("/", authenticateToken, async (req: Request<unknown, unknown, IAgency>, res: Response, next: NextFunction) => {
   const { body } = req
@@ -111,7 +218,7 @@ agenciesRouter.put("/", authenticateToken, async (req: Request<unknown, unknown,
       if (passwordLength < 3) {
         return res
           .status(400)
-          .json({ error: "Password length less than 3 characters" })
+          .json({ message: "Password length less than 3 characters" })
       }
       const saltRounds: number = 10
       passwordHash = await bcrypt.hash(body.password, saltRounds)
@@ -122,7 +229,7 @@ agenciesRouter.put("/", authenticateToken, async (req: Request<unknown, unknown,
     // Salattu salasana luodaan ylempänä.
     delete body.passwordHash
 
-    // päivitetään bodyn kentät (mitä pystytään päivittämään, eli name ja phonenumber).
+    // päivitetään bodyn kentät (mitä pystytään päivittämään).
     // lisätään passwordHash päivitykseen, jos annetaan uusi salasana.
     const updateFields = {
       ...body,
@@ -131,11 +238,11 @@ agenciesRouter.put("/", authenticateToken, async (req: Request<unknown, unknown,
 
     // https://mongoosejs.com/docs/tutorials/findoneandupdate.html
     // https://mongoosejs.com/docs/api.html#model_Model.findByIdAndUpdate
-    const updatedAgency: IAgencyDocument | null = await Agency.findByIdAndUpdate(res.locals.decoded.id, updateFields,
+    const updatedAgency: IAgencyDocument | null = await Agency.findByIdAndUpdate(res.locals.decoded.id, updateFields, // TODO use callback for proper error handling
       { new: true, omitUndefined: true, runValidators: true })
 
     if (!updatedAgency) {
-      return res.status(400).json({ error: "Agency not found" })
+      return res.status(404).json({ message: "Agency not found" })
     }
     return res.status(200).json(updatedAgency)
 

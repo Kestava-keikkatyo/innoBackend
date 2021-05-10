@@ -12,11 +12,50 @@ import {IBaseBody, IBodyWithFeelings} from "../objecttypes/otherTypes";
 import {ParamsDictionary} from "express-serve-static-core";
 
 const feelingsRouter = express.Router()
+
 /**
- * Returns response.body: { The updated Worker object }
- * Route for worker to add a feeling.
- * request.body requirements: {value: Int}. That is the minimum, can also be {value: Int, note: "note"}
- * Must be logged in as worker.
+ * @openapi
+ * /feelings:
+ *   post:
+ *     summary: Route for worker to add a feeling
+ *     description: Must be logged in as a worker
+ *     tags: [Worker, Feelings]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: "#/components/schemas/Feeling"
+ *     responses:
+ *       "200":
+ *         description: Feeling added. Returns added feeling object.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Feeling"
+ *       "400":
+ *         description: Missing required field
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Request body must include 'value' field
+ *       "500":
+ *         description: An error occurred when calling the database.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Received no result from database when updating worker
  */
 feelingsRouter.post("/", authenticateToken, needsToBeWorker, async (req: Request<unknown, unknown, IBodyWithFeelings>, res: Response, next: NextFunction) => {
   const { body } = req
@@ -30,13 +69,13 @@ feelingsRouter.post("/", authenticateToken, needsToBeWorker, async (req: Request
         { new: true, omitUndefined: true, runValidators: true, lean: true },
         (error: CallbackError, result: DocumentDefinition<IWorkerDocument> | null) => {
           if (error || !result) {
-            return res.status(500).send(error || { message: "Received no result when updating user" })
+            return res.status(500).send(error || { message: "Received no result from database when updating worker" })
           } else {
             return res.status(200).send({ value: body.value, note: body.note })
           }
         })
     } else {
-      res.status(400).send({ error: "Request body must include 'value' field" })
+      res.status(400).send({ message: "Request body must include 'value' field" })
     }
 
   } catch (exception) {
@@ -45,9 +84,58 @@ feelingsRouter.post("/", authenticateToken, needsToBeWorker, async (req: Request
 })
 
 /**
- * Returns a list of feelings. response.body: [{ feeling object }, { feeling object }, ...]
- * Route for worker to get a list of their feelings.
- * Must be logged in as worker.
+ * @openapi
+ * /feelings:
+ *   get:
+ *     summary: Route for worker to get a list of their feelings
+ *     description: Must be logged in as a worker
+ *     tags: [Worker, Feelings]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: query
+ *         name: page
+ *         description: Page number you want to view
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example:
+ *             2
+ *       - in: query
+ *         name: limit
+ *         description: The number of items you want to view per page
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example:
+ *             5
+ *     responses:
+ *       "200":
+ *         description: Returns the worker's feelings paginated.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/PaginatedFeelings"
+ *       "400":
+ *         description: Page or limit parameter is missing or incorrect.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Missing or incorrect page/limit parameter
+ *       "500":
+ *         description: Internal error. Middleware function didn't add worker object into request body.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Worker object was undefined for some reason
  */
 feelingsRouter.get("/", authenticateToken, needsToBeWorker, async (req: Request<unknown, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { query, body } = req
@@ -64,7 +152,7 @@ feelingsRouter.get("/", authenticateToken, needsToBeWorker, async (req: Request<
     if (body.worker) {
       res.status(200).send(buildPaginatedObjectFromArray(page, limit, body.worker.feelings))
     } else {
-     res.status(500).send({ error: "Worker object was undefined for some reason" })
+     res.status(500).send({ message: "Worker object was undefined for some reason" })
     }
   } catch (exception) {
     return next(exception)
@@ -72,9 +160,79 @@ feelingsRouter.get("/", authenticateToken, needsToBeWorker, async (req: Request<
 })
 
 /**
- * Returns a list of feelings. response.body: [{ feeling object }, { feeling object }, ...]
- * Route for agency/business to get a list of a worker's feelings they have a contract with.
- * req.query: page, limit
+ * @openapi
+ * /feelings/{workerId}:
+ *   get:
+ *     summary: Route for agency/business to get a list of a worker's feelings they have a contract with
+ *     description: Must be logged in as an agency or a business
+ *     tags: [Agency, Business, Feelings]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: workerId
+ *         description: ID of the worker whose feelings we want to check.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 6018012a88b8375630a6a3c4
+ *       - in: query
+ *         name: page
+ *         description: Page number you want to view
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example:
+ *             1
+ *       - in: query
+ *         name: limit
+ *         description: The number of items you want to view per page
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example:
+ *             5
+ *     responses:
+ *       "200":
+ *         description: Returns the worker's feelings paginated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/PaginatedFeelings"
+ *       "400":
+ *         description: Page or limit parameter is missing or incorrect.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Missing or incorrect page/limit parameter
+ *       "403":
+ *         description: Contract with worker hasn't been made or isn't valid anymore.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Not allowed to see worker feelings if no contract has been made with them.
+ *       "404":
+ *         description: No worker was found with the requested ID.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Worker with ID {workerId} not found
+ *       "500":
+ *         description: An error occurred when calling the database.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
  */
 feelingsRouter.get("/:workerId", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { query, params, body } = req
@@ -102,7 +260,7 @@ feelingsRouter.get("/:workerId", authenticateToken, needsToBeAgencyOrBusiness, a
             { _id: { $in: contractIds } },
             (error: CallbackError, contracts: Array<IBusinessContractDocument>) => {
               if (error) {
-                return res.status(500).send(`error message: ${error.message}\n${error}`)
+                return res.status(500).send(`message: ${error.message}\n${error}`)
               }
               for (let i = 0; i < contracts.length; i++) { // TODO madeContract.workers
                 // if (contracts[i].worker && contracts[i].worker instanceof Types.ObjectId && (contracts[i].worker as Types.ObjectId).equals(workerId)) {
@@ -127,7 +285,7 @@ feelingsRouter.get("/:workerId", authenticateToken, needsToBeAgencyOrBusiness, a
             { _id: { $in: contractIds } },
             (error: CallbackError, result: Array<IWorkContractDocument>) => {
               if (error) {
-                res.status(500).send(`error message: ${error.message}\n${error}`)
+                res.status(500).send(`message: ${error.message}\n${error}`)
               }
               for (let i = 0; i < result.length; i++) { // TODO Can this be done with just the find query?
                 for (let j = 0; j < result[i].contracts.length; j++) {
@@ -149,6 +307,7 @@ feelingsRouter.get("/:workerId", authenticateToken, needsToBeAgencyOrBusiness, a
             })
 
       } else {
+        // Code should never reach here since middleware populates either body.agency or body.business
         return res.status(401).send( { message: "Not authorized" })
       }
 
@@ -159,7 +318,43 @@ feelingsRouter.get("/:workerId", authenticateToken, needsToBeAgencyOrBusiness, a
 })
 
 /**
- * Route for worker to delete one of their own feelings by providing an id of that feeling as a parameter.
+ * @openapi
+ * /feelings/{feelingId}:
+ *   delete:
+ *     summary: Route for worker to delete one of their own feelings
+ *     description: Must be logged in as a worker
+ *     tags: [Worker, Feelings]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: feelingId
+ *         description: ID of the feeling which we want to delete.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 60243862d95c272d6067a8af
+ *     responses:
+ *       "204":
+ *         description: Feeling was deleted successfully.
+ *       "404":
+ *         description: No feeling was found with the requested ID.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Could not find a feeling with the ID {feelingId}
+ *       "500":
+ *         description: An error occurred when calling database, or something in middleware failed.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
  */
 feelingsRouter.delete("/:feelingId", authenticateToken, needsToBeWorker, async (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { params, body } = req
@@ -167,11 +362,11 @@ feelingsRouter.delete("/:feelingId", authenticateToken, needsToBeWorker, async (
   try {
     let found: boolean = false
     if (!body.worker) {
-      return res.status(500).send({ error: "Worker object was undefined for some reason" })
+      return res.status(500).send({ message: "Worker object was undefined for some reason" })
     }
     for (const feeling of body.worker.feelings) {
       if (!feeling._id) {
-        return res.status(500).send({ error: "Id in Worker object was undefined for some reason" })
+        return res.status(500).send({ message: "Feeling's ID in Worker object was undefined for some reason" })
       }
       if (feeling._id.equals(params.feelingId)) {
         found = true
@@ -189,7 +384,7 @@ feelingsRouter.delete("/:feelingId", authenticateToken, needsToBeWorker, async (
       }
     }
     if (!found) {
-      return res.status(404).send({ message: `Could not find feeling with id ${params.feelingId}` })
+      return res.status(404).send({ message: `Could not find a feeling with the ID ${params.feelingId}` })
     }
   } catch (exception) {
     return next(exception)

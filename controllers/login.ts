@@ -9,6 +9,50 @@ import {IBodyLogin} from "../objecttypes/otherTypes";
 
 const loginRouter = express.Router()
 
+/**
+ * @openapi
+ * /login/worker:
+ *   post:
+ *     summary: Route for logging in as a worker.
+ *     description: Response provides a token used for authentication in most other calls.
+ *     tags: [Worker, Login]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *                 format: password
+ *             example:
+ *               email: example.email@example.com
+ *               password: password123
+ *     responses:
+ *       "200":
+ *         description: |
+ *           Logged in as a worker.
+ *           For authentication, token needs to be put in a header called "x-access-token" in most other calls.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/LoginOrRegister"
+ *       "401":
+ *         description: Invalid email or password
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Invalid email or password
+ */
 loginRouter.post("/worker", async (req: Request<unknown, unknown, IBodyLogin>, res: Response) => {
   const { body } = req
 
@@ -18,7 +62,7 @@ loginRouter.post("/worker", async (req: Request<unknown, unknown, IBodyLogin>, r
     : await bcrypt.compare(body.password, worker.passwordHash as string)
 
   if (!(worker && passwordCorrect)) {
-    return res.status(401).json({ error: "invalid email or password" })
+    return res.status(401).json({ message: "Invalid email or password" })
   }
 
   const workerForToken = {
@@ -30,6 +74,50 @@ loginRouter.post("/worker", async (req: Request<unknown, unknown, IBodyLogin>, r
   return res.status(200).send({ token, name: worker.name, email: worker.email, role: "worker" })
 })
 
+/**
+ * @openapi
+ * /login/business:
+ *   post:
+ *     summary: Route for logging in as a business
+ *     description: Response provides a token used for authentication in most other calls.
+ *     tags: [Business, Login]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *                 format: password
+ *             example:
+ *               email: example.email@example.com
+ *               password: password123
+ *     responses:
+ *       "200":
+ *         description: |
+ *           Logged in as a business.
+ *           For authentication, token needs to be put in a header called "x-access-token" in most other calls.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/LoginOrRegister"
+ *       "401":
+ *         description: Invalid email or password
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Invalid email or password
+ */
 loginRouter.post("/business", async (req: Request<unknown, unknown, IBodyLogin>, res: Response) => {
   const { body } = req
 
@@ -39,7 +127,7 @@ loginRouter.post("/business", async (req: Request<unknown, unknown, IBodyLogin>,
     : await bcrypt.compare(body.password, business.passwordHash as string)
 
   if (!(business && passwordCorrect)) {
-    return res.status(401).json({ error: "invalid email or password" })
+    return res.status(401).json({ message: "Invalid email or password" })
   }
 
   const businessForToken = {
@@ -52,6 +140,50 @@ loginRouter.post("/business", async (req: Request<unknown, unknown, IBodyLogin>,
   return res.status(200).send({ token, name: business.name, email: business.email, role: "business" })
 })
 
+/**
+ * @openapi
+ * /login/agency:
+ *   post:
+ *     summary: Route for logging in as an agency
+ *     description: Response provides a token used for authentication in most other calls.
+ *     tags: [Agency, Login]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *                 format: password
+ *             example:
+ *               email: example.email@example.com
+ *               password: password123
+ *     responses:
+ *       "200":
+ *         description: |
+ *           Logged in as an agency.
+ *           For authentication, token needs to be put in a header called "x-access-token" in most other calls.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/LoginOrRegister"
+ *       "401":
+ *         description: Invalid email or password
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Invalid email or password
+ */
 loginRouter.post("/agency", async (req: Request<unknown, unknown, IBodyLogin>, res: Response) => {
   const { body } = req
 
@@ -61,7 +193,7 @@ loginRouter.post("/agency", async (req: Request<unknown, unknown, IBodyLogin>, r
     : await bcrypt.compare(body.password, agency.passwordHash as string)
 
   if (!(agency && passwordCorrect)) {
-    return res.status(401).json({ error: "invalid email or password" })
+    return res.status(401).json({ message: "Invalid email or password" })
   }
 
   const agencyForToken = {
