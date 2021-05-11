@@ -10,9 +10,9 @@ const options = {
     openapi: "3.0.0",
     // Like the one described here: https://swagger.io/specification/#infoObject
     info: {
-      title: "Keikka Kaveri REST API",
+      title: "Keikkakaveri REST API",
       version,
-      description: "REST API documentation for Keikka Kaveri",
+      description: "REST API documentation for Keikkakaveri",
       license: {
         name: "Apache-2.0",
         url: "https://www.apache.org/licenses/LICENSE-2.0"
@@ -20,7 +20,7 @@ const options = {
     },
     servers: [
       {
-        url: `http://localhost:${config.PORT}/api`
+        url: `${config.IP}:${config.PORT}/api`
       }
     ],
     tags: [

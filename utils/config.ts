@@ -1,5 +1,6 @@
 require("dotenv").config()
 
+let IP = process.env.IP
 let PORT = process.env.PORT
 let MONGODB_URI = process.env.MONGODB_URI
 
@@ -9,5 +10,6 @@ if (process.env.NODE_ENV === "test") {
 
 export default {
   MONGODB_URI,
-  PORT
+  PORT,
+  IP
 }

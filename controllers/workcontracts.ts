@@ -406,6 +406,12 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
  *         schema:
  *           type: string
  *           example: 6031524530c1de2568fb6606
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             # TODO
  *     responses:
  *       # TODO Check responses from middleware and list them here.
  */
@@ -509,6 +515,12 @@ workcontractsRouter.put("/:contractId/:contractsId/accept", authenticateToken, n
  *         schema:
  *           type: string
  *           example: 6031524530c1de2568fb6660
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             # TODO
  *     responses:
  *       # TODO Check responses from middleware and list them here.
  */
@@ -544,6 +556,12 @@ acceptWorkers, updateWorkContract)
  *         schema:
  *           type: string
  *           example: 6031524530c1de2568fb6660
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             # TODO
  *     responses:
  *       # TODO Check responses from middleware and list them here.
  */
@@ -579,6 +597,12 @@ revertWorkers, updateWorkContract)
  *         schema:
  *           type: string
  *           example: 6031524530c1de2568fb6660
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             # TODO
  *     responses:
  *       # TODO Check responses from middleware and list them here.
  */
