@@ -1,5 +1,7 @@
 Pullatessa suorita ```npm install``` komento ladataksesi vaadittavat kirjastot
 
+Projektin saa buildattua ```npm run build``` komennolla
+
 Serveri lähtee pyörimään ```npm start``` komennolla
 
 ## TÄMÄNHETKISET API KUTSUT

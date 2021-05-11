@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "tsc": "tsc",
+    "build": "tsc",
     "dev": "ts-node-dev index.ts",
     "docs": "rm -rf docs && jsdoc -c jsdoc.json",
     "start": "cross-env NODE_ENV=production node index.js",

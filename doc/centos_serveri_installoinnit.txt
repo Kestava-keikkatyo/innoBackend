@@ -1,65 +1,50 @@
----------Update yum
-sudo yum update
+---------Update yum and install docker
+sudo yum update -y
+sudo amazon-linux-extras install docker
+sudo service docker start
 
----------OpenJDK and OpenJRE 8
-sudo yum install java-1.8.0-openjdk-devel
-sudo yum install java-1.8.0-openjdk
-
----------Emacs text editor
-sudo yum install emacs
-
-Installing jenkins and docker
-https://www.jenkins.io/doc/book/installing/
-https://docs.docker.com/engine/install/centos/
----------Install docker repo
-sudo yum install -y yum-utils
-sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-
----------Install the latest version of Docker Engine and containerd, or go to the next step to install a specific version:
-sudo yum install docker-ce docker-ce-cli containerd.io
-If prompted to accept the GPG key, verify that the fingerprint matches 060A 61C5 1B55 8A7F 742B 77AA C52F EB6B 621E 9F35, and if so, accept it.
-
----------Start docker
-sudo systemctl start docker
-Verify that Docker Engine is installed correctly by running the hello-world image.
-sudo docker run hello-world
 
 ---------Docker-komentojen ajamista ei-sudona. Aiheuttaa turvariskin, mutta suositeltu jenkinsin install-ohjeissa.
 https://docs.docker.com/engine/install/linux-postinstall/
 Create docker group
 sudo groupadd docker
 Add your user to the docker group(adduser username & passwd username)
-sudo usermod -aG docker $USER
+sudo usermod -aG docker {Username}
 
 ----------Start docker on boot
 sudo systemctl enable docker
 
+
+---------Create volume for Portainer
+docker volume create portainer_data
+
+---------Run Portainer
+docker run -d -p 8000:8000 -p 9000:9000 --name=portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer-ce
+
+
 ---------Create a bridge network in Docker
 docker network create jenkins
 
----------Create the following volumes to share the Docker client TLS certificates needed to connect to the Docker daemon and persist the Jenkins data using the following docker volume create commands:
-docker volume create jenkins-docker-certs
-docker volume create jenkins-data
-
 ---------In order to execute Docker commands inside Jenkins nodes, download and run the docker:dind Docker image
-docker container run --name jenkins-docker --rm --detach \
+docker run --name jenkins-docker --rm --detach \
   --privileged --network jenkins --network-alias docker \
   --env DOCKER_TLS_CERTDIR=/certs \
   --volume jenkins-docker-certs:/certs/client \
   --volume jenkins-data:/var/jenkins_home \
-  --publish 2376:2376 docker:dind
+  --publish 2376:2376 docker:dind --storage-driver overlay2
+
 
 ---------Build a new docker image from this Dockerfile and assign the image a meaningful name
-docker build -t myjenkins-blueocean:1.1 https://github.com/Kestava-keikkatyo/innoBackend.git#dev:dockerfiles
+docker build -t myjenkins-blueocean:latest https://github.com/Kestava-keikkatyo/innoBackend.git#dev:dockerfiles/jenkins
 
----------Run your own myjenkins-blueocean:1.1 image as a container in Docker using the following docker run command:
+---------Run your own myjenkins-blueocean:latest image as a container in Docker using the following docker run command:
 docker run --name jenkins-blueocean --rm --detach \
   --network jenkins --env DOCKER_HOST=tcp://docker:2376 \
   --env DOCKER_CERT_PATH=/certs/client --env DOCKER_TLS_VERIFY=1 \
   --publish 8080:8080 --publish 50000:50000 \
   --volume jenkins-data:/var/jenkins_home \
   --volume jenkins-docker-certs:/certs/client:ro \
-  myjenkins-blueocean:1.1
+  myjenkins-blueocean:latest
 
----------Jenkins setup wizard
-https://www.jenkins.io/doc/book/installing/#setup-wizard
+---------Get Jenkins initialAdminPassword
+sudo docker exec {Name or ID of the container} cat /var/jenkins_home/secrets/initialAdminPassword
