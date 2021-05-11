@@ -29,4 +29,4 @@ COPY --from=builder /usr/src/app/build ./build
 
 EXPOSE 3001
 
-CMD [ "node", "./app/build/index.js" ]
+CMD [ "node", "./build/index.js" ]
