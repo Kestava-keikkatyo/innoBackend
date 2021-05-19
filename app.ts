@@ -5,6 +5,7 @@ import config from "./utils/config"
 import workersRouter from "./controllers/workers"
 import businessRouter from "./controllers/businesses"
 import agenciesRouter from "./controllers/agencies"
+import uploadsRouter from "./controllers/uploads"
 import loginRouter from "./controllers/login"
 import businesscontractsRouter from "./controllers/businesscontracts"
 import feelingsRouter from "./controllers/feelings"
@@ -14,6 +15,10 @@ import { errorHandler, requestLogger, unknownEndpoint } from "./utils/middleware
 import {info, error as _error} from "./utils/logger"
 import swaggerUi from "swagger-ui-express"
 import swaggerDocument from "./doc/generateSwaggerDoc"
+
+
+
+
 
 const app = express()
 
@@ -42,6 +47,7 @@ app.use(requestLogger)
 app.use("/api/workers", workersRouter)
 app.use("/api/businesses", businessRouter)
 app.use("/api/agencies", agenciesRouter)
+app.use("/api/uploads", uploadsRouter)
 app.use("/api/login", loginRouter)
 app.use("/api/businesscontracts", businesscontractsRouter)
 app.use("/api/feelings", feelingsRouter)
