@@ -5,7 +5,7 @@ import {IBusinessContractDocument} from "../objecttypes/modelTypes"
 const businessContractSchema = new Schema({
   agency: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "agency",
+    ref: "Agency",
     immutable: true
   },
   createdAt: {
@@ -16,21 +16,21 @@ const businessContractSchema = new Schema({
   madeContracts: {
     businesses: [{
       type: mongoose.Schema.Types.ObjectId,
-      ref: "businesses"
+      ref: "Business"
     }],
     workers: [{
       type: mongoose.Schema.Types.ObjectId,
-      ref: "workers"
+      ref: "Worker"
     }]
   },
   requestContracts: {
     businesses: [{
       type: mongoose.Schema.Types.ObjectId,
-      ref: "businesses"
+      ref: "Business"
     }],
     workers: [{
       type: mongoose.Schema.Types.ObjectId,
-      ref: "workers"
+      ref: "Worker"
     }]
   }
 })

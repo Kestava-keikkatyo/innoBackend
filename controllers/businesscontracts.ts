@@ -21,8 +21,7 @@ import {IBaseBody} from "../objecttypes/otherTypes";
 import {IBusinessContractDocument} from "../objecttypes/modelTypes";
 import {
   acceptBusinessContract, addContractToBusinessContract, businessContractExists, businessContractIncludesUser,
-  businessContractUpdate,
-  declineBusinessContract, makeBusinessContract
+  businessContractUpdate, declineBusinessContract, makeBusinessContract, businessContractAgencyUpdate
 } from "../utils/businessContractMiddleware";
 
 const businesscontractsRouter = express.Router()
@@ -166,6 +165,8 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
       let limit: number = parseInt(query.limit as string, 10)
       let array: {}
       let projection: string = ''
+      let populatePath: string = ''
+      let populateFields: string = ''
       //Check that page and limit exist and are not below 1
       if (page < 1 || !page) {
         page = 1
@@ -176,6 +177,8 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
       //Which id is in question
       if (body.agency) {
         array = {_id: {$in: body.agency.businessContracts}}
+        populatePath = 'madeContracts.businesses madeContracts.workers requestContracts.businesses requestContracts.workers'
+        populateFields = 'name email userType'
       }
       else if (body.business) {
         array = {_id: {$in: body.business.businessContracts}}
@@ -190,10 +193,9 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
       }
       return await BusinessContract.find(array,
         projection,
-        { lean: true },
-        (error: CallbackError, result: DocumentDefinition<IBusinessContractDocument>[]) => {
+        { lean: true }).populate(populatePath,populateFields).exec((error: CallbackError, result: DocumentDefinition<IBusinessContractDocument>[]) => {
           if (error) {
-            return res.status(500).send(error)
+            return res.status(500).send(error.message)
           } else if (result.length === 0) {
             return res.status(404).send({ message: "Couldn't find any BusinessContracts" })
           } else {
@@ -297,7 +299,7 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
   *     responses:
   *       # TODO Check responses from middleware and list them here.
   */
- businesscontractsRouter.put("/:businessContractId/:userId/accept", authenticateToken, needsToBeAgency, businessContractExists, acceptBusinessContract, businessContractUpdate)
+ businesscontractsRouter.put("/:businessContractId/:userId/accept", authenticateToken, needsToBeAgency, businessContractExists, acceptBusinessContract, businessContractAgencyUpdate)
  /**
   * @openapi
   * /businesscontracts/{businessContractId}/{userId}/decline:
@@ -332,7 +334,7 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
   *     responses:
   *       # TODO Check responses from middleware and list them here.
   */
- businesscontractsRouter.put("/:businessContractId/:userId/decline",authenticateToken, needsToBeAgency, businessContractExists, declineBusinessContract, businessContractUpdate)
+ businesscontractsRouter.put("/:businessContractId/:userId/decline",authenticateToken, needsToBeAgency, businessContractExists, declineBusinessContract, businessContractAgencyUpdate)
 
 /**
  * TODO:

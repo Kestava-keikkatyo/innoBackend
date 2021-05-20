@@ -352,6 +352,7 @@ export const declineBusinessContract = async (req: Request<ParamsDictionary, unk
         }
       }
       body.businessContractUpdateFilterQuery = {_id: businessContractId}
+      await Business.updateOne({_id:userId},{ $pull: { businessContracts: businessContractId }})
     } else {
       const index: IWorkerDocument[] = await Worker.find({_id: userId})
       if (index.length == 1) {
@@ -361,6 +362,7 @@ export const declineBusinessContract = async (req: Request<ParamsDictionary, unk
           }
         }
         body.businessContractUpdateFilterQuery = {_id: businessContractId}
+        await Worker.updateOne({_id:userId},{$pull: { businessContracts: businessContractId }})
       } else {
         return res.status(404).send({message: "Couldn't find user who matches" + userId})
       }
@@ -372,7 +374,7 @@ export const declineBusinessContract = async (req: Request<ParamsDictionary, unk
 }
 /**
  * This middleware function is used to update BusinessContract.
- * Runs updateOne query to BusinessContract. Used as last middleware to run update.
+ * Runs findOneAndUpdate query to BusinessContract. Used as last middleware to run update.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @returns {JSON} Status 200: doc
@@ -387,16 +389,52 @@ export const businessContractUpdate = (req: Request<ParamsDictionary, unknown, I
   }
   try {
     const updateFields = body.businessContractUpdate
-    return BusinessContract.updateOne(body.businessContractUpdateFilterQuery,
+    return BusinessContract.findOneAndUpdate(body.businessContractUpdateFilterQuery,
       updateFields,
-      {omitUndefined: true},
-      (error: CallbackError, rawResult: any) => {
+      {new:true, lean: true},
+      (error: CallbackError, rawResult:  DocumentDefinition<IBusinessContractDocument> | null) => {
         if (error) {
-          return res.status(500).send(error)
+          return res.status(500).send(error.message)
         } else if (!rawResult) {
           return res.status(400).send({success: false, error: "Could not update BusinessContract with id " + id})
         } else {
-          return res.status(200).send(rawResult) // TODO Halutaanko palauttaa rawResult?
+          return res.status(200).send(rawResult)
+        }
+      })
+  } catch (exception) {
+    return res.status(500).send({exception})
+  }
+}
+/**
+ * This middleware function is used to update BusinessContract by agency.
+ * Runs findOneAndUpdate query to BusinessContract. And then populates requestContract and madeContracts. 
+ * Used as last middleware to run update.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @returns {JSON} Status 200: doc
+ */
+ export const businessContractAgencyUpdate = (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response) => {
+  const {body, params} = req
+  let id: Types.ObjectId
+  const populatePath = 'madeContracts.businesses madeContracts.workers requestContracts.businesses requestContracts.workers'
+  const populateFields = 'name email userType'
+  try {
+    id = Types.ObjectId(params.contractId)
+  } catch (exception) {
+    return res.status(403).send({message: "Note: contractId must be string."})
+  }
+  try {
+    const updateFields = body.businessContractUpdate
+    return BusinessContract.findOneAndUpdate(body.businessContractUpdateFilterQuery,
+      updateFields,
+      {new:true, lean: true}).populate(populatePath,populateFields).exec(
+        (error: CallbackError, rawResult:  DocumentDefinition<IBusinessContractDocument> | null) => {
+        if (error) {
+          return res.status(500).send(error.message)
+        } else if (!rawResult) {
+          return res.status(400).send({success: false, error: "Could not update BusinessContract with id " + id})
+        } else {
+          return res.status(200).send(rawResult) 
         }
       })
   } catch (exception) {
