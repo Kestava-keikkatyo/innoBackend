@@ -177,7 +177,7 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
       //Which id is in question
       if (body.agency) {
         array = {_id: {$in: body.agency.businessContracts}}
-        populatePath = 'madeContracts.businesses madeContracts.workers requestContracts.businesses requestContracts.workers'
+        populatePath = 'madeContracts.businesses madeContracts.workers requestContracts.businesses requestContracts.workers pendingContracts.workers pendingContracts.businesses'
         populateFields = 'name email userType'
       }
       else if (body.business) {

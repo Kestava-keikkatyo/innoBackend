@@ -31,6 +31,16 @@ const businessContractSchema = new Schema({
     workers: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: "Worker"
+    }]  
+  },
+  pendingContracts: {
+    businesses: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Business"
+    }],
+    workers: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Worker"
     }]
   }
 })

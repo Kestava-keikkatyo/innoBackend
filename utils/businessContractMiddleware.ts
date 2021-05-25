@@ -302,7 +302,7 @@ export const acceptBusinessContract = async (req: Request<ParamsDictionary, unkn
           'requestContracts.businesses': userId
         },
         $addToSet: {
-          'madeContracts.businesses': userId
+          'pendingContracts.businesses': userId
         }
       }
       body.businessContractUpdateFilterQuery = {_id: businessContractId}
@@ -315,7 +315,7 @@ export const acceptBusinessContract = async (req: Request<ParamsDictionary, unkn
             'requestContracts.workers': userId
           },
           $addToSet: {
-            'madeContracts.workers': userId
+            'pendingContracts.workers': userId
           }
         }
         body.businessContractUpdateFilterQuery = {_id: businessContractId}
@@ -420,7 +420,7 @@ export const businessContractUpdate = (req: Request<ParamsDictionary, unknown, I
  export const businessContractAgencyUpdate = (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response) => {
   const {body, params} = req
   let id: Types.ObjectId
-  const populatePath = 'madeContracts.businesses madeContracts.workers requestContracts.businesses requestContracts.workers'
+  const populatePath = 'madeContracts.businesses madeContracts.workers requestContracts.businesses requestContracts.workers pendingContracts.businesses pendingContracts.workers'
   const populateFields = 'name email userType'
   try {
     id = Types.ObjectId(params.contractId)
