@@ -9,6 +9,7 @@ import {
 } from "./modelTypes";
 
 export interface IBaseBody {
+  form: string,
   userId: string,
   agency?: IAgencyDocument,
   business?: IBusinessDocument,

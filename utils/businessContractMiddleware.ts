@@ -286,9 +286,11 @@ export const acceptBusinessContract = async (req: Request<ParamsDictionary, unkn
   const {body, params} = req
   let businessContractId: Types.ObjectId
   let userId: Types.ObjectId
+  let formId: Types.ObjectId
   try {
     businessContractId = Types.ObjectId(params.businessContractId)
     userId = Types.ObjectId(params.userId)
+    formId = Types.ObjectId(body.form) //Tämä kohta epäonnistuu jos ei lähetetä formia BusinessContract pyynnön mukana.
   } catch (exception) {
     return res.status(403).send({message: "Note: businessContractId and userId must be string."})
   }
@@ -304,6 +306,7 @@ export const acceptBusinessContract = async (req: Request<ParamsDictionary, unkn
         }
       }
       body.businessContractUpdateFilterQuery = {_id: businessContractId}
+      await Business.updateOne({_id:userId},{ $addToSet: { forms: formId }})
     } else {
       const index: IWorkerDocument[] = await Worker.find({_id: userId})
       if (index.length == 1) {
@@ -316,6 +319,7 @@ export const acceptBusinessContract = async (req: Request<ParamsDictionary, unkn
           }
         }
         body.businessContractUpdateFilterQuery = {_id: businessContractId}
+        await Worker.updateOne({_id:userId},{ $addToSet: { forms: formId }})
       } else {
         return res.status(404).send({message: "Couldn't find user who matches" + userId})
       }
