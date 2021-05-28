@@ -16,13 +16,14 @@ import { needsToBeAgency,
   needsToBeAgencyBusinessOrWorker} from "../utils/middleware"
 import { error as _error} from "../utils/logger"
 import { buildPaginatedObjectFromArray } from "../utils/common"
-import {CallbackError, DocumentDefinition} from "mongoose"
+import {CallbackError, DocumentDefinition, Types} from "mongoose"
 import {IBaseBody} from "../objecttypes/otherTypes";
 import {IBusinessContractDocument} from "../objecttypes/modelTypes";
 import {
   acceptBusinessContract, addContractToBusinessContract, businessContractExists, businessContractIncludesUser,
   businessContractUpdate, declineBusinessContract, makeBusinessContract, businessContractAgencyUpdate
 } from "../utils/businessContractMiddleware";
+import Agency from "../models/Agency"
 
 const businesscontractsRouter = express.Router()
 
@@ -164,7 +165,7 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
       let page: number = parseInt(query.page as string, 10)
       let limit: number = parseInt(query.limit as string, 10)
       let array: {}
-      let projection: string = ''
+      let projection: {} = {}
       let populatePath: string = ''
       let populateFields: string = ''
       //Check that page and limit exist and are not below 1
@@ -175,33 +176,135 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
         limit = 5
       }
       //Which id is in question
+      //If use is Agency we can use find() to find BusinessContracts.
       if (body.agency) {
         array = {_id: {$in: body.agency.businessContracts}}
         populatePath = 'madeContracts.businesses madeContracts.workers requestContracts.businesses requestContracts.workers pendingContracts.workers pendingContracts.businesses'
         populateFields = 'name email userType'
+        return BusinessContract.find(array,
+          projection,
+          { lean: true }).populate(populatePath,populateFields).exec((error: CallbackError, result: DocumentDefinition<IBusinessContractDocument>[]) => {
+            if (error) {
+              return res.status(500).send(error.message)
+            } else if (result.length === 0) {
+              return res.status(404).send({ message: "Couldn't find any BusinessContracts" })
+            } else {
+              return res.status(200).send(buildPaginatedObjectFromArray(page, limit, result))
+            }
+        })
       }
+      //If Business is using this route use aggregate to return correct BusinessContracts. 
       else if (body.business) {
-        array = {_id: {$in: body.business.businessContracts}}
-        projection = 'agency'
+        return BusinessContract.aggregate([
+          { $match: { _id: { "$in": body.business.businessContracts}}},
+          { $group: { 
+            _id: "$_id",
+            agency: {"$first":"$agency"},
+            requestContracts: { "$first": "$requestContracts.businesses"},
+            pendingContracts: {"$first":"$pendingContracts.businesses"},
+            madeContracts: {"$first":"$madeContracts.businesses"}
+            }
+          },
+          {
+            $project: {
+              pendingContracts: {
+                $filter: {
+                input: "$pendingContracts",
+                as: "pendingExists",
+                cond: { $eq: ["$$pendingExists",Types.ObjectId(res.locals.decoded.id)]}
+              }},
+              requestContracts: {
+                $filter: {
+                  input: "$requestContracts",
+                  as: "requestExists",
+                  cond: { $eq: ["$$requestExists",Types.ObjectId(res.locals.decoded.id)]}
+                }
+              },
+              madeContracts: {
+                $filter: {
+                  input: "$madeContracts",
+                  as: "madeExists",
+                  cond: { $eq: ["$$madeExists",Types.ObjectId(res.locals.decoded.id)]}
+                }
+              },
+              agency: 1
+            }
+          }
+        ]).exec((err:CallbackError,result) => {
+          if (err) {
+            return res.status(500).send(err)
+          } else if (!result) {
+            return res.status(404).send({error: "Aggregate failed, result was empty."})
+          } else {
+            return Agency.populate(result,{path: "agency", select: "name email createdAt"},(err:CallbackError,result) => {
+              if (err) {
+                return res.status(500).send(err)
+              } else if (!result) {
+                return res.status(404).send({error: "Populate failed, result was empty."})
+              } else {
+                return res.status(200).send(buildPaginatedObjectFromArray(page, limit, result))
+              }
+            })
+          }
+        })
       }
+      //If Worker is using this route use aggregate to return correct BusinessContracts. 
       else if (body.worker) {
-        array =  {_id: {$in: body.worker.businessContracts}}
-        projection = 'agency'
-      }
-      else {
+        return BusinessContract.aggregate([
+          { $match: { _id: { "$in": body.worker.businessContracts}}},
+          { $group: { 
+            _id: "$_id",
+            agency: {"$first":"$agency"},
+            requestContracts: { "$first": "$requestContracts.workers"},
+            pendingContracts: {"$first":"$pendingContracts.workers"},
+            madeContracts: {"$first":"$madeContracts.workers"}
+            }
+          },
+          {
+            $project: {
+              pendingContracts: {
+                $filter: {
+                input: "$pendingContracts",
+                as: "pendingExists",
+                cond: { $eq: ["$$pendingExists",Types.ObjectId(res.locals.decoded.id)]}
+              }},
+              requestContracts: {
+                $filter: {
+                  input: "$requestContracts",
+                  as: "requestExists",
+                  cond: { $eq: ["$$requestExists",Types.ObjectId(res.locals.decoded.id)]}
+                }
+              },
+              madeContracts: {
+                $filter: {
+                  input: "$madeContracts",
+                  as: "madeExists",
+                  cond: { $eq: ["$$madeExists",Types.ObjectId(res.locals.decoded.id)]}
+                }
+              },
+              agency: 1
+            }
+          }
+        ]).exec((err:CallbackError, result) => {
+          if (err) {
+            return res.status(500).send(err)
+          } else if (!result) {
+            return res.status(404).send({error: "Aggregate failed, result was empty."})
+          } else {
+            return Agency.populate(result,{path: "agency", select: "name email createdAt"},(err:CallbackError,result) => {
+              if (err) {
+                return res.status(500).send(err)
+              } else if (!result) {
+                return res.status(404).send({error: "Populate failed, result was empty."})
+              } else {
+                return res.status(200).send(buildPaginatedObjectFromArray(page, limit, result))
+              }
+            })
+          }
+        })
+      } else {
         return res.status(401).send({ message: "Token didn't have any users." })
       }
-      return await BusinessContract.find(array,
-        projection,
-        { lean: true }).populate(populatePath,populateFields).exec((error: CallbackError, result: DocumentDefinition<IBusinessContractDocument>[]) => {
-          if (error) {
-            return res.status(500).send(error.message)
-          } else if (result.length === 0) {
-            return res.status(404).send({ message: "Couldn't find any BusinessContracts" })
-          } else {
-            return res.status(200).send(buildPaginatedObjectFromArray(page, limit, result))
-          }
-      })
     } catch (exception) {
       return next(exception)
     }

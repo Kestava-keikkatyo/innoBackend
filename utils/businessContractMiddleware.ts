@@ -306,7 +306,7 @@ export const acceptBusinessContract = async (req: Request<ParamsDictionary, unkn
         }
       }
       body.businessContractUpdateFilterQuery = {_id: businessContractId}
-      await Business.updateOne({_id:userId},{ $addToSet: { forms: formId }})
+      await Business.updateOne({_id:userId},{ $addToSet: { forms: formId, businessContracts: businessContractId  }})
     } else {
       const index: IWorkerDocument[] = await Worker.find({_id: userId})
       if (index.length == 1) {
@@ -319,7 +319,7 @@ export const acceptBusinessContract = async (req: Request<ParamsDictionary, unkn
           }
         }
         body.businessContractUpdateFilterQuery = {_id: businessContractId}
-        await Worker.updateOne({_id:userId},{ $addToSet: { forms: formId }})
+        await Worker.updateOne({_id:userId},{ $addToSet: { forms: formId, businessContracts: businessContractId }})
       } else {
         return res.status(404).send({message: "Couldn't find user who matches" + userId})
       }
