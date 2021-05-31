@@ -21,7 +21,7 @@ let aws = require('aws-sdk')
 require('dotenv').config()
 
 // AWS S3 bucket name
-const S3_BUCKET = config.AWS_BUCKET
+let S3_BUCKET = config.AWS_BUCKET
 
 // Configure AWS with your accessKeyId and your secretAccessKey
 aws.config.update({
@@ -37,6 +37,20 @@ uploadsRouter.post("/", async (req: any, res: any) => {
     const file = req.body.file;
     //const fileName = req.body.fileName;
     const fileType = req.body.fileType;
+    let typePartOne:any = req.body.typePartOne
+
+    // Depending on the file type 'application, image or video', save the file to a certain directory in S3 'pdf, images or videos'
+    if(typePartOne==='application'){
+      S3_BUCKET = S3_BUCKET+'/pdf'
+    }
+
+    if(typePartOne==='image'){
+      S3_BUCKET = S3_BUCKET+'/images'
+    }
+
+    if(typePartOne==='video'){
+      S3_BUCKET = S3_BUCKET+'/videos'
+    }
 
     // Setting up S3 upload parameters
     const params = {
@@ -52,10 +66,28 @@ uploadsRouter.post("/", async (req: any, res: any) => {
        console.log(err);
        res.json({success: false, error: err})
     }
+
+    S3_BUCKET = config.AWS_BUCKET
+
+    let url:any = `https://${S3_BUCKET}.s3.amazonaws.com/${file}`
+
+    // Depending on the file type, add the directory name 'pdf, images or videos' to the url
+    if(typePartOne==='application'){
+      url = `https://${S3_BUCKET}.s3.amazonaws.com/pdf/${file}`
+    }
+
+    if(typePartOne==='image'){
+      url = `https://${S3_BUCKET}.s3.amazonaws.com/images/${file}`
+    }
+
+    if(typePartOne==='video'){
+      url = `https://${S3_BUCKET}.s3.amazonaws.com/videos/${file}`
+    }
+
     // Data payload of what we are sending back, the url of the signedRequest and a URL where we can access the content after its saved.
     const returnData = {
       signedRequest: data,
-      url: `https://${S3_BUCKET}.s3.amazonaws.com/${file}`,
+      url: url,
     };
     // Send it all back
     res.json({success:true, data:{returnData}});
