@@ -208,26 +208,34 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
           {
             $project: {
               pendingContracts: {
-                $filter: {
-                input: "$pendingContracts",
-                as: "pendingExists",
-                cond: { $eq: ["$$pendingExists",Types.ObjectId(res.locals.decoded.id)]}
-              }},
+                $first: {
+                  $filter: {
+                    input: "$pendingContracts.businessId",
+                    as: "pendingExists",
+                    cond: { $eq: ["$$pendingExists",Types.ObjectId(res.locals.decoded.id)]}
+                  }
+                }  
+              },
               requestContracts: {
-                $filter: {
-                  input: "$requestContracts",
-                  as: "requestExists",
-                  cond: { $eq: ["$$requestExists",Types.ObjectId(res.locals.decoded.id)]}
+                $first: {
+                  $filter: {
+                    input: "$requestContracts.businessId",
+                    as: "requestExists",
+                    cond: { $eq: ["$$requestExists",Types.ObjectId(res.locals.decoded.id)]}
+                  }
                 }
               },
               madeContracts: {
-                $filter: {
-                  input: "$madeContracts",
-                  as: "madeExists",
-                  cond: { $eq: ["$$madeExists",Types.ObjectId(res.locals.decoded.id)]}
+                $first: {
+                  $filter: {
+                    input: "$madeContracts.businessId",
+                    as: "madeExists",
+                    cond: { $eq: ["$$madeExists",Types.ObjectId(res.locals.decoded.id)]}
+                  }
                 }
               },
-              agency: 1
+              agency: 1,
+              formId: { $first: "$pendingContracts.formId" }
             }
           }
         ]).exec((err:CallbackError,result) => {
@@ -263,26 +271,33 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
           {
             $project: {
               pendingContracts: {
-                $filter: {
-                input: "$pendingContracts",
-                as: "pendingExists",
-                cond: { $eq: ["$$pendingExists",Types.ObjectId(res.locals.decoded.id)]}
+                $first: {
+                  $filter: {
+                    input: "$pendingContracts",
+                    as: "pendingExists",
+                    cond: { $eq: ["$$pendingExists",Types.ObjectId(res.locals.decoded.id)]}
+                }
               }},
               requestContracts: {
-                $filter: {
-                  input: "$requestContracts",
-                  as: "requestExists",
-                  cond: { $eq: ["$$requestExists",Types.ObjectId(res.locals.decoded.id)]}
+                $first: {
+                  $filter: {
+                    input: "$requestContracts",
+                    as: "requestExists",
+                    cond: { $eq: ["$$requestExists",Types.ObjectId(res.locals.decoded.id)]}
+                  }
                 }
               },
               madeContracts: {
-                $filter: {
-                  input: "$madeContracts",
-                  as: "madeExists",
-                  cond: { $eq: ["$$madeExists",Types.ObjectId(res.locals.decoded.id)]}
+                $first: {
+                  $filter: {
+                    input: "$madeContracts",
+                    as: "madeExists",
+                    cond: { $eq: ["$$madeExists",Types.ObjectId(res.locals.decoded.id)]}
+                  }
                 }
               },
-              agency: 1
+              agency: 1,
+              formId: { $first: "$pendingContracts.formId" }
             }
           }
         ]).exec((err:CallbackError, result) => {

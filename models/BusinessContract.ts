@@ -15,33 +15,69 @@ const businessContractSchema = new Schema({
   },
   madeContracts: {
     businesses: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Business"
+      formId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Form"
+      },
+      businessId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Business"
+      }
     }],
     workers: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Worker"
+      formId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Form"
+      },
+      workerId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Worker"
+      }
     }]
   },
   requestContracts: {
     businesses: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Business"
+      formId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Form"
+      },
+      businessId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Business"
+      }
     }],
     workers: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Worker"
+      formId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Form"
+      },
+      workerId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Worker"
+      }
     }]  
   },
   pendingContracts: {
     businesses: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Business"
+      formId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Form"
+      },
+      businessId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Business"
+      }
     }],
     workers: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Worker"
-    }]
+      formId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Form"
+      },
+      workerId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Worker"
+      }
+    }] 
   }
 })
 

@@ -54,11 +54,11 @@ const workerSchema = new Schema({
   ],
   businessContracts: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: "bContract",
+    ref: "BusinessContract",
   }],
   workContracts: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: "wContract",
+    ref: "WorkContract",
   }],
   feelings: [{
     value: {

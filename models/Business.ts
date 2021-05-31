@@ -60,11 +60,11 @@ const businessSchema = new Schema({
   ],
   workContracts: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: "wContract",
+    ref: "WorkContract",
   }],
   businessContracts: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: "bContract",
+    ref: "BusinessContract",
   }],
   userType: {
     type: String,

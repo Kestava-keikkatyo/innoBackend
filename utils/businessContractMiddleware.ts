@@ -298,11 +298,8 @@ export const acceptBusinessContract = async (req: Request<ParamsDictionary, unkn
     const index: IBusinessDocument[] = await Business.find({_id: userId})
     if (index.length == 1) {
       body.businessContractUpdate = {
-        $pull: {
-          'requestContracts.businesses': userId
-        },
         $addToSet: {
-          'pendingContracts.businesses': userId
+          'pendingContracts.businesses': {businessId: userId, formId:formId}
         }
       }
       body.businessContractUpdateFilterQuery = {_id: businessContractId}
@@ -311,11 +308,8 @@ export const acceptBusinessContract = async (req: Request<ParamsDictionary, unkn
       const index: IWorkerDocument[] = await Worker.find({_id: userId})
       if (index.length == 1) {
         body.businessContractUpdate = {
-          $pull: {
-            'requestContracts.workers': userId
-          },
           $addToSet: {
-            'pendingContracts.workers': userId
+            'pendingContracts.worker': {workerId: userId, formId:formId}
           }
         }
         body.businessContractUpdateFilterQuery = {_id: businessContractId}
