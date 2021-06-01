@@ -22,7 +22,7 @@ import {IBaseBody} from "../objecttypes/otherTypes";
 import {IBusinessContractDocument} from "../objecttypes/modelTypes";
 import {
   acceptBusinessContract, addContractToBusinessContract, businessContractExists, businessContractIncludesUser,
-  businessContractUpdate, declineBusinessContract, makeBusinessContract, businessContractAgencyUpdate, initBusinessContractSendUpdate
+  businessContractUpdate, declineBusinessContract, makeBusinessContract, businessContractAgencyUpdate, initBusinessContractSendUpdate, initBusinessContractDeclineUpdate
 } from "../utils/businessContractMiddleware";
 import Agency from "../models/Agency"
 
@@ -347,9 +347,9 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
  */
  businesscontractsRouter.post("/", authenticateToken, needsToBeAgency, makeBusinessContract)
 
- businesscontractsRouter.put("send/:businessContractId/",authenticateToken,needsToBeBusinessOrWorker, businessContractExists, initBusinessContractSendUpdate, businessContractUpdate)
+ businesscontractsRouter.put("/send/:businessContractId/",authenticateToken, needsToBeBusinessOrWorker, businessContractExists, initBusinessContractSendUpdate, businessContractUpdate)
  
- businesscontractsRouter.put("decline/:businessContractId/",authenticateToken,needsToBeBusinessOrWorker, businessContractExists)
+ businesscontractsRouter.put("/refuse/:businessContractId/",authenticateToken, needsToBeBusinessOrWorker, businessContractExists, initBusinessContractDeclineUpdate, businessContractUpdate)
  /**
   * @openapi
   * /businesscontracts/{businessContractId}/add:
