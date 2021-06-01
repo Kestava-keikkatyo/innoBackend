@@ -13,7 +13,8 @@ import express, {NextFunction, Request, Response} from "express"
 import authenticateToken from "../utils/auhenticateToken"
 import BusinessContract from "../models/BusinessContract"
 import { needsToBeAgency,
-  needsToBeAgencyBusinessOrWorker} from "../utils/middleware"
+  needsToBeAgencyBusinessOrWorker,
+  needsToBeBusinessOrWorker} from "../utils/middleware"
 import { error as _error} from "../utils/logger"
 import { buildPaginatedObjectFromArray } from "../utils/common"
 import {CallbackError, DocumentDefinition, Types} from "mongoose"
@@ -21,7 +22,7 @@ import {IBaseBody} from "../objecttypes/otherTypes";
 import {IBusinessContractDocument} from "../objecttypes/modelTypes";
 import {
   acceptBusinessContract, addContractToBusinessContract, businessContractExists, businessContractIncludesUser,
-  businessContractUpdate, declineBusinessContract, makeBusinessContract, businessContractAgencyUpdate
+  businessContractUpdate, declineBusinessContract, makeBusinessContract, businessContractAgencyUpdate, initBusinessContractSendUpdate
 } from "../utils/businessContractMiddleware";
 import Agency from "../models/Agency"
 
@@ -235,7 +236,7 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
                 }
               },
               agency: 1,
-              formId: { $first: "$pendingContracts.formId" }
+              formId: { $first: {$concatArrays:[ "$pendingContracts.formId", "$requestContracts.formId", "$madeContracts.formId" ] } }
             }
           }
         ]).exec((err:CallbackError,result) => {
@@ -297,7 +298,7 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
                 }
               },
               agency: 1,
-              formId: { $first: "$pendingContracts.formId" }
+              formId: { $first: {$concatArrays:[ "$pendingContracts.formId", "$requestContracts.formId", "$madeContracts.formId" ] } }
             }
           }
         ]).exec((err:CallbackError, result) => {
@@ -345,6 +346,10 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
  *       # TODO Check responses from middleware and list them here.
  */
  businesscontractsRouter.post("/", authenticateToken, needsToBeAgency, makeBusinessContract)
+
+ businesscontractsRouter.put("send/:businessContractId/",authenticateToken,needsToBeBusinessOrWorker, businessContractExists, initBusinessContractSendUpdate, businessContractUpdate)
+ 
+ businesscontractsRouter.put("decline/:businessContractId/",authenticateToken,needsToBeBusinessOrWorker, businessContractExists)
  /**
   * @openapi
   * /businesscontracts/{businessContractId}/add:

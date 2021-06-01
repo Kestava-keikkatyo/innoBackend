@@ -439,4 +439,57 @@ export const businessContractUpdate = (req: Request<ParamsDictionary, unknown, I
     return res.status(500).send({exception})
   }
 }
+/**
+ * This middleware function is used to initialize BusinessContract update,
+ * that changes users Id location in BusinessContract document.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @returns {NextFunction} next
+ */
+export const initBusinessContractSendUpdate = async (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
+  const {body,params} = req
+  let businessContractId: Types.ObjectId
+  let userId: Types.ObjectId
+  let formId: Types.ObjectId
+  try {
+    businessContractId = Types.ObjectId(params.businessContractId)
+    userId = Types.ObjectId(res.locals.decoded.id)
+    formId = Types.ObjectId(body.form)
+    console.log(userId)
+  } catch (exception) {
+    return res.status(403).send({message: "ContractId must be string."})
+  }
+  try {
+    const index: IBusinessDocument[] = await Business.find({_id: userId})
+    if (index.length == 1) {
+      body.businessContractUpdate = {
+        $pull: {
+          'pendingContracts.businesses': { businessId: userId } 
+        },
+        $addToSet: {
+          'requestContracts.businesses': {businessId: userId, formId:formId}
+        }
+      }
+      body.businessContractUpdateFilterQuery = {_id: businessContractId}
+    } else {
+      const index: IWorkerDocument[] = await Worker.find({_id: userId})
+      if (index.length == 1) {
+        body.businessContractUpdate = {
+          $pull: {
+            'pendingContracts.worker': { workerId: userId }
+          },
+          $addToSet: {
+            'requestContracts.worker': {workerId: userId, formId:formId}
+          }
+        }
+        body.businessContractUpdateFilterQuery = {_id: businessContractId}
+      } else {
+        return res.status(404).send({message: "Couldn't find user who matches" + userId})
+      }
+    }
+    return next()
+  } catch (exception) {
+    return res.status(500).send({exception})
+  }
+}
 export default {}
