@@ -361,25 +361,45 @@ export const declineBusinessContract = async (req: Request<ParamsDictionary, unk
     return res.status(403).send({message: "Note: businessContractId and userId must be string."})
   }
   try {
+    //Aluksi tarkistetaan että Agency on Asiakassopimuksen omistaja.
+    if  (body.businessContract !== undefined && res.locals.decoded.id.toString() !== body.businessContract.agency.toString()) {
+      return res.status(401).send({message: "Agency was not right owner of BusinessContract."})
+    }
     const index: IBusinessDocument[] = await Business.find({_id: userId})
     if (index.length == 1) {
-      body.businessContractUpdate = {
-        $pull: {
-          'requestContracts.businesses': userId
-        }
-      }
-      body.businessContractUpdateFilterQuery = {_id: businessContractId}
-      await Business.updateOne({_id:userId},{ $pull: { businessContracts: businessContractId }})
-    } else {
-      const index: IWorkerDocument[] = await Worker.find({_id: userId})
-      if (index.length == 1) {
+      //Tarkistetaan onko Yrityksen kanssa tehty asiakassopimus.
+      if (index[0].businessContracts.includes(businessContractId)) { 
         body.businessContractUpdate = {
           $pull: {
-            'requestContracts.workers': userId
+            'requestContracts.businesses': {businessId:userId},
+            'pendingContracts.businesses': {businessId:userId},
           }
         }
         body.businessContractUpdateFilterQuery = {_id: businessContractId}
-        await Worker.updateOne({_id:userId},{$pull: { businessContracts: businessContractId }})
+        await Business.updateOne({_id:userId},{ $pull: { businessContracts: businessContractId }})
+      //Jos ei ole tehty suoritetaan elsen osio.
+      } else {
+        //Lähetetään vastausteksti missä kerrotaan että Yritys ei löytynyt sopimuksesta.
+        return res.status(400).send({message: "Business was not in contract."})
+      }
+    } else {
+      const index: IWorkerDocument[] = await Worker.find({_id: userId})
+      if (index.length == 1) {
+        //Tarkistetaan onko Työntekijän kanssa tehty asiakassopimus.
+        if (index[0].businessContracts.includes(businessContractId)) {
+          body.businessContractUpdate = {
+            $pull: {
+              'requestContracts.workers': {businessId:userId},
+              'pendingContracts.workers': {businessId:userId}
+            }
+          }
+          body.businessContractUpdateFilterQuery = {_id: businessContractId}
+          await Worker.updateOne({_id:userId},{$pull: { businessContracts: businessContractId }})
+        //Jos ei ole tehty suoritetaan elsen osio.
+        } else {
+          //Lähetetään vastausteksti missä kerrotaan että Työntekijä ei löytynyt sopimuksesta.
+          return res.status(400).send({message: "Worker was already in contract."})
+        }
       } else {
         return res.status(404).send({message: "Couldn't find user who matches" + userId})
       }
@@ -433,8 +453,9 @@ export const businessContractUpdate = (req: Request<ParamsDictionary, unknown, I
  export const businessContractAgencyUpdate = (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response) => {
   const {body, params} = req
   let id: Types.ObjectId
-  const populatePath = 'madeContracts.businesses madeContracts.workers requestContracts.businesses requestContracts.workers pendingContracts.businesses pendingContracts.workers'
-  const populateFields = 'name email userType'
+  const populatePath = 'madeContracts.businesses.businessId madeContracts.workers.businessId requestContracts.businesses.businessId '
+  +'requestContracts.workers.businessId pendingContracts.workers.businessId pendingContracts.businesses.businessId'
+  const populateFields = 'name email createdAt userType'
   try {
     id = Types.ObjectId(params.contractId)
   } catch (exception) {
