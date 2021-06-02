@@ -168,7 +168,6 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
       let array: {}
       let projection: {} = {}
       let populatePath: string = ''
-      let populateFields: string = ''
       //Check that page and limit exist and are not below 1
       if (page < 1 || !page) {
         page = 1
@@ -180,11 +179,11 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
       //If use is Agency we can use find() to find BusinessContracts.
       if (body.agency) {
         array = {_id: {$in: body.agency.businessContracts}}
-        populatePath = 'madeContracts.businesses madeContracts.workers requestContracts.businesses requestContracts.workers pendingContracts.workers pendingContracts.businesses'
-        populateFields = 'name email userType'
+        populatePath = 'madeContracts.businesses.businessId madeContracts.workers.businessId requestContracts.businesses.businessId '
+                      +'requestContracts.workers.businessId pendingContracts.workers.businessId pendingContracts.businesses.businessId'
         return BusinessContract.find(array,
           projection,
-          { lean: true }).populate(populatePath,populateFields).exec((error: CallbackError, result: DocumentDefinition<IBusinessContractDocument>[]) => {
+          { lean: true }).populate({path: populatePath, select: "name email createdAt userType"}).exec((error: CallbackError, result: DocumentDefinition<IBusinessContractDocument>[]) => {
             if (error) {
               return res.status(500).send(error.message)
             } else if (result.length === 0) {

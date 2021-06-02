@@ -156,7 +156,7 @@ export interface IBusinessDocument extends Document, Omit<IBusiness, "forms" | "
   _id: Types.ObjectId,
   createdAt: Date,
   forms: Array<IFormDocument['_id']> | Array<IFormDocument>,
-  businessContracts: Array<IBusinessContractDocument['_id']> | Array<IBusinessContractDocument>,
+  businessContracts: Array<IBusinessContractDocument['_id']>, //| Array<IBusinessContractDocument>
   workContracts: Array<Types.ObjectId> | Array<IWorkContractDocument>
 }
 
