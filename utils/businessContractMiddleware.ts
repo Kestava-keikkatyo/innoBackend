@@ -484,6 +484,7 @@ export const businessContractUpdate = (req: Request<ParamsDictionary, unknown, I
  * that changes users Id location in BusinessContract document.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
+ * @param {NextFunction} next - NextFunction.
  * @returns {NextFunction} next
  */
 export const initBusinessContractSendUpdate = async (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
@@ -531,7 +532,13 @@ export const initBusinessContractSendUpdate = async (req: Request<ParamsDictiona
     return res.status(500).send({exception})
   }
 }
-
+/**
+ * This middleware function is used to initialize BusinessContract update,
+ * removes id from pendingContracts array. Used in routes that accept Worker or Business.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @returns {NextFunction} next
+ */
 export const initBusinessContractDeclineUpdate = async (req:Request<ParamsDictionary,unknown,IBaseBody>, res: Response, next: NextFunction) => {
   const {body,params} = req
   let businessContractId: Types.ObjectId
@@ -571,4 +578,75 @@ export const initBusinessContractDeclineUpdate = async (req:Request<ParamsDictio
     return res.status(500).send({exception})
   }
 }
+/**
+ * This middleware function is used to initialize BusinessContract update that,
+ * removes id from requestContracts array and moves it to madeContracts array.
+ * Used by Agency in accept route to finally confirm BusinessContract with Business or Worker.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @returns {NextFunction} next
+ */
+export const initBusinessContractAcceptUpdate = async (req:Request<ParamsDictionary,unknown,IBaseBody>,res:Response,next:NextFunction) => {
+  const {body,params} = req
+  let businessContractId: Types.ObjectId
+  let userId: Types.ObjectId
+  let formId: Types.ObjectId
+  try {
+    businessContractId = Types.ObjectId(params.businessContractId)
+    userId = Types.ObjectId(params.userId)
+    formId = Types.ObjectId(body.form)
+  } catch (exception) {
+    return res.status(403).send({message:"ContractId must be string."})
+  }
+  try {
+    //Aluksi tarkistetaan että Agency on Asiakassopimuksen omistaja.
+    if  (body.businessContract !== undefined && res.locals.decoded.id.toString() !== body.businessContract.agency.toString()) {
+      return res.status(401).send({message: "Agency was not right owner of BusinessContract."})
+    }
+    const index: IBusinessDocument[] = await Business.find({_id: userId})
+    if (index.length == 1) {
+      //Tarkistetaan onko Yrityksen kanssa tehty asiakassopimus.
+      if (index[0].businessContracts.includes(businessContractId)) { 
+        body.businessContractUpdate = {
+          $pull: {
+            'requestContracts.businesses': {businessId:userId}
+          },
+          $addToSet: {
+            'madeContracts.workers': {businessId:userId, formId:formId}
+          }
+        }
+        body.businessContractUpdateFilterQuery = {_id: businessContractId}
+      //Jos ei ole tehty suoritetaan elsen osio.
+      } else {
+        //Lähetetään vastausteksti missä kerrotaan että Yritys ei löytynyt sopimuksesta.
+        return res.status(400).send({message: "Business was not in contract."})
+      }
+    } else {
+      const index: IWorkerDocument[] = await Worker.find({_id: userId})
+      if (index.length == 1) {
+        //Tarkistetaan onko Työntekijän kanssa tehty asiakassopimus.
+        if (index[0].businessContracts.includes(businessContractId)) {
+          body.businessContractUpdate = {
+            $pull: {
+              'requestContracts.workers': {businessId:userId}
+            },
+            $addToSet: {
+              'madeContracts.workers': {businessId:userId, formId:formId}
+            }
+          }
+          body.businessContractUpdateFilterQuery = {_id: businessContractId}
+        //Jos ei ole tehty suoritetaan elsen osio.
+        } else {
+          //Lähetetään vastausteksti missä kerrotaan että Työntekijä ei löytynyt sopimuksesta.
+          return res.status(400).send({message: "Worker was already in contract."})
+        }
+      } else {
+        return res.status(404).send({message: "Couldn't find user who matches" + userId})
+      }
+    }
+    return next()
+  } catch (exception) {
+    return res.status(500).send({exception})
+  }
+} 
 export default {}
