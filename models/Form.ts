@@ -61,6 +61,9 @@ const formSchema = new Schema({
         type:Boolean,
         required: true
       },
+      answer: {
+        type: String
+      },
       answerMaxLength: {
         type: Number,
         required: true
@@ -95,6 +98,9 @@ const formSchema = new Schema({
       optional: {
         type:Boolean,
         required: true
+      },
+      answer: {
+        type: String
       },
       answerMaxLength: {
         type: Number,
@@ -137,6 +143,9 @@ const formSchema = new Schema({
         type: Boolean,
         required: true
       },
+      checked: {
+        type: Boolean
+      },
       questionType: {
         type: String,
         match: "^checkbox$"
@@ -168,6 +177,9 @@ const formSchema = new Schema({
         type: String,
         minlength: 0,
         maxlength: 200
+      }],
+      checked:[{
+        type: Boolean
       }],
       questionType: {
         type: String,
@@ -201,6 +213,9 @@ const formSchema = new Schema({
         minlength: 0,
         maxlength: 200
       }],
+      checked:[{
+        type: Boolean
+      }],
       questionType: {
         type: String,
         match: "^radiobutton_group$"
@@ -229,6 +244,9 @@ const formSchema = new Schema({
         required: true
       },
       options: [String],
+      checked:[{
+        type: Boolean
+      }],
       scale: {
         type: Number,
         required: true
@@ -275,6 +293,9 @@ const formSchema = new Schema({
         type: Boolean,
         required: true
       },
+      answer:{
+        type: String
+      },
       questionType: {
         type: String,
         match: "^contact_information$"
@@ -301,6 +322,9 @@ const formSchema = new Schema({
       isClosedTimeFrame: {
         type: Boolean,
         required: true
+      },
+      answer:{
+        type: String
       },
       questionType: {
         type: String,
@@ -332,6 +356,9 @@ const formSchema = new Schema({
       isClosedTimeFrame: {
         type: Boolean,
         required: true
+      },
+      answer:{
+        type: String
       },
       questionType: {
         type: String,
