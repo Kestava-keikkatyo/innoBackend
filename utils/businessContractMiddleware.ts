@@ -612,7 +612,7 @@ export const initBusinessContractAcceptUpdate = async (req:Request<ParamsDiction
             'requestContracts.businesses': {businessId:userId}
           },
           $addToSet: {
-            'madeContracts.workers': {businessId:userId, formId:formId}
+            'madeContracts.businesses': {businessId:userId, formId:formId}
           }
         }
         body.businessContractUpdateFilterQuery = {_id: businessContractId}
@@ -631,7 +631,7 @@ export const initBusinessContractAcceptUpdate = async (req:Request<ParamsDiction
               'requestContracts.workers': {businessId:userId}
             },
             $addToSet: {
-              'madeContracts.workers': {businessId:userId, formId:formId}
+              'madeContracts.workers': {workerId:userId, formId:formId}
             }
           }
           body.businessContractUpdateFilterQuery = {_id: businessContractId}
