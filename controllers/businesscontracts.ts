@@ -350,7 +350,7 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
  
  businesscontractsRouter.put("/refuse/:businessContractId/",authenticateToken, needsToBeBusinessOrWorker, businessContractExists, initBusinessContractDeclineUpdate, businessContractUpdate)
 
- businesscontractsRouter.put("/accept",authenticateToken, needsToBeAgency, businessContractExists, initBusinessContractAcceptUpdate, businessContractAgencyUpdate)
+ businesscontractsRouter.put("/:businessContractId/:userId/accept",authenticateToken, needsToBeAgency, businessContractExists, initBusinessContractAcceptUpdate, businessContractAgencyUpdate)
  /**
   * @openapi
   * /businesscontracts/{businessContractId}/add:
