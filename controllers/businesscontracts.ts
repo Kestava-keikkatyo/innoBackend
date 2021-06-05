@@ -22,7 +22,7 @@ import {IBaseBody} from "../objecttypes/otherTypes";
 import {IBusinessContractDocument} from "../objecttypes/modelTypes";
 import {
   acceptBusinessContract, addContractToBusinessContract, businessContractExists, businessContractIncludesUser,
-  businessContractUpdate, declineBusinessContract, makeBusinessContract, businessContractAgencyUpdate, initBusinessContractSendUpdate, initBusinessContractDeclineUpdate
+  businessContractUpdate, declineBusinessContract, makeBusinessContract, businessContractAgencyUpdate, initBusinessContractSendUpdate, initBusinessContractDeclineUpdate, initBusinessContractAcceptUpdate
 } from "../utils/businessContractMiddleware";
 import Agency from "../models/Agency"
 
@@ -349,6 +349,8 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
  businesscontractsRouter.put("/send/:businessContractId/",authenticateToken, needsToBeBusinessOrWorker, businessContractExists, initBusinessContractSendUpdate, businessContractUpdate)
  
  businesscontractsRouter.put("/refuse/:businessContractId/",authenticateToken, needsToBeBusinessOrWorker, businessContractExists, initBusinessContractDeclineUpdate, businessContractUpdate)
+
+ businesscontractsRouter.put("/:businessContractId/:userId/accept",authenticateToken, needsToBeAgency, businessContractExists, initBusinessContractAcceptUpdate, businessContractAgencyUpdate)
  /**
   * @openapi
   * /businesscontracts/{businessContractId}/add:
@@ -389,9 +391,9 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
  businesscontractsRouter.put("/:businessContractId/add", authenticateToken, needsToBeAgencyBusinessOrWorker, businessContractExists, addContractToBusinessContract, businessContractUpdate)
  /**
   * @openapi
-  * /businesscontracts/{businessContractId}/{userId}/accept:
+  * /businesscontracts/{businessContractId}/{userId}/add:
   *   put:
-  *     summary: Route for agency to accept BusinessContract with Business or Worker
+  *     summary: Route for agency to add BusinessContract with Business or Worker
   *     description: |
   *       Must be logged in as an agency.
   *       This route can be used when agency has users in BusinessContract's requestContract object.
@@ -421,7 +423,7 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
   *     responses:
   *       # TODO Check responses from middleware and list them here.
   */
- businesscontractsRouter.put("/:businessContractId/:userId/accept", authenticateToken, needsToBeAgency, businessContractExists, acceptBusinessContract, businessContractAgencyUpdate)
+ businesscontractsRouter.put("/:businessContractId/:userId/add", authenticateToken, needsToBeAgency, businessContractExists, acceptBusinessContract, businessContractAgencyUpdate)
  /**
   * @openapi
   * /businesscontracts/{businessContractId}/{userId}/decline:
