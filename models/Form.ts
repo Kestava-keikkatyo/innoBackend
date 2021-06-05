@@ -8,7 +8,7 @@ const formSchema = new Schema({
   title: {
     type: String,
     minlength: 0,
-    maxlength: 100,
+    maxlength: 1000,
     required: true
   },
   isPublic: {
@@ -18,7 +18,7 @@ const formSchema = new Schema({
   description: {
     type: String,
     minlength: 0,
-    maxlength: 500
+    maxlength: 1000
   },
   questions: {
     comment: [{
@@ -49,13 +49,13 @@ const formSchema = new Schema({
       title: {
         type: String,
         minlength: 0,
-        maxlength: 200,
+        maxlength: 1000,
         required: true
       },
       subtitle: {
         type: String,
         minlength: 0,
-        maxlength: 500
+        maxlength: 1000
       },
       optional: {
         type:Boolean,
@@ -87,13 +87,13 @@ const formSchema = new Schema({
       title: {
         type: String,
         minlength: 0,
-        maxlength: 200,
+        maxlength: 1000,
         required: true
       },
       subtitle: {
         type: String,
         minlength: 0,
-        maxlength: 500
+        maxlength: 1000
       },
       optional: {
         type:Boolean,
@@ -131,13 +131,13 @@ const formSchema = new Schema({
       title: {
         type: String,
         minlength: 0,
-        maxlength: 200,
+        maxlength: 1000,
         required: true
       },
       subtitle: {
         type: String,
         minlength: 0,
-        maxlength: 500
+        maxlength: 1000
       },
       optional: {
         type: Boolean,
@@ -161,13 +161,13 @@ const formSchema = new Schema({
       title: {
         type: String,
         minlength: 0,
-        maxlength: 200,
+        maxlength: 1000,
         required: true
       },
       subtitle: {
         type: String,
         minlength: 0,
-        maxlength: 500
+        maxlength: 1000
       },
       optional: {
         type: Boolean,
@@ -176,10 +176,10 @@ const formSchema = new Schema({
       options: [{
         type: String,
         minlength: 0,
-        maxlength: 200
+        maxlength: 500
       }],
       checked:[{
-        type: Boolean
+        type: Object
       }],
       questionType: {
         type: String,
@@ -196,13 +196,13 @@ const formSchema = new Schema({
       title: {
         type: String,
         minlength: 0,
-        maxlength: 200,
+        maxlength: 1000,
         required: true
       },
       subtitle: {
         type: String,
         minlength: 0,
-        maxlength: 500
+        maxlength: 1000
       },
       optional: {
         type: Boolean,
@@ -211,10 +211,10 @@ const formSchema = new Schema({
       options: [{
         type: String,
         minlength: 0,
-        maxlength: 200
+        maxlength: 500
       }],
       checked:[{
-        type: Boolean
+        type: Object
       }],
       questionType: {
         type: String,
@@ -231,13 +231,13 @@ const formSchema = new Schema({
       title: {
         type: String,
         minlength: 0,
-        maxlength: 200,
+        maxlength: 1000,
         required: true
       },
       subtitle: {
         type: String,
         minlength: 0,
-        maxlength: 500
+        maxlength: 1000
       },
       optional: {
         type: Boolean,
@@ -245,7 +245,7 @@ const formSchema = new Schema({
       },
       options: [String],
       checked:[{
-        type: Boolean
+        type: Object
       }],
       scale: {
         type: Number,
@@ -281,20 +281,20 @@ const formSchema = new Schema({
       title: {
         type: String,
         minlength: 0,
-        maxlength: 200,
+        maxlength: 1000,
         required: true
       },
       subtitle: {
         type: String,
         minlength: 0,
-        maxlength: 500
+        maxlength: 1000
       },
       optional: {
         type: Boolean,
         required: true
       },
       answer:{
-        type: String
+        type: Object
       },
       questionType: {
         type: String,
