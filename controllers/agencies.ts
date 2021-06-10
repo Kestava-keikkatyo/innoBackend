@@ -14,8 +14,9 @@ import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
 import authenticateToken from "../utils/auhenticateToken"
 import Agency from "../models/Agency"
-import {IAgency, IAgencyDocument} from "../objecttypes/modelTypes";
-import {CallbackError} from "mongoose";
+import { IAgency, IAgencyDocument } from "../objecttypes/modelTypes";
+import { CallbackError } from "mongoose";
+import { needsToBeBusiness } from '../utils/middleware'
 
 const agenciesRouter = express.Router()
 
@@ -246,6 +247,24 @@ agenciesRouter.put("/", authenticateToken, async (req: Request<unknown, unknown,
     }
     return res.status(200).json(updatedAgency)
 
+  } catch (exception) {
+    return next(exception)
+  }
+})
+
+agenciesRouter.get("/", authenticateToken, needsToBeBusiness, async (req: Request, res: Response, next: NextFunction) => {
+  const { query } = req
+
+  let name: string | undefined
+  if (query.name) {
+    name = query.name as string
+  }
+  try {   
+      const agencies: Array<IAgencyDocument> = await Agency.find({ name: { $regex: name, $options: "i" } }, { name: 1, email: 1 }) // TODO use callback for result and errors.
+      if (agencies) {
+        return res.status(200).json(agencies)
+      }
+    return res.status(404).json({ message: "Agency not found testi" })
   } catch (exception) {
     return next(exception)
   }
