@@ -178,7 +178,7 @@ const formSchema = new Schema({
         minlength: 0,
         maxlength: 500
       }],
-      checked:[{
+      optionValues:[{
         type: Object
       }],
       questionType: {
@@ -213,7 +213,7 @@ const formSchema = new Schema({
         minlength: 0,
         maxlength: 500
       }],
-      checked:[{
+      optionValues:[{
         type: Object
       }],
       questionType: {
@@ -244,7 +244,7 @@ const formSchema = new Schema({
         required: true
       },
       options: [String],
-      checked:[{
+      optionValues:[{
         type: Object
       }],
       scale: {
@@ -293,7 +293,7 @@ const formSchema = new Schema({
         type: Boolean,
         required: true
       },
-      answer:{
+      contactInfoAnswer:{
         type: Object
       },
       questionType: {
