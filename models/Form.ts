@@ -20,6 +20,10 @@ const formSchema = new Schema({
     minlength: 0,
     maxlength: 1000
   },
+  filled: {
+    type: Boolean,
+    required: true
+  },
   questions: {
     comment: [{
       ordering: {
@@ -301,7 +305,7 @@ const formSchema = new Schema({
         match: "^contact_information$"
       }
     }],
-    date_picker: [{
+    datepicker: [{
       ordering: {
         type: Number,
         min: 0,
@@ -321,7 +325,7 @@ const formSchema = new Schema({
       },
       isClosedTimeFrame: {
         type: Boolean,
-        required: true
+        required: false
       },
       answer:{
         type: String
@@ -335,7 +339,7 @@ const formSchema = new Schema({
         required: true
       }
     }],
-    time_picker: [{
+    timepicker: [{
       ordering: {
         type: Number,
         min: 0,
@@ -355,7 +359,7 @@ const formSchema = new Schema({
       },
       isClosedTimeFrame: {
         type: Boolean,
-        required: true
+        required: false
       },
       answer:{
         type: String

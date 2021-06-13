@@ -57,6 +57,7 @@ formsRouter.post("/", authenticateToken, needsToBeAgencyOrBusiness, async (req: 
     const newForm: IFormDocument = new Form({
       title: body.title,
       isPublic: body.isPublic,
+      filled: body.filled,
       questions: body.questions
     })
     if (body.description) {

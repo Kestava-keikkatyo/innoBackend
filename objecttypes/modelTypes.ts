@@ -228,6 +228,7 @@ export interface ISubContractDocument extends Document, Omit<ISubContract, "acce
 export interface IForm {
   title: string,
   isPublic: boolean,
+  filled: boolean,
   description?: string,
   questions?: IQuestions,
   tags?: Array<string>,
