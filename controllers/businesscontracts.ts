@@ -21,7 +21,7 @@ import {CallbackError, DocumentDefinition, Types} from "mongoose"
 import {IBaseBody} from "../objecttypes/otherTypes";
 import {IBusinessContractDocument} from "../objecttypes/modelTypes";
 import {
-  acceptBusinessContract, addContractToBusinessContract, businessContractExists, businessContractIncludesUser,
+  initBusinessContractFormUpdate,initBusinessContractAddUpdate, addContractToBusinessContract, businessContractExists, businessContractIncludesUser,
   businessContractUpdate, declineBusinessContract, makeBusinessContract, businessContractAgencyUpdate, initBusinessContractSendUpdate, initBusinessContractDeclineUpdate, initBusinessContractAcceptUpdate
 } from "../utils/businessContractMiddleware";
 import Agency from "../models/Agency"
@@ -346,21 +346,31 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
  */
  businesscontractsRouter.post("/", authenticateToken, needsToBeAgency, makeBusinessContract)
 
+/**
+ * Worker or Business
+ */
  businesscontractsRouter.put("/send/:businessContractId/",authenticateToken, needsToBeBusinessOrWorker, businessContractExists, initBusinessContractSendUpdate, businessContractUpdate)
- 
+ /**
+  * Worker or Business
+  */
  businesscontractsRouter.put("/refuse/:businessContractId/",authenticateToken, needsToBeBusinessOrWorker, businessContractExists, initBusinessContractDeclineUpdate, businessContractUpdate)
-
+ /**
+  * Agency
+  */
  businesscontractsRouter.put("/:businessContractId/:userId/accept",authenticateToken, needsToBeAgency, businessContractExists, initBusinessContractAcceptUpdate, businessContractAgencyUpdate)
+ /**
+  * FORM ID UPDATE ROUTE
+  */
+ businesscontractsRouter.put("/:businessContractId/saveForm",authenticateToken,needsToBeBusinessOrWorker,businessContractExists, initBusinessContractFormUpdate, businessContractUpdate)
  /**
   * @openapi
   * /businesscontracts/{businessContractId}/add:
   *   put:
-  *     summary: Route to add worker or business to BusinessContract
+  *     summary: Route to add worker or business to BusinessContract.
   *     description: |
-  *       All users can use this route. If Business or Worker uses this route
-  *       usersId is added to BusinessContracts requestContract object.
-  *       If Agency uses this route agency must provide userId in body, # TODO What is userId referencing here? workerId?
-  *       and UserId is added to madeContracts object.
+  *       This route is used when worker or business is first to send BusinessContract 
+  *       request to Agency. Route adds usersId to BusinessContractDocumentObjects receivedContracts fields 
+  *       Business or Worker array.
   *     tags: [BusinessContract]
   *     parameters:
   *       - in: header
@@ -376,19 +386,10 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
   *         schema:
   *           type: string
   *           example: 601f3fdf130ad04ad091eac0
-  *     requestBody:
-  *       description: If logged in as an agency, you need to provide a userId (TODO workerId?) in the body.
-  *       content:
-  *         application/json:
-  *           schema:
-  *             type: object
-  *             properties:
-  *               userId: #TODO workerId?
-  *                 type: string
   *     responses:
   *       # TODO Check responses from middleware and list them here.
   */
- businesscontractsRouter.put("/:businessContractId/add", authenticateToken, needsToBeAgencyBusinessOrWorker, businessContractExists, addContractToBusinessContract, businessContractUpdate)
+ businesscontractsRouter.put("/:businessContractId/add", authenticateToken, needsToBeBusinessOrWorker, businessContractExists, addContractToBusinessContract, businessContractUpdate)
  /**
   * @openapi
   * /businesscontracts/{businessContractId}/{userId}/add:
@@ -396,8 +397,8 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
   *     summary: Route for agency to add BusinessContract with Business or Worker
   *     description: |
   *       Must be logged in as an agency.
-  *       This route can be used when agency has users in BusinessContract's requestContract object.
-  *       UserId is deleted from requestContract object and moved to madeContracts object. # TODO There seems to be quite a few "userId"s left in the comments. Shouldn't they be workerIds?
+  *       This route is used to make BusinessContract with Business or Worker.
+  *       Route adds userId to BusinessContractDocumentObjects pendingContracts. 
   *     tags: [Agency, BusinessContract]
   *     parameters:
   *       - in: header
@@ -415,7 +416,7 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
   *           example: 601f3fdf130ad04ad091eac0
   *       - in: path
   *         name: userId
-  *         description: ID of the user (TODO worker?) in question.
+  *         description: ID of the user in question.
   *         required: true
   *         schema:
   *           type: string
@@ -423,7 +424,7 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
   *     responses:
   *       # TODO Check responses from middleware and list them here.
   */
- businesscontractsRouter.put("/:businessContractId/:userId/add", authenticateToken, needsToBeAgency, businessContractExists, acceptBusinessContract, businessContractAgencyUpdate)
+ businesscontractsRouter.put("/:businessContractId/:userId/add", authenticateToken, needsToBeAgency, businessContractExists, initBusinessContractAddUpdate, businessContractAgencyUpdate)
  /**
   * @openapi
   * /businesscontracts/{businessContractId}/{userId}/decline:
@@ -450,7 +451,7 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
   *           example: 601f3fdf130ad04ad091eac0
   *       - in: path
   *         name: userId
-  *         description: ID of the user (TODO worker?) in question.
+  *         description: ID of the user in question.
   *         required: true
   *         schema:
   *           type: string

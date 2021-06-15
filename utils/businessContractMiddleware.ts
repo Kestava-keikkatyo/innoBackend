@@ -13,7 +13,6 @@ import {
 import Business from "../models/Business";
 import Worker from "../models/Worker";
 import Agency from "../models/Agency";
-import {businessExistsCallback, workerExistsCallback} from "./common";
 
 /**
  * Checks if a BusinessContract with url param :businessContractId exists.
@@ -151,122 +150,70 @@ export const makeBusinessContract = (_req: Request, res: Response) => {
 }
 /**
  * This middleware function is used to add worker or business to BusinessContract.
+ * Used in put "/:businessContractId/add" route. Function initializes update that 
+ * adds userId to BusinessContractDocumentObject receivedContracts workers or businesses array.
+ * After initialization is finnished function returns next().
+ * If user is already in contract this fucntion return message informing that user is in contract with 
+ * agency already.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next - NextFunction.
  * @returns {NextFunction} next()
  */
-export const addContractToBusinessContract = (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
+export const addContractToBusinessContract = async (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const {body, params} = req
-  let id: Types.ObjectId
+  let businessContractId: Types.ObjectId
+  let userId: Types.ObjectId
   try {
-    id = Types.ObjectId(params.businessContractId)
-    body.businessContractUpdateFilterQuery = {_id: id}
+    businessContractId = Types.ObjectId(params.businessContractId)
+    userId = Types.ObjectId(res.locals.decoded.id)
+    body.businessContractUpdateFilterQuery = {_id: businessContractId}
   } catch (exception) {
     return res.status(403).send({message: "Note: businessContractId must be string."})
   }
   try {
-    //Check if worker is trying to make BusinessContract
-    if (!body.worker) {
-      //If worker is null check business
-      if (!body.business) {
-        //If business is null check agency
-        if (!body.agency || !body.userId) {
-          return res.status(400).send({message: "Could not identify who tried to create the contract or userId was undefined."})
-        } else {
-          //If agency is trying to make BusinessContract
-          //Then we check which user agency wants to add
-          return businessExistsCallback(body.userId, (result: IBusinessDocument | null) => {
-            if (!result) {
-              return workerExistsCallback(body.userId, (result: IWorkerDocument | null) => {
-                if (!result) {
-                  return res.status(404).send({message: "Couldn't find user with userId:" + body.userId})
-                } else {
-                  body.businessContractUpdate = {
-                    $addToSet: {
-                      'madeContracts.workers': body.userId
-                    }
-                  }
-                  return Worker.findOneAndUpdate(
-                    {_id: body.userId},
-                    {$addToSet: {businessContracts: id}},
-                    {lean: true},
-                    (error: CallbackError, result: DocumentDefinition<IWorkerDocument> | null) => {
-                      if (error || !result) {
-                        return res.status(500).send(error || {message: "Received no result from database when adding trace to Worker"})
-                      } else {
-                        return next()
-                      }
-                    })
-                }
-              })
-            } else {
-              body.businessContractUpdate = {
-                $addToSet: {
-                  'madeContracts.businesses': body.userId
-                }
-              }
-              //Now we can add trace to Business businessContracts list.
-              return Business.findOneAndUpdate(
-                {_id: body.userId},
-                {$addToSet: {businessContracts: id}},
-                {lean: true},
-                (error: CallbackError, result: DocumentDefinition<IBusinessDocument> | null) => {
-                  if (error || !result) {
-                    return res.status(500).send(error || {message: "Received no result from database when adding trace to Business"})
-                  } else {
-                    return next()
-                  }
-                })
-            }
-          })
+    //Täytyy tarkistaa ennen kuin update voidaan alustaa että onko käyttäjä jo tehnyt asiakassopimuksen yrityksen kanssa.
+    const index: IBusinessDocument[] = await Business.find({_id: userId})
+    if (index.length == 1) {
+      return Business.updateOne({_id:userId},{ $addToSet: { businessContracts: businessContractId  }},null, (err,result) => {
+        if (err || !result) {
+          return res.status(500).send({message: err})
+        } 
+        else if (result.nModified === 0) {
+          return res.status(204).send({message: "Worker is already in contract."})
         }
-      } else {
-        //If business is trying to make BusinessContract we first check that is Business already in contract.
-        if (body.businessContract?.madeContracts.businesses.includes(res.locals.decoded.id)) {
-          return res.status(401).send({message: "User is already in contract."})
-        } else {
+        else {
           body.businessContractUpdate = {
             $addToSet: {
-              'requestContracts.businesses': body.business._id
+              'receivedContracts.businesses': {businessId: userId, formId:null}
             }
           }
-          //Now we can add trace to Business businessContracts list.
-          return Business.findOneAndUpdate(
-            {_id: res.locals.decoded.id},
-            {$addToSet: {businessContracts: id}},
-            {lean: true},
-            (error: CallbackError, result: DocumentDefinition<IBusinessDocument> | null) => {
-              if (error || !result) {
-                return res.status(500).send(error || {message: "Received no result from database when adding trace to Business"})
-              } else {
-                return next()
-              }
-            })
+          body.businessContractUpdateFilterQuery = {_id: businessContractId}
+          return next()
         }
-      }
+      })
     } else {
-      //If worker is trying to make BusinessContract we first check that is Worker already in contract.
-      if (body.businessContract?.madeContracts.workers.includes(res.locals.decoded.id)) {
-        return res.status(401).send({message: "User is already in contract."})
-      } else {
-        body.businessContractUpdate = {
-          $addToSet: {
-            'requestContracts.workers': body.worker._id
+      const index: IWorkerDocument[] = await Worker.find({_id: userId})
+      if (index.length == 1) {
+        return Worker.updateOne({_id:userId},{ $addToSet: { businessContracts: businessContractId }},null, (err,result) => {
+          if (err || !result ) {
+            return res.status(500).send({message: "Something went wrong with update."})
+          } 
+          else if (result.nModified === 0) {
+            return res.status(204).send({message: "Worker is already in contract."})
           }
-        }
-        //Now we can add trace to Workers businessContracts list.
-        return Worker.findOneAndUpdate(
-          {_id: res.locals.decoded.id},
-          {$addToSet: {businessContracts: id}},
-          {lean: true},
-          (error: CallbackError, result: DocumentDefinition<IWorkerDocument> | null) => {
-            if (error || !result) {
-              return res.status(500).send(error || {message: "Received no result from database when adding trace to Worker"})
-            } else {
-              return next()
+          else {
+            body.businessContractUpdate = {
+              $addToSet: {
+                'receivedContracts.workers': {workerId: userId, formId:null}
+              }
             }
-          })
+            body.businessContractUpdateFilterQuery = {_id: businessContractId}
+            return next()
+          }
+        })
+      } else {
+        return res.status(404).send({message: "Couldn't find user who matches" + userId})
       }
     }
   } catch (exception) {
@@ -274,15 +221,15 @@ export const addContractToBusinessContract = (req: Request<ParamsDictionary, unk
   }
 }
 /**
- * This middleware function is used in put route accept.
- * Function checks that Business or Worker is found and initializes BusinessContract update that removes
- * id from requestContracts workers/businesses array and adds it to madeContracts workers/businesses array.
+ * This middleware function is used in put route "/:businessContractId/:userId/add".
+ * Function checks that Business or Worker is found and initializes BusinessContract update that
+ * adds userId to pendingContracts workers/businesses array.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next - NextFunction.
  * @returns {NextFunction} next()
  */
-export const acceptBusinessContract = async (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
+export const initBusinessContractAddUpdate = async (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const {body, params} = req
   let businessContractId: Types.ObjectId
   let userId: Types.ObjectId
@@ -648,5 +595,53 @@ export const initBusinessContractAcceptUpdate = async (req:Request<ParamsDiction
   } catch (exception) {
     return res.status(500).send({exception})
   }
-} 
+}
+/**
+ * This middleware function is used to save filled form that is linked to 
+ * user (Worker/Business) in BusinessContractDocumentObject.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @returns {NextFunction} next
+ */
+export const initBusinessContractFormUpdate = async (req:Request<ParamsDictionary,unknown,IBaseBody>,res:Response,next:NextFunction) => {
+  const {body,params} = req
+  let businessContractId: Types.ObjectId
+  let userId: Types.ObjectId
+  let formId: Types.ObjectId
+  try {
+    businessContractId = Types.ObjectId(params.businessContractId)
+    userId = Types.ObjectId(res.locals.decoded.id)
+    formId = Types.ObjectId(body.form)
+  } catch (exception) {
+    return res.status(403).send({message:"ContractId must be string."})
+  }
+  try {
+    const index: IBusinessDocument[] = await Business.find({_id: userId})
+    if (index.length == 1) {
+      body.businessContractUpdate = {
+        $set: {
+          "pendingContracts.businesses.$.formId": formId
+        }
+      }
+      body.businessContractUpdateFilterQuery = {_id: businessContractId, "pendingContracts.businesses": {$elemMatch: {businessId: userId}}}
+    } else {
+      const index: IWorkerDocument[] = await Worker.find({_id: userId})
+      if (index.length == 1) {
+        body.businessContractUpdate = {
+          $set: {
+            "pendingContracts.businesses.$.formId": formId
+          }
+        }
+        body.businessContractUpdateFilterQuery = {_id: businessContractId, "pendingContracts.workers": {$elemMatch: {businessId: userId}}}
+      } else {
+        return res.status(404).send({message: "Couldn't find user who matches " + userId})
+      }
+    }
+    return next()
+  } catch (exeption) {
+    return res.status(404).send({message:"Couldn't find user."})
+  }
+}
+
+
 export default {}
