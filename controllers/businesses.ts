@@ -305,6 +305,13 @@ businessesRouter.get("/", authenticateToken, needsToBeAgency, async (req: Reques
       if (businesses) {
         return res.status(200).json(businesses)
       }
+    }else if (agency && name === undefined) {
+      // Työntekijät haetaan SQL:n LIKE operaattorin tapaisesti
+      // Työpassit jätetään hausta pois
+      const workers: Array<IBusinessDocument> = await Business.find({}, { licenses: 0 })
+      if (workers) {
+        return res.status(200).json(workers)
+      }
     }
     return res.status(404).json({ message: "Businesses not found" })
   } catch (exception) {

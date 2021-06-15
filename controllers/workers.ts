@@ -302,12 +302,19 @@ workersRouter.get("/", authenticateToken, async (req: Request, res: Response, ne
       if (workers) {
         return res.status(200).json(workers)
       }
+    }else if (agency && name === undefined) {
+      // Työntekijät haetaan SQL:n LIKE operaattorin tapaisesti
+      // Työpassit jätetään hausta pois
+      const workers: Array<IWorkerDocument> = await Worker.find({}, { licenses: 0 })
+      if (workers) {
+        return res.status(200).json(workers)
+      }
     }
+
     return res.status(400).json({ message: "Workers not found" })
   } catch (exception) {
     return next(exception)
   }
 })
-
 
 export default workersRouter
