@@ -260,7 +260,7 @@ agenciesRouter.get("/", authenticateToken, needsToBeBusiness, async (req: Reques
     name = query.name as string
   }
   try {   
-      const agencies: Array<IAgencyDocument> = await Agency.find({ name: { $regex: name, $options: "i" } }, { name: 1, email: 1 }) // TODO use callback for result and errors.
+      const agencies: Array<IAgencyDocument> = await Agency.find({ name: { $regex: name, $options: "i" } }, { name: 1, email: 1, businessContracts: 1 }) // TODO use callback for result and errors.
       if (agencies) {
         return res.status(200).json(agencies)
       }

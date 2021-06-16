@@ -202,7 +202,8 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
             agency: {"$first":"$agency"},
             requestContracts: { "$first": "$requestContracts.businesses"},
             pendingContracts: {"$first":"$pendingContracts.businesses"},
-            madeContracts: {"$first":"$madeContracts.businesses"}
+            madeContracts: {"$first":"$madeContracts.businesses"},
+            receivedContracts: {"$first":"$receivedContracts.businesses"}
             }
           },
           {
@@ -234,8 +235,17 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
                   }
                 }
               },
+              receivedContracts: {
+                $first: {
+                  $filter: {
+                    input: "$receivedContracts.businessId",
+                    as: "receivedExists",
+                    cond: { $eq: ["$$receivedExists",Types.ObjectId(res.locals.decoded.id)]}
+                  }
+                }
+              },
               agency: 1,
-              formId: { $first: {$concatArrays:[ "$pendingContracts.formId", "$requestContracts.formId", "$madeContracts.formId" ] } }
+              formId: { $first: {$concatArrays:[ "$pendingContracts.formId", "$requestContracts.formId", "$madeContracts.formId", "$receivedContracts.formId" ] } }
             }
           }
         ]).exec((err:CallbackError,result) => {
@@ -265,7 +275,8 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
             agency: {"$first":"$agency"},
             requestContracts: { "$first": "$requestContracts.workers"},
             pendingContracts: {"$first":"$pendingContracts.workers"},
-            madeContracts: {"$first":"$madeContracts.workers"}
+            madeContracts: {"$first":"$madeContracts.workers"},
+            receivedContracts: {"$first":"$receivedContracts.workers"}
             }
           },
           {
@@ -296,8 +307,17 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
                   }
                 }
               },
+              receivedContracts: {
+                $first: {
+                  $filter: {
+                    input: "$receivedContracts",
+                    as: "receivedExists",
+                    cond: { $eq: ["$$receivedExists",Types.ObjectId(res.locals.decoded.id)]}
+                  }
+                }
+              },
               agency: 1,
-              formId: { $first: {$concatArrays:[ "$pendingContracts.formId", "$requestContracts.formId", "$madeContracts.formId" ] } }
+              formId: { $first: {$concatArrays:[ "$pendingContracts.formId", "$requestContracts.formId", "$madeContracts.formId", "$receivedContracts.formId" ] } }
             }
           }
         ]).exec((err:CallbackError, result) => {

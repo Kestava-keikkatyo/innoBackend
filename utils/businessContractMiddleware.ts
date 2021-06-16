@@ -373,9 +373,9 @@ export const businessContractUpdate = (req: Request<ParamsDictionary, unknown, I
   }
   try {
     const updateFields = body.businessContractUpdate
-    return BusinessContract.findOneAndUpdate(body.businessContractUpdateFilterQuery,
+    return BusinessContract.updateOne(body.businessContractUpdateFilterQuery,
       updateFields,
-      {new:true, lean: true},
+      undefined,
       (error: CallbackError, rawResult:  DocumentDefinition<IBusinessContractDocument> | null) => {
         if (error) {
           return res.status(500).send(error.message)
