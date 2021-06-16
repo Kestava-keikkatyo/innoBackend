@@ -179,8 +179,9 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
       //If use is Agency we can use find() to find BusinessContracts.
       if (body.agency) {
         array = {_id: {$in: body.agency.businessContracts}}
-        populatePath = 'madeContracts.businesses.businessId madeContracts.workers.businessId requestContracts.businesses.businessId '
-                      +'requestContracts.workers.businessId pendingContracts.workers.businessId pendingContracts.businesses.businessId'
+        populatePath = 'madeContracts.businesses.businessId madeContracts.workers.workerId requestContracts.businesses.workerId '
+                      +'requestContracts.workers.workerId pendingContracts.workers.workerId pendingContracts.businesses.businessId'
+                      +'receivedContracts.businesses.businessId receivedContracts.workers.workerId'
         return BusinessContract.find(array,
           projection,
           { lean: true }).populate({path: populatePath, select: "name email createdAt userType"}).exec((error: CallbackError, result: DocumentDefinition<IBusinessContractDocument>[]) => {
@@ -365,20 +366,76 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
  businesscontractsRouter.post("/", authenticateToken, needsToBeAgency, makeBusinessContract)
 
 /**
- * Worker or Business
+ * @openapi
+ * /businesscontracts:
+ *   put:
+ *     summary: Route to send businessContract request from agency back to agency.
+ *     description: |
+ *       Must be logged in as an Worker or Business. Pulls userId and formId from 
+ *       pendingContracts.businesses and pushes userId and formId to requestContracts.businesses.
+ *     tags: [Worker, Business, BusinessContract]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
  */
  businesscontractsRouter.put("/send/:businessContractId/",authenticateToken, needsToBeBusinessOrWorker, businessContractExists, initBusinessContractSendUpdate, businessContractUpdate)
- /**
-  * Worker or Business
-  */
+/**
+ * @openapi
+ * /businesscontracts:
+ *   put:
+ *     summary: Route to refuse businessContract request from agency.
+ *     description: |
+ *       Must be logged in as an Worker or Business. 
+ *       Pulls userId and formId from pendingContracts.businesses or receivedContracts.businesses.
+ *     tags: [Worker, Business, BusinessContract]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ */
  businesscontractsRouter.put("/refuse/:businessContractId/",authenticateToken, needsToBeBusinessOrWorker, businessContractExists, initBusinessContractDeclineUpdate, businessContractUpdate)
- /**
-  * Agency
-  */
+/**
+ * @openapi
+ * /businesscontracts:
+ *   put:
+ *     summary: Route to accept businessContract that was accepted by Worker or Business.
+ *     description: |
+ *       Must be logged in as Agency. Business or Worker sends accepted BusinessContract
+ *       back to Agency. Agency can then use this route to accept BusinessContract. Route moves 
+ *       userId and formId from requestContracts.businesses array to madeContracts.businesses array.
+ *     tags: [Agency, BusinessContract]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ */
  businesscontractsRouter.put("/:businessContractId/:userId/accept",authenticateToken, needsToBeAgency, businessContractExists, initBusinessContractAcceptUpdate, businessContractAgencyUpdate)
- /**
-  * FORM ID UPDATE ROUTE
-  */
+/**
+ * @openapi
+ * /businesscontracts:
+ *   put:
+ *     summary: Route to change formId inside pendingContracts.businesses or pendingContracts.workers. 
+ *     description: |
+ *       Must be logged in as Agency. 
+ *     tags: [Agency, BusinessContract]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ */
  businesscontractsRouter.put("/:businessContractId/saveForm",authenticateToken,needsToBeBusinessOrWorker,businessContractExists, initBusinessContractFormUpdate, businessContractUpdate)
  /**
   * @openapi

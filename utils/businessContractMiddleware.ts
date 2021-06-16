@@ -501,7 +501,8 @@ export const initBusinessContractDeclineUpdate = async (req:Request<ParamsDictio
     if (index.length == 1) {
       body.businessContractUpdate = {
         $pull: {
-          'pendingContracts.businesses': { businessId: userId } 
+          'pendingContracts.businesses': { businessId: userId },
+          'receivedContracts.businesses': { businessId: userId} 
         }
       }
       body.businessContractUpdateFilterQuery = {_id: businessContractId}
@@ -511,7 +512,8 @@ export const initBusinessContractDeclineUpdate = async (req:Request<ParamsDictio
       if (index.length == 1) {
         body.businessContractUpdate = {
           $pull: {
-            'pendingContracts.workers': { workerId: userId }
+            'pendingContracts.workers': { workerId: userId },
+            'receivedContracts.workers': { workerId: userId}
           }
         }
         body.businessContractUpdateFilterQuery = {_id: businessContractId}
