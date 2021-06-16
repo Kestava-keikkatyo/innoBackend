@@ -211,41 +211,40 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
               pendingContracts: {
                 $first: {
                   $filter: {
-                    input: "$pendingContracts.businessId",
+                    input: "$pendingContracts",
                     as: "pendingExists",
-                    cond: { $eq: ["$$pendingExists",Types.ObjectId(res.locals.decoded.id)]}
+                    cond: { $eq: ["$$pendingExists.businessId",Types.ObjectId(res.locals.decoded.id)]}
                   }
                 }  
               },
               requestContracts: {
                 $first: {
                   $filter: {
-                    input: "$requestContracts.businessId",
+                    input: "$requestContracts",
                     as: "requestExists",
-                    cond: { $eq: ["$$requestExists",Types.ObjectId(res.locals.decoded.id)]}
+                    cond: { $eq: ["$$requestExists.businessId",Types.ObjectId(res.locals.decoded.id)]}
                   }
                 }
               },
               madeContracts: {
                 $first: {
                   $filter: {
-                    input: "$madeContracts.businessId",
+                    input: "$madeContracts",
                     as: "madeExists",
-                    cond: { $eq: ["$$madeExists",Types.ObjectId(res.locals.decoded.id)]}
+                    cond: { $eq: ["$$madeExists.businessId",Types.ObjectId(res.locals.decoded.id)]}
                   }
                 }
               },
               receivedContracts: {
                 $first: {
                   $filter: {
-                    input: "$receivedContracts.businessId",
+                    input: "$receivedContracts",
                     as: "receivedExists",
-                    cond: { $eq: ["$$receivedExists",Types.ObjectId(res.locals.decoded.id)]}
+                    cond: { $eq: ["$$receivedExists.businessId",Types.ObjectId(res.locals.decoded.id)]}
                   }
                 }
               },
-              agency: 1,
-              formId: { $first: {$concatArrays:[ "$pendingContracts.formId", "$requestContracts.formId", "$madeContracts.formId", "$receivedContracts.formId" ] } }
+              agency: 1
             }
           }
         ]).exec((err:CallbackError,result) => {
@@ -286,7 +285,7 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
                   $filter: {
                     input: "$pendingContracts",
                     as: "pendingExists",
-                    cond: { $eq: ["$$pendingExists",Types.ObjectId(res.locals.decoded.id)]}
+                    cond: { $eq: ["$$pendingExists.workerId",Types.ObjectId(res.locals.decoded.id)]}
                 }
               }},
               requestContracts: {
@@ -294,7 +293,7 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
                   $filter: {
                     input: "$requestContracts",
                     as: "requestExists",
-                    cond: { $eq: ["$$requestExists",Types.ObjectId(res.locals.decoded.id)]}
+                    cond: { $eq: ["$$requestExists.workerId",Types.ObjectId(res.locals.decoded.id)]}
                   }
                 }
               },
@@ -303,7 +302,7 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
                   $filter: {
                     input: "$madeContracts",
                     as: "madeExists",
-                    cond: { $eq: ["$$madeExists",Types.ObjectId(res.locals.decoded.id)]}
+                    cond: { $eq: ["$$madeExists.workerId",Types.ObjectId(res.locals.decoded.id)]}
                   }
                 }
               },
@@ -312,12 +311,11 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
                   $filter: {
                     input: "$receivedContracts",
                     as: "receivedExists",
-                    cond: { $eq: ["$$receivedExists",Types.ObjectId(res.locals.decoded.id)]}
+                    cond: { $eq: ["$$receivedExists.workerId",Types.ObjectId(res.locals.decoded.id)]}
                   }
                 }
               },
-              agency: 1,
-              formId: { $first: {$concatArrays:[ "$pendingContracts.formId", "$requestContracts.formId", "$madeContracts.formId", "$receivedContracts.formId" ] } }
+              agency: 1
             }
           }
         ]).exec((err:CallbackError, result) => {
