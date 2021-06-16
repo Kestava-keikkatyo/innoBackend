@@ -180,7 +180,7 @@ export const addContractToBusinessContract = async (req: Request<ParamsDictionar
           return res.status(500).send({message: err})
         } 
         else if (result.nModified === 0) {
-          return res.status(204).send({message: "Worker is already in contract."})
+          return res.status(204).send({message: "Business is already in contract."})
         }
         else {
           body.businessContractUpdate = {
@@ -629,7 +629,7 @@ export const initBusinessContractFormUpdate = async (req:Request<ParamsDictionar
       if (index.length == 1) {
         body.businessContractUpdate = {
           $set: {
-            "pendingContracts.businesses.$.formId": formId
+            "pendingContracts.workers.$.formId": formId
           }
         }
         body.businessContractUpdateFilterQuery = {_id: businessContractId, "pendingContracts.workers": {$elemMatch: {businessId: userId}}}
