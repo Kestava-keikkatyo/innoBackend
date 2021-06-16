@@ -180,7 +180,7 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
       if (body.agency) {
         array = {_id: {$in: body.agency.businessContracts}}
         populatePath = 'madeContracts.businesses.businessId madeContracts.workers.workerId requestContracts.businesses.workerId '
-                      +'requestContracts.workers.workerId pendingContracts.workers.workerId pendingContracts.businesses.businessId'
+                      +'requestContracts.workers.workerId pendingContracts.workers.workerId pendingContracts.businesses.businessId '
                       +'receivedContracts.businesses.businessId receivedContracts.workers.workerId'
         return BusinessContract.find(array,
           projection,
