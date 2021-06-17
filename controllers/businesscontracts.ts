@@ -423,6 +423,25 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
 /**
  * @openapi
  * /businesscontracts:
+ *  put:
+ *    summary: Route to send back businesscontract to Worker or Business.
+ *    description: |
+ *      Must be logged in as Agency. Route is used when Agency is not satisfied
+ *      by contract that was sent by Business or Worker. With this route Agency 
+ *      can send contract back.
+ *    tags: [Agency, BusinessContract]
+ *    parameters:
+ *      - in: header
+ *        name: x-access-token
+ *        description: The token you get when logging in is used here. Used to authenticate the user.
+ *        required: true
+ *        schema:
+ *          $ref: "#/components/schemas/AccessToken"
+ */
+ businesscontractsRouter.put("/:businessContractId/:userId/sendBack")
+ /**
+ * @openapi
+ * /businesscontracts:
  *   put:
  *     summary: Route to change formId inside pendingContracts.businesses or pendingContracts.workers. 
  *     description: |

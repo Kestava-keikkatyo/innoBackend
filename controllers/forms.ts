@@ -5,10 +5,11 @@ import { error as _error, info as _info } from "../utils/logger"
 import Form from "../models/Form"
 import Business from "../models/Business"
 import Agency from "../models/Agency"
-import { needsToBeAgencyOrBusiness } from "../utils/middleware"
+import Worker from "../models/Worker"
+import { needsToBeAgencyBusinessOrWorker, needsToBeAgencyOrBusiness } from "../utils/middleware"
 import { getAgencyOrBusinessOwnForms } from "../utils/common"
 import {CallbackError, DocumentDefinition, PaginateResult, Types} from "mongoose"
-import {AnyQuestion, IAgencyDocument, IBusinessDocument, IFormDocument} from "../objecttypes/modelTypes"
+import {AnyQuestion, IAgencyDocument, IBusinessDocument, IFormDocument, IWorkerDocument} from "../objecttypes/modelTypes"
 import {IBaseBody, IBodyWithForm} from "../objecttypes/otherTypes"
 import {ParamsDictionary} from "express-serve-static-core"
 
@@ -49,7 +50,7 @@ const formsRouter = express.Router()
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-formsRouter.post("/", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request<unknown, unknown, IBodyWithForm>, res: Response, next: NextFunction) => {
+formsRouter.post("/", authenticateToken, needsToBeAgencyBusinessOrWorker, async (req: Request<unknown, unknown, IBodyWithForm>, res: Response, next: NextFunction) => {
   try {
     const { body } = req
 
@@ -69,9 +70,11 @@ formsRouter.post("/", authenticateToken, needsToBeAgencyOrBusiness, async (req: 
       }
 
       if (body.agency) {
-        return addFormToAgencyOrBusiness("Agency", res.locals.decoded.id, result, res, next)
+        return addFormToAgencyBusinessOrWorker("Agency", res.locals.decoded.id, result, res, next)
       } else if (body.business) {
-        return addFormToAgencyOrBusiness("Business", res.locals.decoded.id, result, res, next)
+        return addFormToAgencyBusinessOrWorker("Business", res.locals.decoded.id, result, res, next)
+      } else if (body.worker) {
+        return addFormToAgencyBusinessOrWorker("Worker",res.locals.decoded.id, result, res, next)
       } else {
         _error("Could not determine whether user is agency or business")
         return res.status(500).send( { message: "Could not determine whether user is agency or business" })
@@ -90,7 +93,7 @@ formsRouter.post("/", authenticateToken, needsToBeAgencyOrBusiness, async (req: 
  * @param res - Response
  * @param next - NextFunction
  */
-const addFormToAgencyOrBusiness = (agencyOrBusiness: string, id: string, form: IFormDocument, res: Response, next: NextFunction) => {
+const addFormToAgencyBusinessOrWorker = (agencyOrBusiness: string, id: string, form: IFormDocument, res: Response, next: NextFunction) => {
   try {
     if (agencyOrBusiness === "Agency") {
       Agency.findByIdAndUpdate(
@@ -110,6 +113,18 @@ const addFormToAgencyOrBusiness = (agencyOrBusiness: string, id: string, form: I
         { $addToSet: { forms: form } },
         { new: true, omitUndefined: true, runValidators: true, lean: true },
         (error: CallbackError, result: DocumentDefinition<IAgencyDocument|IBusinessDocument> | null) => {
+          if (error || !result) {
+            return res.status(500).send(error || { message: "Received no result when updating user" })
+          } else {
+            return res.status(200).send(form)
+          }
+        })
+    } else if (agencyOrBusiness === "Worker") {
+      Worker.findByIdAndUpdate(
+        id,
+        { $addToSet: { forms: form } },
+        { new: true, omitUndefined: true, runValidators: true, lean: true },
+        (error: CallbackError, result: DocumentDefinition<IWorkerDocument> | null) => {
           if (error || !result) {
             return res.status(500).send(error || { message: "Received no result when updating user" })
           } else {
@@ -553,7 +568,7 @@ formsRouter.get("/me/search", authenticateToken, needsToBeAgencyOrBusiness, asyn
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-formsRouter.get("/:formId", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request, res: Response, next: NextFunction) => {
+formsRouter.get("/:formId", authenticateToken, needsToBeAgencyBusinessOrWorker, async (req: Request, res: Response, next: NextFunction) => {
   const { params } = req
 
   try {

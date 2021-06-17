@@ -400,8 +400,9 @@ export const businessContractUpdate = (req: Request<ParamsDictionary, unknown, I
  export const businessContractAgencyUpdate = (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response) => {
   const {body, params} = req
   let id: Types.ObjectId
-  const populatePath = 'madeContracts.businesses.businessId madeContracts.workers.businessId requestContracts.businesses.businessId '
-  +'requestContracts.workers.businessId pendingContracts.workers.businessId pendingContracts.businesses.businessId'
+  const populatePath = 'madeContracts.businesses.businessId madeContracts.workers.workerId requestContracts.businesses.businessId '
+  +'requestContracts.workers.workerId pendingContracts.workers.workerId pendingContracts.businesses.businessId '
+  +'receivedContracts.businesses.businessId receivedContracts.workers.workerId'
   const populateFields = 'name email createdAt userType'
   try {
     id = Types.ObjectId(params.contractId)
@@ -577,7 +578,7 @@ export const initBusinessContractAcceptUpdate = async (req:Request<ParamsDiction
         if (index[0].businessContracts.includes(businessContractId)) {
           body.businessContractUpdate = {
             $pull: {
-              'requestContracts.workers': {businessId:userId}
+              'requestContracts.workers': {workerId:userId}
             },
             $addToSet: {
               'madeContracts.workers': {workerId:userId, formId:formId}
@@ -634,7 +635,7 @@ export const initBusinessContractFormUpdate = async (req:Request<ParamsDictionar
             "pendingContracts.workers.$.formId": formId
           }
         }
-        body.businessContractUpdateFilterQuery = {_id: businessContractId, "pendingContracts.workers": {$elemMatch: {businessId: userId}}}
+        body.businessContractUpdateFilterQuery = {_id: businessContractId, "pendingContracts.workers": {$elemMatch: {workerId: userId}}}
       } else {
         return res.status(404).send({message: "Couldn't find user who matches " + userId})
       }
