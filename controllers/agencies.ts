@@ -16,7 +16,7 @@ import authenticateToken from "../utils/auhenticateToken"
 import Agency from "../models/Agency"
 import { IAgency, IAgencyDocument } from "../objecttypes/modelTypes";
 import { CallbackError } from "mongoose";
-import { needsToBeBusiness } from '../utils/middleware'
+import { needsToBeBusinessOrWorker } from '../utils/middleware'
 
 const agenciesRouter = express.Router()
 
@@ -252,7 +252,7 @@ agenciesRouter.put("/", authenticateToken, async (req: Request<unknown, unknown,
   }
 })
 
-agenciesRouter.get("/", authenticateToken, needsToBeBusiness, async (req: Request, res: Response, next: NextFunction) => {
+agenciesRouter.get("/", authenticateToken, needsToBeBusinessOrWorker, async (req: Request, res: Response, next: NextFunction) => {
   const { query } = req
 
   let name: string | undefined
