@@ -180,7 +180,7 @@ export const addContractToBusinessContract = async (req: Request<ParamsDictionar
           return res.status(500).send({message: err})
         } 
         else if (result.nModified === 0) {
-          return res.status(204).send({message: "Business is already in contract."})
+          return res.status(409).send({message: "Business is already in contract."})
         }
         else {
           body.businessContractUpdate = {
@@ -200,7 +200,7 @@ export const addContractToBusinessContract = async (req: Request<ParamsDictionar
             return res.status(500).send({message: "Something went wrong with update."})
           } 
           else if (result.nModified === 0) {
-            return res.status(204).send({message: "Worker is already in contract."})
+            return res.status(409).send({message: "Worker is already in contract."})
           }
           else {
             body.businessContractUpdate = {
@@ -336,8 +336,8 @@ export const declineBusinessContract = async (req: Request<ParamsDictionary, unk
         if (index[0].businessContracts.includes(businessContractId)) {
           body.businessContractUpdate = {
             $pull: {
-              'requestContracts.workers': {businessId:userId},
-              'pendingContracts.workers': {businessId:userId}
+              'requestContracts.workers': {workerId:userId},
+              'pendingContracts.workers': {workerId:userId}
             }
           }
           body.businessContractUpdateFilterQuery = {_id: businessContractId}
