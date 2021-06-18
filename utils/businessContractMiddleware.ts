@@ -559,7 +559,8 @@ export const initBusinessContractAcceptUpdate = async (req:Request<ParamsDiction
       if (index[0].businessContracts.includes(businessContractId)) { 
         body.businessContractUpdate = {
           $pull: {
-            'requestContracts.businesses': {businessId:userId}
+            'requestContracts.businesses': {businessId:userId},
+            'receivedContracts.businesses': {businessId:userId}
           },
           $addToSet: {
             'madeContracts.businesses': {businessId:userId, formId:formId}
@@ -578,7 +579,8 @@ export const initBusinessContractAcceptUpdate = async (req:Request<ParamsDiction
         if (index[0].businessContracts.includes(businessContractId)) {
           body.businessContractUpdate = {
             $pull: {
-              'requestContracts.workers': {workerId:userId}
+              'requestContracts.workers': {workerId:userId},
+              'receivedContracts.workers': {workerId:userId}
             },
             $addToSet: {
               'madeContracts.workers': {workerId:userId, formId:formId}
@@ -588,7 +590,7 @@ export const initBusinessContractAcceptUpdate = async (req:Request<ParamsDiction
         //Jos ei ole tehty suoritetaan elsen osio.
         } else {
           //Lähetetään vastausteksti missä kerrotaan että Työntekijä ei löytynyt sopimuksesta.
-          return res.status(400).send({message: "Worker was already in contract."})
+          return res.status(400).send({message: "Worker was not in contract."})
         }
       } else {
         return res.status(404).send({message: "Couldn't find user who matches" + userId})
@@ -643,6 +645,79 @@ export const initBusinessContractFormUpdate = async (req:Request<ParamsDictionar
     return next()
   } catch (exeption) {
     return res.status(404).send({message:"Couldn't find user."})
+  }
+}
+/**
+ * This middleware function is used to send back contract that Worker or Business send
+ * to Agency. Used in put sendBack route.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @returns {NextFunction} next
+ */
+export const initBusinessContractSendBackUpdate = async (req:Request<ParamsDictionary,unknown,IBaseBody>,res:Response,next:NextFunction) => {
+  const {body,params} = req
+  let businessContractId: Types.ObjectId
+  let agencyId: Types.ObjectId
+  let userId: Types.ObjectId
+  let formId: Types.ObjectId
+  try {
+    businessContractId = Types.ObjectId(params.businessContractId)
+    agencyId = Types.ObjectId(res.locals.decoded.id)
+    userId = Types.ObjectId(params.userId)
+    formId = Types.ObjectId(body.form)
+  } catch (exception) {
+    return res.status(403).send({message:"ContractId must be string."})
+  }
+  try {
+    if  (body.businessContract !== undefined && agencyId.toString() !== body.businessContract.agency.toString()) {
+      return res.status(401).send({message: "Agency was not right owner of BusinessContract."})
+    }
+    const index: IBusinessDocument[] = await Business.find({_id: userId})
+    if (index.length == 1) {
+      //Tarkistetaan onko Yrityksen kanssa tehty asiakassopimus.
+      if (index[0].businessContracts.includes(businessContractId)) { 
+        body.businessContractUpdate = {
+          $pull: {
+            'requestContracts.businesses': {businessId:userId},
+            'receivedContracts.businesses': {businessId:userId}
+          },
+          $addToSet: {
+            'pendingContracts.businesses': {businessId:userId, formId:formId}
+          }
+        }
+        body.businessContractUpdateFilterQuery = {_id: businessContractId}
+      //Jos ei ole tehty suoritetaan elsen osio.
+      } else {
+        //Lähetetään vastausteksti missä kerrotaan että Yritys ei löytynyt sopimuksesta.
+        return res.status(400).send({message: "Business was not in contract."})
+      }
+    } else {
+      const index: IWorkerDocument[] = await Worker.find({_id: userId})
+      if (index.length == 1) {
+        //Tarkistetaan onko Työntekijän kanssa tehty asiakassopimus.
+        if (index[0].businessContracts.includes(businessContractId)) {
+          body.businessContractUpdate = {
+            $pull: {
+              'requestContracts.workers': {workerId:userId},
+              'receivedContracts.workers': {workerId:userId}
+            },
+            $addToSet: {
+              'pendingContracts.workers': {workerId:userId, formId:formId}
+            }
+          }
+          body.businessContractUpdateFilterQuery = {_id: businessContractId}
+        //Jos ei ole tehty suoritetaan elsen osio.
+        } else {
+          //Lähetetään vastausteksti missä kerrotaan että Työntekijä ei löytynyt sopimuksesta.
+          return res.status(400).send({message: "Worker was not in contract."})
+        }
+      } else {
+        return res.status(404).send({message: "Couldn't find user who matches" + userId})
+      }
+    }
+    return next()
+  } catch (exception) {
+    return res.status(404).send({message:"Init send back failed."})
   }
 }
 

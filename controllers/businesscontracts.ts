@@ -22,7 +22,7 @@ import {IBaseBody} from "../objecttypes/otherTypes";
 import {IBusinessContractDocument} from "../objecttypes/modelTypes";
 import {
   initBusinessContractFormUpdate,initBusinessContractAddUpdate, addContractToBusinessContract, businessContractExists, businessContractIncludesUser,
-  businessContractUpdate, declineBusinessContract, makeBusinessContract, businessContractAgencyUpdate, initBusinessContractSendUpdate, initBusinessContractDeclineUpdate, initBusinessContractAcceptUpdate
+  businessContractUpdate, declineBusinessContract, makeBusinessContract, businessContractAgencyUpdate, initBusinessContractSendUpdate, initBusinessContractDeclineUpdate, initBusinessContractAcceptUpdate, initBusinessContractSendBackUpdate
 } from "../utils/businessContractMiddleware";
 import Agency from "../models/Agency"
 
@@ -438,7 +438,7 @@ businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWor
  *        schema:
  *          $ref: "#/components/schemas/AccessToken"
  */
- businesscontractsRouter.put("/:businessContractId/:userId/sendBack")
+ businesscontractsRouter.put("/:businessContractId/:userId/sendBack",authenticateToken,needsToBeAgency,businessContractExists, initBusinessContractSendBackUpdate, businessContractAgencyUpdate)
  /**
  * @openapi
  * /businesscontracts:
