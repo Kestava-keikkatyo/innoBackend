@@ -24,6 +24,10 @@ const formSchema = new Schema({
     type: Boolean,
     required: true
   },
+  common: {
+    type: Boolean,
+    required: true
+  },
   questions: {
     comment: [{
       ordering: {

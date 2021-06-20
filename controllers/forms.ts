@@ -59,6 +59,7 @@ formsRouter.post("/", authenticateToken, needsToBeAgencyBusinessOrWorker, async 
       title: body.title,
       isPublic: body.isPublic,
       filled: body.filled,
+      common: body.common,
       questions: body.questions
     })
     if (body.description) {
@@ -211,6 +212,41 @@ formsRouter.get("/me", authenticateToken, needsToBeAgencyOrBusiness, async (req:
     }
     // Get limit's amount of own forms in specified page
     Form.paginate({ _id: { $in: ownForms } },
+      { projection: "title description tags", page: page, limit: limit, lean: true, leanWithId: false },
+      (error: CallbackError, result: PaginateResult<DocumentDefinition<IFormDocument>>) => {
+        if (error) {
+          return res.status(500).send(error)
+        } else if (result.docs.length === 0) {
+          return res.status(204).send()
+        } else {
+          return res.status(200).send(result)
+        }
+      })
+  } catch (exception) {
+    return next(exception)
+  }
+})
+
+
+
+formsRouter.get("/common", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request<unknown, unknown, IBaseBody>, res: Response, next: NextFunction) => {
+  const { query} = req
+  try {
+    const commonForms: Array<any> = await Form.find({ common: true }, { licenses: 0 })
+    if (!commonForms) {
+      return res.status(500).send( { message: "Error determining whether user is agency or business" })
+    }
+
+    const page: number = parseInt(query.page as string, 10)
+    const limit: number = parseInt(query.limit as string, 10)
+    if (page < 1 || !page) {
+      return res.status(400).send({ message: "Missing or incorrect page parameter" })
+    }
+    if (limit < 1 || !limit) {
+      return res.status(400).send({ message: "Missing or incorrect limit parameter" })
+    }
+    // Get limit's amount of common forms in specified page
+    Form.paginate({ _id: { $in: commonForms } },
       { projection: "title description tags", page: page, limit: limit, lean: true, leanWithId: false },
       (error: CallbackError, result: PaginateResult<DocumentDefinition<IFormDocument>>) => {
         if (error) {

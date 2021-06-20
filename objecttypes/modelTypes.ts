@@ -229,6 +229,7 @@ export interface IForm {
   title: string,
   isPublic: boolean,
   filled: boolean,
+  common: boolean,
   description?: string,
   questions?: IQuestions,
   tags?: Array<string>,
