@@ -60,6 +60,10 @@ const agencySchema = new Schema({
       ref: "Form",
     },
   ],
+  profile: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Profile"
+  },
   businessContracts: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: "BusinessContract",

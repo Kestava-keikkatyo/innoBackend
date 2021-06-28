@@ -5,7 +5,8 @@ import {
   IFeelings,
   IForm,
   IWorkContractDocument,
-  IWorkerDocument
+  IWorkerDocument,
+  IProfile
 } from "./modelTypes";
 
 export interface IBaseBody {
@@ -27,6 +28,8 @@ export interface IBaseBody {
 }
 
 export interface IBodyWithForm extends IBaseBody, IForm {}
+
+export interface IBodyWithProfile extends IBaseBody, IProfile {}
 
 export interface IBodyWithFeelings extends IBaseBody, IFeelings {}
 

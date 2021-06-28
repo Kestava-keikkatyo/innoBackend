@@ -58,6 +58,10 @@ const businessSchema = new Schema({
       ref: "Form",
     },
   ],
+  profile: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Profile"
+  },
   workContracts: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: "WorkContract",
