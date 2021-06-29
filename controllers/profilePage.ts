@@ -35,7 +35,7 @@ profileRouter.post("/", authenticateToken, needsToBeAgencyBusinessOrWorker, (req
     });
 })
 
-profileRouter.get("/:id", authenticateToken, needsToBeAgencyBusinessOrWorker, (_req: Request, res: Response, _next: NextFunction) => {
+profileRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWorker, (_req: Request, res: Response, _next: NextFunction) => {
     ProfilePage.find()
     .exec()
     .then((results) => {
@@ -50,6 +50,13 @@ profileRouter.get("/:id", authenticateToken, needsToBeAgencyBusinessOrWorker, (_
       });
     });
 })
+
+profileRouter.get('/:id', authenticateToken, needsToBeAgencyBusinessOrWorker, (req: Request, res: Response, _next: NextFunction) => {
+  ProfilePage.findById(req.params.id).then(profile => {
+    res.json(profile)
+  })
+})
+
 
 profileRouter.put('/:id', (request, response, next) => {
   const body = request.body
