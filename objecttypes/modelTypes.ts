@@ -256,3 +256,14 @@ export interface IProfileDocument extends Document, IProfile {
   _id: Types.ObjectId,
   createdAt: Date
 }
+
+export interface INotifications {
+  userId: IWorkerDocument['_id'] | IBusinessDocument['_id'] | IAgencyDocument['_id'],
+  message: String,
+  is_read: Boolean,
+  createdAt: Date
+}
+
+export interface INotificationsDocument extends Document, INotifications {
+  _id: Types.ObjectId
+}

@@ -74,6 +74,10 @@ const agencySchema = new Schema({
     ref: "wContract",
   },
   ],
+  notifications: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Notifications"
+  }],
   userType: {
     type: String,
     default: "Agency"
