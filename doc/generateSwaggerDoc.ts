@@ -1,11 +1,13 @@
-import {version} from "../package.json"
+import * as data from "../package.json"
 import config from "../utils/config"
 import swaggerJsdoc from "swagger-jsdoc"
 
 // swagger/openAPI documentation: https://swagger.io/docs/specification/about/
 // Cannot be run on its own! Runs when the app gets ran.
 
-const options = {
+let version:any = data.version
+
+const options:any = {
   swaggerDefinition: {
     openapi: "3.0.0",
     // Like the one described here: https://swagger.io/specification/#infoObject

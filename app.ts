@@ -34,12 +34,14 @@ const options: any = {
 }
 
 mongoose.connect(config.MONGODB_URI || 'URI_NOTFOUND', options)
+/*
   .then(() => {
     info("connected to MongoDB")
   })
   .catch((error) => {
     _error("error connection to MongoDB:", error.message)
   })
+ */
 
 app.use(cors())
 app.use(express.json())
