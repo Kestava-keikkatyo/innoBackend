@@ -15,7 +15,7 @@ import { errorHandler, requestLogger, unknownEndpoint } from "./utils/middleware
 import {info, error as _error} from "./utils/logger"
 import swaggerUi from "swagger-ui-express"
 import swaggerDocument from "./doc/generateSwaggerDoc"
-import profileRouter from "./controllers/profilePage"
+import profileRouter from "./controllers/profile"
 
 
 
@@ -52,12 +52,13 @@ app.use("/api/businesses", businessRouter)
 app.use("/api/agencies", agenciesRouter)
 app.use("/api/uploads", uploadsRouter)
 app.use("/api/login", loginRouter)
+app.use("/api/profile",profileRouter)
 app.use("/api/businesscontracts", businesscontractsRouter)
 app.use("/api/feelings", feelingsRouter)
 app.use("/api/workcontracts", workcontractRouter)
 app.use("/api/forms", formsRouter)
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument))
-app.use("/api/profilePage",profileRouter)
+
 
 app.use(unknownEndpoint)
 app.use(errorHandler)

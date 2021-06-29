@@ -123,7 +123,7 @@ export interface IAgencyDocument extends Document, Omit<IAgency, "forms" | "busi
   createdAt: Date,
   forms: Array<IFormDocument['_id']> | Array<IFormDocument>,
   businessContracts: Array<IBusinessContractDocument['_id']> | Array<IBusinessContractDocument>,
-  workContracts: Array<Types.ObjectId> | Array<IWorkContractDocument>
+  workContracts: Array<Types.ObjectId> | Array<IWorkContractDocument>,
 }
 
 // Used when we want to type docs given in req.body for example. For calls with {lean: true} option, use DocumentDefinition<IBusinessDocument> for the result's type
@@ -243,7 +243,7 @@ export interface IFormDocument extends Document, IForm {
 
 export interface FormModel<T extends Document> extends PaginateModel<T> {} // Used so Form.paginate has typing information
 
-export interface IProfilePage {
+export interface IProfile {
   cover: Object,
   profilePicture: Object,
   userInformation: string,
@@ -252,6 +252,7 @@ export interface IProfilePage {
   instructions: string,
 }
 
-export interface IProfilePageDocument extends Document, IProfilePage {
-  _id: Types.ObjectId
+export interface IProfileDocument extends Document, IProfile {
+  _id: Types.ObjectId,
+  createdAt: Date
 }

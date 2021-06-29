@@ -6,17 +6,10 @@ import {
   IForm,
   IWorkContractDocument,
   IWorkerDocument,
-  IProfilePage
+  IProfile
 } from "./modelTypes";
 
 export interface IBaseBody {
-  cover: any,
-  profilePicture: any,
-  userInformation: any,
-  contactInformation: any,
-  video: any,
-  instructions: any,
-  profileId: any,
   form: string,
   userId: string,
   agency?: IAgencyDocument,
@@ -36,7 +29,7 @@ export interface IBaseBody {
 
 export interface IBodyWithForm extends IBaseBody, IForm {}
 
-export interface IBodyWithProfile extends IBaseBody, IProfilePage {}
+export interface IBodyWithProfile extends IBaseBody, IProfile {}
 
 export interface IBodyWithFeelings extends IBaseBody, IFeelings {}
 
