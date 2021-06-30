@@ -70,6 +70,10 @@ const workerSchema = new Schema({
       ref: "WorkContract",
     },
   ],
+  notifications: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Notifications"
+  }],
   feelings: [
     {
       value: {

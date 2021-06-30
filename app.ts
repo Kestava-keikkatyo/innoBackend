@@ -11,6 +11,7 @@ import businesscontractsRouter from "./controllers/businesscontracts"
 import feelingsRouter from "./controllers/feelings"
 import workcontractRouter from "./controllers/workcontracts"
 import formsRouter from "./controllers/forms"
+import notificationsRouter from "./controllers/notifications"
 import { errorHandler, requestLogger, unknownEndpoint } from "./utils/middleware"
 import {info, error as _error} from "./utils/logger"
 import swaggerUi from "swagger-ui-express"
@@ -57,6 +58,7 @@ app.use("/api/businesscontracts", businesscontractsRouter)
 app.use("/api/feelings", feelingsRouter)
 app.use("/api/workcontracts", workcontractRouter)
 app.use("/api/forms", formsRouter)
+app.use("/api/notifications", notificationsRouter)
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 
 

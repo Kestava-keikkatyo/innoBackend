@@ -70,6 +70,10 @@ const businessSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "BusinessContract",
   }],
+  notifications: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Notifications"
+  }],
   userType: {
     type: String,
     default: "Business"
