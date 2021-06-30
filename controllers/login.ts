@@ -71,7 +71,7 @@ loginRouter.post("/worker", async (req: Request<unknown, unknown, IBodyLogin>, r
   }
   const token: string = jwt.sign(workerForToken, process.env.SECRET || '')
 
-  return res.status(200).send({ token, name: worker.name, email: worker.email, role: "worker" })
+  return res.status(200).send({ token, name: worker.name, email: worker.email, role: "worker", profileId: worker.profile})
 })
 
 /**
@@ -137,7 +137,7 @@ loginRouter.post("/business", async (req: Request<unknown, unknown, IBodyLogin>,
 
   const token: string = jwt.sign(businessForToken, process.env.SECRET || '')
 
-  return res.status(200).send({ token, name: business.name, email: business.email, role: "business" })
+  return res.status(200).send({ token, name: business.name, email: business.email, role: "business", profileId: business.profile})
 })
 
 /**
@@ -202,7 +202,7 @@ loginRouter.post("/agency", async (req: Request<unknown, unknown, IBodyLogin>, r
   }
   const token: string = jwt.sign(agencyForToken, process.env.SECRET || '')
 
-  return res.status(200).send({ token, name: agency.name, email: agency.email, role: "agency" })
+  return res.status(200).send({ token, name: agency.name, email: agency.email, role: "agency", profileId: agency.profile })
 })
 
 export default loginRouter
