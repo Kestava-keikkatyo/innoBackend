@@ -89,7 +89,8 @@ export interface IWorker {
   businessContracts: Array<IBusinessContractDocument['_id']>,
   workContracts: Array<IWorkContractDocument['_id']>,
   feelings: Array<IFeelings>,
-  userType: string
+  userType: string,
+  profile: string
 }
 
 // Used for typing results gotten from db calls.
@@ -97,7 +98,7 @@ export interface IWorkerDocument extends Document, Omit<IWorker, "businessContra
   _id: Types.ObjectId,
   createdAt: Date,
   businessContracts: Array<IBusinessContractDocument['_id']>,
-  workContracts: Array<IWorkContractDocument['_id']>,
+  workContracts: Array<IWorkContractDocument['_id']>
 }
 
 // Used when we want to type docs given in req.body for example. For calls with {lean: true} option, use DocumentDefinition<IAgencyDocument> for the result's type
@@ -114,7 +115,8 @@ export interface IAgency {
   forms: Array<IFormDocument['_id']>,
   businessContracts: Array<IBusinessContractDocument['_id']>,
   workContracts: Array<IWorkContractDocument['_id']>,
-  userType: string
+  userType: string,
+  profile: string
 }
 
 // Used for typing results gotten from db calls.
@@ -123,7 +125,7 @@ export interface IAgencyDocument extends Document, Omit<IAgency, "forms" | "busi
   createdAt: Date,
   forms: Array<IFormDocument['_id']> | Array<IFormDocument>,
   businessContracts: Array<IBusinessContractDocument['_id']> | Array<IBusinessContractDocument>,
-  workContracts: Array<Types.ObjectId> | Array<IWorkContractDocument>,
+  workContracts: Array<Types.ObjectId> | Array<IWorkContractDocument>
 }
 
 // Used when we want to type docs given in req.body for example. For calls with {lean: true} option, use DocumentDefinition<IBusinessDocument> for the result's type
@@ -148,7 +150,8 @@ export interface IBusiness {
     end: number
   },
   contactPreference: string,
-  socialMedias: Array<string>
+  socialMedias: Array<string>,
+  profile: string
 }
 
 // Used for typing results gotten from db calls.
@@ -157,7 +160,8 @@ export interface IBusinessDocument extends Document, Omit<IBusiness, "forms" | "
   createdAt: Date,
   forms: Array<IFormDocument['_id']> | Array<IFormDocument>,
   businessContracts: Array<IBusinessContractDocument['_id']>, //| Array<IBusinessContractDocument>
-  workContracts: Array<Types.ObjectId> | Array<IWorkContractDocument>
+  workContracts: Array<Types.ObjectId> | Array<IWorkContractDocument>,
+
 }
 
 // Used when we want to type docs given in req.body for example. For calls with {lean: true} option, use DocumentDefinition<IBusinessContractDocument> for the result's type

@@ -3,6 +3,7 @@ require("dotenv").config()
 let IP = process.env.IP
 let PORT = process.env.PORT
 let MONGODB_URI = process.env.MONGODB_URI
+let NODE_ENV = process.env.NODE_ENV
 
 
 const AWS_REGION = process.env.AWS_REGION
@@ -18,6 +19,7 @@ export default {
   MONGODB_URI,
   PORT,
   IP,
+  NODE_ENV,
   AWS_REGION,
   AWS_ACCESS_KEY_ID,
   AWS_SECRET_ACCESS_KEY,
