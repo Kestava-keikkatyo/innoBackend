@@ -1,7 +1,7 @@
 import express from 'express'
 import authenticateToken from '../utils/auhenticateToken'
 import { needsToBeAgencyBusinessOrWorker } from '../utils/middleware'
-import { postNotificationDocument, sendTextToNotificationsDocument, getNotificationsDocument, textReadNotificationsDocument } from '../utils/notificationsMiddleware'
+import { postNotificationDocument, sendTextToNotificationsDocument, getNotificationsDocument, textReadNotificationsDocument, clearAllNotificationsDocument } from '../utils/notificationsMiddleware'
 
 const notificationsRouter = express.Router()
 /**
@@ -21,5 +21,9 @@ notificationsRouter.get("/get",authenticateToken,needsToBeAgencyBusinessOrWorker
  * Käytetään kun käyttäjä näkee ilmoituksen ja klikkaa sitä. Ilmoitus merkataan tämän jälkeen luetuksi.
  */
 notificationsRouter.put("/:textId/read",authenticateToken,needsToBeAgencyBusinessOrWorker,textReadNotificationsDocument)
+/**
+ * Käytetään kun käyttäjä painaa kaikki ilmoitukset luetuiksi.
+ */
+notificationsRouter.put("/clearAll",authenticateToken,needsToBeAgencyBusinessOrWorker,clearAllNotificationsDocument)
 
 export default notificationsRouter

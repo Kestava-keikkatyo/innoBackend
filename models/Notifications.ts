@@ -7,15 +7,17 @@ const notificationsSchema = new Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Worker Business Agency"
     },
-    message: [{
+    unread_messages: [{
         text: {
             type: String,
             ref: "Message"
-        },
-        is_read: {
-            type: Boolean,
-            ref:"Is_Read"
-        },
+        }
+    }],
+    read_messages: [{
+        text: {
+            type: String,
+            ref: "Message"
+        }
     }],
     createdAt: {
         type: Date,
