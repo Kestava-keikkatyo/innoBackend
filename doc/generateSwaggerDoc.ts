@@ -1,15 +1,16 @@
-import * as data from "../package.json"
+//import * as data from "../package.json"
 import config from "../utils/config"
 import swaggerJsdoc from "swagger-jsdoc"
 
 // swagger/openAPI documentation: https://swagger.io/docs/specification/about/
 // Cannot be run on its own! Runs when the app gets ran.
-
+const data = require('../package.json')
 let version:any = data.version
 
 const options:any = {
   swaggerDefinition: {
     openapi: "3.0.0",
+    version,
     // Like the one described here: https://swagger.io/specification/#infoObject
     info: {
       title: "Keikkakaveri REST API",
