@@ -61,7 +61,7 @@ feelingsRouter.post("/", authenticateToken, needsToBeWorker, async (req: Request
   const { body } = req
   try {
     if (body.value !== undefined) {
-      const feelingsObject: IFeelings = { value: body.value, note: body.note }
+      const feelingsObject: IFeelings = { value: body.value, note: body.note, fileUrl: body.fileUrl}
       Worker.findByIdAndUpdate(
         // User id got from middleware.js. AddToSet adds 'value' and 'note' to feelings array. Note not added if undefined.
         res.locals.decoded.id,
@@ -71,7 +71,7 @@ feelingsRouter.post("/", authenticateToken, needsToBeWorker, async (req: Request
           if (error || !result) {
             return res.status(500).send(error || { message: "Received no result from database when updating worker" })
           } else {
-            return res.status(200).send({ value: body.value, note: body.note })
+            return res.status(200).send({ value: body.value, note: body.note, fileUrl: body.fileUrl })
           }
         })
     } else {

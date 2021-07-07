@@ -80,7 +80,7 @@ const workerSchema = new Schema({
         type: Number,
         required: true,
         min: [0, "Feelings can't go below 0"],
-        max: [3, "Feelings can't be above 3"],
+        max: [4, "Feelings can't be above 4"],
       },
       note: {
         type: String,
@@ -90,6 +90,9 @@ const workerSchema = new Schema({
         default: Date.now,
         immutable: true,
       },
+      fileUrl: {
+        type: String
+      }
     },
   ],
   userType: {

@@ -5,7 +5,8 @@ export interface IFeelings {
   _id?: Types.ObjectId,
   value: number,
   note?: string,
-  createdAt?: Date
+  createdAt?: Date,
+  fileUrl?: string
 }
 
 // Typings for Form's questions START
