@@ -78,6 +78,10 @@ const agencySchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Notifications"
   }],
+  feedBack: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "FeedBack"
+  }],
   userType: {
     type: String,
     default: "Agency"

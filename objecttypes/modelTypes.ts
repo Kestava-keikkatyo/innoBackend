@@ -272,3 +272,12 @@ export interface INotifications {
 export interface INotificationsDocument extends Document, INotifications {
   _id: Types.ObjectId
 }
+
+export interface IFeedBack {
+  userId: IWorkerDocument['_id'] | IBusinessDocument['_id'] | IAgencyDocument['_id'],
+  message: String
+}
+
+export interface IFeedBackDocument extends Document, IFeedBack {
+  _id: Types.ObjectId
+}

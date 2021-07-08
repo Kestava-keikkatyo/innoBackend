@@ -74,6 +74,10 @@ const workerSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Notifications"
   }],
+  feedBack: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "FeedBack"
+  }],
   feelings: [
     {
       value: {
