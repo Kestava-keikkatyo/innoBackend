@@ -18,7 +18,8 @@ export const postFeedBackDocument = (req: Request, res: Response, _next: NextFun
     let userType = ""
     const feedBackDocument: IFeedBackDocument = new FeedBack({
       userId: res.locals.decoded.id,
-      message: body.message
+      heading: body.heading,
+      message: body.message,
     })
 
     if (body.worker) {
