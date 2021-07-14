@@ -7,6 +7,10 @@ const feedBackSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Worker Business Agency"
   },
+  heading: {
+    type: String,
+    ref: "FeedbackHeading"
+  },
   message: {
     type: String,
     ref: "FeedbackMessage"
