@@ -249,12 +249,19 @@ export interface IFormDocument extends Document, IForm {
 export interface FormModel<T extends Document> extends PaginateModel<T> {} // Used so Form.paginate has typing information
 
 export interface IProfile {
-  cover: Object,
-  profilePicture: Object,
-  userInformation: string,
-  contactInformation: string,
+  name: string,
+  phone: string,
+  email: string,
+  address: {
+    streetAdress: string,
+    zipCode: string,
+    city: string
+  },
+  coverPhoto: string,
+  profilePicture: string,
   video: string,
   instructions: string,
+  website: string
 }
 
 export interface IProfileDocument extends Document, IProfile {

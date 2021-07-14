@@ -5,30 +5,52 @@ import { IProfileDocument } from "../objecttypes/modelTypes"
 import { error as _error } from "../utils/logger"
 
 const profileSchema = new Schema ({
-  cover: {
-    type: Object,
+  name: {
+    type: String,
+    required: false
+  },
+  phone: {
+    type: String,
+    required: false
+  },
+  email: {
+    type: String,
+    required: false
+  },
+  address: {
+    streetAdress:{
+      type: String,
+      required: false
+    },
+    zipCode:{
+      type: String,
+      required: false
+    },
+    city:{
+      type: String,
+      required: false
+    }
+  },
+  coverPhoto: {
+    type: String,
     required: false
   },
   profilePicture: {
-    type: Object,
-    required: false
-  },
-  userInformation: {
-    type: String,
-    required: false
-  },
-  contactInformation: {
-    type: String,
-    required: false
+  type: String,
+  required: false
   },
   video: {
     type: String,
     required: false
   },
   instructions: {
-  type: String,
-  required: false
-}
+    type: String,
+    required: false
+  },
+  website: {
+    type: String,
+    required: false
+  }
 })
 
 profileSchema.plugin(mongoosePaginate)

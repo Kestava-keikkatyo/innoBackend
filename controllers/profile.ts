@@ -26,12 +26,19 @@ profileRouter.post("/", authenticateToken, needsToBeAgencyBusinessOrWorker, asyn
 
     // profile validation and checking happens in schema itself
     const newprofile: IProfileDocument = new Profile({
-      cover: body.cover,
+      name: body.name,
+      phone: body.phone,
+      email: body.email,
+      address:{
+          streetAdress: body.address.streetAdress,
+          zipCode: body.address.zipCode,
+          city: body.address.city
+      },
+      coverPhoto: body.coverPhoto,
       profilePicture: body.profilePicture,
-      userInformation: body.userInformation,
-      contactInformation: body.contactInformation,
       video: body.video,
-      instructions: body.instructions
+      instructions: body.instructions,
+      website: body.website
     })
 
     newprofile.save((error: CallbackError, result: IProfileDocument) => {
@@ -183,5 +190,6 @@ profileRouter.put('/:id', (request, response, next) => {
     .catch(error => next(error))
 })
 */
-  export default profileRouter
+
+export default profileRouter
 
