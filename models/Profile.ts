@@ -18,7 +18,7 @@ const profileSchema = new Schema ({
     required: false
   },
   address: {
-    streetAdress:{
+    streetAddress:{
       type: String,
       required: false
     },

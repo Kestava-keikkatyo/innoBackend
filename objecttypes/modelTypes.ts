@@ -253,7 +253,7 @@ export interface IProfile {
   phone: string,
   email: string,
   address: {
-    streetAdress: string,
+    streetAddress: string,
     zipCode: string,
     city: string
   },

@@ -30,7 +30,7 @@ profileRouter.post("/", authenticateToken, needsToBeAgencyBusinessOrWorker, asyn
       phone: body.phone,
       email: body.email,
       address:{
-          streetAdress: body.address.streetAdress,
+          streetAddress: body.address.streetAddress,
           zipCode: body.address.zipCode,
           city: body.address.city
       },
