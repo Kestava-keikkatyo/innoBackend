@@ -17,19 +17,17 @@ const profileSchema = new Schema ({
     type: String,
     required: false
   },
-  address: {
-    streetAddress:{
+  streetAddress:{
       type: String,
       required: false
-    },
-    zipCode:{
+  },
+  zipCode:{
       type: String,
       required: false
-    },
-    city:{
+  },
+  city:{
       type: String,
       required: false
-    }
   },
   coverPhoto: {
     type: String,

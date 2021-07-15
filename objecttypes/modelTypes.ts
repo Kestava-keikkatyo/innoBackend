@@ -252,11 +252,9 @@ export interface IProfile {
   name: string,
   phone: string,
   email: string,
-  address: {
-    streetAddress: string,
-    zipCode: string,
-    city: string
-  },
+  streetAddress: string,
+  zipCode: string,
+  city: string,
   coverPhoto: string,
   profilePicture: string,
   video: string,

@@ -29,11 +29,9 @@ profileRouter.post("/", authenticateToken, needsToBeAgencyBusinessOrWorker, asyn
       name: body.name,
       phone: body.phone,
       email: body.email,
-      address:{
-          streetAddress: body.address.streetAddress,
-          zipCode: body.address.zipCode,
-          city: body.address.city
-      },
+      streetAddress: body.streetAddress,
+      zipCode: body.zipCode,
+      city: body.city,
       coverPhoto: body.coverPhoto,
       profilePicture: body.profilePicture,
       video: body.video,
