@@ -35,8 +35,10 @@ profileRouter.post("/", authenticateToken, needsToBeAgencyBusinessOrWorker, asyn
       coverPhoto: body.coverPhoto,
       profilePicture: body.profilePicture,
       video: body.video,
+      website: body.website,
       instructions: body.instructions,
-      website: body.website
+      occupationalSafetyRules: body.occupationalSafetyRules
+
     })
 
     newprofile.save((error: CallbackError, result: IProfileDocument) => {

@@ -258,8 +258,9 @@ export interface IProfile {
   coverPhoto: string,
   profilePicture: string,
   video: string,
-  instructions: string,
-  website: string
+  website: string,
+  instructions: any[],
+  occupationalSafetyRules: any[]
 }
 
 export interface IProfileDocument extends Document, IProfile {

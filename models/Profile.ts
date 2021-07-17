@@ -41,13 +41,17 @@ const profileSchema = new Schema ({
     type: String,
     required: false
   },
-  instructions: {
-    type: String,
-    required: false
-  },
   website: {
     type: String,
     required: false
+  },
+  instructions: {
+    type: Array,
+    required: false
+  },
+  occupationalSafetyRules:{
+    type: Array,
+    requeired: false
   }
 })
 
