@@ -69,19 +69,19 @@ uploadsRouter.post("/", async (req: any, res: any) => {
 
     S3_BUCKET = config.AWS_BUCKET
 
-    let url:any = `https://${S3_BUCKET}.s3.amazonaws.com/${file}`
+    let url:any = `https://${S3_BUCKET}.s3.${config.AWS_REGION}.amazonaws.com/${file}`
 
     // Depending on the file type, add the directory name 'pdf, images or videos' to the url
     if(typePartOne==='application'){
-      url = `https://${S3_BUCKET}.s3.amazonaws.com/pdf/${file}`
+      url = `https://${S3_BUCKET}.s3.${config.AWS_REGION}.amazonaws.com/pdf/${file}`
     }
 
     if(typePartOne==='image'){
-      url = `https://${S3_BUCKET}.s3.amazonaws.com/images/${file}`
+      url = `https://${S3_BUCKET}.s3.${config.AWS_REGION}.amazonaws.com/images/${file}`
     }
 
     if(typePartOne==='video'){
-      url = `https://${S3_BUCKET}.s3.amazonaws.com/videos/${file}`
+      url = `https://${S3_BUCKET}.s3.${config.AWS_REGION}.amazonaws.com/videos/${file}`
     }
 
     // Data payload of what we are sending back, the url of the signedRequest and a URL where we can access the content after its saved.
