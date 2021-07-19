@@ -224,8 +224,8 @@ workcontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWorker,
  *     summary: Route for agency to make a work contract
  *     description: |
  *       Must be logged in as an agency.
- *       Agency creates a new WorkContract between a Business and a Worker.
- *       The WorkContract id is then saved to lists in: Worker, Agency, Business.
+ *       Agency creates a new WorkContract between a Business.
+ *       The WorkContract id is then saved to lists in: Agency, Business.
  *     tags: [Agency, WorkContract]
  *     parameters:
  *       - in: header
@@ -293,12 +293,14 @@ workcontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWorker,
  */
 workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessExists, async (req: Request<unknown, unknown, IBodyWithIds>, res: Response, next: NextFunction) => {
   const { body } = req
+  let businessId: Types.ObjectId
   try {
     if (!body.businessId) {
       return res.status(400).send({ message: "No business id was provided in request body" })
     }
+    businessId = Types.ObjectId(body.businessId)
     const commonContractIndex: DocumentDefinition<IBusinessContractDocument>[] = await BusinessContract.find(
-      { agency: res.locals.decoded.id, 'madeContracts.businesses': body.businessId },
+      { agency: res.locals.decoded.id, 'madeContracts.businesses': { $elemMatch: { 'businessId':businessId } } },
       undefined,
       { lean: true })
     //checkAgencyBusinessContracts function checks commonContractIndex
@@ -307,14 +309,14 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
     }
     //Initialize workContracts fields
     let createFields = {
-      business: body.businessId,
+      business: businessId,
       agency: res.locals.decoded.id,
       contracts: []
     }
     const contractToCreate: IWorkContractDocument = new WorkContract(createFields)
     //Next add traces to Business and Agency
     await Business.findOneAndUpdate(
-      { _id: body.businessId },
+      { _id: businessId },
       { $addToSet: { workContracts: contractToCreate._id } },
       { lean: true },
       async (error: CallbackError, result: DocumentDefinition<IBusinessDocument> | null) => {
@@ -351,7 +353,7 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
     //Next check that workContract doesn't already exist
     let contract: IWorkContractDocument | null
     const commonWorkContractArray: DocumentDefinition<IWorkContractDocument>[] = await WorkContract.find(
-      { business:  body.businessId, agency:  res.locals.decoded.id },
+      { business:  businessId, agency:  res.locals.decoded.id },
       undefined,
       { lean: true }
     )
