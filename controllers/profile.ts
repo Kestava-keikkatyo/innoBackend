@@ -117,12 +117,10 @@ profileRouter.post("/", authenticateToken, needsToBeAgencyBusinessOrWorker, asyn
 }
 
 profileRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWorker, (_req: Request, res: Response, _next: NextFunction) => {
-  Profile.find()
-    .exec()
-    .then((results) => {
-      return res.status(200).json({
-          profile: results
-      })
+
+  Profile.find({})
+    .then((result) => {
+        return res.status(200).json(result)
     })
     .catch((error) => {
       return res.status(500).json({
