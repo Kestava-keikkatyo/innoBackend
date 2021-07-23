@@ -19,7 +19,7 @@ import Worker from "../models/Worker"
 import Agency from "../models/Agency"
 import {IAgencyDocument, IWorker, IWorkerDocument} from "../objecttypes/modelTypes";
 import {CallbackError} from "mongoose";
-
+import bcrypt from "bcryptjs"
 
 const workersRouter = express.Router()
 
@@ -312,6 +312,142 @@ workersRouter.get("/", authenticateToken, async (req: Request, res: Response, ne
     }
 
     return res.status(400).json({ message: "Workers not found" })
+  } catch (exception) {
+    return next(exception)
+  }
+})
+
+
+
+
+/**
+ * Route used to update worker's password.
+ * @openapi
+ * /workers/update-password:
+ *   put:
+ *     summary: Route for worker to update their own password.
+ *     tags: [Worker]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     requestBody:
+ *       description: |
+ *         Any properties that want to be updated are given in request body.
+ *         Properties can be any updatable property in the worker object.
+ *       content:
+ *         application/json:
+ *           schema:
+ *             example:
+ *               currentPassword: currentPass123
+ *               newPassword: newPass123
+ *     responses:
+ *       "200":
+ *         description: Worker information updated. Returns updated worker.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Worker"
+ *       "401":
+ *         description: The current password is incorrect
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: The current password is incorrect
+ *       "400":
+ *         description: The new password can't be blank
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: The new password can't be blank
+ *       "406":
+ *         description: The new password could not be as same as the current password
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: The new password could not be as same as the current password
+ *       "411":
+ *         description: Incorrect password "Length required"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Password length less than 3 characters
+ *       "404":
+ *         description: Worker wasn't found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Worker not found
+ */
+workersRouter.put("/update-password", authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
+
+  const { body } = req
+  try {
+    // find the worker
+    const worker: IWorkerDocument | null = await Worker.findById(res.locals.decoded.id)
+    // check if the current password is correct
+    const currentPasswordCorrect: boolean = worker === null
+      ? false
+      : await bcrypt.compare(body.currentPassword, worker.passwordHash as string)
+
+    if(!worker){
+      return res.status(404).json({ message: "Worker not found" })
+    }
+    if (!currentPasswordCorrect) {
+      return res.status(401).json({ message: "The current password is incorrect" })
+    }
+    if(body.currentPassword === body.newPassword){
+      return res.status(406).json({ message: "The new password could not be as same as the current password" })
+    }
+    if(!body.newPassword){
+      return res.status(400).json({ message: "The new password can't be blank" })
+    }
+
+    let newPasswordHash: string | undefined
+
+    // Salataan uusi salasana
+    if (body.newPassword) {
+      const passwordLength: number = body.newPassword ? body.newPassword.length : 0
+      if (passwordLength < 3) {
+        return res.status(411).json({ message: "password length less than 3 characters" })
+      }
+      const saltRounds: number = 10
+      newPasswordHash = await hash(body.newPassword, saltRounds)
+    }
+
+    // Poistetaan passwordHash bodysta
+    // (muuten uusi salasana menee sellaisenaan tietokantaan).
+    // Salattu salasana luodaan ylempänä.
+    delete worker.passwordHash
+
+    // update worker's passwordHash with the new passwordHash
+    const updatePasswordField = {
+      passwordHash: newPasswordHash
+    }
+
+    // https://mongoosejs.com/docs/tutorials/findoneandupdate.html
+    // https://mongoosejs.com/docs/api.html#model_Model.findByIdAndUpdate
+    const updatedWorker: IWorkerDocument | null = await Worker.findByIdAndUpdate(res.locals.decoded.id, updatePasswordField,
+      { new: true, omitUndefined: true, runValidators: true })
+
+    if (!updatedWorker) {
+      return res.status(404).json({ message: "Worker not found" })
+    }
+    return res.status(200).json(updatedWorker)
+
   } catch (exception) {
     return next(exception)
   }
