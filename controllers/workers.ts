@@ -336,8 +336,7 @@ workersRouter.get("/", authenticateToken, async (req: Request, res: Response, ne
  *           $ref: "#/components/schemas/AccessToken"
  *     requestBody:
  *       description: |
- *         Any properties that want to be updated are given in request body.
- *         Properties can be any updatable property in the worker object.
+ *         Properties are the current password and the new password of the worker object.
  *       content:
  *         application/json:
  *           schema:
@@ -346,19 +345,19 @@ workersRouter.get("/", authenticateToken, async (req: Request, res: Response, ne
  *               newPassword: newPass123
  *     responses:
  *       "200":
- *         description: Worker information updated. Returns updated worker.
+ *         description: Worker password updated. Returns updated worker.
  *         content:
  *           application/json:
  *             schema:
  *               $ref: "#/components/schemas/Worker"
  *       "401":
- *         description: The current password is incorrect
+ *         description: Current password is incorrect
  *         content:
  *           application/json:
  *             schema:
  *               $ref: "#/components/schemas/Error"
  *             example:
- *               message: The current password is incorrect
+ *               message: Current password is incorrect
  *       "400":
  *         description: The new password can't be blank
  *         content:
@@ -368,13 +367,13 @@ workersRouter.get("/", authenticateToken, async (req: Request, res: Response, ne
  *             example:
  *               message: The new password can't be blank
  *       "406":
- *         description: The new password could not be as same as the current password
+ *         description: The new password could not be as same as current password
  *         content:
  *           application/json:
  *             schema:
  *               $ref: "#/components/schemas/Error"
  *             example:
- *               message: The new password could not be as same as the current password
+ *               message: The new password could not be as same as current password
  *       "411":
  *         description: Incorrect password "Length required"
  *         content:

@@ -10,7 +10,7 @@
  * @namespace agenciesRouter
 */
 import express, {NextFunction, Request, Response} from 'express'
-import bcrypt from "bcryptjs"
+import bcrypt, { hash } from "bcryptjs"
 import jwt from "jsonwebtoken"
 import authenticateToken from "../utils/auhenticateToken"
 import Agency from "../models/Agency"
@@ -259,12 +259,146 @@ agenciesRouter.get("/", authenticateToken, needsToBeBusinessOrWorker, async (req
   if (query.name) {
     name = query.name as string
   }
-  try {   
+  try {
       const agencies: Array<IAgencyDocument> = await Agency.find({ name: { $regex: name, $options: "i" } }, { name: 1, email: 1, businessContracts: 1, profile: 1 }) // TODO use callback for result and errors.
       if (agencies) {
         return res.status(200).json(agencies)
       }
     return res.status(404).json({ message: "Agency not found testi" })
+  } catch (exception) {
+    return next(exception)
+  }
+})
+
+
+
+/**
+ * Route used to update agency's password.
+ * @openapi
+ * /agencies/update-password:
+ *   put:
+ *     summary: Route for agency to update their own password.
+ *     tags: [Agency]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     requestBody:
+ *       description: |
+ *         Properties are the current password and the new password of the agency object.
+ *       content:
+ *         application/json:
+ *           schema:
+ *             example:
+ *               currentPassword: currentPass123
+ *               newPassword: newPass123
+ *     responses:
+ *       "200":
+ *         description: Agency password updated. Returns updated agency.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Agency"
+ *       "401":
+ *         description: Current password is incorrect
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Current password is incorrect
+ *       "400":
+ *         description: The new password can't be blank
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: The new password can't be blank
+ *       "406":
+ *         description: The new password could not be as same as current password
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: The new password could not be as same as current password
+ *       "411":
+ *         description: Incorrect password "Length required"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Password length less than 3 characters
+ *       "404":
+ *         description: Agency wasn't found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Agency not found
+ */
+ agenciesRouter.put("/update-password", authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
+
+  const { body } = req
+  try {
+    // find the agency
+    const agency: IAgencyDocument | null = await Agency.findById(res.locals.decoded.id)
+    // check if the current password is correct
+    const currentPasswordCorrect: boolean = agency === null
+      ? false
+      : await bcrypt.compare(body.currentPassword, agency.passwordHash as string)
+
+    if(!agency){
+      return res.status(404).json({ message: "Agency not found" })
+    }
+    if (!currentPasswordCorrect) {
+      return res.status(401).json({ message: "Current password is incorrect" })
+    }
+    if(body.currentPassword === body.newPassword){
+      return res.status(406).json({ message: "The new password could not be as same as current password" })
+    }
+    if(!body.newPassword){
+      return res.status(400).json({ message: "The new password can't be blank" })
+    }
+
+    let newPasswordHash: string | undefined
+
+    // Salataan uusi salasana
+    if (body.newPassword) {
+      const passwordLength: number = body.newPassword ? body.newPassword.length : 0
+      if (passwordLength < 3) {
+        return res.status(411).json({ message: "password length less than 3 characters" })
+      }
+      const saltRounds: number = 10
+      newPasswordHash = await hash(body.newPassword, saltRounds)
+    }
+
+    // Poistetaan passwordHash bodysta
+    // (muuten uusi salasana menee sellaisenaan tietokantaan).
+    // Salattu salasana luodaan ylempänä.
+    delete agency.passwordHash
+
+    // update agency's passwordHash with the new passwordHash
+    const updatePasswordField = {
+      passwordHash: newPasswordHash
+    }
+
+    // https://mongoosejs.com/docs/tutorials/findoneandupdate.html
+    // https://mongoosejs.com/docs/api.html#model_Model.findByIdAndUpdate
+    const updatedAgency: IAgencyDocument | null = await Agency.findByIdAndUpdate(res.locals.decoded.id, updatePasswordField,
+      { new: true, omitUndefined: true, runValidators: true })
+
+    if (!updatedAgency) {
+      return res.status(404).json({ message: "Agency not found" })
+    }
+    return res.status(200).json(updatedAgency)
+
   } catch (exception) {
     return next(exception)
   }

@@ -10,6 +10,7 @@
  * @namespace businessesRouter
 */
 import express, {NextFunction, Request, Response} from "express"
+import { hash } from "bcryptjs"
 import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
 import { error as _error } from "../utils/logger"
@@ -314,6 +315,139 @@ businessesRouter.get("/", authenticateToken, needsToBeAgency, async (req: Reques
       }
     }
     return res.status(404).json({ message: "Businesses not found" })
+  } catch (exception) {
+    return next(exception)
+  }
+})
+
+
+/**
+ * Route used to update business's password.
+ * @openapi
+ * /businesses/update-password:
+ *   put:
+ *     summary: Route for business to update their own password.
+ *     tags: [Business]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     requestBody:
+ *       description: |
+ *         Properties are the current password and the new password of the business object.
+ *       content:
+ *         application/json:
+ *           schema:
+ *             example:
+ *               currentPassword: currentPass123
+ *               newPassword: newPass123
+ *     responses:
+ *       "200":
+ *         description: Business password updated. Returns updated business.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Business"
+ *       "401":
+ *         description: Current password is incorrect
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Current password is incorrect
+ *       "400":
+ *         description: The new password can't be blank
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: The new password can't be blank
+ *       "406":
+ *         description: The new password could not be as same as current password
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: The new password could not be as same as current password
+ *       "411":
+ *         description: Incorrect password "Length required"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Password length less than 3 characters
+ *       "404":
+ *         description: Business wasn't found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Business not found
+ */
+ businessesRouter.put("/update-password", authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
+
+  const { body } = req
+  try {
+    // find the business
+    const business: IBusinessDocument | null = await Business.findById(res.locals.decoded.id)
+    // check if the current password is correct
+    const currentPasswordCorrect: boolean = business === null
+      ? false
+      : await bcrypt.compare(body.currentPassword, business.passwordHash as string)
+
+    if(!business){
+      return res.status(404).json({ message: "Business not found" })
+    }
+    if (!currentPasswordCorrect) {
+      return res.status(401).json({ message: "Current password is incorrect" })
+    }
+    if(body.currentPassword === body.newPassword){
+      return res.status(406).json({ message: "The new password could not be as same as current password" })
+    }
+    if(!body.newPassword){
+      return res.status(400).json({ message: "The new password can't be blank" })
+    }
+
+    let newPasswordHash: string | undefined
+
+    // Salataan uusi salasana
+    if (body.newPassword) {
+      const passwordLength: number = body.newPassword ? body.newPassword.length : 0
+      if (passwordLength < 3) {
+        return res.status(411).json({ message: "password length less than 3 characters" })
+      }
+      const saltRounds: number = 10
+      newPasswordHash = await hash(body.newPassword, saltRounds)
+    }
+
+    // Poistetaan passwordHash bodysta
+    // (muuten uusi salasana menee sellaisenaan tietokantaan).
+    // Salattu salasana luodaan ylempänä.
+    delete business.passwordHash
+
+    // update business's passwordHash with the new passwordHash
+    const updatePasswordField = {
+      passwordHash: newPasswordHash
+    }
+
+    // https://mongoosejs.com/docs/tutorials/findoneandupdate.html
+    // https://mongoosejs.com/docs/api.html#model_Model.findByIdAndUpdate
+    const updatedBusiness: IBusinessDocument | null = await Business.findByIdAndUpdate(res.locals.decoded.id, updatePasswordField,
+      { new: true, omitUndefined: true, runValidators: true })
+
+    if (!updatedBusiness) {
+      return res.status(404).json({ message: "Business not found" })
+    }
+    return res.status(200).json(updatedBusiness)
+
   } catch (exception) {
     return next(exception)
   }
