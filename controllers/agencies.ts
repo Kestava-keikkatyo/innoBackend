@@ -85,6 +85,7 @@ agenciesRouter.post("/", async (req: Request<unknown, unknown, IAgency>, res: Re
     const agencyToCreate: IAgencyDocument = new Agency({
       name: body.name,
       email: body.email,
+      category: body.category,
       passwordHash,
     })
     const agency: IAgencyDocument = await agencyToCreate.save() // TODO use callback and check for errors
