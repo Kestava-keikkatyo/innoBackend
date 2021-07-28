@@ -1,3 +1,4 @@
+import { needsToBeAgencyOrBusiness } from './../utils/middleware';
 /** Express router providing Worker-related routes
  * @module controllers/workers
  * @requires express
@@ -241,6 +242,50 @@ workersRouter.put("/", authenticateToken, async (req: Request<unknown, unknown, 
     }
     return res.status(200).json(updatedWorker)
 
+  } catch (exception) {
+    return next(exception)
+  }
+})
+
+/**
+ * @openapi
+ * /workers/all:
+ *   get:
+ *     summary: Route for buisnesses and agencies to get all workers
+ *     description: Need to be logged in as agency or buisness.
+ *     tags: [Agency, Business, Worker]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     responses:
+ *       "200":
+ *         description: Returns all workers
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: "#/components/schemas/Worker"
+ *       "404":
+ *         description: No workers found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Workers not found
+ */
+ workersRouter.get("/all", authenticateToken, needsToBeAgencyOrBusiness, async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+      const workers: Array<IWorkerDocument>  | null = await Worker.find({}, { licenses: 0 }) // TODO use callback for result and errors.
+      if (workers) {
+        return res.status(200).json(workers)
+      }
+      return res.status(404).json({ message: "Workers not found" })
   } catch (exception) {
     return next(exception)
   }
