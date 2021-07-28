@@ -252,6 +252,90 @@ agenciesRouter.put("/", authenticateToken, async (req: Request<unknown, unknown,
   }
 })
 
+/**
+ * @openapi
+ * /agencies/all:
+ *   get:
+ *     summary: Route for buisnesses and workers to get all agencies
+ *     description: Need to be logged in as buisness or worker.
+ *     tags: [Agency, Business, Worker]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     responses:
+ *       "200":
+ *         description: Returns all agencies
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: "#/components/schemas/Agency"
+ *       "404":
+ *         description: No agencies found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Agencies not found
+ */
+ agenciesRouter.get("/all", authenticateToken, needsToBeBusinessOrWorker, async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+      const agencies: Array<IAgencyDocument>  | null = await Agency.find({}, { name: 1, email: 1, businessContracts: 1, profile: 1 }) // TODO use callback for result and errors.
+      if (agencies) {
+        return res.status(200).json(agencies)
+      }
+      return res.status(404).json({ message: "Agencies not found" })
+  } catch (exception) {
+    return next(exception)
+  }
+})
+
+
+/**
+ * @openapi
+ * /agencies:
+ *   get:
+ *     summary: Route for businesses and workers to search for agencies by name
+ *     description: Need to be logged in as business or worker.
+ *     tags: [Agency, Business, Worker]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: query
+ *         name: name
+ *         description: Agency name we want to search for
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: jarmo
+ *     responses:
+ *       "200":
+ *         description: Returns found agencies
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: "#/components/schemas/Agency"
+ *       "404":
+ *         description: No agencies found with a matching name
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Agencies not found
+ */
 agenciesRouter.get("/", authenticateToken, needsToBeBusinessOrWorker, async (req: Request, res: Response, next: NextFunction) => {
   const { query } = req
 
@@ -260,10 +344,18 @@ agenciesRouter.get("/", authenticateToken, needsToBeBusinessOrWorker, async (req
     name = query.name as string
   }
   try {
+    if(name){
       const agencies: Array<IAgencyDocument> = await Agency.find({ name: { $regex: name, $options: "i" } }, { name: 1, email: 1, businessContracts: 1, profile: 1 }) // TODO use callback for result and errors.
       if (agencies) {
         return res.status(200).json(agencies)
       }
+    }else{
+      // if name is undefined or blank, return all agencies
+      const agencies: Array<IAgencyDocument> = await Agency.find({}, { name: 1, email: 1, businessContracts: 1, profile: 1 }) // TODO use callback for result and errors.
+      if (agencies) {
+        return res.status(200).json(agencies)
+      }
+    }
     return res.status(404).json({ message: "Agency not found testi" })
   } catch (exception) {
     return next(exception)
@@ -311,21 +403,21 @@ agenciesRouter.get("/", authenticateToken, needsToBeBusinessOrWorker, async (req
  *             example:
  *               message: Current password is incorrect
  *       "400":
- *         description: The new password can't be blank
+ *         description: New password can't be blank
  *         content:
  *           application/json:
  *             schema:
  *               $ref: "#/components/schemas/Error"
  *             example:
- *               message: The new password can't be blank
+ *               message: New password can't be blank
  *       "406":
- *         description: The new password could not be as same as current password
+ *         description: New password could not be as same as current password
  *         content:
  *           application/json:
  *             schema:
  *               $ref: "#/components/schemas/Error"
  *             example:
- *               message: The new password could not be as same as current password
+ *               message: New password could not be as same as current password
  *       "411":
  *         description: Incorrect password "Length required"
  *         content:
@@ -333,7 +425,7 @@ agenciesRouter.get("/", authenticateToken, needsToBeBusinessOrWorker, async (req
  *             schema:
  *               $ref: "#/components/schemas/Error"
  *             example:
- *               message: Password length less than 3 characters
+ *               message: Password length less than 6 characters
  *       "404":
  *         description: Agency wasn't found
  *         content:
@@ -358,13 +450,13 @@ agenciesRouter.get("/", authenticateToken, needsToBeBusinessOrWorker, async (req
       return res.status(404).json({ message: "Agency not found" })
     }
     if (!currentPasswordCorrect) {
-      return res.status(401).json({ message: "Current password is incorrect" })
+      return res.status(406).json({ message: "Current password is incorrect" })
     }
     if(body.currentPassword === body.newPassword){
-      return res.status(406).json({ message: "The new password could not be as same as current password" })
+      return res.status(406).json({ message: "New password could not be as same as current password" })
     }
     if(!body.newPassword){
-      return res.status(400).json({ message: "The new password can't be blank" })
+      return res.status(406).json({ message: "New password can't be blank" })
     }
 
     let newPasswordHash: string | undefined
@@ -372,8 +464,8 @@ agenciesRouter.get("/", authenticateToken, needsToBeBusinessOrWorker, async (req
     // Salataan uusi salasana
     if (body.newPassword) {
       const passwordLength: number = body.newPassword ? body.newPassword.length : 0
-      if (passwordLength < 3) {
-        return res.status(411).json({ message: "password length less than 3 characters" })
+      if (passwordLength < 6) {
+        return res.status(411).json({ message: "Password length less than 6 characters" })
       }
       const saltRounds: number = 10
       newPasswordHash = await hash(body.newPassword, saltRounds)

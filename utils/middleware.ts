@@ -389,6 +389,48 @@ export const needsToBeBusinessOrWorker = (req: Request<unknown, unknown, IBaseBo
 }
 
 /**
+ * Checks if the logged in user is Agency or Worker
+ * If user is worker, Worker object from database is populated to request.worker.
+ * If not user is agency, Agency object from database is populated to request.agency
+ * @param {String} res.locals.decoded.id - UsersId (AgencyId or WorkerId) from token.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next - NextFunction.
+ * @throws {JSON} Status 401 - response.body: { message: "This route is only available to Agency or Worker users" }
+ * @throws {JSON} Status 401 - response.body: { error }
+ * @throws {JSON} Status 500 - response.body: { exception }
+ * @returns {NextFunction} next()
+ */
+ export const needsToBeAgencyOrWorker = (req: Request<unknown, unknown, IBaseBody>, res: Response, next: NextFunction) => {
+  const { body } = req
+  try {
+    return Agency.findById(res.locals.decoded.id, (error: CallbackError, result:  IAgencyDocument | null) => {
+      if (!error) {
+        if (!result) {
+          Worker.findById(res.locals.decoded.id, (error: CallbackError, result: IWorkerDocument | null) => {
+            if (error) {
+              return res.status(500).send(error)
+            } else if (!result) {
+              return res.status(401).send({ message: "This route is only available to Business or Worker users" })
+            } else {
+              body.worker = result
+              return next()
+            }
+          })
+        } else {
+          body.agency = result
+          return next()
+        }
+      } else {
+        return res.status(500).send(error)
+      }
+    })
+  } catch (exception) {
+    return res.status(500).send({ exception })
+  }
+}
+
+/**
  * Checks if the logged in user is Agency, Business or Worker.
  * If user is worker, Worker object from database is populated to request.body.worker.
  * If user is business, Business object from database is populated to request.body.business.

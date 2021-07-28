@@ -14,12 +14,11 @@ import { hash } from "bcryptjs"
 import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
 import { error as _error } from "../utils/logger"
-import Agency from "../models/Agency"
 import Business from "../models/Business"
 import authenticateToken from "../utils/auhenticateToken"
-import {IAgencyDocument, IBusiness, IBusinessDocument} from "../objecttypes/modelTypes";
+import {IBusiness, IBusinessDocument} from "../objecttypes/modelTypes";
 import {CallbackError} from "mongoose";
-import {needsToBeAgency} from "../utils/middleware";
+import {needsToBeAgencyOrWorker} from "../utils/middleware";
 
 const businessesRouter = express.Router()
 /**
@@ -253,11 +252,55 @@ businessesRouter.put("/", authenticateToken, async (req: Request<unknown, unknow
 
 /**
  * @openapi
+ * /businesses/all:
+ *   get:
+ *     summary: Route for agencies and workers to get all businesses
+ *     description: Need to be logged in as an agency or worker.
+ *     tags: [Agency, Business, Worker]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     responses:
+ *       "200":
+ *         description: Returns all businesses
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: "#/components/schemas/Business"
+ *       "404":
+ *         description: No businesses found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Businesses not found
+ */
+ businessesRouter.get("/all", authenticateToken, needsToBeAgencyOrWorker, async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+      const businesses: Array<IBusinessDocument>  | null = await Business.find({}, { name: 1, email: 1, businessContracts: 1, profile: 1 }) // TODO use callback for result and errors.
+      if (businesses) {
+        return res.status(200).json(businesses)
+      }
+      return res.status(404).json({ message: "Businesses not found" })
+  } catch (exception) {
+    return next(exception)
+  }
+})
+
+/**
+ * @openapi
  * /businesses:
  *   get:
- *     summary: Route for agency to search for businesses by name
- *     description: Need to be logged in as an agency.
- *     tags: [Agency, Business]
+ *     summary: Route for agencies and workers to search for businesses by name
+ *     description: Need to be logged in as an agency or worker.
+ *     tags: [Agency, Business, Worker]
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -290,7 +333,7 @@ businessesRouter.put("/", authenticateToken, async (req: Request<unknown, unknow
  *             example:
  *               message: Businesses not found
  */
-businessesRouter.get("/", authenticateToken, needsToBeAgency, async (req: Request, res: Response, next: NextFunction) => {
+businessesRouter.get("/", authenticateToken, needsToBeAgencyOrWorker, async (req: Request, res: Response, next: NextFunction) => {
   const { query } = req
 
   let name: string | undefined
@@ -298,23 +341,109 @@ businessesRouter.get("/", authenticateToken, needsToBeAgency, async (req: Reques
     name = query.name as string
   }
   try {
-    const agency: IAgencyDocument | null = await Agency.findById(res.locals.decoded.id)
-    if (agency && name) {
-      // Työntekijät haetaan SQL:n LIKE operaattorin tapaisesti
-      // Työpassit jätetään hausta pois
+    if (name) {
       const businesses: Array<IBusinessDocument> = await Business.find({ name: { $regex: name, $options: "i" } }, { licenses: 0 }) // TODO use callback for result and errors.
       if (businesses) {
         return res.status(200).json(businesses)
       }
-    }else if (agency && name === undefined) {
-      // Työntekijät haetaan SQL:n LIKE operaattorin tapaisesti
-      // Työpassit jätetään hausta pois
-      const workers: Array<IBusinessDocument> = await Business.find({}, { licenses: 0 })
-      if (workers) {
-        return res.status(200).json(workers)
+    }else if (!name || name === undefined) {
+      const businesses: Array<IBusinessDocument> = await Business.find({}, { licenses: 0 }) // TODO use callback for result and errors.
+      if (businesses) {
+        return res.status(200).json(businesses)
       }
     }
     return res.status(404).json({ message: "Businesses not found" })
+  } catch (exception) {
+    return next(exception)
+  }
+})
+
+
+/**
+ * Route used to update business's information.
+ * @openapi
+ * /businesses:
+ *   put:
+ *     summary: Route for business to update their own info. For example password.
+ *     tags: [Business]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     requestBody:
+ *       description: |
+ *         Any properties that want to be updated are given in request body.
+ *         Properties can be any updatable property in the business object.
+ *       content:
+ *         application/json:
+ *           schema:
+ *             example:
+ *               password: newPass
+ *               phonenumber: "4321"
+ *     responses:
+ *       "200":
+ *         description: Business information updated. Returns updated business.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Business"
+ *       "400":
+ *         description: Incorrect password
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Password length less than 3 characters
+ *       "404":
+ *         description: Business wasn't found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Business not found
+ */
+ businessesRouter.put("/", authenticateToken, async (req: Request<unknown, unknown, IBusiness>, res: Response, next: NextFunction) => {
+  const { body } = req
+  let passwordHash: string | undefined
+
+  try {
+    // Salataan uusi salasana
+    if (body.password) {
+      const passwordLength: number = body.password ? body.password.length : 0
+      if (passwordLength < 3) {
+        return res.status(400).json({ message: "Password length less than 3 characters" })
+      }
+      const saltRounds: number = 10
+      passwordHash = await bcrypt.hash(body.password, saltRounds)
+    }
+
+    // Poistetaan passwordHash bodysta
+    // (muuten uusi salasana menee sellaisenaan tietokantaan).
+    // Salattu salasana luodaan ylempänä.
+    delete body.passwordHash
+
+    // päivitetään bodyn kentät (mitä pystytään päivittämään).
+    // lisätään passwordHash päivitykseen, jos annetaan uusi salasana.
+    const updateFields = {
+      ...body,
+      passwordHash
+    }
+
+    // https://mongoosejs.com/docs/tutorials/findoneandupdate.html
+    // https://mongoosejs.com/docs/api.html#model_Model.findByIdAndUpdate
+    const updatedBusiness: IBusinessDocument | null = await Business.findByIdAndUpdate(res.locals.decoded.id, updateFields, // TODO use callback for error handling
+      { new: true, omitUndefined: true, runValidators: true })
+
+    if (!updatedBusiness) {
+      return res.status(404).json({ message: "Business not found" })
+    }
+    return res.status(200).json(updatedBusiness)
+
   } catch (exception) {
     return next(exception)
   }
@@ -360,21 +489,21 @@ businessesRouter.get("/", authenticateToken, needsToBeAgency, async (req: Reques
  *             example:
  *               message: Current password is incorrect
  *       "400":
- *         description: The new password can't be blank
+ *         description: New password can't be blank
  *         content:
  *           application/json:
  *             schema:
  *               $ref: "#/components/schemas/Error"
  *             example:
- *               message: The new password can't be blank
+ *               message: New password can't be blank
  *       "406":
- *         description: The new password could not be as same as current password
+ *         description: New password could not be as same as current password
  *         content:
  *           application/json:
  *             schema:
  *               $ref: "#/components/schemas/Error"
  *             example:
- *               message: The new password could not be as same as current password
+ *               message: New password could not be as same as current password
  *       "411":
  *         description: Incorrect password "Length required"
  *         content:
@@ -382,7 +511,7 @@ businessesRouter.get("/", authenticateToken, needsToBeAgency, async (req: Reques
  *             schema:
  *               $ref: "#/components/schemas/Error"
  *             example:
- *               message: Password length less than 3 characters
+ *               message: Password length less than 6 characters
  *       "404":
  *         description: Business wasn't found
  *         content:
@@ -407,13 +536,13 @@ businessesRouter.get("/", authenticateToken, needsToBeAgency, async (req: Reques
       return res.status(404).json({ message: "Business not found" })
     }
     if (!currentPasswordCorrect) {
-      return res.status(401).json({ message: "Current password is incorrect" })
+      return res.status(406).json({ message: "Current password is incorrect" })
     }
     if(body.currentPassword === body.newPassword){
-      return res.status(406).json({ message: "The new password could not be as same as current password" })
+      return res.status(406).json({ message: "New password could not be as same as current password" })
     }
     if(!body.newPassword){
-      return res.status(400).json({ message: "The new password can't be blank" })
+      return res.status(406).json({ message: "New password can't be blank" })
     }
 
     let newPasswordHash: string | undefined
@@ -421,8 +550,8 @@ businessesRouter.get("/", authenticateToken, needsToBeAgency, async (req: Reques
     // Salataan uusi salasana
     if (body.newPassword) {
       const passwordLength: number = body.newPassword ? body.newPassword.length : 0
-      if (passwordLength < 3) {
-        return res.status(411).json({ message: "password length less than 3 characters" })
+      if (passwordLength < 6) {
+        return res.status(411).json({ message: "Password length less than 3 characters" })
       }
       const saltRounds: number = 10
       newPasswordHash = await hash(body.newPassword, saltRounds)
