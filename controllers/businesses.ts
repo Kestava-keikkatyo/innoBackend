@@ -84,6 +84,7 @@ businessesRouter.post("/", async (req: Request<unknown, unknown, IBusiness>, res
     const business: IBusinessDocument = new Business({
       name: body.name,
       email: body.email,
+      category: body.category,
       passwordHash,
     })
 

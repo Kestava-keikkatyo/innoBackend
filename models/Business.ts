@@ -40,6 +40,9 @@ const businessSchema = new Schema({
       message: (props: any) => `${props.value} is not a valid phone number`
     }
   },
+  category: {
+    type: String
+  },
   securityOfficer: {
     type: String,
   },
