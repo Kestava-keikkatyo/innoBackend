@@ -1,3 +1,5 @@
+//import { IWorkerDocument } from './../objecttypes/modelTypes';
+import { needsToBeAgency } from './../utils/middleware';
 /** Express router providing Agency-related routes
  * @module controllers/agencies
  * @requires express
@@ -9,14 +11,17 @@
  * @const
  * @namespace agenciesRouter
 */
-import express, {NextFunction, Request, Response} from 'express'
+import express, { NextFunction, Request, Response } from 'express'
 import bcrypt, { hash } from "bcryptjs"
 import jwt from "jsonwebtoken"
 import authenticateToken from "../utils/auhenticateToken"
 import Agency from "../models/Agency"
+import Worker from "../models/Worker"
 import { IAgency, IAgencyDocument } from "../objecttypes/modelTypes";
-import { CallbackError } from "mongoose";
+import { CallbackError, } from "mongoose";
 import { needsToBeBusinessOrWorker } from '../utils/middleware'
+import BusinessContract from '../models/BusinessContract';
+//import BusinessContract from '../models/BusinessContract';
 
 const agenciesRouter = express.Router()
 
@@ -155,7 +160,7 @@ agenciesRouter.get("/me", authenticateToken, (_req: Request, res: Response, next
         } else {
           return res.status(200).send(result)
         }
-    })
+      })
   } catch (exception) {
     return next(exception)
   }
@@ -285,16 +290,124 @@ agenciesRouter.put("/", authenticateToken, async (req: Request<unknown, unknown,
  *             example:
  *               message: Agencies not found
  */
- agenciesRouter.get("/all", authenticateToken, needsToBeBusinessOrWorker, async (_req: Request, res: Response, next: NextFunction) => {
+agenciesRouter.get("/all", authenticateToken, needsToBeBusinessOrWorker, async (_req: Request, res: Response, next: NextFunction) => {
   try {
-      const agencies: Array<IAgencyDocument>  | null = await Agency.find({}, { name: 1, email: 1, businessContracts: 1, profile: 1 }) // TODO use callback for result and errors.
-      if (agencies) {
-        return res.status(200).json(agencies)
-      }
-      return res.status(404).json({ message: "Agencies not found" })
+    const agencies: Array<IAgencyDocument> | null = await Agency.find({}, { name: 1, email: 1, businessContracts: 1, profile: 1 }) // TODO use callback for result and errors.
+    if (agencies) {
+      return res.status(200).json(agencies)
+    }
+    return res.status(404).json({ message: "Agencies not found" })
   } catch (exception) {
     return next(exception)
   }
+})
+
+/**
+ * @openapi
+ * /agencies/myworkers:
+ *   get:
+ *     summary: Route for agencies to get their workers
+ *     description: Need to be logged in as an agency.
+ *     tags: [Agency, Worker]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     responses:
+ *       "200":
+ *         description: Returns agency's workers
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: "#/components/schemas/Workers"
+ *       "404":
+ *         description: No agencies found | No buisness contracts found | No workers found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Agency not found | Agency does not have buisness contracts | Agency does not have workers
+ *       "500":
+ *         description: An error occurred when calling the database.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ */
+agenciesRouter.get("/myworkers", authenticateToken, needsToBeAgency, async (_req: Request, res: Response, next: NextFunction) => {
+
+  try {
+    // find the agency
+    const agency: IAgencyDocument | null = await Agency.findById(res.locals.decoded.id)
+    if (!agency) {
+      return res.status(404).json({ message: "Agency not found!" })
+    }
+    return BusinessContract.aggregate([
+      {
+        $match: {
+          "_id": agency.businessContracts[0]
+        }
+      },
+      {
+        $project: {
+          "workerIds": "$madeContracts.workers.workerId",
+          "_id": 0,
+        }
+      }
+    ], async (error: CallbackError, businessContracts: any[]) => {
+      if (error) {
+        return res.status(500).json(error.message)
+      }
+      if (!businessContracts.length) {
+        return res.status(404).json({ message: "Agency does not have buisness contracts!" })
+      }
+      const workers = await Worker.find({ '_id': { $in: businessContracts[0].workerIds } }, { name: 1, email: 1, profile: 1, businessContracts: 1, userType: 1, createdAt: 1 });
+      if (!workers.length) {
+        return res.status(404).json({ message: "Agency does not have workers!" })
+      }
+      return res.status(200).json(workers)
+    })
+  } catch (exception) {
+    return next(exception)
+  }
+
+  // ### Another way using populate ###
+  /*
+    try {
+      // find the agency
+      const agency: IAgencyDocument | null = await Agency.findById(res.locals.decoded.id)
+      if(!agency){
+        return res.status(404).json({message: "Agency not found!"})
+      }
+      const array = {_id: {$in: agency.businessContracts}}
+      const populatePath: any = 'madeContracts.workers.workerId'
+      const selectedFields:any = "name email profile businessContracts userType  createdAt"
+      return BusinessContract.find(array,{},{ lean: true }).populate({path: populatePath, select: selectedFields }).exec((error:CallbackError, businessContracts: DocumentDefinition<IBusinessContractDocument>[]) => {
+      if(error){
+        return res.status(500).json(error.message)
+      }
+    if(!businessContracts.length){
+        return res.status(404).json({message: "Agency does not have buisness contracts!"})
+      }
+      const workers: any = businessContracts[0].madeContracts.workers.map((item:any)=> item.workerId)
+      // check if workers array is empty
+      if(!workers.length){
+        return res.status(404).json({message: "Agency does not have workers!"})
+      }
+        return res.status(200).json(workers)
+      })
+
+    } catch (exception) {
+      return next(exception)
+    }
+  */
+
 })
 
 
@@ -345,12 +458,12 @@ agenciesRouter.get("/", authenticateToken, needsToBeBusinessOrWorker, async (req
     name = query.name as string
   }
   try {
-    if(name){
+    if (name) {
       const agencies: Array<IAgencyDocument> = await Agency.find({ name: { $regex: name, $options: "i" } }, { name: 1, email: 1, businessContracts: 1, profile: 1 }) // TODO use callback for result and errors.
       if (agencies) {
         return res.status(200).json(agencies)
       }
-    }else{
+    } else {
       // if name is undefined or blank, return all agencies
       const agencies: Array<IAgencyDocument> = await Agency.find({}, { name: 1, email: 1, businessContracts: 1, profile: 1 }) // TODO use callback for result and errors.
       if (agencies) {
@@ -436,7 +549,7 @@ agenciesRouter.get("/", authenticateToken, needsToBeBusinessOrWorker, async (req
  *             example:
  *               message: Agency not found
  */
- agenciesRouter.put("/update-password", authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
+agenciesRouter.put("/update-password", authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
 
   const { body } = req
   try {
@@ -447,16 +560,16 @@ agenciesRouter.get("/", authenticateToken, needsToBeBusinessOrWorker, async (req
       ? false
       : await bcrypt.compare(body.currentPassword, agency.passwordHash as string)
 
-    if(!agency){
+    if (!agency) {
       return res.status(404).json({ message: "Agency not found" })
     }
     if (!currentPasswordCorrect) {
       return res.status(406).json({ message: "Current password is incorrect" })
     }
-    if(body.currentPassword === body.newPassword){
+    if (body.currentPassword === body.newPassword) {
       return res.status(406).json({ message: "New password could not be as same as current password" })
     }
-    if(!body.newPassword){
+    if (!body.newPassword) {
       return res.status(406).json({ message: "New password can't be blank" })
     }
 
