@@ -10,7 +10,7 @@ import { needsToBeAgencyOrBusiness } from './../utils/middleware';
  * @const
  * @namespace workersRouter
 */
-import express, {NextFunction, Request, Response} from "express"
+import express, { NextFunction, Request, Response } from "express"
 import { hash } from "bcryptjs"
 import { sign } from "jsonwebtoken"
 import { error as _error } from "../utils/logger"
@@ -18,8 +18,8 @@ import authenticateToken from "../utils/auhenticateToken"
 
 import Worker from "../models/Worker"
 import Agency from "../models/Agency"
-import {IAgencyDocument, IWorker, IWorkerDocument} from "../objecttypes/modelTypes";
-import {CallbackError} from "mongoose";
+import { IAgencyDocument, IWorker, IWorkerDocument } from "../objecttypes/modelTypes";
+import { CallbackError } from "mongoose";
 import bcrypt from "bcryptjs"
 
 const workersRouter = express.Router()
@@ -144,14 +144,14 @@ workersRouter.get("/me", authenticateToken, async (_req: Request, res: Response,
       undefined,
       undefined,
       (error: CallbackError, result: IWorkerDocument | null) => {
-      if (error) {
-        res.status(500).send(error)
-      } else if (!result) { //Jos ei resultia niin käyttäjän tokenilla ei löydy käyttäjää
-        res.status(401).send({ message: "Not authorized" })
-      } else {
-        res.status(200).send(result)
-      }
-    })
+        if (error) {
+          res.status(500).send(error)
+        } else if (!result) { //Jos ei resultia niin käyttäjän tokenilla ei löydy käyttäjää
+          res.status(401).send({ message: "Not authorized" })
+        } else {
+          res.status(200).send(result)
+        }
+      })
   } catch (exception) {
     next(exception)
   }
@@ -253,7 +253,7 @@ workersRouter.put("/", authenticateToken, async (req: Request<unknown, unknown, 
  *   get:
  *     summary: Route for buisnesses and agencies to get all workers
  *     description: Need to be logged in as agency or buisness.
- *     tags: [Agency, Business, Worker]
+ *     tags: [Agency, Business]
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -279,13 +279,13 @@ workersRouter.put("/", authenticateToken, async (req: Request<unknown, unknown, 
  *             example:
  *               message: Workers not found
  */
- workersRouter.get("/all", authenticateToken, needsToBeAgencyOrBusiness, async (_req: Request, res: Response, next: NextFunction) => {
+workersRouter.get("/all", authenticateToken, needsToBeAgencyOrBusiness, async (_req: Request, res: Response, next: NextFunction) => {
   try {
-      const workers: Array<IWorkerDocument>  | null = await Worker.find({}, { licenses: 0 }) // TODO use callback for result and errors.
-      if (workers) {
-        return res.status(200).json(workers)
-      }
-      return res.status(404).json({ message: "Workers not found" })
+    const workers: Array<IWorkerDocument> | null = await Worker.find({}, { licenses: 0 }) // TODO use callback for result and errors.
+    if (workers) {
+      return res.status(200).json(workers)
+    }
+    return res.status(404).json({ message: "Workers not found" })
   } catch (exception) {
     return next(exception)
   }
@@ -297,7 +297,7 @@ workersRouter.put("/", authenticateToken, async (req: Request<unknown, unknown, 
  *   get:
  *     summary: Route for agency to search for workers by name
  *     description: Need to be logged in as an agency.
- *     tags: [Agency, Worker]
+ *     tags: [Agency]
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -347,7 +347,7 @@ workersRouter.get("/", authenticateToken, async (req: Request, res: Response, ne
       if (workers) {
         return res.status(200).json(workers)
       }
-    }else if (agency && name === undefined) {
+    } else if (agency && name === undefined) {
       // Työntekijät haetaan SQL:n LIKE operaattorin tapaisesti
       // Työpassit jätetään hausta pois
       const workers: Array<IWorkerDocument> = await Worker.find({}, { licenses: 0 })
@@ -447,16 +447,16 @@ workersRouter.put("/update-password", authenticateToken, async (req: Request, re
       ? false
       : await bcrypt.compare(body.currentPassword, worker.passwordHash as string)
 
-    if(!worker){
+    if (!worker) {
       return res.status(404).json({ message: "Worker not found" })
     }
     if (!currentPasswordCorrect) {
       return res.status(401).json({ message: "The current password is incorrect" })
     }
-    if(body.currentPassword === body.newPassword){
+    if (body.currentPassword === body.newPassword) {
       return res.status(406).json({ message: "The new password could not be as same as the current password" })
     }
-    if(!body.newPassword){
+    if (!body.newPassword) {
       return res.status(400).json({ message: "The new password can't be blank" })
     }
 

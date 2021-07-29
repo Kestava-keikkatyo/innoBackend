@@ -264,7 +264,7 @@ agenciesRouter.put("/", authenticateToken, async (req: Request<unknown, unknown,
  *   get:
  *     summary: Route for buisnesses and workers to get all agencies
  *     description: Need to be logged in as buisness or worker.
- *     tags: [Agency, Business, Worker]
+ *     tags: [Business, Worker]
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -308,7 +308,7 @@ agenciesRouter.get("/all", authenticateToken, needsToBeBusinessOrWorker, async (
  *   get:
  *     summary: Route for agencies to get their workers
  *     description: Need to be logged in as an agency.
- *     tags: [Agency, Worker]
+ *     tags: [Agency]
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -417,7 +417,7 @@ agenciesRouter.get("/myworkers", authenticateToken, needsToBeAgency, async (_req
  *   get:
  *     summary: Route for businesses and workers to search for agencies by name
  *     description: Need to be logged in as business or worker.
- *     tags: [Agency, Business, Worker]
+ *     tags: [Business, Worker]
  *     parameters:
  *       - in: header
  *         name: x-access-token

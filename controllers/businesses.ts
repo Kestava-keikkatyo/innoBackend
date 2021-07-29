@@ -9,16 +9,16 @@
  * @const
  * @namespace businessesRouter
 */
-import express, {NextFunction, Request, Response} from "express"
+import express, { NextFunction, Request, Response } from "express"
 import { hash } from "bcryptjs"
 import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
 import { error as _error } from "../utils/logger"
 import Business from "../models/Business"
 import authenticateToken from "../utils/auhenticateToken"
-import {IBusiness, IBusinessDocument} from "../objecttypes/modelTypes";
-import {CallbackError} from "mongoose";
-import {needsToBeAgencyOrWorker} from "../utils/middleware";
+import { IBusiness, IBusinessDocument } from "../objecttypes/modelTypes";
+import { CallbackError } from "mongoose";
+import { needsToBeAgencyOrWorker } from "../utils/middleware";
 
 const businessesRouter = express.Router()
 /**
@@ -155,7 +155,7 @@ businessesRouter.get("/me", authenticateToken, (_req: Request, res: Response, ne
         } else {
           return res.status(200).send(result)
         }
-    })
+      })
   } catch (exception) {
     return next(exception)
   }
@@ -257,7 +257,7 @@ businessesRouter.put("/", authenticateToken, async (req: Request<unknown, unknow
  *   get:
  *     summary: Route for agencies and workers to get all businesses
  *     description: Need to be logged in as an agency or worker.
- *     tags: [Agency, Business, Worker]
+ *     tags: [Agency, Worker]
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -283,13 +283,13 @@ businessesRouter.put("/", authenticateToken, async (req: Request<unknown, unknow
  *             example:
  *               message: Businesses not found
  */
- businessesRouter.get("/all", authenticateToken, needsToBeAgencyOrWorker, async (_req: Request, res: Response, next: NextFunction) => {
+businessesRouter.get("/all", authenticateToken, needsToBeAgencyOrWorker, async (_req: Request, res: Response, next: NextFunction) => {
   try {
-      const businesses: Array<IBusinessDocument>  | null = await Business.find({}, { name: 1, email: 1, businessContracts: 1, profile: 1 }) // TODO use callback for result and errors.
-      if (businesses) {
-        return res.status(200).json(businesses)
-      }
-      return res.status(404).json({ message: "Businesses not found" })
+    const businesses: Array<IBusinessDocument> | null = await Business.find({}, { name: 1, email: 1, businessContracts: 1, profile: 1 }) // TODO use callback for result and errors.
+    if (businesses) {
+      return res.status(200).json(businesses)
+    }
+    return res.status(404).json({ message: "Businesses not found" })
   } catch (exception) {
     return next(exception)
   }
@@ -301,7 +301,7 @@ businessesRouter.put("/", authenticateToken, async (req: Request<unknown, unknow
  *   get:
  *     summary: Route for agencies and workers to search for businesses by name
  *     description: Need to be logged in as an agency or worker.
- *     tags: [Agency, Business, Worker]
+ *     tags: [Agency, Worker]
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -347,7 +347,7 @@ businessesRouter.get("/", authenticateToken, needsToBeAgencyOrWorker, async (req
       if (businesses) {
         return res.status(200).json(businesses)
       }
-    }else if (!name || name === undefined) {
+    } else if (!name || name === undefined) {
       const businesses: Array<IBusinessDocument> = await Business.find({}, { licenses: 0 }) // TODO use callback for result and errors.
       if (businesses) {
         return res.status(200).json(businesses)
@@ -408,7 +408,7 @@ businessesRouter.get("/", authenticateToken, needsToBeAgencyOrWorker, async (req
  *             example:
  *               message: Business not found
  */
- businessesRouter.put("/", authenticateToken, async (req: Request<unknown, unknown, IBusiness>, res: Response, next: NextFunction) => {
+businessesRouter.put("/", authenticateToken, async (req: Request<unknown, unknown, IBusiness>, res: Response, next: NextFunction) => {
   const { body } = req
   let passwordHash: string | undefined
 
@@ -522,7 +522,7 @@ businessesRouter.get("/", authenticateToken, needsToBeAgencyOrWorker, async (req
  *             example:
  *               message: Business not found
  */
- businessesRouter.put("/update-password", authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
+businessesRouter.put("/update-password", authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
 
   const { body } = req
   try {
@@ -533,16 +533,16 @@ businessesRouter.get("/", authenticateToken, needsToBeAgencyOrWorker, async (req
       ? false
       : await bcrypt.compare(body.currentPassword, business.passwordHash as string)
 
-    if(!business){
+    if (!business) {
       return res.status(404).json({ message: "Business not found" })
     }
     if (!currentPasswordCorrect) {
       return res.status(406).json({ message: "Current password is incorrect" })
     }
-    if(body.currentPassword === body.newPassword){
+    if (body.currentPassword === body.newPassword) {
       return res.status(406).json({ message: "New password could not be as same as current password" })
     }
-    if(!body.newPassword){
+    if (!body.newPassword) {
       return res.status(406).json({ message: "New password can't be blank" })
     }
 
