@@ -41,7 +41,8 @@ const businessSchema = new Schema({
     }
   },
   category: {
-    type: String
+    type: String,
+    ref: "Category"
   },
   securityOfficer: {
     type: String,

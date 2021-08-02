@@ -292,7 +292,7 @@ agenciesRouter.put("/", authenticateToken, async (req: Request<unknown, unknown,
  */
 agenciesRouter.get("/all", authenticateToken, needsToBeBusinessOrWorker, async (_req: Request, res: Response, next: NextFunction) => {
   try {
-    const agencies: Array<IAgencyDocument> | null = await Agency.find({}, { name: 1, email: 1, businessContracts: 1, profile: 1 }) // TODO use callback for result and errors.
+    const agencies: Array<IAgencyDocument> | null = await Agency.find({}, { name: 1, email: 1, businessContracts: 1, profile: 1, category: 1 }) // TODO use callback for result and errors.
     if (agencies) {
       return res.status(200).json(agencies)
     }
@@ -458,14 +458,14 @@ agenciesRouter.get("/", authenticateToken, needsToBeBusinessOrWorker, async (req
     name = query.name as string
   }
   try {
-    if (name) {
-      const agencies: Array<IAgencyDocument> = await Agency.find({ name: { $regex: name, $options: "i" } }, { name: 1, email: 1, businessContracts: 1, profile: 1 }) // TODO use callback for result and errors.
+    if(name){
+      const agencies: Array<IAgencyDocument> = await Agency.find({ name: { $regex: name, $options: "i" } }, { name: 1, email: 1, businessContracts: 1, profile: 1, category: 1 }) // TODO use callback for result and errors.
       if (agencies) {
         return res.status(200).json(agencies)
       }
     } else {
       // if name is undefined or blank, return all agencies
-      const agencies: Array<IAgencyDocument> = await Agency.find({}, { name: 1, email: 1, businessContracts: 1, profile: 1 }) // TODO use callback for result and errors.
+      const agencies: Array<IAgencyDocument> = await Agency.find({}, { name: 1, email: 1, businessContracts: 1, profile: 1, category: 1 }) // TODO use callback for result and errors.
       if (agencies) {
         return res.status(200).json(agencies)
       }
