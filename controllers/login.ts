@@ -1,11 +1,11 @@
-import express, {Request, Response} from "express"
+import express, { Request, Response } from "express"
 import jwt from "jsonwebtoken"
 import bcrypt from "bcryptjs"
 import Worker from "../models/Worker"
 import Business from "../models/Business"
 import Agency from "../models/Agency"
-import {IAgencyDocument, IBusinessDocument, IWorkerDocument} from "../objecttypes/modelTypes";
-import {IBodyLogin} from "../objecttypes/otherTypes";
+import { IAgencyDocument, IBusinessDocument, IWorkerDocument } from "../objecttypes/modelTypes";
+import { IBodyLogin } from "../objecttypes/otherTypes";
 
 const loginRouter = express.Router()
 
@@ -68,10 +68,11 @@ loginRouter.post("/worker", async (req: Request<unknown, unknown, IBodyLogin>, r
   const workerForToken = {
     email: worker.email,
     id: worker._id,
+    role: "worker"
   }
   const token: string = jwt.sign(workerForToken, process.env.SECRET || '')
 
-  return res.status(200).send({ token, name: worker.name, email: worker.email, role: "worker", profileId: worker.profile})
+  return res.status(200).send({ token, name: worker.name, email: worker.email, role: "worker", profileId: worker.profile })
 })
 
 /**
@@ -133,11 +134,12 @@ loginRouter.post("/business", async (req: Request<unknown, unknown, IBodyLogin>,
   const businessForToken = {
     email: business.email,
     id: business._id,
+    role: "business"
   }
 
   const token: string = jwt.sign(businessForToken, process.env.SECRET || '')
 
-  return res.status(200).send({ token, name: business.name, email: business.email, role: "business", profileId: business.profile})
+  return res.status(200).send({ token, name: business.name, email: business.email, role: "business", profileId: business.profile })
 })
 
 /**
@@ -199,6 +201,7 @@ loginRouter.post("/agency", async (req: Request<unknown, unknown, IBodyLogin>, r
   const agencyForToken = {
     email: agency.email,
     id: agency._id,
+    role: "agency"
   }
   const token: string = jwt.sign(agencyForToken, process.env.SECRET || '')
 

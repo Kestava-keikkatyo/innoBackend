@@ -1,4 +1,4 @@
-import {Document, PaginateModel, Types} from "mongoose"
+import { Document, PaginateModel, Types } from "mongoose"
 
 // Typing for a workers feelings object
 export interface IFeelings {
@@ -35,7 +35,7 @@ export interface ITextareaQuestion extends IBaseQuestion {
   rows: number
 }
 
-export interface ICheckboxQuestion extends IBaseQuestion {}
+export interface ICheckboxQuestion extends IBaseQuestion { }
 
 export interface ICheckboxGroupQuestion extends IBaseQuestion {
   options: Array<string>
@@ -52,7 +52,7 @@ export interface IRadiobuttonGroupHorizontalQuestion extends IBaseQuestion {
   scaleOptionTitleRight: string
 }
 
-export interface IContactInformationQuestion extends IBaseQuestion {}
+export interface IContactInformationQuestion extends IBaseQuestion { }
 
 export interface IDatePickerQuestion extends IBaseQuestion {
   isClosedTimeFrame: boolean
@@ -248,7 +248,7 @@ export interface IFormDocument extends Document, IForm {
   createdAt: Date
 }
 
-export interface FormModel<T extends Document> extends PaginateModel<T> {} // Used so Form.paginate has typing information
+export interface FormModel<T extends Document> extends PaginateModel<T> { } // Used so Form.paginate has typing information
 
 export interface IProfile {
   name: string,
@@ -288,4 +288,19 @@ export interface IFeedBack {
 
 export interface IFeedBackDocument extends Document, IFeedBack {
   _id: Types.ObjectId
+}
+
+export interface IReport {
+  workTitle: String,
+  workerId: IWorkerDocument['_id'],
+  buisnessAsHandler: String,
+  agencyAsHandler: String,
+  details: String,
+  date: String,
+  fileUrl: String
+}
+
+export interface IReportDocument extends Document, IReport {
+  _id: Types.ObjectId,
+  createdAt: Date
 }

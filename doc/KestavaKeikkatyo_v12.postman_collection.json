@@ -1347,6 +1347,61 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "Report calls",
+			"item": [
+				{
+					"name": "Post new report",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{innoToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"workTitle\": \"Work Title\",\r\n \"businessAsHandler\": \"60b4ea83628f2f36480f5d24\",\r\n \"agencyAsHandler\": \"60b4ea97628f2f36480f5d25\",\r\n \"details\": \"Report details\",\r\n \"date\": \"3/8/2021, 12:09:22\",\r\n \"fileUrl\": \"url\",\r\n     \r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}reports",
+							"host": [
+								"{{url}}reports"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get reports (agency/business)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{innoToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{url}}reports",
+							"host": [
+								"{{url}}reports"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Calls to routes in reports.js"
 		}
 	],
 	"event": [

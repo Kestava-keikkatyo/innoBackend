@@ -13,11 +13,12 @@ import workcontractRouter from "./controllers/workcontracts"
 import formsRouter from "./controllers/forms"
 import notificationsRouter from "./controllers/notifications"
 import { errorHandler, requestLogger, unknownEndpoint } from "./utils/middleware"
-import {info, error as _error} from "./utils/logger"
+import { info, error as _error } from "./utils/logger"
 import swaggerUi from "swagger-ui-express"
 import swaggerDocument from "./doc/generateSwaggerDoc"
 import profileRouter from "./controllers/profile"
 import feedBackRouter from "./controllers/feedBack"
+import reportsRouter from "./controllers/reports"
 
 
 
@@ -29,10 +30,10 @@ info("connecting to", config.MONGODB_URI)
 
 // These options fix deprecation warnings
 const options: any = {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    useFindAndModify: false,
-    useCreateIndex: true
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  useFindAndModify: false,
+  useCreateIndex: true
 }
 
 mongoose.connect(config.MONGODB_URI || 'URI_NOTFOUND', options)
@@ -54,13 +55,14 @@ app.use("/api/businesses", businessRouter)
 app.use("/api/agencies", agenciesRouter)
 app.use("/api/uploads", uploadsRouter)
 app.use("/api/login", loginRouter)
-app.use("/api/profile",profileRouter)
+app.use("/api/profile", profileRouter)
 app.use("/api/businesscontracts", businesscontractsRouter)
 app.use("/api/feelings", feelingsRouter)
 app.use("/api/workcontracts", workcontractRouter)
 app.use("/api/forms", formsRouter)
 app.use("/api/notifications", notificationsRouter)
 app.use("/api/feedback", feedBackRouter)
+app.use("/api/reports", reportsRouter)
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 
 

@@ -5,9 +5,9 @@ import swaggerJsdoc from "swagger-jsdoc"
 // swagger/openAPI documentation: https://swagger.io/docs/specification/about/
 // Cannot be run on its own! Runs when the app gets ran.
 const data = require('../package.json')
-let version:any = data.version
+let version: any = data.version
 
-const options:any = {
+const options: any = {
   swaggerDefinition: {
     openapi: "3.0.0",
     version,
@@ -58,6 +58,10 @@ const options:any = {
       {
         name: "Forms",
         description: "All routes regarding forms"
+      },
+      {
+        name: "Reports",
+        description: "All routes regarding reports"
       }
     ]
   },
