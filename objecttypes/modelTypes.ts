@@ -125,6 +125,7 @@ export interface IAgency {
 export interface IAgencyDocument extends Document, Omit<IAgency, "forms" | "businessContracts" | "workContracts"> {
   _id: Types.ObjectId,
   createdAt: Date,
+  category: string,
   forms: Array<IFormDocument['_id']> | Array<IFormDocument>,
   businessContracts: Array<IBusinessContractDocument['_id']> | Array<IBusinessContractDocument>,
   workContracts: Array<Types.ObjectId> | Array<IWorkContractDocument>
