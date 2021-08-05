@@ -3,21 +3,17 @@ import uniqueValidator from "mongoose-unique-validator"
 import { IReportDocument } from "../objecttypes/modelTypes"
 
 const reportSchema = new Schema({
-    workTitle: {
-        type: String,
-        required: true
-    },
     workerId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Worker"
     },
-    businessAsHandler: {
+    workTitle: {
         type: String,
-        required: false
+        required: true
     },
-    agencyAsHandler: {
+    reportTitle: {
         type: String,
-        required: false
+        required: true
     },
     details: {
         type: String,
@@ -26,6 +22,14 @@ const reportSchema = new Schema({
     date: {
         type: String,
         required: true
+    },
+    businessAsHandler: {
+        type: String,
+        required: false
+    },
+    agencyAsHandler: {
+        type: String,
+        required: false
     },
     fileUrl: {
         type: String,

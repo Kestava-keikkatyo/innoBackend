@@ -59,12 +59,13 @@ reportsRouter.post("/", authenticateToken, needsToBeWorker, (req: Request, res: 
     try {
         const { body } = req
         const newReport: IReportDocument = new Report({
-            workTitle: body.workTitle,
             workerId: res.locals.decoded.id,
-            businessAsHandler: body.businessAsHandler,
-            agencyAsHandler: body.agencyAsHandler,
+            workTitle: body.workTitle,
+            reportTitle: body.reportTitle,
             details: body.details,
             date: body.date,
+            businessAsHandler: body.businessAsHandler,
+            agencyAsHandler: body.agencyAsHandler,
             fileUrl: body.fileUrl
         })
 
@@ -112,10 +113,11 @@ reportsRouter.post("/", authenticateToken, needsToBeWorker, (req: Request, res: 
  *                      _id: 6108249105016248ed842e8d,
  *                      workerId: 60ba06c2399be77d6ca52e8b,
  *                      workTitle: Keikka 1,
- *                      businessAsHandler: 60f2920924c21408a707e22d,
- *                      agencyAsHandler: 60b4ea97628f2f36480f5d25,
+ *                      reportTitle: Report 1,
  *                      details: Report details,
  *                      date: "3/8/2021, 12:28:33",
+ *                      businessAsHandler: 60f2920924c21408a707e22d,
+ *                      agencyAsHandler: 60b4ea97628f2f36480f5d25,
  *                      fileUrl: https://keikkakaveri-uploads-bucket.s3.eu-central-1.amazonaws.com/images/a08cff83-e058-4ced-a725-602db4b51a6d-water-3226_1920.jpg
  *                     }
  *                   ]

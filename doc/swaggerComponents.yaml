@@ -331,22 +331,25 @@ components:
       properties:
         workTitle:
           type: string
-        businessAsHandler:
-          type: string
-        agencyAsHandler:
+        reportTitle:
           type: string
         details:
           type: string
         date:
           type: string
+        businessAsHandler:
+          type: string
+        agencyAsHandler:
+          type: string
         fileUrl:
           type: string
       example:
         workTitle: Keikka 1
-        businessAsHandler: 60b4ea83628f2f36480f5d24
-        agencyAsHandler: 60b4ea97628f2f36480f5d25
+        ReportTitle: Report 1
         details: Report details
         date: 3/8/2021, 12:28:33
+        businessAsHandler: 60b4ea83628f2f36480f5d24
+        agencyAsHandler: 60b4ea97628f2f36480f5d25
         fileUrl: https://keikkakaveri-uploads-bucket.s3.eu-central-1.amazonaws.com/images/a08cff83-e058-4ced-a725-602db4b51a6d-water-3226_1920.jpg
 
     Feeling:
