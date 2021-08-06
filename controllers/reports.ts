@@ -1,12 +1,13 @@
 import { CallbackError } from 'mongoose';
-import { IReportDocument } from './../objecttypes/modelTypes';
+import { IReportDocument, IWorkerDocument, IProfileDocument } from './../objecttypes/modelTypes';
 
 import express, { NextFunction, Request, Response } from "express"
 import authenticateToken from '../utils/auhenticateToken'
 
 import { needsToBeAgencyOrBusiness, needsToBeWorker } from './../utils/middleware';
 import Report from '../models/Report';
-
+import Worker from '../models/Worker'
+import Profile from '../models/Profile'
 
 const reportsRouter = express.Router()
 
@@ -32,11 +33,27 @@ const reportsRouter = express.Router()
  *             $ref: "#/components/schemas/Report"
  *     responses:
  *       "200":
- *         description: Report added. Returns added report object.
+ *         description: Report added.  Returns added report object including worker info.
  *         content:
  *           application/json:
  *             schema:
  *               $ref: "#/components/schemas/Report"
+ *             example:
+ *                    {
+ *                      _id: 6108249105016248ed842e8d,
+ *                      workTitle: Keikka 1,
+ *                      reportTitle: Report 1,
+ *                      details: Report details,
+ *                      date: "3/8/2021, 12:28:33",
+ *                      workerId: 60ba06c2399be77d6ca52e8b,
+ *                      workerName: Jarmo worker,
+ *                      workerEmail: jarmo@mail.com,
+ *                      workerPhone: 044 444 4444,
+ *                      businessAsHandler: 60f2920924c21408a707e22d,
+ *                      agencyAsHandler: 60b4ea97628f2f36480f5d25,
+ *                      fileUrl: https://keikkakaveri-uploads-bucket.s3.eu-central-1.amazonaws.com/images/a08cff83-e058-4ced-a725-602db4b51a6d-water-3226_1920.jpg,
+ *                      fileType: image
+ *                     }
  *       "502":
  *         description: Unable to save the report
  *         content:
@@ -54,19 +71,27 @@ const reportsRouter = express.Router()
  *             example:
  *               message: "Report validation failed: workTitle: Path `workTitle` is required. | Internal server error."
  */
-reportsRouter.post("/", authenticateToken, needsToBeWorker, (req: Request, res: Response, next: NextFunction) => {
+reportsRouter.post("/", authenticateToken, needsToBeWorker, async (req: Request, res: Response, next: NextFunction) => {
 
     try {
         const { body } = req
+        const workerId = res.locals.decoded.id
+        const worker: IWorkerDocument | null = await Worker.findById(res.locals.decoded.id)
+        const workerProfile: IProfileDocument | null = await Profile.findById(worker?.profile)
+
         const newReport: IReportDocument = new Report({
-            workerId: res.locals.decoded.id,
             workTitle: body.workTitle,
             reportTitle: body.reportTitle,
             details: body.details,
             date: body.date,
+            workerId: workerId,
+            workerName: worker?.name,
+            workerEmail: worker?.email,
+            workerPhone: workerProfile?.phone,
             businessAsHandler: body.businessAsHandler,
             agencyAsHandler: body.agencyAsHandler,
-            fileUrl: body.fileUrl
+            fileUrl: body.fileUrl,
+            fileType: body.fileType
         })
 
         newReport.save((error: CallbackError, doc: IReportDocument) => {
@@ -111,14 +136,18 @@ reportsRouter.post("/", authenticateToken, needsToBeWorker, (req: Request, res: 
  *                  [
  *                    {
  *                      _id: 6108249105016248ed842e8d,
- *                      workerId: 60ba06c2399be77d6ca52e8b,
  *                      workTitle: Keikka 1,
  *                      reportTitle: Report 1,
  *                      details: Report details,
  *                      date: "3/8/2021, 12:28:33",
+ *                      workerId: 60ba06c2399be77d6ca52e8b,
+ *                      workerName: Jarmo worker,
+ *                      workerEmail: jarmo@mail.com,
+ *                      workerPhone: 044 444 4444,
  *                      businessAsHandler: 60f2920924c21408a707e22d,
  *                      agencyAsHandler: 60b4ea97628f2f36480f5d25,
- *                      fileUrl: https://keikkakaveri-uploads-bucket.s3.eu-central-1.amazonaws.com/images/a08cff83-e058-4ced-a725-602db4b51a6d-water-3226_1920.jpg
+ *                      fileUrl: https://keikkakaveri-uploads-bucket.s3.eu-central-1.amazonaws.com/images/a08cff83-e058-4ced-a725-602db4b51a6d-water-3226_1920.jpg,
+ *                      fileType: image
  *                     }
  *                   ]
  *       "404":

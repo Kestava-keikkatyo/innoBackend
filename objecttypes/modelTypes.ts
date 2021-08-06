@@ -292,14 +292,18 @@ export interface IFeedBackDocument extends Document, IFeedBack {
 }
 
 export interface IReport {
-  workerId: IWorkerDocument['_id'],
   workTitle: String,
   reportTitle: String,
   details: String,
   date: String,
+  workerId: IWorkerDocument['_id'],
+  workerName: String,
+  workerEmail: String,
+  workerPhone: String,
   buisnessAsHandler: String,
   agencyAsHandler: String,
-  fileUrl: String
+  fileUrl: String,
+  fileType: String
 }
 
 export interface IReportDocument extends Document, IReport {
