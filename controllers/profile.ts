@@ -5,7 +5,7 @@ import { needsToBeAgencyBusinessOrWorker } from "../utils/middleware"
 import Profile from "../models/Profile"
 import { IBodyWithProfile } from "../objecttypes/otherTypes"
 import { CallbackError, DocumentDefinition } from "mongoose"
-import {IAgencyDocument, IBusinessDocument, IWorkerDocument} from "../objecttypes/modelTypes"
+import { IAgencyDocument, IBusinessDocument, IWorkerDocument } from "../objecttypes/modelTypes"
 
 import { error as _error, info as _info } from "../utils/logger"
 
@@ -43,7 +43,7 @@ profileRouter.post("/", authenticateToken, needsToBeAgencyBusinessOrWorker, asyn
 
     newprofile.save((error: CallbackError, result: IProfileDocument) => {
       if (error || !result) {
-        return res.status(500).json( error || { message: "Unable to save profile object." })
+        return res.status(500).json(error || { message: "Unable to save profile object." })
       }
 
       if (body.agency) {
@@ -51,10 +51,10 @@ profileRouter.post("/", authenticateToken, needsToBeAgencyBusinessOrWorker, asyn
       } else if (body.business) {
         return addProfileToAgencyBusinessOrWorker("Business", res.locals.decoded.id, result, res, next)
       } else if (body.worker) {
-        return addProfileToAgencyBusinessOrWorker("Worker",res.locals.decoded.id, result, res, next)
+        return addProfileToAgencyBusinessOrWorker("Worker", res.locals.decoded.id, result, res, next)
       } else {
         _error("Could not determine whether user is agency or business")
-        return res.status(500).send( { message: "Could not determine whether user is agency or business" })
+        return res.status(500).send({ message: "Could not determine whether user is agency or business" })
       }
     })
   } catch (exception) {
@@ -70,13 +70,13 @@ profileRouter.post("/", authenticateToken, needsToBeAgencyBusinessOrWorker, asyn
  * @param res - Response
  * @param next - NextFunction
  */
- const addProfileToAgencyBusinessOrWorker = (user: string, id: string, profile: any, res: Response, next: NextFunction) => {
+const addProfileToAgencyBusinessOrWorker = (user: string, id: string, profile: any, res: Response, next: NextFunction) => {
   try {
     if (user === "Agency") {
       Agency.findByIdAndUpdate(
         id,
         { $set: { profile: profile } },
-        { new: true},
+        { new: true },
         (error: CallbackError, result: DocumentDefinition<IAgencyDocument> | null) => {
           if (error || !result) {
             return res.status(500).send(error || { message: "Received no result when updating user" })
@@ -88,7 +88,7 @@ profileRouter.post("/", authenticateToken, needsToBeAgencyBusinessOrWorker, asyn
       Business.findByIdAndUpdate(
         id,
         { $set: { profile: profile } },
-        { new: true},
+        { new: true },
         (error: CallbackError, result: DocumentDefinition<IBusinessDocument> | null) => {
           if (error || !result) {
             return res.status(500).send(error || { message: "Received no result when updating user" })
@@ -100,7 +100,7 @@ profileRouter.post("/", authenticateToken, needsToBeAgencyBusinessOrWorker, asyn
       Worker.findByIdAndUpdate(
         id,
         { $set: { profile: profile } },
-        { new: true},
+        { new: true },
         (error: CallbackError, result: DocumentDefinition<IWorkerDocument> | null) => {
           if (error || !result) {
             return res.status(500).send(error || { message: "Received no result when updating user" })
@@ -109,7 +109,7 @@ profileRouter.post("/", authenticateToken, needsToBeAgencyBusinessOrWorker, asyn
           }
         })
     } else {
-      return res.status(500).send({ message: "ERROR"})
+      return res.status(500).send({ message: "ERROR" })
     }
   } catch (exception) {
     return next(exception)
@@ -120,7 +120,7 @@ profileRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWorker, (_req
 
   Profile.find({})
     .then((result) => {
-        return res.status(200).json(result)
+      return res.status(200).json(result)
     })
     .catch((error) => {
       return res.status(500).json({
@@ -130,10 +130,22 @@ profileRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWorker, (_req
     });
 })
 
-profileRouter.get('/:id', authenticateToken, needsToBeAgencyBusinessOrWorker, (req: Request, res: Response, _next: NextFunction) => {
-  Profile.findById(req.params.id).then(profile => {
-    res.json(profile)
-  })
+profileRouter.get('/:id', authenticateToken, needsToBeAgencyBusinessOrWorker, (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const id: any = req.params.id
+    return Profile.findById(id, (error: CallbackError, profile: DocumentDefinition<IProfileDocument> | null) => {
+      console.log(profile)
+      if (error) {
+        return res.status(500).json(error)
+      }
+      if (!profile) {
+        return res.status(404).json({ message: `Could not find profile with id ${id}` })
+      }
+      return res.status(200).json(profile)
+    })
+  } catch (exception) {
+    return next(exception)
+  }
 })
 
 
@@ -145,19 +157,19 @@ profileRouter.put("/:profileId", authenticateToken, needsToBeAgencyBusinessOrWor
     console.log("profileId", profileId)
 
     Profile.findByIdAndUpdate(
-          profileId,
-          { ...req.body }, // Give the full form object, or the full questions object in said object, in body when updating questions. Otherwise all other questions are deleted.
-          { new: true, runValidators: true, lean: true },
-          (error: CallbackError, result: DocumentDefinition<IProfileDocument> | null) => {
-            if (!result) {
-              return res.status(404).send({ message: `Could not find profile with id ${profileId}` })
-            } else if(error){
-              return res.status(500).send(error || { message: "Didn't get a result from database while updating profile" })
-            }
-            else {
-              return res.status(200).send(result)
-            }
-          }
+      profileId,
+      { ...req.body }, // Give the full form object, or the full questions object in said object, in body when updating questions. Otherwise all other questions are deleted.
+      { new: true, runValidators: true, lean: true },
+      (error: CallbackError, result: DocumentDefinition<IProfileDocument> | null) => {
+        if (!result) {
+          return res.status(404).send({ message: `Could not find profile with id ${profileId}` })
+        } else if (error) {
+          return res.status(500).send(error || { message: "Didn't get a result from database while updating profile" })
+        }
+        else {
+          return res.status(200).send(result)
+        }
+      }
     )
 
   } catch (exception) {

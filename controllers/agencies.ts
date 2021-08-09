@@ -1,5 +1,3 @@
-//import { IWorkerDocument } from './../objecttypes/modelTypes';
-import { needsToBeAgency } from './../utils/middleware';
 /** Express router providing Agency-related routes
  * @module controllers/agencies
  * @requires express
@@ -17,10 +15,11 @@ import jwt from "jsonwebtoken"
 import authenticateToken from "../utils/auhenticateToken"
 import Agency from "../models/Agency"
 import Worker from "../models/Worker"
-import { IAgency, IAgencyDocument } from "../objecttypes/modelTypes";
+import { IAgency, IAgencyDocument, IWorkerDocument } from "../objecttypes/modelTypes";
 import { CallbackError, } from "mongoose";
 import { needsToBeBusinessOrWorker } from '../utils/middleware'
 import BusinessContract from '../models/BusinessContract';
+import { needsToBeAgency } from './../utils/middleware';
 //import BusinessContract from '../models/BusinessContract';
 
 const agenciesRouter = express.Router()
@@ -367,11 +366,16 @@ agenciesRouter.get("/myworkers", authenticateToken, needsToBeAgency, async (_req
       if (!businessContracts.length) {
         return res.status(404).json({ message: "Agency does not have buisness contracts!" })
       }
-      const workers = await Worker.find({ '_id': { $in: businessContracts[0].workerIds } }, { name: 1, email: 1, profile: 1, businessContracts: 1, userType: 1, createdAt: 1 });
-      if (!workers.length) {
-        return res.status(404).json({ message: "Agency does not have workers!" })
-      }
-      return res.status(200).json(workers)
+      return await Worker.find({ '_id': { $in: businessContracts[0].workerIds } }, (error:CallbackError, workers: Array<IWorkerDocument> | null ) => {
+        if (error) {
+          return res.status(500).json(error.message)
+        }
+        if (!workers || !workers?.length) {
+          return res.status(404).json({ message: "Agency does not have workers!" })
+        }
+        return res.status(200).json(workers)
+      });
+
     })
   } catch (exception) {
     return next(exception)

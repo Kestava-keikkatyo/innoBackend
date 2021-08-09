@@ -91,7 +91,7 @@ export interface IWorker {
   workContracts: Array<IWorkContractDocument['_id']>,
   feelings: Array<IFeelings>,
   userType: string,
-  profile: string
+  profile: IProfileDocument['_id']
 }
 
 // Used for typing results gotten from db calls.
@@ -118,7 +118,7 @@ export interface IAgency {
   businessContracts: Array<IBusinessContractDocument['_id']>,
   workContracts: Array<IWorkContractDocument['_id']>,
   userType: string,
-  profile: string
+  profile: IProfileDocument['_id']
 }
 
 // Used for typing results gotten from db calls.
@@ -155,7 +155,7 @@ export interface IBusiness {
   },
   contactPreference: string,
   socialMedias: Array<string>,
-  profile: string
+  profile: IProfileDocument['_id']
 }
 
 // Used for typing results gotten from db calls.
