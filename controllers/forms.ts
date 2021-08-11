@@ -1,4 +1,4 @@
-import express, {NextFunction, Request, Response} from 'express'
+import express, { NextFunction, Request, Response } from 'express'
 import authenticateToken from "../utils/auhenticateToken"
 
 import { error as _error, info as _info } from "../utils/logger"
@@ -8,10 +8,10 @@ import Agency from "../models/Agency"
 import Worker from "../models/Worker"
 import { needsToBeAgencyBusinessOrWorker, needsToBeAgencyOrBusiness } from "../utils/middleware"
 import { getAgencyOrBusinessOwnForms } from "../utils/common"
-import {CallbackError, DocumentDefinition, PaginateResult, Types} from "mongoose"
-import {AnyQuestion, IAgencyDocument, IBusinessDocument, IFormDocument, IWorkerDocument} from "../objecttypes/modelTypes"
-import {IBaseBody, IBodyWithForm} from "../objecttypes/otherTypes"
-import {ParamsDictionary} from "express-serve-static-core"
+import { CallbackError, DocumentDefinition, PaginateResult, Types } from "mongoose"
+import { AnyQuestion, IAgencyDocument, IBusinessDocument, IFormDocument, IWorkerDocument } from "../objecttypes/modelTypes"
+import { IBaseBody, IBodyWithForm } from "../objecttypes/otherTypes"
+import { ParamsDictionary } from "express-serve-static-core"
 
 const formsRouter = express.Router()
 
@@ -67,7 +67,7 @@ formsRouter.post("/", authenticateToken, needsToBeAgencyBusinessOrWorker, async 
     }
     newForm.save((error: CallbackError, result: IFormDocument) => {
       if (error || !result) {
-        return res.status(500).json( error || { message: "Unable to save form object." })
+        return res.status(500).json(error || { message: "Unable to save form object." })
       }
 
       if (body.agency) {
@@ -75,10 +75,10 @@ formsRouter.post("/", authenticateToken, needsToBeAgencyBusinessOrWorker, async 
       } else if (body.business) {
         return addFormToAgencyBusinessOrWorker("Business", res.locals.decoded.id, result, res, next)
       } else if (body.worker) {
-        return addFormToAgencyBusinessOrWorker("Worker",res.locals.decoded.id, result, res, next)
+        return addFormToAgencyBusinessOrWorker("Worker", res.locals.decoded.id, result, res, next)
       } else {
         _error("Could not determine whether user is agency or business")
-        return res.status(500).send( { message: "Could not determine whether user is agency or business" })
+        return res.status(500).send({ message: "Could not determine whether user is agency or business" })
       }
     })
   } catch (exception) {
@@ -101,7 +101,7 @@ const addFormToAgencyBusinessOrWorker = (agencyOrBusiness: string, id: string, f
         id,
         { $addToSet: { forms: form } },
         { new: true, omitUndefined: true, runValidators: true, lean: true },
-        (error: CallbackError, result: DocumentDefinition<IAgencyDocument|IBusinessDocument> | null) => {
+        (error: CallbackError, result: DocumentDefinition<IAgencyDocument | IBusinessDocument> | null) => {
           if (error || !result) {
             return res.status(500).send(error || { message: "Received no result when updating user" })
           } else {
@@ -113,7 +113,7 @@ const addFormToAgencyBusinessOrWorker = (agencyOrBusiness: string, id: string, f
         id,
         { $addToSet: { forms: form } },
         { new: true, omitUndefined: true, runValidators: true, lean: true },
-        (error: CallbackError, result: DocumentDefinition<IAgencyDocument|IBusinessDocument> | null) => {
+        (error: CallbackError, result: DocumentDefinition<IAgencyDocument | IBusinessDocument> | null) => {
           if (error || !result) {
             return res.status(500).send(error || { message: "Received no result when updating user" })
           } else {
@@ -133,7 +133,7 @@ const addFormToAgencyBusinessOrWorker = (agencyOrBusiness: string, id: string, f
           }
         })
     } else {
-      return res.status(500).send({ message: "addFormToAgencyOrBusiness function called with an incorrect agencyOrBusiness parameter"})
+      return res.status(500).send({ message: "addFormToAgencyOrBusiness function called with an incorrect agencyOrBusiness parameter" })
     }
   } catch (exception) {
     return next(exception)
@@ -199,7 +199,7 @@ formsRouter.get("/me", authenticateToken, needsToBeAgencyOrBusiness, async (req:
   try {
     let ownForms: Array<Types.ObjectId> | null = getAgencyOrBusinessOwnForms(body)
     if (!ownForms) {
-      return res.status(500).send( { message: "Error determining whether user is agency or business" })
+      return res.status(500).send({ message: "Error determining whether user is agency or business" })
     }
 
     const page: number = parseInt(query.page as string, 10)
@@ -230,11 +230,11 @@ formsRouter.get("/me", authenticateToken, needsToBeAgencyOrBusiness, async (req:
 
 
 formsRouter.get("/common", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request<unknown, unknown, IBaseBody>, res: Response, next: NextFunction) => {
-  const { query} = req
+  const { query } = req
   try {
     const commonForms: Array<any> = await Form.find({ common: true }, { licenses: 0 })
     if (!commonForms) {
-      return res.status(500).send( { message: "Error determining whether user is agency or business" })
+      return res.status(500).send({ message: "Error determining whether user is agency or business" })
     }
 
     const page: number = parseInt(query.page as string, 10)
@@ -321,7 +321,7 @@ formsRouter.get("/", authenticateToken, needsToBeAgencyOrBusiness, async (req: R
   try {
     let ownForms: Array<Types.ObjectId> | null = getAgencyOrBusinessOwnForms(body)
     if (!ownForms) {
-      return res.status(500).send( { message: "Error determining whether user is agency or business" })
+      return res.status(500).send({ message: "Error determining whether user is agency or business" })
     }
     const page: number = parseInt(query.page as string, 10)
     const limit: number = parseInt(query.limit as string, 10)
@@ -416,7 +416,7 @@ formsRouter.get("/search", authenticateToken, needsToBeAgencyOrBusiness, async (
   try {
     let ownForms: Array<Types.ObjectId> | null = getAgencyOrBusinessOwnForms(body)
     if (!ownForms) {
-      return res.status(500).send( { message: "Error determining whether user is agency or business" })
+      return res.status(500).send({ message: "Error determining whether user is agency or business" })
     }
 
     const page: number = parseInt(query.page as string, 10)
@@ -431,24 +431,24 @@ formsRouter.get("/search", authenticateToken, needsToBeAgencyOrBusiness, async (
     const searchQuery: string = decodeURIComponent(query.q as string)
 
     Form.paginate(
-        { $text: { $search: searchQuery }, _id: { $nin: ownForms }, isPublic: true },
-        {
-          projection: { title: 1, description: 1, tags: 1, score: { $meta: "textScore" } },
-          page: page,
-          limit: limit,
-          sort: { score: { $meta: "textScore" } },
-          lean: true,
-          leanWithId: false
-        },
-        (error: CallbackError, result: PaginateResult<DocumentDefinition<IFormDocument>>) => {
-          if (error) {
-            return res.status(500).send(error)
-          } else if (result.docs.length === 0) {
-            return res.status(204).send()
-          } else {
-            return res.status(200).send(result)
-          }
-        })
+      { $text: { $search: searchQuery }, _id: { $nin: ownForms }, isPublic: true },
+      {
+        projection: { title: 1, description: 1, tags: 1, score: { $meta: "textScore" } },
+        page: page,
+        limit: limit,
+        sort: { score: { $meta: "textScore" } },
+        lean: true,
+        leanWithId: false
+      },
+      (error: CallbackError, result: PaginateResult<DocumentDefinition<IFormDocument>>) => {
+        if (error) {
+          return res.status(500).send(error)
+        } else if (result.docs.length === 0) {
+          return res.status(204).send()
+        } else {
+          return res.status(200).send(result)
+        }
+      })
   } catch (exception) {
     return next(exception)
   }
@@ -522,7 +522,7 @@ formsRouter.get("/me/search", authenticateToken, needsToBeAgencyOrBusiness, asyn
   try {
     let ownForms: Array<Types.ObjectId> | null = getAgencyOrBusinessOwnForms(body)
     if (!ownForms) {
-      return res.status(500).send( { message: "Error determining whether user is agency or business" })
+      return res.status(500).send({ message: "Error determining whether user is agency or business" })
     }
 
     const page: number = parseInt(query.page as string, 10)
@@ -537,24 +537,24 @@ formsRouter.get("/me/search", authenticateToken, needsToBeAgencyOrBusiness, asyn
     const searchQuery: string = decodeURIComponent(query.q as string)
 
     Form.paginate(
-        { $text: { $search: searchQuery }, _id: { $in: ownForms } },
-        {
-          projection: { title: 1, description: 1, tags: 1, score: { $meta: "textScore" } },
-          page: page,
-          limit: limit,
-          sort: { score: { $meta: "textScore" } },
-          lean: true,
-          leanWithId: false
-        },
-        (error: CallbackError, result: PaginateResult<DocumentDefinition<IFormDocument>>) => {
-          if (error) {
-            return res.status(500).send(error)
-          } else if (result.docs.length === 0) {
-            return res.status(204).send()
-          } else {
-            return res.status(200).send(result)
-          }
-        })
+      { $text: { $search: searchQuery }, _id: { $in: ownForms } },
+      {
+        projection: { title: 1, description: 1, tags: 1, score: { $meta: "textScore" } },
+        page: page,
+        limit: limit,
+        sort: { score: { $meta: "textScore" } },
+        lean: true,
+        leanWithId: false
+      },
+      (error: CallbackError, result: PaginateResult<DocumentDefinition<IFormDocument>>) => {
+        if (error) {
+          return res.status(500).send(error)
+        } else if (result.docs.length === 0) {
+          return res.status(204).send()
+        } else {
+          return res.status(200).send(result)
+        }
+      })
   } catch (exception) {
     return next(exception)
   }
@@ -631,7 +631,7 @@ formsRouter.get("/:formId", authenticateToken, needsToBeAgencyBusinessOrWorker, 
         let newForm: any = form // Can't really change this from any. Blame front-end for wanting it this way lol.
         newForm.questions = newQuestions
         return res.status(200).send(newForm)
-    })
+      })
   } catch (exception) {
     return next(exception)
   }
@@ -688,7 +688,7 @@ formsRouter.get("/:formId", authenticateToken, needsToBeAgencyBusinessOrWorker, 
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-formsRouter.put("/:formId", authenticateToken, needsToBeAgencyOrBusiness, async (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
+formsRouter.put("/:formId", authenticateToken, needsToBeAgencyBusinessOrWorker, async (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { body } = req
 
   try {
@@ -696,8 +696,10 @@ formsRouter.put("/:formId", authenticateToken, needsToBeAgencyOrBusiness, async 
       updateForm(body.agency, req, res, next)
     } else if (body.business) {
       updateForm(body.business, req, res, next)
+    } else if (body.worker) {
+      updateBusinessContractFormForWorker(body.worker, req, res, next)
     } else {
-      return res.status(500).send( { message: "Error determining whether user is agency or business" })
+      return res.status(500).send({ message: "Error determining whether user is agency or business" })
     }
   } catch (exception) {
     return next(exception)
@@ -720,6 +722,46 @@ const updateForm = (agencyOrBusinessObject: IAgencyDocument | IBusinessDocument,
       return res.status(403).send({ message: "You are not authorized to update this form" })
     }
     for (const form of (agencyOrBusinessObject.forms as Array<Types.ObjectId>)) {
+      if (form.equals(formId)) {
+        found = true
+        Form.findByIdAndUpdate(
+          formId,
+          { ...req.body }, // Give the full form object, or the full questions object in said object, in body when updating questions. Otherwise all other questions are deleted.
+          { new: true, runValidators: true, lean: true },
+          (error: CallbackError, result: DocumentDefinition<IFormDocument> | null) => {
+            if (error || !result) {
+              return res.status(500).send(error || { message: "Didn't get a result from database while updating form" })
+            } else {
+              return res.status(200).send(result)
+            }
+          }
+        )
+      }
+    }
+    if (!found) {
+      return res.status(404).send({ message: `Could not find form with id ${formId}` })
+    }
+  } catch (exception) {
+    return next(exception)
+  }
+}
+
+/**
+ * Helper function for worker to update business contract form.
+ * @param worker request.worker. Worker trying to update business contract from
+ * @param req Request
+ * @param res Response
+ * @param next NextFunction
+ */
+const updateBusinessContractFormForWorker = (worker: any, req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
+  const { params } = req
+  try {
+    const formId: string = params.formId
+    let found: boolean = false
+    if (worker.forms.length === 0) {
+      return res.status(403).send({ message: "You are not authorized to update this form" })
+    }
+    for (const form of (worker.forms as Array<Types.ObjectId>)) {
       if (form.equals(formId)) {
         found = true
         Form.findByIdAndUpdate(
@@ -800,7 +842,7 @@ formsRouter.delete("/:formId", authenticateToken, needsToBeAgencyOrBusiness, asy
     } else if (body.business) {
       deleteForm("Business", body.business, params.formId, res, next)
     } else {
-      return res.status(500).send( { message: "Error determining whether user is agency or business" })
+      return res.status(500).send({ message: "Error determining whether user is agency or business" })
     }
   } catch (exception) {
     return next(exception)
@@ -858,7 +900,7 @@ const deleteForm = (agencyOrBusiness: string, agencyOrBusinessObject: IAgencyDoc
                   }
                 )
               } else {
-                return res.status(500).send({ message: "deleteForm function called with an incorrect agencyOrBusiness parameter. References to deleted form in Agency or Business were not able to be deleted"})
+                return res.status(500).send({ message: "deleteForm function called with an incorrect agencyOrBusiness parameter. References to deleted form in Agency or Business were not able to be deleted" })
               }
             }
           }
