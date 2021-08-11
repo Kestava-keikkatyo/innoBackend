@@ -153,7 +153,7 @@ export const clearAllNotificationsDocument = (req: Request, res: Response, _next
         read_messages: {$each: array}
       }
     }
-    return Notifications.findOneAndUpdate(updateFilter, update, { lean: true }, (err: CallbackError, result: any) => {
+    return Notifications.findOneAndUpdate(updateFilter, update, { lean: true, new: true }, (err: CallbackError, result: any) => {
       if (err) {
         return res.status(500).send({ error: err.message })
       }
