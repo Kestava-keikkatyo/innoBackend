@@ -210,7 +210,15 @@ workcontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWorker,
       } else if (result.length === 0) {
         return res.status(404).send({ message:"Couldn't find any WorkContracts" })
       } else {
-        return res.status(200).send(buildPaginatedObjectFromArray(page, limit, result))
+        return Agency.populate(result,{path: "agency", select: "name email createdAt"},(err:CallbackError,result) => {
+          if (err) {
+            return res.status(500).send(err)
+          } else if (!result) {
+            return res.status(404).send({error: "Populate failed, result was empty."})
+          } else {
+            return res.status(200).send(buildPaginatedObjectFromArray(page, limit, result))
+          }
+        })
       }
     })
   } catch (exception) {

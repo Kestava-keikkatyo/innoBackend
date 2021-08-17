@@ -11,8 +11,14 @@ const subContractSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref:"requestWorkers"
   }],
+  headline: {
+    type: String
+  },
   workerCount: {
     type: Number
+  },
+  detailedInfo: {
+    type: String
   },
   acceptedAgency: {
     type: Boolean

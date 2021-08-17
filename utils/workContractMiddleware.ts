@@ -6,6 +6,7 @@ import {ParamsDictionary} from "express-serve-static-core";
 import {IBaseBody} from "../objecttypes/otherTypes";
 import BusinessContract from "../models/BusinessContract";
 import Worker from "../models/Worker";
+import Agency from "../models/Agency";
 
 /**
  * Checks if a WorkContract with PATH VARIABLE (url param :contractId) exists.
@@ -116,9 +117,9 @@ export const updateWorkContract = (req: Request, res: Response) => {
   const {body} = req
   try {
     const updateFields = body.workContractUpdate
-    return WorkContract.updateOne(body.updateFilterQuery,
+    return WorkContract.findOneAndUpdate(body.updateFilterQuery,
       updateFields,
-      {omitUndefined: true},
+      {new: true},
       (error: CallbackError, rawResult: IWorkContractDocument | null) => {
         if (error) {
           return res.status(500).send(error)
@@ -128,7 +129,15 @@ export const updateWorkContract = (req: Request, res: Response) => {
             error: "Could not update WorkContract with id " + req.params.contractId
           })
         } else {
-          return res.status(200).send(rawResult) // TODO Halutaanko palauttaa rawResult?
+          return Agency.populate(rawResult,{path: "agency", select: "name email createdAt"},(err:CallbackError,result) => {
+            if (err) {
+              return res.status(500).send(err)
+            } else if (!result) {
+              return res.status(404).send({error: "Populate failed, result was empty."})
+            } else {
+              return res.status(200).send(result)
+            }
+          })
         }
       })
   } catch (exception) {
@@ -241,13 +250,15 @@ export const newContractToWorkContract = (req: Request<ParamsDictionary, unknown
     body.workContractUpdate = {
       $addToSet: {
         contracts: {
+          headline: body.headline,
           workers: [],
+          detailedInfo: body.detailedInfo,
           workerCount: body.workerCount,
           acceptedAgency: false,
           acceptedBusiness: false,
           validityPeriod: {
-            startDate: new Date(),
-            endDate: new Date() // TODO need start and end date
+            startDate: body.startDate,
+            endDate: body.endDate
           },
         }
       }

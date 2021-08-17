@@ -10,6 +10,11 @@ import {
 } from "./modelTypes";
 
 export interface IBaseBody {
+  startDate: string,
+  endDate: string,
+  workerCount: string,
+  headline: string,
+  detailedInfo: string,
   form: string,
   userId: string,
   agency?: IAgencyDocument,
@@ -24,7 +29,6 @@ export interface IBaseBody {
   businessContract?: IBusinessContractDocument,
   businessContractUpdate?: {},
   businessContractUpdateFilterQuery?: {},
-  workerCount?: number
 }
 
 export interface IBodyWithForm extends IBaseBody, IForm {}
