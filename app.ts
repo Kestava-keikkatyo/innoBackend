@@ -11,6 +11,7 @@ import businesscontractsRouter from "./controllers/businesscontracts"
 import feelingsRouter from "./controllers/feelings"
 import workcontractRouter from "./controllers/workcontracts"
 import formsRouter from "./controllers/forms"
+import businessContractFormsRouter from "./controllers/businesscontractforms"
 import notificationsRouter from "./controllers/notifications"
 import { errorHandler, requestLogger, unknownEndpoint } from "./utils/middleware"
 import { info, error as _error } from "./utils/logger"
@@ -60,6 +61,7 @@ app.use("/api/businesscontracts", businesscontractsRouter)
 app.use("/api/feelings", feelingsRouter)
 app.use("/api/workcontracts", workcontractRouter)
 app.use("/api/forms", formsRouter)
+app.use("/api/businesscontractforms", businessContractFormsRouter)
 app.use("/api/notifications", notificationsRouter)
 app.use("/api/feedback", feedBackRouter)
 app.use("/api/reports", reportsRouter)
