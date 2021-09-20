@@ -60,6 +60,10 @@ const options: any = {
         description: "All routes regarding forms"
       },
       {
+        name: "BusinessContractForms",
+        description: "All routes regarding  business contract forms"
+      },
+      {
         name: "Reports",
         description: "All routes regarding reports"
       }

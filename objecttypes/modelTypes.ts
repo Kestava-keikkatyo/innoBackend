@@ -117,6 +117,7 @@ export interface IWorker {
 export interface IWorkerDocument extends Document, Omit<IWorker, "businessContracts" | "workContracts"> {
   _id: Types.ObjectId,
   createdAt: Date,
+  businessContractForms: Array<IFormDocument['_id']> | Array<IFormDocument>,
   businessContracts: Array<IBusinessContractDocument['_id']>,
   workContracts: Array<IWorkContractDocument['_id']>
 }
@@ -147,6 +148,7 @@ export interface IAgencyDocument extends Document, Omit<IAgency, "forms" | "busi
   createdAt: Date,
   category: string,
   forms: Array<IFormDocument['_id']> | Array<IFormDocument>,
+  businessContractForms: Array<IFormDocument['_id']> | Array<IFormDocument>,
   businessContracts: Array<IBusinessContractDocument['_id']> | Array<IBusinessContractDocument>,
   workContracts: Array<Types.ObjectId> | Array<IWorkContractDocument>
 }
@@ -184,6 +186,7 @@ export interface IBusinessDocument extends Document, Omit<IBusiness, "forms" | "
   _id: Types.ObjectId,
   createdAt: Date,
   forms: Array<IFormDocument['_id']> | Array<IFormDocument>,
+  businessContractForms: Array<IFormDocument['_id']> | Array<IFormDocument>,
   businessContracts: Array<IBusinessContractDocument['_id']>, //| Array<IBusinessContractDocument>
   workContracts: Array<Types.ObjectId> | Array<IWorkContractDocument>,
 

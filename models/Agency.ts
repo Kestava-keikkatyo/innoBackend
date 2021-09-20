@@ -1,7 +1,7 @@
-import mongoose, {Schema} from "mongoose"
+import mongoose, { Schema } from "mongoose"
 //const uniqueValidator = require("mongoose-unique-validator")
 import mongoosePaginate from 'mongoose-paginate-v2'
-import {IAgencyDocument} from "../objecttypes/modelTypes"
+import { IAgencyDocument } from "../objecttypes/modelTypes"
 //https://mongoosejs.com/docs/validation.html
 //email validator tarkistettava toimiiko halutulla tavalla
 
@@ -44,7 +44,7 @@ const agencySchema = new Schema({
   },
   category: {
     type: String,
-    ref:"Category"
+    ref: "Category"
   },
   securityOfficer: {
     type: String,
@@ -59,6 +59,12 @@ const agencySchema = new Schema({
     default: Date.now,
   },
   forms: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Form",
+    },
+  ],
+  businessContractForms: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Form",

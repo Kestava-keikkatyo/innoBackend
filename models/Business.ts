@@ -1,7 +1,7 @@
-import mongoose, {Schema} from "mongoose"
+import mongoose, { Schema } from "mongoose"
 //const uniqueValidator = require("mongoose-unique-validator")
 import mongoosePaginate from 'mongoose-paginate-v2';
-import {IBusinessDocument} from "../objecttypes/modelTypes"
+import { IBusinessDocument } from "../objecttypes/modelTypes"
 
 const businessSchema = new Schema({
   name: {
@@ -57,6 +57,12 @@ const businessSchema = new Schema({
     default: Date.now,
   },
   forms: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Form",
+    },
+  ],
+  businessContractForms: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Form",
