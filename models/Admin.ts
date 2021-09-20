@@ -1,9 +1,9 @@
 import mongoose, {Schema} from "mongoose"
 //const uniqueValidator = require("mongoose-unique-validator")
 import mongoosePaginate from 'mongoose-paginate-v2';
-import {IBusinessDocument} from "../objecttypes/modelTypes"
+import {IAdminDocument} from "../objecttypes/modelTypes"
 
-const businessSchema = new Schema({
+const adminSchema = new Schema({
   name: {
     type: String,
     minlength: 3,
@@ -40,13 +40,6 @@ const businessSchema = new Schema({
       message: (props: any) => `${props.value} is not a valid phone number`
     }
   },
-  category: {
-    type: String,
-    ref: "Category"
-  },
-  securityOfficer: {
-    type: String,
-  },
   passwordHash: {
     type: String,
     required: true
@@ -56,56 +49,22 @@ const businessSchema = new Schema({
     immutable: true,
     default: Date.now,
   },
-  forms: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Form",
-    },
-  ],
-  profile: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Profile"
-  },
-  workContracts: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "WorkContract",
-  }],
-  businessContracts: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "BusinessContract",
-  }],
-  notifications: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Notifications"
-  }],
-  feedBack: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "FeedBack"
-  }],
   userType: {
     type: String,
-    default: "Business"
+    default: "Admin"
   },
-  videoUriId: String,
-  instructions: [String],
-  workingHours: {
-    start: Number,
-    end: Number
-  },
-  contactPreference: String,
-  socialMedias: [String],
   active: {
     type: Boolean,
     default: true
   }
 })
 
-businessSchema.plugin(mongoosePaginate)
+adminSchema.plugin(mongoosePaginate)
 
-businessSchema.set("toJSON", {
+adminSchema.set("toJSON", {
   transform: (_doc: any, returnedObject: any) => {
     delete returnedObject.passwordHash
   },
 })
 
-export default mongoose.model<IBusinessDocument>("Business", businessSchema)
+export default mongoose.model<IAdminDocument>("Admin", adminSchema)

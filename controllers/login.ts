@@ -4,8 +4,9 @@ import bcrypt from "bcryptjs"
 import Worker from "../models/Worker"
 import Business from "../models/Business"
 import Agency from "../models/Agency"
-import { IAgencyDocument, IBusinessDocument, IWorkerDocument } from "../objecttypes/modelTypes";
+import { IAdminDocument, IAgencyDocument, IBusinessDocument, IWorkerDocument } from "../objecttypes/modelTypes";
 import { IBodyLogin } from "../objecttypes/otherTypes";
+import Admin from "../models/Admin"
 
 const loginRouter = express.Router()
 
@@ -207,5 +208,37 @@ loginRouter.post("/agency", async (req: Request<unknown, unknown, IBodyLogin>, r
 
   return res.status(200).send({ token, name: agency.name, email: agency.email, role: "agency", profileId: agency.profile })
 })
+
+
+
+
+loginRouter.post("/login", async (req: Request<unknown, unknown, IBodyLogin>, res: Response) => {
+  const { body } = req
+
+  let user: IWorkerDocument | IBusinessDocument | IAgencyDocument | IAdminDocument | null = await Worker.findOne({ email: body.email })
+  if (user == null)
+    user = await Business.findOne({ email: body.email })
+  if (user == null)
+    user = await Agency.findOne({ email: body.email })
+  if (user == null)
+    user = await Admin.findOne({ email: body.email })
+  const passwordCorrect: boolean = user === null
+    ? false
+    : await bcrypt.compare(body.password, user.passwordHash as string)
+
+  if (!(user && passwordCorrect)) {
+    return res.status(401).json({ message: "Invalid email or password" })
+  }
+
+  const workerForToken = {
+    email: user.email,
+    id: user._id,
+    role: user.userType.toLowerCase()
+  }
+  const token: string = jwt.sign(workerForToken, process.env.SECRET || '')
+
+  return res.status(200).send({ token, name: user.name, email: user.email, role: workerForToken.role, profileId: user.profile })
+})
+
 
 export default loginRouter

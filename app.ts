@@ -19,6 +19,7 @@ import swaggerDocument from "./doc/generateSwaggerDoc"
 import profileRouter from "./controllers/profile"
 import feedBackRouter from "./controllers/feedBack"
 import reportsRouter from "./controllers/reports"
+import adminRouter from "./controllers/admin"
 
 
 
@@ -63,6 +64,7 @@ app.use("/api/forms", formsRouter)
 app.use("/api/notifications", notificationsRouter)
 app.use("/api/feedback", feedBackRouter)
 app.use("/api/reports", reportsRouter)
+app.use("/api/admin", adminRouter)
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 
 
