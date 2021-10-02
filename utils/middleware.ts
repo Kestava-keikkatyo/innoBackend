@@ -10,9 +10,10 @@ import {error as _error, info} from "./logger"
 import Business from "../models/Business"
 import Agency from "../models/Agency"
 import Worker from "../models/Worker"
-import {IAgencyDocument, IBusinessDocument, IWorkerDocument} from "../objecttypes/modelTypes"
+import {IAdminDocument, IAgencyDocument, IBusinessDocument, IWorkerDocument} from "../objecttypes/modelTypes"
 import {CallbackError, DocumentDefinition} from "mongoose"
 import {IBaseBody, IBodyWithIds} from "../objecttypes/otherTypes"
+import Admin from "../models/Admin"
 
 export const requestLogger = (req: Request, _res: Response, next: NextFunction) => {
   info("Method:", req.method)
@@ -465,14 +466,42 @@ export const needsToBeAgencyBusinessOrWorker = (req: Request<unknown, unknown, I
         Worker.findById(res.locals.decoded.id, (error: CallbackError, result: IWorkerDocument | null) => {
           if (error) {
             return res.status(500).send(error)
-          } else if (!result) {
-            return res.status(401).send({ message: "This route is only available to Agency, Business or Worker users." })
-          } else {
+          }
+          if (result) {
             body.worker = result
             return next()
           }
+          
+          Admin.findById(res.locals.decoded.id, (error: CallbackError, result: IAdminDocument | null) => {
+            if (error) {
+              return res.status(500).send(error)
+            } else if (!result) {
+              return res.status(401).send({ message: "This route is only available to Agency, Business or Worker users." })
+            } else {
+              body.admin = result
+              return next()
+            }
+          })
         })
       })
+    })
+  } catch (error) {
+    return res.status(500).send({ error })
+  }
+}
+
+export const needsToBeAdmin = (req: Request, res: Response, next: NextFunction) => {
+  const { body } = req
+  try {
+    return Admin.findById(res.locals.decoded.id, (error: CallbackError, result: IAdminDocument | null) => {
+      if (error) {
+        return res.status(500).send(error)
+      } else if (!result) {
+        return res.status(401).send({ message: "This route is only available to Admin users." })
+      } else {
+        body.admin = result
+        return next()
+      }
     })
   } catch (error) {
     return res.status(500).send({ error })

@@ -5,7 +5,7 @@ import { INotificationsDocument } from "../objecttypes/modelTypes"
 const notificationsSchema = new Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Worker Business Agency"
+        ref: "Worker Business Agency Admin"
     },
     unread_messages: [{
         text: {

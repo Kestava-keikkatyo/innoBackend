@@ -34,5 +34,22 @@
       "name": "mirka-agency",
       "password": "jarmo123"
     }
+  ],
+  "admin": [
+    {
+        "email": "amanda@test.com",
+        "name": "amanda-admin",
+        "password": "amanda123"
+    },
+    {
+      "email": "jack@test.com",
+      "name": "jack-admin",
+      "password": "jack123"
+    },
+    {
+      "email": "jerry@hello.com",
+      "name": "jerry-admin",
+      "password": "jerry123"
+    }
   ]
 }

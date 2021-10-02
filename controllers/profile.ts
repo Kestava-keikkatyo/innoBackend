@@ -12,6 +12,7 @@ import { error as _error, info as _info } from "../utils/logger"
 import Business from "../models/Business"
 import Agency from "../models/Agency"
 import Worker from "../models/Worker"
+import { ObjectId } from "mongodb"
 
 
 
@@ -70,7 +71,7 @@ profileRouter.post("/", authenticateToken, needsToBeAgencyBusinessOrWorker, asyn
  * @param res - Response
  * @param next - NextFunction
  */
-const addProfileToAgencyBusinessOrWorker = (user: string, id: string, profile: any, res: Response, next: NextFunction) => {
+export const addProfileToAgencyBusinessOrWorker = (user: string, id: string | ObjectId, profile: any, res: Response, next: NextFunction) => {
   try {
     if (user === "Agency") {
       Agency.findByIdAndUpdate(

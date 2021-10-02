@@ -95,6 +95,10 @@ const agencySchema = new Schema({
   userType: {
     type: String,
     default: "Agency"
+  },
+  active: {
+    type: Boolean,
+    default: true
   }
 })
 
