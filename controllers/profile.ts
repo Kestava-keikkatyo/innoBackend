@@ -1,5 +1,5 @@
 import express, { NextFunction, Request, Response } from "express"
-import { IProfileDocument } from "../objecttypes/modelTypes"
+import { IAdminDocument, IProfileDocument } from "../objecttypes/modelTypes"
 import authenticateToken from "../utils/auhenticateToken"
 import { needsToBeAgencyBusinessOrWorker } from "../utils/middleware"
 import Profile from "../models/Profile"
@@ -13,6 +13,7 @@ import Business from "../models/Business"
 import Agency from "../models/Agency"
 import Worker from "../models/Worker"
 import { ObjectId } from "mongodb"
+import Admin from "../models/Admin"
 
 
 
@@ -103,6 +104,18 @@ export const addProfileToAgencyBusinessOrWorker = (user: string, id: string | Ob
         { $set: { profile: profile } },
         { new: true },
         (error: CallbackError, result: DocumentDefinition<IWorkerDocument> | null) => {
+          if (error || !result) {
+            return res.status(500).send(error || { message: "Received no result when updating user" })
+          } else {
+            return res.status(200).send(profile)
+          }
+        })
+    } else if (user === "Admin") {
+      Admin.findByIdAndUpdate(
+        id,
+        { $set: { profile: profile } },
+        { new: true },
+        (error: CallbackError, result: DocumentDefinition<IAdminDocument> | null) => {
           if (error || !result) {
             return res.status(500).send(error || { message: "Received no result when updating user" })
           } else {

@@ -48,10 +48,10 @@ notifications: [{
   type: mongoose.Schema.Types.ObjectId,
   ref: "Notifications"
 }],
-/*profile: {
+ profile: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Profile",
-  },*/
+  },
   createdAt: {
     type: Date,
     immutable: true,
