@@ -109,6 +109,10 @@ const workerSchema = new Schema({
     type: String,
     default: "Worker",
   },
+  active: {
+    type: Boolean,
+    default: true
+  }
 });
 
 workerSchema.plugin(mongoosePaginate);

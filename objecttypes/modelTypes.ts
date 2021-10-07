@@ -79,6 +79,24 @@ export interface IQuestions {
 }
 // Typings for Form's questions END
 
+// Used when we want to type docs given in req.body for example. For calls with {lean: true} option, use DocumentDefinition<IAdminDocument> for the result's type
+export interface IAdmin {
+  name: string,
+  email: string,
+  password: string,
+  passwordHash?: string,
+  phonenumber: string,
+  userType: string,
+  profile: IProfileDocument['_id'],
+  active: boolean
+}
+
+// Used for typing results gotten from db calls.
+export interface IAdminDocument extends Document, IAdmin {
+  _id: Types.ObjectId,
+  createdAt: Date
+}
+
 // Used when we want to type docs given in req.body for example. For calls with {lean: true} option, use DocumentDefinition<IWorkerDocument> for the result's type
 export interface IWorker {
   name: string,
@@ -91,7 +109,8 @@ export interface IWorker {
   workContracts: Array<IWorkContractDocument['_id']>,
   feelings: Array<IFeelings>,
   userType: string,
-  profile: IProfileDocument['_id']
+  profile: IProfileDocument['_id'],
+  active: boolean
 }
 
 // Used for typing results gotten from db calls.
@@ -119,7 +138,8 @@ export interface IAgency {
   businessContracts: Array<IBusinessContractDocument['_id']>,
   workContracts: Array<IWorkContractDocument['_id']>,
   userType: string,
-  profile: IProfileDocument['_id']
+  profile: IProfileDocument['_id'],
+  active: boolean
 }
 
 // Used for typing results gotten from db calls.
@@ -157,7 +177,8 @@ export interface IBusiness {
   },
   contactPreference: string,
   socialMedias: Array<string>,
-  profile: IProfileDocument['_id']
+  profile: IProfileDocument['_id'],
+  active: boolean
 }
 
 // Used for typing results gotten from db calls.
@@ -275,7 +296,7 @@ export interface IProfileDocument extends Document, IProfile {
 }
 
 export interface INotifications {
-  userId: IWorkerDocument['_id'] | IBusinessDocument['_id'] | IAgencyDocument['_id'],
+  userId: IWorkerDocument['_id'] | IBusinessDocument['_id'] | IAgencyDocument['_id'] | IAdminDocument['_id'],
   message: String,
   is_read: Boolean,
   createdAt: Date

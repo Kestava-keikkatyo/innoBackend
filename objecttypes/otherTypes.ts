@@ -1,4 +1,5 @@
 import {
+  IAdminDocument,
   IAgencyDocument,
   IBusinessDocument,
   IBusinessContractDocument,
@@ -17,6 +18,7 @@ export interface IBaseBody {
   detailedInfo: string,
   form: string,
   userId: string,
+  admin?: IAdminDocument,
   agency?: IAgencyDocument,
   business?: IBusinessDocument,
   worker?: IWorkerDocument,

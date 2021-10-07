@@ -21,6 +21,7 @@ import profileRouter from "./controllers/profile"
 import feedBackRouter from "./controllers/feedBack"
 import reportsRouter from "./controllers/reports"
 import jobvacanciesRouter from "./controllers/jobvacancies"
+import adminRouter from "./controllers/admin"
 
 
 
@@ -67,6 +68,7 @@ app.use("/api/jobvacancies", jobvacanciesRouter)
 app.use("/api/notifications", notificationsRouter)
 app.use("/api/feedback", feedBackRouter)
 app.use("/api/reports", reportsRouter)
+app.use("/api/admin", adminRouter)
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 
 
