@@ -772,3 +772,56 @@ components:
 
     FormTimePickerQuestion:
       $ref: '#/components/schemas/FormDatePickerQuestion'
+
+    JobVacancy:
+      type: object
+      required:
+        - value
+      properties:
+        _id:
+          type: string
+        agencyId:
+          type: string
+        jobTitle:
+          type: string
+        jobCategory:
+          type: string
+        details:
+          type: string
+        requirements:
+          type: string
+        numberOfNeededWorkers:
+          type: number
+        startingDate:
+          type: string
+          format: date
+        endingDate:
+          type: string
+          format: date
+        applyingEndsAt:
+          type: string
+          format: date
+        streetAddress:
+          type: string
+        zipCode:
+          type: string
+        city:
+          type: string
+        createdAt:
+          type: string
+          format: date
+      example:
+        _id: 604021e581a962681088565f
+        agencyId: 604021e581a9626810885235
+        jobTitle: Job title
+        jobCategory: Job category
+        details: Job vacancy details
+        requirements: Job vacancy requirements
+        numberOfNeededWorkers: 4
+        startingDate: 2021-08-18T21:43:18.694+00:00
+        endingDate: 2021-08-18T21:43:18.694+00:00
+        applyingEndsAt: 2021-08-18T21:43:18.694+00:00
+        streetAddress: Street address
+        zipCode: 00100
+        city: Helsinki
+        createdAt: 2021-08-18T21:43:18.694+00:00

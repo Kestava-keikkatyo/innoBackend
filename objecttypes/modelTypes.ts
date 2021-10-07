@@ -313,3 +313,23 @@ export interface IReportDocument extends Document, IReport {
   _id: Types.ObjectId,
   createdAt: Date
 }
+
+export interface IJobVacancy {
+  agencyId: IAgencyDocument['_id']
+  jobTitle: String,
+  jobCategory: String,
+  details: String,
+  requirements: String,
+  numberOfNeededWorkers: number
+  startingDate: Date,
+  endingDate: Date,
+  applyingEndsAt: Date,
+  streetAddress: string,
+  zipCode: string,
+  city: string
+}
+
+export interface IJobVacancyDocument extends Document, IJobVacancy {
+  _id: Types.ObjectId,
+  createdAt: Date
+}
