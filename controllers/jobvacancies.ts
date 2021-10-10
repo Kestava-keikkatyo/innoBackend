@@ -75,7 +75,7 @@ jobvacanciesRouter.post("/", authenticateToken, needsToBeAgency, postJobVacancyD
  *             schema:
  *               type: array
  *               items:
- *                 $ref: "#/components/schemas/JobVacancies"
+ *                 $ref: "#/components/schemas/JobVacancy"
  *       "404":
  *         description: No job vacancies found
  *         content:
@@ -84,6 +84,12 @@ jobvacanciesRouter.post("/", authenticateToken, needsToBeAgency, postJobVacancyD
  *               $ref: "#/components/schemas/Error"
  *             example:
  *               message: Job vacancies not found
+ *       "500":
+ *         description: An error occurred. Either a problem with the database or middleware.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
  */
 jobvacanciesRouter.get("/", authenticateToken, needsToBeWorker, getJobVacancyDocuments)
 
@@ -109,7 +115,9 @@ jobvacanciesRouter.get("/", authenticateToken, needsToBeWorker, getJobVacancyDoc
 *         content:
 *           application/json:
 *             schema:
-*               $ref: "#/components/schemas/JobVacancies"
+*               type: array
+*               items:
+*                 $ref: "#/components/schemas/JobVacancy"
 *       "404":
 *         description: Job vacancies not found for the agency in question.
 *         content:
@@ -119,7 +127,7 @@ jobvacanciesRouter.get("/", authenticateToken, needsToBeWorker, getJobVacancyDoc
 *             example:
 *               message: Could not find job vacancy with ID {id}
 *       "500":
-*         description: Job vacancies not found.
+*         description: An error occurred. Either a problem with the database or middleware.
 *         content:
 *           application/json:
 *             schema:
@@ -218,6 +226,14 @@ jobvacanciesRouter.get("/mine/:id", authenticateToken, needsToBeAgency, getJobVa
  *               $ref: "#/components/schemas/Error"
  *             example:
  *               message: You are not authorized to update this job vacancy
+ *       "404":
+ *         description: No job vacancy was found with the requested ID.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Could not find job vacancy with ID {id}
  *       "500":
  *         description: Either an error occurred while calling the database, or something's wrong with the middleware.
  *         content:
