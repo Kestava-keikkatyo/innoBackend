@@ -70,6 +70,12 @@ const agencySchema = new Schema({
       ref: "Form",
     },
   ],
+  jobVacancies: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "JobVacancy",
+    },
+  ],
   profile: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Profile"

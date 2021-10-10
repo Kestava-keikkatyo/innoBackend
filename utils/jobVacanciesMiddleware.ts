@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from "express"
-import { CallbackError } from "mongoose"
+import { CallbackError, DocumentDefinition } from "mongoose"
+import Agency from "../models/Agency"
 import JobVacancy from "../models/JobVacancy"
-import { IJobVacancyDocument } from "../objecttypes/modelTypes"
+import { IAgencyDocument, IJobVacancyDocument } from "../objecttypes/modelTypes"
 
 /**
  * This middleware function is used to post a new job vacancy.
@@ -36,8 +37,35 @@ export const postJobVacancyDocument = (req: Request, res: Response, next: NextFu
             if (!result) {
                 return res.status(500).json({ message: "Unable to save job vacancy" })
             }
-            return res.status(200).json(result)
+            return addJobVacancyToAgency(res.locals.decoded.id, result, res, next)
         })
+
+    } catch (exception) {
+        return next(exception)
+    }
+}
+
+/**
+* Helper function for adding a job vacancy to agency's jobVacancies array
+* @param agencyId - id of the agency in question
+* @param jobVacancy - the job vacancy that we are adding to the agency's jobVacancies array
+* @param res - Response
+* @param next - NextFunction
+*/
+const addJobVacancyToAgency = (agencyId: string, jobVacancy: IJobVacancyDocument, res: Response, next: NextFunction) => {
+
+    try {
+        Agency.findByIdAndUpdate(
+            agencyId,
+            { $addToSet: { jobVacancies: jobVacancy } },
+            { new: true, omitUndefined: true, runValidators: true, lean: true },
+            (error: CallbackError, result: IAgencyDocument | null) => {
+                if (error || !result) {
+                    return res.status(500).send(error || { message: "Received no result when updating user" })
+                } else {
+                    return res.status(200).send(jobVacancy)
+                }
+            })
 
     } catch (exception) {
         return next(exception)
@@ -66,6 +94,33 @@ export const getJobVacancyDocuments = (_req: Request, res: Response, next: NextF
 
         })
 
+
+    } catch (exception) {
+        return next(exception)
+    }
+}
+
+
+/**
+ * This middleware function is used to get agency's own job vacancies.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns Agency's job vacancies
+ */
+export const getJobVacancyDocumentsForAgency = (_req: Request, res: Response, next: NextFunction) => {
+    try {
+
+        JobVacancy.find({ agencyId: res.locals.decoded.id }, (error: CallbackError, docs: IJobVacancyDocument[]) => {
+            if (error) {
+                return res.status(500).json({ message: error.message })
+            }
+            if (!docs.length) {
+                return res.status(404).json({ message: "Job vacancies not found!" })
+            }
+            return res.status(200).json(docs)
+
+        })
 
     } catch (exception) {
         return next(exception)
@@ -135,7 +190,7 @@ export const updateJobVacancyDocument = async (req: Request, res: Response, next
                     return res.status(500).json({ message: error.message })
                 }
                 if (!updatedDoc) {
-                    return res.status(500).send(error || { message: "Didn't get a result from database while updating job vacancy" })
+                    return res.status(500).send({ message: "Didn't get a result from database while updating job vacancy" })
                 }
                 return res.status(200).send(updatedDoc)
             })
@@ -170,8 +225,22 @@ export const deleteJobVacancyDocument = async (req: Request, res: Response, next
             if (error) {
                 return res.status(500).json({ message: error.message })
             }
-            console.log("result", result)
-            return res.status(204).send()
+            // result = deleted document
+            if (!result) {
+                return res.status(500).send({ message: "Didn't get a result from database while deleting job vacancy" })
+            }
+            return Agency.findByIdAndUpdate(
+                result.agencyId,
+                { $pull: { jobVacancies: { $in: [result._id] } } },
+                { lean: true },
+                async (error: CallbackError, agencyResult: DocumentDefinition<IAgencyDocument> | null) => {
+                    if (error || !agencyResult) {
+                        return res.status(500).send(error || { message: "Did not receive any result from database when deleting business contract form's id from array" })
+                    }
+                    return res.status(204).send()
+
+                }
+            )
 
         })
 

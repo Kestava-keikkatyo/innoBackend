@@ -23,8 +23,8 @@ const jobVacancySchema = new Schema({
 
     },
     requirements: {
-        type: String,
-        required: true
+        type: Array,
+        required: false
 
     },
     numberOfNeededWorkers: {

@@ -4,6 +4,7 @@ import { needsToBeAgency, needsToBeWorker } from './../utils/middleware';
 import {
     postJobVacancyDocument,
     getJobVacancyDocuments,
+    getJobVacancyDocumentsForAgency,
     getJobVacancyDocumentById,
     updateJobVacancyDocument,
     deleteJobVacancyDocument
@@ -88,11 +89,51 @@ jobvacanciesRouter.get("/", authenticateToken, needsToBeWorker, getJobVacancyDoc
 
 
 /**
-* Route for agency to get a job vacancy by its id
+* Route for agencies to get their own job vacancies
 * @openapi
-* /jobvacancies/{id}:
+* /jobvacancies/mine:
 *   get:
-*     summary: Route for agency to get a job vacancy by its id
+*     summary: Route for agencies to get their own job vacancies
+*     description: Must be logged in as an agency.
+*     tags: [JobVacancies, Agency]
+*     parameters:
+*       - in: header
+*         name: x-access-token
+*         description: The token you get when logging in is used here. Used to authenticate the user.
+*         required: true
+*         schema:
+*           $ref: "#/components/schemas/AccessToken"
+*     responses:
+*       "200":
+*         description: Returns agency's job vacancies.
+*         content:
+*           application/json:
+*             schema:
+*               $ref: "#/components/schemas/JobVacancies"
+*       "404":
+*         description: Job vacancies not found for the agency in question.
+*         content:
+*           application/json:
+*             schema:
+*               $ref: "#/components/schemas/Error"
+*             example:
+*               message: Could not find job vacancy with ID {id}
+*       "500":
+*         description: Job vacancies not found.
+*         content:
+*           application/json:
+*             schema:
+*               $ref: "#/components/schemas/Error"
+*/
+jobvacanciesRouter.get("/mine", authenticateToken, needsToBeAgency, getJobVacancyDocumentsForAgency)
+
+
+/**
+* Route for agency to get own job vacancy by its id
+* @openapi
+* /jobvacancies/mine/{id}:
+*   get:
+*     summary: Route for agency to get own job vacancy by its id
 *     description: Must be logged in as an agency.
 *     tags: [JobVacancies, Agency]
 *     parameters:
@@ -131,13 +172,13 @@ jobvacanciesRouter.get("/", authenticateToken, needsToBeWorker, getJobVacancyDoc
 *             schema:
 *               $ref: "#/components/schemas/Error"
 */
-jobvacanciesRouter.get("/:id", authenticateToken, needsToBeAgency, getJobVacancyDocumentById)
+jobvacanciesRouter.get("/mine/:id", authenticateToken, needsToBeAgency, getJobVacancyDocumentById)
 
 
 /**
  * Route for agency to update own job vacancy.
  * @openapi
- * /jobvacancies/{id}:
+ * /jobvacancies/mine/{id}:
  *   put:
  *     summary: Route for agency to update own job vacancy
  *     description: Must be logged in as an agency.
@@ -184,13 +225,13 @@ jobvacanciesRouter.get("/:id", authenticateToken, needsToBeAgency, getJobVacancy
  *             schema:
  *               $ref: "#/components/schemas/Error"
 */
-jobvacanciesRouter.put("/:id", authenticateToken, needsToBeAgency, updateJobVacancyDocument)
+jobvacanciesRouter.put("/mine/:id", authenticateToken, needsToBeAgency, updateJobVacancyDocument)
 
 
 /**
  * Route for agency to delete own job vacancy
  * @openapi
- * /jobvacancies/{id}:
+ * /jobvacancies/mine/{id}:
  *   delete:
  *     summary: Route for agency to delete own job vacancy
  *     description: Must be logged in as an agency.
@@ -235,7 +276,7 @@ jobvacanciesRouter.put("/:id", authenticateToken, needsToBeAgency, updateJobVaca
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-jobvacanciesRouter.delete("/:id", authenticateToken, needsToBeAgency, deleteJobVacancyDocument)
+jobvacanciesRouter.delete("/mine/:id", authenticateToken, needsToBeAgency, deleteJobVacancyDocument)
 
 
 export default jobvacanciesRouter

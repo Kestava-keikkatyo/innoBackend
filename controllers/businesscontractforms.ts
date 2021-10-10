@@ -430,7 +430,7 @@ const deleteBusinessContractForm = (agencyBusinessOrWorker: string, agencyBusine
                 agencyBusinessOrWorkerObject._id,
                 { $pull: { businessContractForms: { $in: [formId] } } },
                 { lean: true },
-                async (error: CallbackError, result: DocumentDefinition<IAgencyDocument> | null) => {
+                async (error: CallbackError, result: DocumentDefinition<IBusinessDocument> | null) => {
                   if (error || !result) {
                     return res.status(500).send(error || { message: "Did not receive any result from database when deleting business contract form's id from array" })
                   } else {
@@ -454,7 +454,7 @@ const deleteBusinessContractForm = (agencyBusinessOrWorker: string, agencyBusine
                   { _id: agencyBusinessOrWorkerObject._id },
                   { $pull: { businessContractForms: { $in: [formId] } } },
                   { lean: true },
-                  async (error: CallbackError, result: DocumentDefinition<IAgencyDocument> | null) => {
+                  async (error: CallbackError, result: DocumentDefinition<IWorkerDocument> | null) => {
                     if (error || !result) {
                       return res.status(500).send(error || { message: "Did not receive any result from database when deleting business contract form's id from array" })
                     } else {

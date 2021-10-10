@@ -149,6 +149,7 @@ export interface IAgencyDocument extends Document, Omit<IAgency, "forms" | "busi
   category: string,
   forms: Array<IFormDocument['_id']> | Array<IFormDocument>,
   businessContractForms: Array<IFormDocument['_id']> | Array<IFormDocument>,
+  jobVacancies: Array<IJobVacancyDocument['_id']> | Array<IJobVacancyDocument>,
   businessContracts: Array<IBusinessContractDocument['_id']> | Array<IBusinessContractDocument>,
   workContracts: Array<Types.ObjectId> | Array<IWorkContractDocument>
 }
@@ -340,7 +341,7 @@ export interface IJobVacancy {
   jobTitle: String,
   jobCategory: String,
   details: String,
-  requirements: String,
+  requirements: String[],
   numberOfNeededWorkers: number
   startingDate: Date,
   endingDate: Date,
