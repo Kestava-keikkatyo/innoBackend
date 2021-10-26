@@ -15,11 +15,12 @@ import jwt from "jsonwebtoken"
 import authenticateToken from "../utils/auhenticateToken"
 import Agency from "../models/Agency"
 import Worker from "../models/Worker"
-import { IAgency, IAgencyDocument, IWorkerDocument } from "../objecttypes/modelTypes";
+import { IAgency, IAgencyDocument, IBusinessDocument, IWorkerDocument } from "../objecttypes/modelTypes";
 import { CallbackError, } from "mongoose";
 import { needsToBeBusinessOrWorker } from '../utils/middleware'
 import BusinessContract from '../models/BusinessContract';
 import { needsToBeAgency } from './../utils/middleware';
+import Business from '../models/Business'
 //import BusinessContract from '../models/BusinessContract';
 
 const agenciesRouter = express.Router()
@@ -72,9 +73,33 @@ const agenciesRouter = express.Router()
  *               $ref: "#/components/schemas/Error"
  *             example:
  *               message: Password length less than 3 characters
+ *       "409":
+ *         description: Email is already registered
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Email is already registered
+ *       "500":
+ *         description: An error occurred when calling the database.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
  */
 agenciesRouter.post("/", async (req: Request<unknown, unknown, IAgency>, res: Response, next: NextFunction) => {
   const { body } = req
+
+  const business: IBusinessDocument | null = await Business.findOne({ email: body.email })
+  if (business) {
+    return res.status(409).json({ message: `${body.email} is already registered!` })
+  }
+
+  const worker: IWorkerDocument | null = await Worker.findOne({ email: body.email })
+  if (worker) {
+    return res.status(409).json({ message: `${body.email} is already registered!` })
+  }
 
   try {
     const passwordLength: number = body.password ? body.password.length : 0
@@ -92,18 +117,25 @@ agenciesRouter.post("/", async (req: Request<unknown, unknown, IAgency>, res: Re
       category: body.category,
       passwordHash,
     })
-    const agency: IAgencyDocument = await agencyToCreate.save() // TODO use callback and check for errors
 
-    const agencyForToken = {
-      email: agency.email,
-      id: agency._id,
-    }
+    return agencyToCreate.save((error: CallbackError, agency: IAgencyDocument) => {
+      if (error) {
+        return res.status(500).json({ message: error.message })
+      }
+      if (!agency) {
+        return res.status(500).json({ message: "Unable to save agency document" })
+      }
 
-    const token: string = jwt.sign(agencyForToken, process.env.SECRET || '')
+      const agencyForToken = {
+        email: agency.email,
+        id: agency._id,
+      }
 
-    return res
-      .status(200)
-      .send({ token, name: agency.name, email: agency.email, role: "agency" })
+      const token: string = jwt.sign(agencyForToken, process.env.SECRET || '')
+
+      return res.status(200).send({ token, name: agency.name, email: agency.email, role: "agency" })
+    })
+
   } catch (exception) {
     return next(exception)
   }
@@ -366,7 +398,7 @@ agenciesRouter.get("/myworkers", authenticateToken, needsToBeAgency, async (_req
       if (!businessContracts.length) {
         return res.status(404).json({ message: "Agency does not have buisness contracts!" })
       }
-      return await Worker.find({ '_id': { $in: businessContracts[0].workerIds } }, (error:CallbackError, workers: Array<IWorkerDocument> | null ) => {
+      return await Worker.find({ '_id': { $in: businessContracts[0].workerIds } }, (error: CallbackError, workers: Array<IWorkerDocument> | null) => {
         if (error) {
           return res.status(500).json(error.message)
         }
@@ -462,7 +494,7 @@ agenciesRouter.get("/", authenticateToken, needsToBeBusinessOrWorker, async (req
     name = query.name as string
   }
   try {
-    if(name){
+    if (name) {
       const agencies: Array<IAgencyDocument> = await Agency.find({ name: { $regex: name, $options: "i" } }, { name: 1, email: 1, businessContracts: 1, profile: 1, category: 1 }) // TODO use callback for result and errors.
       if (agencies) {
         return res.status(200).json(agencies)

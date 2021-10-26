@@ -16,9 +16,11 @@ import jwt from "jsonwebtoken"
 import { error as _error } from "../utils/logger"
 import Business from "../models/Business"
 import authenticateToken from "../utils/auhenticateToken"
-import { IBusiness, IBusinessDocument } from "../objecttypes/modelTypes";
+import { IAgencyDocument, IBusiness, IBusinessDocument, IWorkerDocument } from "../objecttypes/modelTypes";
 import { CallbackError } from "mongoose";
 import { needsToBeAgencyOrWorker } from "../utils/middleware";
+import Agency from "../models/Agency"
+import Worker from "../models/Worker"
 
 const businessesRouter = express.Router()
 /**
@@ -68,9 +70,33 @@ const businessesRouter = express.Router()
  *               $ref: "#/components/schemas/Error"
  *             example:
  *               message: Password length less than 3 characters
+ *       "409":
+ *         description: Email is already registered
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Email is already registered
+ *       "500":
+ *         description: An error occurred when calling the database.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
  */
 businessesRouter.post("/", async (req: Request<unknown, unknown, IBusiness>, res: Response, next: NextFunction) => {
   const { body } = req
+
+  const agency: IAgencyDocument | null = await Agency.findOne({ email: body.email })
+  if (agency) {
+    return res.status(409).json({ message: `${body.email} is already registered!` })
+  }
+
+  const worker: IWorkerDocument | null = await Worker.findOne({ email: body.email })
+  if (worker) {
+    return res.status(409).json({ message: `${body.email} is already registered!` })
+  }
 
   try {
     // TODO This could be separated into a validation middleware
@@ -81,25 +107,31 @@ businessesRouter.post("/", async (req: Request<unknown, unknown, IBusiness>, res
     const saltRounds: number = 10
     const passwordHash: string = await bcrypt.hash(body.password, saltRounds)
 
-    const business: IBusinessDocument = new Business({
+    const businessToCreate: IBusinessDocument = new Business({
       name: body.name,
       email: body.email,
       category: body.category,
       passwordHash,
     })
 
-    const savedBusiness: IBusinessDocument = await business.save() //TODO use callback and check for errors
+    return businessToCreate.save((error: CallbackError, business: IBusinessDocument) => {
+      if (error) {
+        return res.status(500).json({ message: error.message })
+      }
+      if (!business) {
+        return res.status(500).json({ message: "Unable to save business document" })
+      }
 
-    const businessForToken = {
-      email: savedBusiness.email,
-      id: savedBusiness._id,
-    }
+      const businessForToken = {
+        email: business.email,
+        id: business._id,
+      }
 
-    const token: string = jwt.sign(businessForToken, process.env.SECRET || '')
+      const token: string = jwt.sign(businessForToken, process.env.SECRET || '')
 
-    console.log("jwt token: " + token)
-    //response.json(savedBusiness);
-    return res.status(200).send({ token, name: savedBusiness.name, email: savedBusiness.email, role: "business" })
+      return res.status(200).send({ token, name: business.name, email: business.email, role: "business" })
+    })
+
   } catch (exception) {
     return next(exception)
   }

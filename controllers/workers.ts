@@ -18,9 +18,10 @@ import authenticateToken from "../utils/auhenticateToken"
 
 import Worker from "../models/Worker"
 import Agency from "../models/Agency"
-import { IAgencyDocument, IWorker, IWorkerDocument } from "../objecttypes/modelTypes";
+import { IAgencyDocument, IBusinessDocument, IWorker, IWorkerDocument } from "../objecttypes/modelTypes";
 import { CallbackError } from "mongoose";
 import bcrypt from "bcryptjs"
+import Business from '../models/Business';
 
 const workersRouter = express.Router()
 
@@ -71,31 +72,66 @@ const workersRouter = express.Router()
  *               $ref: "#/components/schemas/Error"
  *             example:
  *               message: Password length less than 3 characters
+ *       "409":
+ *         description: Email is already registered
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Email is already registered
+ *       "500":
+ *         description: An error occurred when calling the database.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
  */
 workersRouter.post("/", async (req: Request<unknown, unknown, IWorker>, res: Response, next: NextFunction) => {
   try {
     const { body } = req
+
+    const business: IBusinessDocument | null = await Business.findOne({ email: body.email })
+    if (business) {
+      return res.status(409).json({ message: `${body.email} is already registered!` })
+    }
+
+    const agency: IAgencyDocument | null = await Agency.findOne({ email: body.email })
+    if (agency) {
+      return res.status(409).json({ message: `${body.email} is already registered!` })
+    }
+
     const passwordLength: number = body.password ? body.password.length : 0
     if (passwordLength < 3) {
       return res.status(400).json({ message: "Password length less than 3 characters" })
     }
     const saltRounds: number = 10
     const passwordHash: string = await hash(body.password, saltRounds)
+
     const workerToCreate: IWorkerDocument = new Worker({
       name: body.name,
       email: body.email,
       passwordHash,
     })
-    const worker: IWorkerDocument = await workerToCreate.save() //TODO use callback and check for errors
 
-    const workerForToken = {
-      email: worker.email,
-      id: workerToCreate._id,
-    }
+    return workerToCreate.save((error: CallbackError, worker: IWorkerDocument) => {
+      if (error) {
+        return res.status(500).json({ message: error.message })
+      }
+      if (!worker) {
+        return res.status(500).json({ message: "Unable to save agency document" })
+      }
 
-    const token: string = sign(workerForToken, process.env.SECRET || '')
+      const workerForToken = {
+        email: worker.email,
+        id: worker._id,
+      }
 
-    res.status(200).send({ token, name: worker.name, email: worker.email, role: "worker" })
+      const token: string = sign(workerForToken, process.env.SECRET || '')
+
+      return res.status(200).send({ token, name: worker.name, email: worker.email, role: "worker" })
+    })
+
   } catch (exception) {
     return next(exception)
   }
