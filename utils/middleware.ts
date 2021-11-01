@@ -328,7 +328,16 @@ export const needsToBeAgencyOrBusiness = (req: Request, res: Response, next: Nex
             if (error) {
               return res.status(500).send(error)
             } else if (!result) {
-              return res.status(401).send({ message: "This route is only available to Agency or Business users." })
+              Admin.findById(res.locals.decoded.id, (error: CallbackError, result: IAdminDocument | null) => {
+                if (error) {
+                  return res.status(500).send(error)
+                } else if (!result) {
+                  return res.status(401).send({ message: "This route is only available to Agency, Business or Admin users." })
+                } else {
+                  body.admin = result
+                  return next()
+                }
+              })
             } else {
               body.business = result
               return next()
@@ -370,7 +379,16 @@ export const needsToBeBusinessOrWorker = (req: Request<unknown, unknown, IBaseBo
             if (error) {
               return res.status(500).send(error)
             } else if (!result) {
-              return res.status(401).send({ message: "This route is only available to Business or Worker users" })
+              Admin.findById(res.locals.decoded.id, (error: CallbackError, result: IAdminDocument | null) => {
+                if (error) {
+                  return res.status(500).send(error)
+                } else if (!result) {
+                  return res.status(401).send({ message: "This route is only available to Admin, Business or Worker users." })
+                } else {
+                  body.admin = result
+                  return next()
+                }
+              })
             } else {
               body.worker = result
               return next()
@@ -412,7 +430,16 @@ export const needsToBeBusinessOrWorker = (req: Request<unknown, unknown, IBaseBo
             if (error) {
               return res.status(500).send(error)
             } else if (!result) {
-              return res.status(401).send({ message: "This route is only available to Business or Worker users" })
+              Admin.findById(res.locals.decoded.id, (error: CallbackError, result: IAdminDocument | null) => {
+                if (error) {
+                  return res.status(500).send(error)
+                } else if (!result) {
+                  return res.status(401).send({ message: "This route is only available to Agency, Admin or Worker users." })
+                } else {
+                  body.admin = result
+                  return next()
+                }
+              })
             } else {
               body.worker = result
               return next()
