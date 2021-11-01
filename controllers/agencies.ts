@@ -15,12 +15,13 @@ import jwt from "jsonwebtoken"
 import authenticateToken from "../utils/auhenticateToken"
 import Agency from "../models/Agency"
 import Worker from "../models/Worker"
-import { IAgency, IAgencyDocument, IBusinessDocument, IWorkerDocument } from "../objecttypes/modelTypes";
+import { IAgency, IAgencyDocument, IBusinessDocument, IWorkerDocument, IAdminDocument } from "../objecttypes/modelTypes";
 import { CallbackError, } from "mongoose";
 import { needsToBeBusinessOrWorker } from '../utils/middleware'
 import BusinessContract from '../models/BusinessContract';
 import { needsToBeAgency } from './../utils/middleware';
 import Business from '../models/Business'
+import Admin from '../models/Admin';
 //import BusinessContract from '../models/BusinessContract';
 
 const agenciesRouter = express.Router()
@@ -98,6 +99,11 @@ agenciesRouter.post("/", async (req: Request<unknown, unknown, IAgency>, res: Re
 
   const worker: IWorkerDocument | null = await Worker.findOne({ email: body.email })
   if (worker) {
+    return res.status(409).json({ message: `${body.email} is already registered!` })
+  }
+
+  const admin: IAdminDocument | null = await Admin.findOne({ email: body.email })
+  if (admin) {
     return res.status(409).json({ message: `${body.email} is already registered!` })
   }
 

@@ -18,10 +18,11 @@ import authenticateToken from "../utils/auhenticateToken"
 
 import Worker from "../models/Worker"
 import Agency from "../models/Agency"
-import { IAgencyDocument, IBusinessDocument, IWorker, IWorkerDocument } from "../objecttypes/modelTypes";
+import { IAgencyDocument, IBusinessDocument, IWorker, IWorkerDocument, IAdminDocument } from "../objecttypes/modelTypes";
 import { CallbackError } from "mongoose";
 import bcrypt from "bcryptjs"
 import Business from '../models/Business';
+import Admin from '../models/Admin'
 
 const workersRouter = express.Router()
 
@@ -98,6 +99,11 @@ workersRouter.post("/", async (req: Request<unknown, unknown, IWorker>, res: Res
 
     const agency: IAgencyDocument | null = await Agency.findOne({ email: body.email })
     if (agency) {
+      return res.status(409).json({ message: `${body.email} is already registered!` })
+    }
+
+    const admin: IAdminDocument | null = await Admin.findOne({ email: body.email })
+    if (admin) {
       return res.status(409).json({ message: `${body.email} is already registered!` })
     }
 
