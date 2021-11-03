@@ -337,7 +337,8 @@ export interface IReportDocument extends Document, IReport {
 }
 
 export interface IJobVacancy {
-  agencyId: IAgencyDocument['_id']
+  agencyId: IAgencyDocument['_id'],
+  relatedSubContractOfWorkContract: ISubContractDocument,
   jobTitle: String,
   jobCategory: String,
   details: String,

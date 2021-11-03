@@ -17,6 +17,7 @@ export const postJobVacancyDocument = (req: Request, res: Response, next: NextFu
 
         const jobVacancyDocument: IJobVacancyDocument = new JobVacancy({
             agencyId: res.locals.decoded.id,
+            relatedSubContractOfWorkContract: body.relatedSubContractOfWorkContract,
             jobTitle: body.jobTitle,
             jobCategory: body.jobCategory,
             details: body.details,

@@ -8,6 +8,12 @@ const jobVacancySchema = new Schema({
         ref: "Agency",
         immutable: true
     },
+    relatedSubContractOfWorkContract: {
+        // There is no reference/model for subcontracts of a work
+        // contract, for more info check WorkContract model.
+        type: mongoose.Schema.Types.ObjectId,
+        required: true
+    },
     jobTitle: {
         type: String,
         required: true

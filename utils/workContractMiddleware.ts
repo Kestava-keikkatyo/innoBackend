@@ -1,9 +1,9 @@
-import {NextFunction, Request, Response} from "express";
+import { NextFunction, Request, Response } from "express";
 import WorkContract from "../models/WorkContract";
-import {CallbackError, DocumentDefinition, Types} from "mongoose";
-import {IBusinessContractDocument, IWorkContractDocument, IWorkerDocument} from "../objecttypes/modelTypes";
-import {ParamsDictionary} from "express-serve-static-core";
-import {IBaseBody} from "../objecttypes/otherTypes";
+import { CallbackError, DocumentDefinition, Types } from "mongoose";
+import { IBusinessContractDocument, IWorkContractDocument, IWorkerDocument } from "../objecttypes/modelTypes";
+import { ParamsDictionary } from "express-serve-static-core";
+import { IBaseBody } from "../objecttypes/otherTypes";
 import BusinessContract from "../models/BusinessContract";
 import Worker from "../models/Worker";
 import Agency from "../models/Agency";
@@ -21,24 +21,24 @@ import Agency from "../models/Agency";
  * @returns {NextFunction} next()
  */
 export const workContractExists = (req: Request, res: Response, next: NextFunction) => {
-  const {body, params} = req
+  const { body, params } = req
   try {
     if (params.contractId) {
       return WorkContract.findById(params.contractId, (error: CallbackError, result: IWorkContractDocument | null) => {
         if (error) {
           return res.status(500).send(error)
         } else if (!result) {
-          return res.status(404).send({error: "No WorkContract found with the request :contractId."})
+          return res.status(404).send({ error: "No WorkContract found with the request :contractId." })
         } else {
           body.workContract = result
           return next()
         }
       })
     } else {
-      return res.status(400).send({error: "No :contractId in url."})
+      return res.status(400).send({ error: "No :contractId in url." })
     }
   } catch (exception) {
-    return res.status(500).send({exception})
+    return res.status(500).send({ exception })
   }
 }
 /**
@@ -54,7 +54,7 @@ export const workContractExists = (req: Request, res: Response, next: NextFuncti
  * @returns {NextFunction} next()
  */
 export const workContractIncludesUser = (req: Request<unknown, unknown, IBaseBody>, res: Response, next: NextFunction) => {
-  const {body} = req
+  const { body } = req
   try {
     if (body.workContract !== undefined) {
       if (body.workContract.business.toString() === res.locals.decoded.id.toString()) {
@@ -79,7 +79,7 @@ export const workContractIncludesUser = (req: Request<unknown, unknown, IBaseBod
     }
     return next()
   } catch (exception) {
-    return res.status(500).send({exception})
+    return res.status(500).send({ exception })
   }
 }
 /**
@@ -93,12 +93,12 @@ export const workContractIncludesUser = (req: Request<unknown, unknown, IBaseBod
  * @returns {NextFunction} next()
  */
 export const checkUserInWorkContract = (req: Request, res: Response, next: NextFunction) => {
-  const {body} = req
+  const { body } = req
   try {
     if (body.userInWorkContract === true) {
       return next()
     } else {
-      return res.status(401).send({message: "User not found in WorkContract and is not authorized to use this route."})
+      return res.status(401).send({ message: "User not found in WorkContract and is not authorized to use this route." })
     }
   } catch (exception) {
     next(exception)
@@ -114,12 +114,12 @@ export const checkUserInWorkContract = (req: Request, res: Response, next: NextF
  * @returns {JSON} Status 200 - res.body: { doc }
  */
 export const updateWorkContract = (req: Request, res: Response) => {
-  const {body} = req
+  const { body } = req
   try {
     const updateFields = body.workContractUpdate
     return WorkContract.findOneAndUpdate(body.updateFilterQuery,
       updateFields,
-      {new: true},
+      { new: true },
       (error: CallbackError, rawResult: IWorkContractDocument | null) => {
         if (error) {
           return res.status(500).send(error)
@@ -129,11 +129,11 @@ export const updateWorkContract = (req: Request, res: Response) => {
             error: "Could not update WorkContract with id " + req.params.contractId
           })
         } else {
-          return Agency.populate(rawResult,{path: "agency", select: "name email createdAt"},(err:CallbackError,result) => {
+          return Agency.populate(rawResult, { path: "agency", select: "name email createdAt" }, (err: CallbackError, result) => {
             if (err) {
               return res.status(500).send(err)
             } else if (!result) {
-              return res.status(404).send({error: "Populate failed, result was empty."})
+              return res.status(404).send({ error: "Populate failed, result was empty." })
             } else {
               return res.status(200).send(result)
             }
@@ -141,7 +141,7 @@ export const updateWorkContract = (req: Request, res: Response) => {
         }
       })
   } catch (exception) {
-    return res.status(500).send({exception})
+    return res.status(500).send({ exception })
   }
 }
 /**
@@ -154,45 +154,46 @@ export const updateWorkContract = (req: Request, res: Response) => {
  * @returns {NextFunction} next()
  */
 export const addWorkerToWorkContract = (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
-  const {body, params} = req
-  let id: Types.ObjectId
+  const { body, params } = req
+  let contractsId: Types.ObjectId
   try {
-    id = Types.ObjectId(params.contractsId)
+    contractsId = Types.ObjectId(params.contractsId)
   } catch (exception) {
-    return res.status(403).send({message: "contractsId must be a valid string."})
+    return res.status(403).send({ message: "contractsId must be a valid string." })
   }
   try {
     //First we check that Worker has made BusinessContract with Agency.
     return BusinessContract.find(
       {
         agency: body.workContract?.agency,
-        'madeContracts.workers': body.worker?._id
+        'madeContracts.workers.workerId': body.worker?._id
       },
       undefined,
-      {lean: true},
-      (error: CallbackError, doc: DocumentDefinition<IBusinessContractDocument>[] | null) => {
+      { lean: true },
+      (error: CallbackError, docs: DocumentDefinition<IBusinessContractDocument>[] | null) => {
+        console.log("docs", docs)
         if (error) {
           return res.status(500).send(error)
-        } else if (!doc) {
-          return res.status(400).send({message: "Something went wrong with find query."})
+        } else if (!docs || !docs.length) {
+          return res.status(400).send({ message: "Something went wrong with find query." })
         } else {
-          if (doc.length === 1) {
+          if (docs.length === 1) {
             //Then we check that is user already add accepted to the contract.
-            if (body.worker?.workContracts.includes(id)) {
-              return res.status(403).send({message: " Worker has already added to the contract."})
+            if (body.worker?.workContracts.includes(contractsId)) {
+              return res.status(403).send({ message: " Worker has already added to the contract." })
             } else {
-              body.workContractUpdate = {$addToSet: {'contracts.$.requestWorkers': res.locals.decoded.id}}
-              body.updateFilterQuery = {'contracts._id': id}
+              body.workContractUpdate = { $addToSet: { 'contracts.$.requestWorkers': res.locals.decoded.id } }
+              body.updateFilterQuery = { 'contracts._id': contractsId }
               return next()
             }
           } else {
-            return res.status(404).send({message: "No BusinessContract made with agency and worker."})
+            return res.status(404).send({ message: "No BusinessContract made between agency and worker." })
           }
         }
       }
     )
   } catch (exception) {
-    return res.status(500).send({exception})
+    return res.status(500).send({ exception })
   }
 }
 /**
@@ -203,28 +204,28 @@ export const addWorkerToWorkContract = (req: Request<ParamsDictionary, unknown, 
  * @throws {JSON} Status 400 - res.body: { message:"Something went wrong with update" }
  */
 export const addTraceToWorker = (req: Request, res: Response, next: NextFunction) => {
-  const {params} = req
+  const { params } = req
   let ids: Types.ObjectId
   try {
     ids = Types.ObjectId(params.contractsId)
   } catch (exception) {
-    return res.status(403).send({message: "contractsId must be a valid string."})
+    return res.status(403).send({ message: "contractsId must be a valid string." })
   }
   try {
     return Worker.findOneAndUpdate(
-      {_id: res.locals.decoded.id},
-      {$addToSet: {workContracts: ids}},
-      {lean: true},
+      { _id: res.locals.decoded.id },
+      { $addToSet: { workContracts: ids } },
+      { lean: true },
       (error: CallbackError, result: DocumentDefinition<IWorkerDocument> | null) => {
         if (error || !result) {
-          return res.status(500).send(error || {message: "Received no result from database when updating worker"})
+          return res.status(500).send(error || { message: "Received no result from database when updating worker" })
         } else {
           return next()
         }
       }
     )
   } catch (exception) {
-    return res.status(500).send({exception})
+    return res.status(500).send({ exception })
   }
 }
 /**
@@ -239,12 +240,12 @@ export const addTraceToWorker = (req: Request, res: Response, next: NextFunction
  * @returns {NextFunction} next()
  */
 export const newContractToWorkContract = (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
-  const {body, params} = req
+  const { body, params } = req
   let id: Types.ObjectId
   try {
     id = Types.ObjectId(params.contractId)
   } catch (exception) {
-    return res.status(403).send({message: "contractId must be a valid string."})
+    return res.status(403).send({ message: "contractId must be a valid string." })
   }
   try {
     body.workContractUpdate = {
@@ -263,10 +264,10 @@ export const newContractToWorkContract = (req: Request<ParamsDictionary, unknown
         }
       }
     }
-    body.updateFilterQuery = {_id: id}
+    body.updateFilterQuery = { _id: id }
     return next()
   } catch (exception) {
-    return res.status(500).send({exception})
+    return res.status(500).send({ exception })
   }
 }
 /**
@@ -278,29 +279,29 @@ export const newContractToWorkContract = (req: Request<ParamsDictionary, unknown
  * @returns {NextFunction} next()
  */
 export const acceptWorkContract = (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
-  const {body, params} = req
+  const { body, params } = req
   let id: Types.ObjectId
   try {
     id = Types.ObjectId(params.contractsId)
   } catch (exception) {
-    return res.status(403).send({message: "contractsId must be a valid string."})
+    return res.status(403).send({ message: "contractsId must be a valid string." })
   }
   try {
     if (!body.business && body.agency) {
       body.workContractUpdate = {
-        $set: {'contracts.$.acceptedAgency': true}
+        $set: { 'contracts.$.acceptedAgency': true }
       }
     } else if (body.business && !body.agency) {
       body.workContractUpdate = {
-        $set: {'contracts.$.acceptedBusiness': true}
+        $set: { 'contracts.$.acceptedBusiness': true }
       }
     } else {
-      res.status(401).send({message: "User is not Business or Agency."})
+      res.status(401).send({ message: "User is not Business or Agency." })
     }
-    body.updateFilterQuery = {'contracts._id': id}
+    body.updateFilterQuery = { 'contracts._id': id }
     return next()
   } catch (exception) {
-    return res.status(500).send({exception})
+    return res.status(500).send({ exception })
   }
 }
 /**
@@ -313,29 +314,29 @@ export const acceptWorkContract = (req: Request<ParamsDictionary, unknown, IBase
  * @returns {NextFunction} next()
  */
 export const acceptWorkers = (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
-  const {body, params} = req
+  const { body, params } = req
   let id: Types.ObjectId
   try {
     id = Types.ObjectId(params.contractsId)
   } catch (exception) {
-    return res.status(403).send({message: "contractsId must be a valid string."})
+    return res.status(403).send({ message: "contractsId must be a valid string." })
   }
   try {
     body.workContractUpdate = {
       $pull: {
-        'contracts.$.requestWorkers': {$in: body.workersArray}
+        'contracts.$.requestWorkers': { $in: body.workersArray }
       },
       $addToSet: {
-        'contracts.$.acceptedWorkers': {$each: body.workersArray}
+        'contracts.$.acceptedWorkers': { $each: body.workersArray }
       },
       $set: {
         'contracts.$.acceptedBusiness': false
       }
     }
-    body.updateFilterQuery = {'contracts._id': id}
+    body.updateFilterQuery = { 'contracts._id': id }
     return next()
   } catch (exception) {
-    return res.status(500).send({exception})
+    return res.status(500).send({ exception })
   }
 }
 /**
@@ -348,29 +349,29 @@ export const acceptWorkers = (req: Request<ParamsDictionary, unknown, IBaseBody>
  * @returns {NextFunction} next()
  */
 export const revertWorkers = (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
-  const {body, params} = req
+  const { body, params } = req
   let id: Types.ObjectId
   try {
     id = Types.ObjectId(params.contractsId)
   } catch (exception) {
-    return res.status(403).send({message: "contractsId must be a valid string."})
+    return res.status(403).send({ message: "contractsId must be a valid string." })
   }
   try {
     body.workContractUpdate = {
       $pull: {
-        'contracts.$.acceptedWorkers': {$in: body.workersArray}
+        'contracts.$.acceptedWorkers': { $in: body.workersArray }
       },
       $addToSet: {
-        'contracts.$.requestWorkers': {$each: body.workersArray}
+        'contracts.$.requestWorkers': { $each: body.workersArray }
       },
       $set: {
         'contracts.$.acceptedBusiness': false
       }
     }
-    body.updateFilterQuery = {'contracts._id': id}
+    body.updateFilterQuery = { 'contracts._id': id }
     return next()
   } catch (exception) {
-    return res.status(500).send({exception})
+    return res.status(500).send({ exception })
   }
 }
 /**
@@ -383,28 +384,28 @@ export const revertWorkers = (req: Request<ParamsDictionary, unknown, IBaseBody>
  * @returns {NextFunction} next()
  */
 export const declineWorkers = (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
-  const {body, params} = req
+  const { body, params } = req
   let id: Types.ObjectId
   try {
     id = Types.ObjectId(params.contractsId)
   } catch (exception) {
-    return res.status(403).send({message: "Note: contractsId must be string."})
+    return res.status(403).send({ message: "Note: contractsId must be string." })
   }
   try {
     body.workContractUpdate = {
       $pull: {
-        'contracts.$.acceptedWorkers': {$in: body.workersArray},
-        'contracts.$.requestWorkers': {$in: body.workersArray}
+        'contracts.$.acceptedWorkers': { $in: body.workersArray },
+        'contracts.$.requestWorkers': { $in: body.workersArray }
       },
       $set: {
         'contracts.$.acceptedBusiness': false,
         'contracts.$.acceptedAgency': false
       }
     }
-    body.updateFilterQuery = {'contracts._id': id}
+    body.updateFilterQuery = { 'contracts._id': id }
     return next()
   } catch (exception) {
-    return res.status(500).send({exception})
+    return res.status(500).send({ exception })
   }
 }
 export default {}
