@@ -200,6 +200,8 @@ adminRouter.delete("/:userType/:userId", authenticateToken, needsToBeAdmin, asyn
     }
 
     if (user) {
+      await Profile.remove({_id: user.profile}).exec();
+      await Notifications.deleteMany({userId: user._id}).exec();
       console.log(`${userType} ${user.name} was deleted.`);
 
     }

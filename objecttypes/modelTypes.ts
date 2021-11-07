@@ -119,7 +119,8 @@ export interface IWorkerDocument extends Document, Omit<IWorker, "businessContra
   createdAt: Date,
   businessContractForms: Array<IFormDocument['_id']> | Array<IFormDocument>,
   businessContracts: Array<IBusinessContractDocument['_id']>,
-  workContracts: Array<IWorkContractDocument['_id']>
+  workContracts: Array<IWorkContractDocument['_id']>,
+  notifications: Array<INotificationsDocument['_id']>
 }
 
 // Used when we want to type docs given in req.body for example. For calls with {lean: true} option, use DocumentDefinition<IAgencyDocument> for the result's type

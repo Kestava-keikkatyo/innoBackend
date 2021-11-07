@@ -392,7 +392,7 @@ loginRouter.post("/admin", async (req: Request<unknown, unknown, IBodyLogin>, re
   const adminForToken = {
     email: admin.email,
     id: admin._id,
-    role: "worker"
+    role: "admin"
   }
   const token: string = jwt.sign(adminForToken, process.env.SECRET || '')
 
