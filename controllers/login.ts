@@ -11,12 +11,14 @@ import Admin from "../models/Admin"
 const loginRouter = express.Router()
 
 /**
- * @openapi
+ * NOT IN USE
+ * @deprecated
+ *
  * /login/worker:
  *   post:
  *     summary: Route for logging in as a worker.
  *     description: Response provides a token used for authentication in most other calls.
- *     tags: [Worker, Login]
+ *     tags: [Login, Worker]
  *     requestBody:
  *       required: true
  *       content:
@@ -77,12 +79,14 @@ loginRouter.post("/worker", async (req: Request<unknown, unknown, IBodyLogin>, r
 })
 
 /**
- * @openapi
+ * NOT IN USE
+ * @deprecated
+ *
  * /login/business:
  *   post:
  *     summary: Route for logging in as a business
  *     description: Response provides a token used for authentication in most other calls.
- *     tags: [Business, Login]
+ *     tags: [Login, Business]
  *     requestBody:
  *       required: true
  *       content:
@@ -144,12 +148,14 @@ loginRouter.post("/business", async (req: Request<unknown, unknown, IBodyLogin>,
 })
 
 /**
- * @openapi
+ * NOT IN USE
+ * @deprecated
+ *
  * /login/agency:
  *   post:
  *     summary: Route for logging in as an agency
  *     description: Response provides a token used for authentication in most other calls.
- *     tags: [Agency, Login]
+ *     tags: [Login, agency]
  *     requestBody:
  *       required: true
  *       content:
