@@ -323,7 +323,7 @@ workersRouter.put("/", authenticateToken, async (req: Request<unknown, unknown, 
  */
 workersRouter.get("/all", authenticateToken, needsToBeAgencyOrBusiness, async (_req: Request, res: Response, next: NextFunction) => {
   try {
-    const workers: Array<IWorkerDocument> | null = await Worker.find({}, { licenses: 0 }) // TODO use callback for result and errors.
+    const workers: Array<IWorkerDocument> | null = await Worker.find({}, { licenses: 0 }).populate('profile', {}) // TODO use callback for result and errors.
     if (workers) {
       return res.status(200).json(workers)
     }

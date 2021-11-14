@@ -329,7 +329,7 @@ agenciesRouter.put("/", authenticateToken, async (req: Request<unknown, unknown,
  */
 agenciesRouter.get("/all", authenticateToken, needsToBeBusinessOrWorker, async (_req: Request, res: Response, next: NextFunction) => {
   try {
-    const agencies: Array<IAgencyDocument> | null = await Agency.find({}, { name: 1, email: 1, businessContracts: 1, profile: 1, category: 1, userType: 1 }) // TODO use callback for result and errors.
+    const agencies: Array<IAgencyDocument> | null = await Agency.find({}, { name: 1, email: 1, businessContracts: 1, profile: 1, category: 1, userType: 1 }).populate('profile', {}) // TODO use callback for result and errors.
     if (agencies) {
       return res.status(200).json(agencies)
     }
@@ -412,7 +412,7 @@ agenciesRouter.get("/myworkers", authenticateToken, needsToBeAgency, async (_req
           return res.status(404).json({ message: "Agency does not have workers!" })
         }
         return res.status(200).json(workers)
-      });
+      }).populate('profile', {});
 
     })
   } catch (exception) {

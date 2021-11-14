@@ -323,7 +323,7 @@ businessesRouter.put("/", authenticateToken, async (req: Request<unknown, unknow
  */
 businessesRouter.get("/all", authenticateToken, needsToBeAgencyOrWorker, async (_req: Request, res: Response, next: NextFunction) => {
   try {
-    const businesses: Array<IBusinessDocument> | null = await Business.find({}, { name: 1, email: 1, businessContracts: 1, profile: 1, userType: 1 }) // TODO use callback for result and errors.
+    const businesses: Array<IBusinessDocument> | null = await Business.find({}, { name: 1, email: 1, businessContracts: 1, profile: 1, userType: 1 }).populate('profile', {}) // TODO use callback for result and errors.
     if (businesses) {
       return res.status(200).json(businesses)
     }
