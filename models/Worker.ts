@@ -70,12 +70,27 @@ const workerSchema = new Schema({
       ref: "BusinessContract",
     },
   ],
-  workContracts: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "WorkContract",
-    },
-  ],
+  workContracts: {
+    requested: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "WorkContract",
+      },
+    ],
+    accepted: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "WorkContract",
+      },
+    ],
+    declined: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "WorkContract",
+      },
+    ],
+
+  },
   notifications: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: "Notifications"

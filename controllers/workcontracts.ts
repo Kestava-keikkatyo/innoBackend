@@ -9,7 +9,7 @@
  * @const
  * @namespace workcontractsRouter
 */
-import express, {NextFunction, Request, Response} from "express"
+import express, { NextFunction, Request, Response } from "express"
 import Agency from "../models/Agency"
 import Business from "../models/Business"
 import WorkContract from "../models/WorkContract"
@@ -20,7 +20,8 @@ import {
   needsToBeAgencyBusinessOrWorker,
   needsToBeAgencyOrBusiness,
   needsToBeWorker,
-  needsToBeBusiness} from "../utils/middleware"
+  needsToBeBusiness
+} from "../utils/middleware"
 import { buildPaginatedObjectFromArray, deleteTracesOfFailedWorkContract } from "../utils/common"
 import {
   IAgencyDocument,
@@ -30,9 +31,9 @@ import {
   IWorkContractDocument
 } from "../objecttypes/modelTypes"
 import BusinessContract from "../models/BusinessContract"
-import {IBaseBody, IBodyWithIds, IRemovedTraces} from "../objecttypes/otherTypes"
-import {CallbackError, DocumentDefinition, Types} from "mongoose"
-import {ParamsDictionary} from "express-serve-static-core"
+import { IBaseBody, IBodyWithIds, IRemovedTraces } from "../objecttypes/otherTypes"
+import { CallbackError, DocumentDefinition, Types } from "mongoose"
+import { ParamsDictionary } from "express-serve-static-core"
 import {
   acceptWorkContract, acceptWorkers,
   addTraceToWorker,
@@ -84,33 +85,33 @@ const workContractsApiPath = "workcontracts/"
  *               message: User who is trying to use this route is not in the work contract
 */
 workcontractsRouter.get("/:contractId", authenticateToken, needsToBeAgencyBusinessOrWorker, workContractExists, workContractIncludesUser,
-(req: Request<unknown, unknown, IBaseBody>, res: Response, next: NextFunction) => {
-  const { body } = req
-  try {
-    if (body.userInWorkContract === true) {
-      if (body.agency !== undefined) {
-        return res.status(200).send(body.workContract)
+  (req: Request<unknown, unknown, IBaseBody>, res: Response, next: NextFunction) => {
+    const { body } = req
+    try {
+      if (body.userInWorkContract === true) {
+        if (body.agency !== undefined) {
+          return res.status(200).send(body.workContract)
+        }
+        else if (body.business !== undefined) { //WORKS BUT NOT THE BEST
+          body.workContract?.contracts.forEach(contract => {
+            contract.requestWorkers = []
+          });
+          return res.status(200).send(body.workContract)
+        }
+        else if (body.worker !== undefined) { //WORKS BUT NOT THE BEST
+          let contract: ISubContractDocument | undefined
+          body.worker.workContracts.accepted.some(id => {
+            return contract = body.workContract?.contracts.find(contract => contract._id = id)
+          })
+          return res.status(200).send(contract)
+        }
+      } else {
+        return res.status(403).send({ message: "User who is trying to use this route is not in the work contract" })
       }
-      else if (body.business !== undefined) { //WORKS BUT NOT THE BEST
-        body.workContract?.contracts.forEach(contract => {
-          contract.requestWorkers = []
-        });
-        return res.status(200).send(body.workContract)
-      }
-      else if (body.worker !== undefined) { //WORKS BUT NOT THE BEST
-        let contract: ISubContractDocument | undefined
-        body.worker.workContracts.some(id => {
-          return contract = body.workContract?.contracts.find( contract => contract._id = id)
-        })
-        return res.status(200).send(contract)
-      }
-    } else {
-      return res.status(403).send({ message: "User who is trying to use this route is not in the work contract" })
+    } catch (exception) {
+      return next(exception)
     }
-  } catch (exception) {
-    return next(exception)
-  }
-})
+  })
 
 /**
  * @openapi
@@ -188,14 +189,14 @@ workcontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWorker,
     }
     //Which id is in question
     if (body.agency) {
-      array = {_id: {$in: body.agency.workContracts}}
+      array = { _id: { $in: body.agency.workContracts } }
     }
     else if (body.business) {
-      array = {_id: {$in: body.business.workContracts}}
+      array = { _id: { $in: body.business.workContracts } }
       projection = { 'contracts': { 'requestWorkers': 0 } }
     }
     else if (body.worker) {
-      array =  {'contracts._id': {$in: body.worker.workContracts}}
+      array = { 'contracts._id': { $in: body.worker.workContracts.accepted } }
       projection = 'contracts.$'
     }
     else {
@@ -205,22 +206,22 @@ workcontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWorker,
       projection,
       { lean: true },
       (error: CallbackError, result: DocumentDefinition<IWorkContractDocument>[]) => {
-      if (error) {
-        return res.status(500).send(error)
-      } else if (result.length === 0) {
-        return res.status(404).send({ message:"Couldn't find any WorkContracts" })
-      } else {
-        return Agency.populate(result,{path: "agency", select: "name email createdAt"},(err:CallbackError,result) => {
-          if (err) {
-            return res.status(500).send(err)
-          } else if (!result) {
-            return res.status(404).send({error: "Populate failed, result was empty."})
-          } else {
-            return res.status(200).send(buildPaginatedObjectFromArray(page, limit, result))
-          }
-        })
-      }
-    })
+        if (error) {
+          return res.status(500).send(error)
+        } else if (result.length === 0) {
+          return res.status(404).send({ message: "Couldn't find any WorkContracts" })
+        } else {
+          return Agency.populate(result, { path: "agency", select: "name email createdAt" }, (err: CallbackError, result) => {
+            if (err) {
+              return res.status(500).send(err)
+            } else if (!result) {
+              return res.status(404).send({ error: "Populate failed, result was empty." })
+            } else {
+              return res.status(200).send(buildPaginatedObjectFromArray(page, limit, result))
+            }
+          })
+        }
+      })
   } catch (exception) {
     return next(exception)
   }
@@ -308,7 +309,7 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
     }
     businessId = Types.ObjectId(body.businessId)
     const commonContractIndex: DocumentDefinition<IBusinessContractDocument>[] = await BusinessContract.find(
-      { agency: res.locals.decoded.id, 'madeContracts.businesses': { $elemMatch: { 'businessId':businessId } } },
+      { agency: res.locals.decoded.id, 'madeContracts.businesses': { $elemMatch: { 'businessId': businessId } } },
       undefined,
       { lean: true })
     //checkAgencyBusinessContracts function checks commonContractIndex
@@ -334,34 +335,38 @@ workcontractsRouter.post("/", authenticateToken, needsToBeAgency, bodyBusinessEx
             .send({ error, message: "Could not add WorkContract to Business  with ID" + body.businessId + ". No WorkContract created." })
         }
         return result
-    })
+      })
     await Agency.findOneAndUpdate(
       { _id: res.locals.decoded.id },
       { $addToSet: { workContracts: contractToCreate._id } },
       { lean: true },
       async (error: CallbackError, result: DocumentDefinition<IAgencyDocument> | null) => {
-      if (error || !result) {
-        await deleteTracesOfFailedWorkContract(null, (body.businessId as string), res.locals.decoded.id, contractToCreate._id.toString(),
-          (result: IRemovedTraces) => {
-            if (result.businessTraceRemoved && result.agencyTraceRemoved) {
-              return res // TODO As with above, this only returns from the callback, not from the whole function.
-                .status(500)
-                .send({ error,
-                  message: "Could not add WorkContract to Agency  with ID" + res.locals.decoded.id + ". No WorkContract created but references were deleted." })
-            } else {
-              return res
-                .status(500)
-                .send({ error,
-                  message: "Could not add WorkContract to Agency  with ID" + res.locals.decoded.id + ". No WorkContract created and references were not deleted." })
-            }
-          })
-      }
-      return result
-    })
+        if (error || !result) {
+          await deleteTracesOfFailedWorkContract(null, (body.businessId as string), res.locals.decoded.id, contractToCreate._id.toString(),
+            (result: IRemovedTraces) => {
+              if (result.businessTraceRemoved && result.agencyTraceRemoved) {
+                return res // TODO As with above, this only returns from the callback, not from the whole function.
+                  .status(500)
+                  .send({
+                    error,
+                    message: "Could not add WorkContract to Agency  with ID" + res.locals.decoded.id + ". No WorkContract created but references were deleted."
+                  })
+              } else {
+                return res
+                  .status(500)
+                  .send({
+                    error,
+                    message: "Could not add WorkContract to Agency  with ID" + res.locals.decoded.id + ". No WorkContract created and references were not deleted."
+                  })
+              }
+            })
+        }
+        return result
+      })
     //Next check that workContract doesn't already exist
     let contract: IWorkContractDocument | null
     const commonWorkContractArray: DocumentDefinition<IWorkContractDocument>[] = await WorkContract.find(
-      { business:  businessId, agency:  res.locals.decoded.id },
+      { business: businessId, agency: res.locals.decoded.id },
       undefined,
       { lean: true }
     )
@@ -458,7 +463,7 @@ workcontractsRouter.put("/:contractId/new", authenticateToken, needsToBeBusiness
  *     responses:
  *       # TODO Check responses from middleware and list them here.
  */
-workcontractsRouter.put("/:contractId/:contractsId/add", authenticateToken, needsToBeWorker,  workContractExists,
+workcontractsRouter.put("/:contractId/:contractsId/add", authenticateToken, needsToBeWorker, workContractExists,
   addWorkerToWorkContract, addTraceToWorker, updateWorkContract)
 /**
  * Route is used by Business and Agency to accept contract
@@ -535,7 +540,7 @@ workcontractsRouter.put("/:contractId/:contractsId/accept", authenticateToken, n
  *       # TODO Check responses from middleware and list them here.
  */
 workcontractsRouter.put("/:contractId/:contractsId/acceptWorkers", authenticateToken, needsToBeAgency, workContractExists, workContractIncludesUser, checkUserInWorkContract,
-acceptWorkers, updateWorkContract)
+  acceptWorkers, updateWorkContract)
 /**
  * @openapi
  * /workcontracts/{contractId}/{contractsId}/revertWorkers:
@@ -576,7 +581,7 @@ acceptWorkers, updateWorkContract)
  *       # TODO Check responses from middleware and list them here.
  */
 workcontractsRouter.put("/:contractId/:contractsId/revertWorkers", authenticateToken, needsToBeAgency, workContractExists, workContractIncludesUser, checkUserInWorkContract,
-revertWorkers, updateWorkContract)
+  revertWorkers, updateWorkContract)
 /**
  * @openapi
  * /workcontracts/{contractId}/{contractsId}/declineWorkers:
@@ -616,8 +621,8 @@ revertWorkers, updateWorkContract)
  *     responses:
  *       # TODO Check responses from middleware and list them here.
  */
-workcontractsRouter.put("/:contractId/:contractsId/declineWorkers",authenticateToken, needsToBeAgencyOrBusiness, workContractExists, workContractIncludesUser, checkUserInWorkContract,
-declineWorkers, updateWorkContract)
+workcontractsRouter.put("/:contractId/:contractsId/declineWorkers", authenticateToken, needsToBeAgencyOrBusiness, workContractExists, workContractIncludesUser, checkUserInWorkContract,
+  declineWorkers, updateWorkContract)
 
 /**
  * TODO (TULEVAISUUDESSA: route jolla voi poistaa contract objectin WorkContractista. <TÄMÄN ROUTEN TÄYTYY POISTAA KAIKKI YHTEYDET TYÖNTEKIJÖILTÄ JOTKA OVAT TÄSSÄ>)
@@ -630,54 +635,54 @@ declineWorkers, updateWorkContract)
  * FOR FUTURE: USER TRACES MUST BE DELETED.
  */
 workcontractsRouter.delete("/:contractId",
-authenticateToken,
-needsToBeAgency,
-workContractExists,
-workContractIncludesUser,
-async (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
-  const { body, params } = req
+  authenticateToken,
+  needsToBeAgency,
+  workContractExists,
+  workContractIncludesUser,
+  async (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
+    const { body, params } = req
 
-  if (body.userInWorkContract !== true || !body.workContract)
-    return res.status(401).send( { message: "This route is only available to Agency who is in this contract." })
-  try {
-    await deleteTracesOfFailedWorkContract(
-      null,
-      (body.workContract.business as Types.ObjectId).toString(),
-      (body.workContract.agency as Types.ObjectId).toString(),
-      params.contractId,
-      async (result: IRemovedTraces) => {
-        if (result.businessTraceRemoved === true && result.agencyTraceRemoved === true) {
-          return WorkContract.findByIdAndDelete(
-            body.workContract?._id,
-            { lean: true },
-            (error: CallbackError, result: DocumentDefinition<IWorkContractDocument> | null) => {
-              if (error) {
-                return res.status(500).json({
-                  message:
-                    "Deleted references to WorkContract with ID " +
-                    body.workContract?._id +
-                    " but could not remove the contract itself. Possible error: " +
-                    error
-                })
-              } else if (!result) {
-                return res.status(500).json({ message: "Didn't receive a result from database whilst deleting WorkContract" })
-              } else {
-                return res.status(204).send()
+    if (body.userInWorkContract !== true || !body.workContract)
+      return res.status(401).send({ message: "This route is only available to Agency who is in this contract." })
+    try {
+      await deleteTracesOfFailedWorkContract(
+        null,
+        (body.workContract.business as Types.ObjectId).toString(),
+        (body.workContract.agency as Types.ObjectId).toString(),
+        params.contractId,
+        async (result: IRemovedTraces) => {
+          if (result.businessTraceRemoved === true && result.agencyTraceRemoved === true) {
+            return WorkContract.findByIdAndDelete(
+              body.workContract?._id,
+              { lean: true },
+              (error: CallbackError, result: DocumentDefinition<IWorkContractDocument> | null) => {
+                if (error) {
+                  return res.status(500).json({
+                    message:
+                      "Deleted references to WorkContract with ID " +
+                      body.workContract?._id +
+                      " but could not remove the contract itself. Possible error: " +
+                      error
+                  })
+                } else if (!result) {
+                  return res.status(500).json({ message: "Didn't receive a result from database whilst deleting WorkContract" })
+                } else {
+                  return res.status(204).send()
+                }
               }
-            }
-          )
-        } else {
-          return res.status(406).json({
-            message:
-             "Couldn't delete references of this WorkContract"+
-             ", WorkerTraceRemoved: "+result.workerTraceRemoved+
-             ", businessTraceRemoved: "+result.businessTraceRemoved+
-             ", agencyTraceRemoved: "+result.agencyTraceRemoved
-          })
-        }
-      })
-  } catch (exception) {
-    return next(exception)
-  }
-})
+            )
+          } else {
+            return res.status(406).json({
+              message:
+                "Couldn't delete references of this WorkContract" +
+                ", WorkerTraceRemoved: " + result.workerTraceRemoved +
+                ", businessTraceRemoved: " + result.businessTraceRemoved +
+                ", agencyTraceRemoved: " + result.agencyTraceRemoved
+            })
+          }
+        })
+    } catch (exception) {
+      return next(exception)
+    }
+  })
 export default workcontractsRouter

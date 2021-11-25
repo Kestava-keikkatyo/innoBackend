@@ -106,7 +106,11 @@ export interface IWorker {
   phonenumber: string,
   licenses: Array<string>,
   businessContracts: Array<IBusinessContractDocument['_id']>,
-  workContracts: Array<IWorkContractDocument['_id']>,
+  workContracts: {
+    requested: Array<IWorkContractDocument['_id']>,
+    accepted: Array<IWorkContractDocument['_id']>,
+    declined: Array<IWorkContractDocument['_id']>
+  },
   feelings: Array<IFeelings>,
   userType: string,
   profile: IProfileDocument['_id'],
@@ -119,7 +123,11 @@ export interface IWorkerDocument extends Document, Omit<IWorker, "businessContra
   createdAt: Date,
   businessContractForms: Array<IFormDocument['_id']> | Array<IFormDocument>,
   businessContracts: Array<IBusinessContractDocument['_id']>,
-  workContracts: Array<IWorkContractDocument['_id']>,
+  workContracts: {
+    requested: Array<IWorkContractDocument['_id']>,
+    accepted: Array<IWorkContractDocument['_id']>,
+    declined: Array<IWorkContractDocument['_id']>
+  },
   notifications: Array<INotificationsDocument['_id']>
 }
 

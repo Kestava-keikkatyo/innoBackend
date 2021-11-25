@@ -64,7 +64,7 @@ export const workContractIncludesUser = (req: Request<unknown, unknown, IBaseBod
       } else { //Finding workers from WorkContract is very slow and ugly operation.
         if (body.worker) {
           body.workContract.contracts.some(contract => {
-            if (body.worker?.workContracts.includes(contract._id)) {
+            if (body.worker?.workContracts.accepted.includes(contract._id)) {
               return body.userInWorkContract = true
             } else {
               return false
@@ -179,7 +179,7 @@ export const addWorkerToWorkContract = (req: Request<ParamsDictionary, unknown, 
         } else {
           if (docs.length === 1) {
             //Then we check that is user already add accepted to the contract.
-            if (body.worker?.workContracts.includes(contractsId)) {
+            if (body.worker?.workContracts.accepted.includes(contractsId)) {
               return res.status(403).send({ message: " Worker has already added to the contract." })
             } else {
               body.workContractUpdate = { $addToSet: { 'contracts.$.requestWorkers': res.locals.decoded.id } }
@@ -197,7 +197,7 @@ export const addWorkerToWorkContract = (req: Request<ParamsDictionary, unknown, 
   }
 }
 /**
- * Middleware function is used in add-route to add trace to worker workContract array.
+ * Middleware function is used in add-route to add trace to worker workContracts.requested array.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next - NextFunction.
@@ -214,7 +214,7 @@ export const addTraceToWorker = (req: Request, res: Response, next: NextFunction
   try {
     return Worker.findOneAndUpdate(
       { _id: res.locals.decoded.id },
-      { $addToSet: { workContracts: ids } },
+      { $addToSet: { 'workContracts.requested': ids } },
       { lean: true },
       (error: CallbackError, result: DocumentDefinition<IWorkerDocument> | null) => {
         if (error || !result) {
@@ -308,6 +308,8 @@ export const acceptWorkContract = (req: Request<ParamsDictionary, unknown, IBase
  * This middleware function is used to initialize update that moves workerIds
  * from requestWorkers array to acceptedWorkers array.
  * Also changes acceptedBusiness to false.
+ * Also  moves workContract id from worker's workContracts.requested array to
+ * workContracts.accepted array
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next - NextFunction.
@@ -334,7 +336,28 @@ export const acceptWorkers = (req: Request<ParamsDictionary, unknown, IBaseBody>
       }
     }
     body.updateFilterQuery = { 'contracts._id': id }
-    return next()
+    // when agency accepts a worker/workers, remove workContract id
+    // from his/their workContracts.requested array and add it to
+    // his/their workContracts.accepted array.
+    return Worker.updateMany(
+      { _id: { $in: body.workersArray } },
+      {
+        $pull: {
+          'workContracts.requested': id,
+        },
+        $addToSet: { 'workContracts.accepted': id }
+      },
+      { lean: true, multi: true },
+      (error: CallbackError, result: DocumentDefinition<IWorkerDocument> | null) => {
+        if (error || !result) {
+          return res.status(500).send(error || { message: "Cannot update workContracts for a worker" })
+        } else {
+          console.log("Result", result)
+          return next()
+        }
+      }
+    )
+    //return next()
   } catch (exception) {
     return res.status(500).send({ exception })
   }
@@ -378,6 +401,8 @@ export const revertWorkers = (req: Request<ParamsDictionary, unknown, IBaseBody>
  * This middleware function is used to initialize update that removes workerIds
  * from acceptedWorkers array and requestWorkers array.
  * Also changes acceptedBusiness and acceptedAgency to false.
+ * Also  moves workContract id from worker's workContracts.requested array to
+ * workContracts.declined array.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next - NextFunction.
@@ -403,7 +428,28 @@ export const declineWorkers = (req: Request<ParamsDictionary, unknown, IBaseBody
       }
     }
     body.updateFilterQuery = { 'contracts._id': id }
-    return next()
+    // when agency declines a worker/workers, remove workContract id
+    // from his/their workContracts.requested array and add it to
+    // his/their workContracts.declined array
+    return Worker.updateMany(
+      { _id: { $in: body.workersArray } },
+      {
+        $pull: {
+          'workContracts.requested': id,
+        },
+        $addToSet: { 'workContracts.declined': id }
+      },
+      { lean: true, multi: true },
+      (error: CallbackError, result: DocumentDefinition<IWorkerDocument> | null) => {
+        if (error || !result) {
+          return res.status(500).send(error || { message: "Cannot update workContracts for a worker" })
+        } else {
+          console.log("Result", result)
+          return next()
+        }
+      }
+    )
+    //return next()
   } catch (exception) {
     return res.status(500).send({ exception })
   }

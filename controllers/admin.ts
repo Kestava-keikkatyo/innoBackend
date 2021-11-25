@@ -12,7 +12,7 @@
 import express, { NextFunction, Request, Response } from 'express'
 import Agency from "../models/Agency"
 import Worker from "../models/Worker"
-import { IAdmin, IAdminDocument, IAgency, IAgencyDocument, IBusiness, IBusinessDocument, IBusinessContractDocument, INotificationsDocument,IProfile, IProfileDocument, IWorker, IWorkerDocument } from "../objecttypes/modelTypes";
+import { IAdmin, IAdminDocument, IAgency, IAgencyDocument, IBusiness, IBusinessDocument, IBusinessContractDocument, INotificationsDocument, IProfile, IProfileDocument, IWorker, IWorkerDocument } from "../objecttypes/modelTypes";
 import { needsToBeAdmin } from '../utils/middleware';
 import Admin from '../models/Admin'
 import Business from '../models/Business'
@@ -24,6 +24,7 @@ import Notifications from '../models/Notifications';
 import Profile from '../models/Profile';
 import { addProfileToAgencyBusinessOrWorker } from './profile';
 import BusinessContract from '../models/BusinessContract';
+import { IBaseBody } from './../objecttypes/otherTypes';
 
 const adminRouter = express.Router()
 
@@ -40,9 +41,9 @@ const adminRouter = express.Router()
  *         description: User was created
  *       "400":
  *         description: User couldn't be created due to restrictions etc.
- * 
+ *
  */
- adminRouter.post("/:userType", authenticateToken, needsToBeAdmin, async (req: Request<{userType: string, userId: string}, unknown, IAgency | IWorker | IBusiness | IAdmin>, res: Response, next: NextFunction) => {
+adminRouter.post("/:userType", authenticateToken, needsToBeAdmin, async (req: Request<{ userType: string, userId: string }, unknown, IAgency | IWorker | IBusiness | IAdmin>, res: Response, next: NextFunction) => {
   const { params, body } = req
   const { userType } = params
 
@@ -55,7 +56,7 @@ const adminRouter = express.Router()
     const saltRounds: number = 10
     const passwordHash: string = await hash(body.password, saltRounds)
 
-    let user : IAgencyDocument | IWorkerDocument | IBusinessDocument | IAdminDocument | null = null;
+    let user: IAgencyDocument | IWorkerDocument | IBusinessDocument | IAdminDocument | null = null;
     switch (userType.toLowerCase()) {
       case 'worker':
         try {
@@ -68,7 +69,7 @@ const adminRouter = express.Router()
         } catch (exception) {
           return next(exception)
         }
-        
+
         break;
       case 'business':
         try {
@@ -98,7 +99,7 @@ const adminRouter = express.Router()
               businesses: [],
               workers: [],
             },
-            pendingContracts:{
+            pendingContracts: {
               businesses: [],
               workers: []
             },
@@ -135,7 +136,7 @@ const adminRouter = express.Router()
         break;
     }
 
-    if (!user) return res.status(400).send({error: "Couldn't create a user"});
+    if (!user) return res.status(400).send({ error: "Couldn't create a user" });
 
     // Create notification for the new user
     const notificationDocument: INotificationsDocument = new Notifications({
@@ -156,8 +157,8 @@ const adminRouter = express.Router()
 
     return addProfileToAgencyBusinessOrWorker(user.userType, user._id, profileResult, res, next);
 
-    
-    
+
+
 
   } catch (exception) {
     return next(exception)
@@ -176,32 +177,32 @@ const adminRouter = express.Router()
  *         description: User was deleted
  *       "304":
  *         description: User couldn't be deleted due to restrictions etc.
- * 
+ *
  */
-adminRouter.delete("/:userType/:userId", authenticateToken, needsToBeAdmin, async (req: Request<{userType: string, userId: string}, unknown, IAgency | IWorker | IBusiness | IAdmin>, res: Response, next: NextFunction) => {
+adminRouter.delete("/:userType/:userId", authenticateToken, needsToBeAdmin, async (req: Request<{ userType: string, userId: string }, unknown, IAgency | IWorker | IBusiness | IAdmin>, res: Response, next: NextFunction) => {
   const { params } = req
   const { userType, userId } = params
 
   try {
-    let user : IAgencyDocument | IWorkerDocument | IBusinessDocument | IAdminDocument | null = null;
+    let user: IAgencyDocument | IWorkerDocument | IBusinessDocument | IAdminDocument | null = null;
     switch (userType.toLowerCase()) {
       case 'worker':
-        user = await Worker.findOneAndDelete({_id: userId, workContracts: {$eq: []}, businessContracts: {$eq: []} });
+        user = await Worker.findOneAndDelete({ _id: userId, workContracts: { $eq: { requested: [], accepted: [], declined: [] } }, businessContracts: { $eq: [] } });
         break;
       case 'business':
-        user = await Business.findOneAndDelete({_id: userId, workContracts: {$eq: []}, businessContracts: {$eq: []}, forms: {$eq: []} });
+        user = await Business.findOneAndDelete({ _id: userId, workContracts: { $eq: [] }, businessContracts: { $eq: [] }, forms: { $eq: [] } });
         break;
       case 'agency':
-        user = await Agency.findOneAndDelete({_id: userId, workContracts: {$eq: []}, businessContracts: {$eq: []}, forms: {$eq: []} });
+        user = await Agency.findOneAndDelete({ _id: userId, workContracts: { $eq: [] }, businessContracts: { $eq: [] }, forms: { $eq: [] } });
         break;
       case 'admin':
-        user = await Admin.findOneAndDelete({_id: userId });
+        user = await Admin.findOneAndDelete({ _id: userId });
         break;
     }
 
     if (user) {
-      await Profile.remove({_id: user.profile}).exec();
-      await Notifications.deleteMany({userId: user._id}).exec();
+      await Profile.remove({ _id: user.profile }).exec();
+      await Notifications.deleteMany({ userId: user._id }).exec();
       console.log(`${userType} ${user.name} was deleted.`);
 
     }
@@ -215,30 +216,30 @@ adminRouter.delete("/:userType/:userId", authenticateToken, needsToBeAdmin, asyn
   }
 })
 
-adminRouter.patch("/:userType/:userId", authenticateToken, needsToBeAdmin, async (req: Request<{userType: string, userId: string}, IAgency | IWorker | IBusiness | IAdmin>, res: Response, next: NextFunction) => {
+adminRouter.patch("/:userType/:userId", authenticateToken, needsToBeAdmin, async (req: Request<{ userType: string, userId: string }, IAgency | IWorker | IBusiness | IAdmin>, res: Response, next: NextFunction) => {
   const { params, body } = req
   const { userType, userId } = params
   const { active } = body
-  
+
   try {
 
-    let user : IAgencyDocument | IWorkerDocument | IBusinessDocument | IAdminDocument | null = null;
+    let user: IAgencyDocument | IWorkerDocument | IBusinessDocument | IAdminDocument | null = null;
     switch (userType.toLowerCase()) {
       case 'worker':
-        user = await Worker.findByIdAndUpdate({_id: userId}, { active }, { new: true, runValidators: true });
+        user = await Worker.findByIdAndUpdate({ _id: userId }, { active }, { new: true, runValidators: true });
         break;
       case 'business':
-        user = await Business.findByIdAndUpdate({_id: userId}, { active }, { new: true, runValidators: true });
+        user = await Business.findByIdAndUpdate({ _id: userId }, { active }, { new: true, runValidators: true });
         break;
       case 'agency':
-        user = await Agency.findByIdAndUpdate({_id: userId}, { active }, { new: true, runValidators: true });
+        user = await Agency.findByIdAndUpdate({ _id: userId }, { active }, { new: true, runValidators: true });
         break;
       case 'admin':
-        user = await Admin.findByIdAndUpdate({_id: userId}, { active }, { new: true, runValidators: true });
+        user = await Admin.findByIdAndUpdate({ _id: userId }, { active }, { new: true, runValidators: true });
         break;
     }
-  
-      
+
+
     if (user) {
       console.log(`${userType} ${user.name} was deactivated.`);
 
@@ -253,7 +254,7 @@ adminRouter.patch("/:userType/:userId", authenticateToken, needsToBeAdmin, async
   }
 })
 
-adminRouter.put("/:userType/:userId", authenticateToken, needsToBeAdmin, async (req: Request<{userType: string, userId: string}, unknown, IAgency | IWorker | IBusiness | IAdmin>, res: Response, next: NextFunction) => {
+adminRouter.put("/:userType/:userId", authenticateToken, needsToBeAdmin, async (req: Request<{ userType: string, userId: string }, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { params } = req
   const { userType, userId } = params
 
@@ -266,23 +267,23 @@ adminRouter.put("/:userType/:userId", authenticateToken, needsToBeAdmin, async (
   }*/
 
   try {
-    let user : IAgencyDocument | IWorkerDocument | IBusinessDocument | IAdminDocument | null = null;
+    let user: IAgencyDocument | IWorkerDocument | IBusinessDocument | IAdminDocument | null = null;
     switch (userType.toLowerCase()) {
       case 'worker':
-        user = await Worker.findByIdAndUpdate({_id: userId}, req.body, { new: true, runValidators: true });
+        user = await Worker.findByIdAndUpdate({ _id: userId }, req.body, { new: true, runValidators: true });
         break;
       case 'business':
-        user = await Business.findByIdAndUpdate({_id: userId}, req.body, { new: true, runValidators: true });
+        user = await Business.findByIdAndUpdate({ _id: userId }, req.body, { new: true, runValidators: true });
         break;
       case 'agency':
-        user = await Agency.findByIdAndUpdate({_id: userId}, req.body, { new: true, runValidators: true });
+        user = await Agency.findByIdAndUpdate({ _id: userId }, req.body, { new: true, runValidators: true });
         break;
       case 'admin':
-        user = await Admin.findByIdAndUpdate({_id: userId}, req.body, { new: true, runValidators: true });
+        user = await Admin.findByIdAndUpdate({ _id: userId }, req.body, { new: true, runValidators: true });
         break;
     }
 
-    
+
     if (user) {
       console.log(`${userType} ${user.name} was updated`);
 
@@ -297,14 +298,14 @@ adminRouter.put("/:userType/:userId", authenticateToken, needsToBeAdmin, async (
   }
 })
 
-adminRouter.put("/:profileId", authenticateToken, needsToBeAdmin, async (req: Request<{profileId: string}, unknown, IProfile>, res: Response, next: NextFunction) => {
+adminRouter.put("/:profileId", authenticateToken, needsToBeAdmin, async (req: Request<{ profileId: string }, unknown, IProfile>, res: Response, next: NextFunction) => {
   const { params } = req
   const { profileId } = params
-  
+
   try {
-    let profile : IProfileDocument | null = null;
-    profile = await Profile.findByIdAndUpdate({_id: profileId}, req.body, { new: true, runValidators: true });
-    
+    let profile: IProfileDocument | null = null;
+    profile = await Profile.findByIdAndUpdate({ _id: profileId }, req.body, { new: true, runValidators: true });
+
     if (profile) {
       console.log(`${profileId} was updated`);
 
