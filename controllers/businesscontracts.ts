@@ -380,9 +380,9 @@ businesscontractsRouter.post("/", authenticateToken, needsToBeAgency, makeBusine
 
 /**
  * @openapi
- * /businesscontracts:
+ * /businesscontracts/send/{businessContractId}/:
  *   put:
- *     summary: Route to send businessContract request from agency back to agency.
+ *     summary: Route to send businessContract request from business/worker back to agency.
  *     description: |
  *       Must be logged in as an Worker or Business. Pulls userId and formId from
  *       pendingContracts.businesses and pushes userId and formId to requestContracts.businesses.
@@ -398,7 +398,7 @@ businesscontractsRouter.post("/", authenticateToken, needsToBeAgency, makeBusine
 businesscontractsRouter.put("/send/:businessContractId/", authenticateToken, needsToBeBusinessOrWorker, businessContractExists, initBusinessContractSendUpdate, businessContractUpdate)
 /**
  * @openapi
- * /businesscontracts:
+ * /businesscontracts/refuse/{businessContractId}/:
  *   put:
  *     summary: Route to refuse businessContract request from agency.
  *     description: |
@@ -416,7 +416,7 @@ businesscontractsRouter.put("/send/:businessContractId/", authenticateToken, nee
 businesscontractsRouter.put("/refuse/:businessContractId/", authenticateToken, needsToBeBusinessOrWorker, businessContractExists, initBusinessContractDeclineUpdate, businessContractUpdate)
 /**
  * @openapi
- * /businesscontracts:
+ * /businesscontracts/{businessContractId}/{userId}/accept:
  *   put:
  *     summary: Route to accept businessContract that was accepted by Worker or Business.
  *     description: |
@@ -435,7 +435,7 @@ businesscontractsRouter.put("/refuse/:businessContractId/", authenticateToken, n
 businesscontractsRouter.put("/:businessContractId/:userId/accept", authenticateToken, needsToBeAgency, businessContractExists, initBusinessContractAcceptUpdate, businessContractAgencyUpdate)
 /**
  * @openapi
- * /businesscontracts:
+ * /businesscontracts/{businessContractId}/{userId}/sendBack:
  *  put:
  *    summary: Route to send back businesscontract to Worker or Business.
  *    description: |
@@ -454,7 +454,7 @@ businesscontractsRouter.put("/:businessContractId/:userId/accept", authenticateT
 businesscontractsRouter.put("/:businessContractId/:userId/sendBack", authenticateToken, needsToBeAgency, businessContractExists, initBusinessContractSendBackUpdate, businessContractAgencyUpdate)
 /**
 * @openapi
-* /businesscontracts:
+* /businesscontracts/{businessContractId}/saveForm:
 *   put:
 *     summary: Route to change formId inside pendingContracts.businesses or pendingContracts.workers.
 *     description: |
@@ -471,7 +471,7 @@ businesscontractsRouter.put("/:businessContractId/:userId/sendBack", authenticat
 businesscontractsRouter.put("/:businessContractId/saveForm", authenticateToken, needsToBeBusinessOrWorker, businessContractExists, initBusinessContractFormUpdate, businessContractUpdate)
 /**
  * @openapi
- * /businesscontracts/{businessContractId}/add:
+ * /businesscontracts/{businessContractId}/{agencyId}/add:
  *   put:
  *     summary: Route to add worker or business to BusinessContract.
  *     description: |
@@ -496,7 +496,7 @@ businesscontractsRouter.put("/:businessContractId/saveForm", authenticateToken, 
  *     responses:
  *       # TODO Check responses from middleware and list them here.
  */
-businesscontractsRouter.put("/:businessContractId/add", authenticateToken, needsToBeBusinessOrWorker, businessContractExists, addContractToBusinessContract, businessContractUpdate)
+businesscontractsRouter.put("/:businessContractId/:agencyId/add", authenticateToken, needsToBeBusinessOrWorker, businessContractExists, addContractToBusinessContract, businessContractUpdate)
 /**
  * @openapi
  * /businesscontracts/{businessContractId}/{userId}/add:

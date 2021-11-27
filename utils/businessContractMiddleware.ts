@@ -149,8 +149,8 @@ export const makeBusinessContract = (_req: Request, res: Response) => {
   }
 }
 /**
- * This middleware function is used to add worker or business to BusinessContract.
- * Used in put "/:businessContractId/add" route. Function initializes update that
+ * This middleware function is used by worker or business to add themselves to BusinessContract.
+ * Used in put "/:businessContractId/:agencyId/add" route. Function initializes update that
  * adds userId to BusinessContractDocumentObject receivedContracts workers or businesses array.
  * After initialization is finnished function returns next().
  * If user is already in contract this fucntion return message informing that user is in contract with
@@ -163,54 +163,78 @@ export const makeBusinessContract = (_req: Request, res: Response) => {
 export const addContractToBusinessContract = async (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { body, params } = req
   let businessContractId: Types.ObjectId
-  let userId: Types.ObjectId
+  let userId: Types.ObjectId // business or worker
+  let agencyId: Types.ObjectId
+  let found: Boolean
+
+  let businessContractFormId: any
+  if (body.form) {
+    businessContractFormId = Types.ObjectId(body.form)
+  } else {
+    businessContractFormId = null
+  }
+
+  console.log("businessContractFormId", businessContractFormId)
+
   try {
     businessContractId = Types.ObjectId(params.businessContractId)
     userId = Types.ObjectId(res.locals.decoded.id)
+    agencyId = Types.ObjectId(params.agencyId)
     body.businessContractUpdateFilterQuery = { _id: businessContractId }
   } catch (exception) {
     return res.status(403).send({ message: "Note: businessContractId must be string." })
   }
   try {
     //Täytyy tarkistaa ennen kuin update voidaan alustaa että onko käyttäjä jo tehnyt asiakassopimuksen yrityksen kanssa.
-    const index: IBusinessDocument[] = await Business.find({ _id: userId })
-    if (index.length == 1) {
-      return Business.updateOne({ _id: userId }, { $addToSet: { businessContracts: businessContractId } }, null, (err, result) => {
+    const business: IBusinessDocument | null = await Business.findOne({ _id: userId })
+    if (business) {
+      found = business.businessContracts.some((bc: any) => bc.toString() === businessContractId.toString());
+      if (found) {
+        return res.status(409).send({ message: `Business is already in contract ${businessContractId.toString()}` })
+      }
+
+      return Business.updateOne({ _id: userId }, { $addToSet: { businessContracts: businessContractId } }, null, async (err, result) => {
         if (err || !result) {
           return res.status(500).send({ message: err })
         }
-        else if (result.nModified === 0) {
-          return res.status(409).send({ message: "Business is already in contract." })
-        }
-        else {
-          body.businessContractUpdate = {
-            $addToSet: {
-              'receivedContracts.businesses': { businessId: userId, formId: null }
-            }
+
+        body.businessContractUpdate = {
+          $addToSet: {
+            'receivedContracts.businesses': { businessId: userId, formId: businessContractFormId }
           }
-          body.businessContractUpdateFilterQuery = { _id: businessContractId }
-          return next()
         }
+        body.businessContractUpdateFilterQuery = { _id: businessContractId }
+
+        if (businessContractFormId) {
+          await Agency.updateOne({ _id: agencyId }, { $addToSet: { businessContractForms: businessContractFormId } })
+        }
+        return next()
+
       })
     } else {
-      const index: IWorkerDocument[] = await Worker.find({ _id: userId })
-      if (index.length == 1) {
-        return Worker.updateOne({ _id: userId }, { $addToSet: { businessContracts: businessContractId } }, null, (err, result) => {
+      const worker: IWorkerDocument | null = await Worker.findOne({ _id: userId })
+      if (worker) {
+        found = worker.businessContracts.some((bc: any) => bc.toString() === businessContractId.toString());
+        if (found) {
+          return res.status(409).send({ message: `Worker is already in contract ${businessContractId.toString()}` })
+        }
+
+        return Worker.updateOne({ _id: userId }, { $addToSet: { businessContracts: businessContractId } }, null, async (err, result) => {
           if (err || !result) {
             return res.status(500).send({ message: "Something went wrong with update." })
           }
-          else if (result.nModified === 0) {
-            return res.status(409).send({ message: "Worker is already in contract." })
-          }
-          else {
-            body.businessContractUpdate = {
-              $addToSet: {
-                'receivedContracts.workers': { workerId: userId, formId: null }
-              }
+          body.businessContractUpdate = {
+            $addToSet: {
+              'receivedContracts.workers': { workerId: userId, formId: businessContractFormId }
             }
-            body.businessContractUpdateFilterQuery = { _id: businessContractId }
-            return next()
           }
+          body.businessContractUpdateFilterQuery = { _id: businessContractId }
+
+          if (businessContractFormId) {
+            await Agency.updateOne({ _id: agencyId }, { $addToSet: { businessContractForms: businessContractFormId } })
+          }
+          return next()
+
         })
       } else {
         return res.status(404).send({ message: "Couldn't find user who matches" + userId })
@@ -301,12 +325,14 @@ export const declineBusinessContract = async (req: Request<ParamsDictionary, unk
   const { body, params } = req
   let businessContractId: Types.ObjectId
   let userId: Types.ObjectId
+
   try {
     businessContractId = Types.ObjectId(params.businessContractId)
     userId = Types.ObjectId(params.userId)
   } catch (exception) {
     return res.status(403).send({ message: "Note: businessContractId and userId must be string." })
   }
+
   try {
     //Aluksi tarkistetaan että Agency on Asiakassopimuksen omistaja.
     if (body.businessContract !== undefined && res.locals.decoded.id.toString() !== body.businessContract.agency.toString()) {
@@ -320,6 +346,7 @@ export const declineBusinessContract = async (req: Request<ParamsDictionary, unk
           $pull: {
             'requestContracts.businesses': { businessId: userId },
             'pendingContracts.businesses': { businessId: userId },
+            'receivedContracts.businesses': { businessId: userId },
           }
         }
         body.businessContractUpdateFilterQuery = { _id: businessContractId }
@@ -337,7 +364,8 @@ export const declineBusinessContract = async (req: Request<ParamsDictionary, unk
           body.businessContractUpdate = {
             $pull: {
               'requestContracts.workers': { workerId: userId },
-              'pendingContracts.workers': { workerId: userId }
+              'pendingContracts.workers': { workerId: userId },
+              'receivedContracts.workers': { workerId: userId },
             }
           }
           body.businessContractUpdateFilterQuery = { _id: businessContractId }
