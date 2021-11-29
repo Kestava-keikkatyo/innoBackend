@@ -496,7 +496,7 @@ businesscontractsRouter.put("/:businessContractId/saveForm", authenticateToken, 
  *     responses:
  *       # TODO Check responses from middleware and list them here.
  */
-businesscontractsRouter.put("/:businessContractId/:agencyId/add", authenticateToken, needsToBeBusinessOrWorker, businessContractExists, addContractToBusinessContract, businessContractUpdate)
+businesscontractsRouter.put("/add/:businessContractId/:agencyId", authenticateToken, needsToBeBusinessOrWorker, businessContractExists, addContractToBusinessContract, businessContractUpdate)
 /**
  * @openapi
  * /businesscontracts/{businessContractId}/{userId}/add:
