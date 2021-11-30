@@ -25,6 +25,7 @@ import Profile from '../models/Profile';
 import { addProfileToAgencyBusinessOrWorker } from './profile';
 import BusinessContract from '../models/BusinessContract';
 import { IBaseBody } from './../objecttypes/otherTypes';
+import { CallbackError } from 'mongoose';
 
 const adminRouter = express.Router()
 
@@ -258,14 +259,6 @@ adminRouter.put("/:userType/:userId", authenticateToken, needsToBeAdmin, async (
   const { params } = req
   const { userType, userId } = params
 
-  /*const updates = Object.keys(req.body)
-  const allowedUpdates = ['name' , 'email', 'password']
-  const isValidOperation = updates.every((update) => allowedUpdates.includes(update))
-
-  if (!isValidOperation) {
-      return res.status(400).send({ error: 'Invalid updates!' })
-  }*/
-
   try {
     let user: IAgencyDocument | IWorkerDocument | IBusinessDocument | IAdminDocument | null = null;
     switch (userType.toLowerCase()) {
@@ -320,6 +313,23 @@ adminRouter.put("/:profileId", authenticateToken, needsToBeAdmin, async (req: Re
   }
 })
 
-
+adminRouter.get("/me", authenticateToken, async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    Admin.findById(res.locals.decoded.id,
+      undefined,
+      undefined,
+      (error: CallbackError, result: IAdminDocument | null) => {
+        if (error) {
+          res.status(500).send(error)
+        } else if (!result) { //Jos ei resultia niin käyttäjän tokenilla ei löydy käyttäjää
+          res.status(401).send({ message: "Not authorized" })
+        } else {
+          res.status(200).send(result)
+        }
+      })
+  } catch (exception) {
+    next(exception)
+  }
+})
 
 export default adminRouter
