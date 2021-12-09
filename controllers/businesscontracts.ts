@@ -471,7 +471,7 @@ businesscontractsRouter.put("/:businessContractId/:userId/sendBack", authenticat
 businesscontractsRouter.put("/:businessContractId/saveForm", authenticateToken, needsToBeBusinessOrWorker, businessContractExists, initBusinessContractFormUpdate, businessContractUpdate)
 /**
  * @openapi
- * /businesscontracts/{businessContractId}/{agencyId}/add:
+ * /businesscontracts/add/{businessContractId}/{agencyId}:
  *   put:
  *     summary: Route to add worker or business to BusinessContract.
  *     description: |

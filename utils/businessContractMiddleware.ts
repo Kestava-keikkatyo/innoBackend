@@ -707,10 +707,10 @@ export const initBusinessContractSendBackUpdate = async (req: Request<ParamsDict
     if (body.businessContract !== undefined && agencyId.toString() !== body.businessContract.agency.toString()) {
       return res.status(401).send({ message: "Agency was not right owner of BusinessContract." })
     }
-    const index: IBusinessDocument[] = await Business.find({ _id: userId })
-    if (index.length == 1) {
+    const business: IBusinessDocument | null = await Business.findOne({ _id: userId })
+    if (business) {
       //Tarkistetaan onko Yrityksen kanssa tehty asiakassopimus.
-      if (index[0].businessContracts.includes(businessContractId)) {
+      if (business.businessContracts.includes(businessContractId)) {
         body.businessContractUpdate = {
           $pull: {
             'requestContracts.businesses': { businessId: userId },
@@ -721,16 +721,22 @@ export const initBusinessContractSendBackUpdate = async (req: Request<ParamsDict
           }
         }
         body.businessContractUpdateFilterQuery = { _id: businessContractId }
+
+        const formIdFound = business.businessContractForms.some((item: any) => item.toString() === formId.toString())
+        if (!formIdFound) {
+          await Business.updateOne({ _id: userId }, { $addToSet: { businessContractForms: formId } })
+        }
+
         //Jos ei ole tehty suoritetaan elsen osio.
       } else {
         //Lähetetään vastausteksti missä kerrotaan että Yritys ei löytynyt sopimuksesta.
         return res.status(400).send({ message: "Business was not in contract." })
       }
     } else {
-      const index: IWorkerDocument[] = await Worker.find({ _id: userId })
-      if (index.length == 1) {
+      const worker: IWorkerDocument | null = await Worker.findOne({ _id: userId })
+      if (worker) {
         //Tarkistetaan onko Työntekijän kanssa tehty asiakassopimus.
-        if (index[0].businessContracts.includes(businessContractId)) {
+        if (worker.businessContracts.includes(businessContractId)) {
           body.businessContractUpdate = {
             $pull: {
               'requestContracts.workers': { workerId: userId },
@@ -741,6 +747,11 @@ export const initBusinessContractSendBackUpdate = async (req: Request<ParamsDict
             }
           }
           body.businessContractUpdateFilterQuery = { _id: businessContractId }
+
+          const formIdFound = worker.businessContractForms.some((item: any) => item.toString() === formId.toString())
+          if (!formIdFound) {
+            await Worker.updateOne({ _id: userId }, { $addToSet: { businessContractForms: formId } })
+          }
           //Jos ei ole tehty suoritetaan elsen osio.
         } else {
           //Lähetetään vastausteksti missä kerrotaan että Työntekijä ei löytynyt sopimuksesta.
