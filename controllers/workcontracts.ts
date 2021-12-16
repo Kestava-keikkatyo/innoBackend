@@ -37,8 +37,10 @@ import { ParamsDictionary } from "express-serve-static-core"
 import {
   acceptWorkContract, acceptWorkers,
   addTraceToWorker,
+  addTraceToWorkers,
   addWorkerToWorkContract, checkUserInWorkContract, declineWorkers,
-  newContractToWorkContract, workContractExists, revertWorkers, updateWorkContract, workContractIncludesUser
+  newContractToWorkContract, workContractExists, revertWorkers, updateWorkContract, workContractIncludesUser,
+  addWorkersToWorkContract
 } from "../utils/workContractMiddleware";
 const workcontractsRouter = express.Router()
 
@@ -685,4 +687,47 @@ workcontractsRouter.delete("/:contractId",
       return next(exception)
     }
   })
+
+/**
+ * @openapi
+ * /workcontracts/{contractId}/{contractsId}/addworkers:
+ *   put:
+ *     summary: Route used by agency to add workers (from own workers list) to the acceptedWorkers array of a contract in WorkContract
+ *     description: |
+ *       Must be logged in as an agency.
+ *       Route used by agency to add workers (from own workers list) to the acceptedWorkers array of a contract in WorkContract.
+ *       Structure in database like: workContract.contracts[?].acceptedWorkers[id1, id2, ...]
+ *     tags: [Agency, WorkContract]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: contractId
+ *         description: ID of the work contract which we want.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 6031524530c1de2568fb6606
+ *       - in: path
+ *         name: contractsId
+ *         description: ID of the specific work contract between agency and business.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 6031524530c1de2568fb6660
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *             example: {"workersArray": [ "61953c869eb00e09e45358a2", "61bafc3123ededa56e448cb2" ]}
+ *     responses:
+ *       # TODO Check responses from middleware and list them here.
+ */
+workcontractsRouter.put("/:contractId/:contractsId/addworkers", authenticateToken, needsToBeAgency, workContractExists, addWorkersToWorkContract, addTraceToWorkers, updateWorkContract)
 export default workcontractsRouter

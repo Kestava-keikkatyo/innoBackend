@@ -454,4 +454,79 @@ export const declineWorkers = (req: Request<ParamsDictionary, unknown, IBaseBody
     return res.status(500).send({ exception })
   }
 }
+
+/**
+ * Used by agency to add workers (from own workers list) to a contract in WorkContract.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next - NextFunction.
+ * @throws {JSON} Status 403 - res.body: { error:err, message:"contractsId must be a valid string." }
+ * @returns {NextFunction} next()
+ */
+export const addWorkersToWorkContract = (req: Request<ParamsDictionary, unknown, IBaseBody>, res: Response, next: NextFunction) => {
+  const { body, params } = req
+  let contractsId: Types.ObjectId
+  try {
+    contractsId = Types.ObjectId(params.contractsId)
+  } catch (exception) {
+    return res.status(403).send({ message: "contractsId must be a valid string." })
+  }
+  try {
+
+    body.workContractUpdate = {
+      $pull: {
+        'contracts.$.requestWorkers': { $in: body.workersArray }
+      },
+      $addToSet: {
+        'contracts.$.acceptedWorkers': { $each: body.workersArray }
+      }
+    }
+    body.updateFilterQuery = { 'contracts._id': contractsId }
+
+    return next()
+
+  } catch (exception) {
+    return res.status(500).send({ exception })
+  }
+}
+
+/**
+ * Middleware function is used by angecy to add trace to workers which have been choosen to do a contract in WorkContract.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next - NextFunction.
+ * @throws {JSON} Status 403 - res.body: { message:"contractsId must be a valid string." }
+ */
+export const addTraceToWorkers = (req: Request, res: Response, next: NextFunction) => {
+  const { body, params } = req
+  let contractsId: Types.ObjectId
+  try {
+    contractsId = Types.ObjectId(params.contractsId)
+  } catch (exception) {
+    return res.status(403).send({ message: "contractsId must be a valid string." })
+  }
+  try {
+    return Worker.updateMany(
+      { _id: { $in: body.workersArray } },
+      {
+        $pull: {
+          'workContracts.requested': contractsId,
+        },
+        $addToSet: {
+          'workContracts.accepted': contractsId
+        }
+      },
+      { lean: true },
+      (error: CallbackError, result: DocumentDefinition<IWorkerDocument> | null) => {
+        if (error || !result) {
+          return res.status(500).send(error || { message: "Received no result from database when updating worker" })
+        } else {
+          return next()
+        }
+      }
+    )
+  } catch (exception) {
+    return res.status(500).send({ exception })
+  }
+}
 export default {}
