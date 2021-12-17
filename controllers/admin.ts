@@ -8,27 +8,41 @@
  * @type {object}
  * @const
  * @namespace adminRouter
-*/
-import express, { NextFunction, Request, Response } from 'express'
-import Agency from "../models/Agency"
-import Worker from "../models/Worker"
-import { IAdmin, IAdminDocument, IAgency, IAgencyDocument, IBusiness, IBusinessDocument, IBusinessContractDocument, INotificationsDocument, IProfile, IProfileDocument, IWorker, IWorkerDocument } from "../objecttypes/modelTypes";
-import { needsToBeAdmin } from '../utils/middleware';
-import Admin from '../models/Admin'
-import Business from '../models/Business'
-import authenticateToken from '../utils/auhenticateToken';
+ */
+import express, { NextFunction, Request, Response } from "express";
+import Agency from "../models/Agency";
+import Worker from "../models/Worker";
+import {
+  IAdmin,
+  IAdminDocument,
+  IAgency,
+  IAgencyDocument,
+  IBusiness,
+  IBusinessDocument,
+  IBusinessContractDocument,
+  INotificationsDocument,
+  IProfile,
+  IProfileDocument,
+  IWorker,
+  IWorkerDocument,
+  IReportDocument,
+} from "../objecttypes/modelTypes";
+import { needsToBeAdmin } from "../utils/middleware";
+import Admin from "../models/Admin";
+import Business from "../models/Business";
+import authenticateToken from "../utils/auhenticateToken";
 //import BusinessContract from '../models/BusinessContract';
-import { hash } from "bcryptjs"
+import { hash } from "bcryptjs";
 //import { sign } from "jsonwebtoken"
-import Notifications from '../models/Notifications';
-import Profile from '../models/Profile';
-import { addProfileToAgencyBusinessOrWorker } from './profile';
-import BusinessContract from '../models/BusinessContract';
-import { IBaseBody } from './../objecttypes/otherTypes';
-import { CallbackError } from 'mongoose';
+import Notifications from "../models/Notifications";
+import Profile from "../models/Profile";
+import { addProfileToAgencyBusinessOrWorker } from "./profile";
+import BusinessContract from "../models/BusinessContract";
+import { IBaseBody } from "./../objecttypes/otherTypes";
+import { CallbackError, DocumentDefinition } from "mongoose";
+import Report from "../models/Report";
 
-const adminRouter = express.Router()
-
+const adminRouter = express.Router();
 
 /**
  * @openapi
@@ -44,127 +58,151 @@ const adminRouter = express.Router()
  *         description: User couldn't be created due to restrictions etc.
  *
  */
-adminRouter.post("/:userType", authenticateToken, needsToBeAdmin, async (req: Request<{ userType: string, userId: string }, unknown, IAgency | IWorker | IBusiness | IAdmin>, res: Response, next: NextFunction) => {
-  const { params, body } = req
-  const { userType } = params
+adminRouter.post(
+  "/:userType",
+  authenticateToken,
+  needsToBeAdmin,
+  async (
+    req: Request<
+      { userType: string; userId: string },
+      unknown,
+      IAgency | IWorker | IBusiness | IAdmin
+    >,
+    res: Response,
+    next: NextFunction
+  ) => {
+    const { params, body } = req;
+    const { userType } = params;
 
-  try {
+    try {
+      const passwordLength: number = body.password ? body.password.length : 0;
+      if (passwordLength < 3) {
+        return res
+          .status(400)
+          .json({ message: "Password length less than 3 characters" });
+      }
+      const saltRounds: number = 10;
+      const passwordHash: string = await hash(body.password, saltRounds);
 
-    const passwordLength: number = body.password ? body.password.length : 0
-    if (passwordLength < 3) {
-      return res.status(400).json({ message: "Password length less than 3 characters" })
-    }
-    const saltRounds: number = 10
-    const passwordHash: string = await hash(body.password, saltRounds)
-
-    let user: IAgencyDocument | IWorkerDocument | IBusinessDocument | IAdminDocument | null = null;
-    switch (userType.toLowerCase()) {
-      case 'worker':
-        try {
-          const workerToCreate: IWorkerDocument = new Worker({
-            name: body.name,
-            email: body.email,
-            passwordHash,
-          })
-          user = await workerToCreate.save() //TODO use callback and check for errors
-        } catch (exception) {
-          return next(exception)
-        }
-
-        break;
-      case 'business':
-        try {
-          const businessToCreate: IBusinessDocument = new Business({
-            name: body.name,
-            email: body.email,
-            passwordHash,
-          })
-          user = await businessToCreate.save() //TODO use callback and check for errors
-        } catch (exception) {
-          return next(exception)
-        }
-        break;
-      case 'agency':
-        try {
-          const agencyToCreate: IAgencyDocument = new Agency({
-            name: body.name,
-            email: body.email,
-            passwordHash,
-          })
-          user = await agencyToCreate.save() //TODO use callback and check for errors
-
-          // Create business contracts for the new user (Agency)
-          const businessContractDocument: IBusinessContractDocument = new BusinessContract({
-            userId: user._id,
-            receivedContracts: {
-              businesses: [],
-              workers: [],
-            },
-            pendingContracts: {
-              businesses: [],
-              workers: []
-            },
-            madeContracts: {
-              buinesses: [],
-              workers: []
-            },
-            requestContracts: {
-              businesses: [],
-              workers: []
-            }
-          })
-          const businessContracts = await businessContractDocument.save();
-          if (businessContracts) {
-            user = await Agency.findOneAndUpdate(
-              { _id: user._id },
-              { $addToSet: { businessContracts: businessContracts._id } })
+      let user:
+        | IAgencyDocument
+        | IWorkerDocument
+        | IBusinessDocument
+        | IAdminDocument
+        | null = null;
+      switch (userType.toLowerCase()) {
+        case "worker":
+          try {
+            const workerToCreate: IWorkerDocument = new Worker({
+              name: body.name,
+              email: body.email,
+              passwordHash,
+            });
+            user = await workerToCreate.save(); //TODO use callback and check for errors
+          } catch (exception) {
+            return next(exception);
           }
-        } catch (exception) {
-          return next(exception)
-        }
-        break;
-      case 'admin':
-        try {
-          const adminToCreate: IAdminDocument = new Admin({
-            name: body.name,
-            email: body.email,
-            passwordHash,
-          })
-          user = await adminToCreate.save() //TODO use callback and check for errors
-        } catch (exception) {
-          return next(exception)
-        }
-        break;
+
+          break;
+        case "business":
+          try {
+            const businessToCreate: IBusinessDocument = new Business({
+              name: body.name,
+              email: body.email,
+              passwordHash,
+            });
+            user = await businessToCreate.save(); //TODO use callback and check for errors
+          } catch (exception) {
+            return next(exception);
+          }
+          break;
+        case "agency":
+          try {
+            const agencyToCreate: IAgencyDocument = new Agency({
+              name: body.name,
+              email: body.email,
+              passwordHash,
+            });
+            user = await agencyToCreate.save(); //TODO use callback and check for errors
+
+            // Create business contracts for the new user (Agency)
+            const businessContractDocument: IBusinessContractDocument =
+              new BusinessContract({
+                userId: user._id,
+                receivedContracts: {
+                  businesses: [],
+                  workers: [],
+                },
+                pendingContracts: {
+                  businesses: [],
+                  workers: [],
+                },
+                madeContracts: {
+                  buinesses: [],
+                  workers: [],
+                },
+                requestContracts: {
+                  businesses: [],
+                  workers: [],
+                },
+              });
+            const businessContracts = await businessContractDocument.save();
+            if (businessContracts) {
+              user = await Agency.findOneAndUpdate(
+                { _id: user._id },
+                { $addToSet: { businessContracts: businessContracts._id } }
+              );
+            }
+          } catch (exception) {
+            return next(exception);
+          }
+          break;
+        case "admin":
+          try {
+            const adminToCreate: IAdminDocument = new Admin({
+              name: body.name,
+              email: body.email,
+              passwordHash,
+            });
+            user = await adminToCreate.save(); //TODO use callback and check for errors
+          } catch (exception) {
+            return next(exception);
+          }
+          break;
+      }
+
+      if (!user)
+        return res.status(400).send({ error: "Couldn't create a user" });
+
+      // Create notification for the new user
+      const notificationDocument: INotificationsDocument = new Notifications({
+        userId: user._id,
+        unread_messages: [],
+        read_messages: [],
+      });
+
+      await notificationDocument.save();
+
+      // Create profile for the new user
+      const newprofile: IProfileDocument = new Profile({
+        name: body.name,
+        email: body.email,
+      });
+
+      const profileResult = await newprofile.save();
+
+      return addProfileToAgencyBusinessOrWorker(
+        user.userType,
+        user._id,
+        profileResult,
+        res,
+        next
+      );
+    } catch (exception) {
+      return next(exception);
     }
-
-    if (!user) return res.status(400).send({ error: "Couldn't create a user" });
-
-    // Create notification for the new user
-    const notificationDocument: INotificationsDocument = new Notifications({
-      userId: user._id,
-      unread_messages: [],
-      read_messages: []
-    })
-
-    await notificationDocument.save();
-
-    // Create profile for the new user
-    const newprofile: IProfileDocument = new Profile({
-      name: body.name,
-      email: body.email
-    })
-
-    const profileResult = await newprofile.save();
-
-    return addProfileToAgencyBusinessOrWorker(user.userType, user._id, profileResult, res, next);
-
-
-
-
-  } catch (exception) {
-    return next(exception)
   }
-})
+);
 
 /**
  * @openapi
@@ -180,156 +218,296 @@ adminRouter.post("/:userType", authenticateToken, needsToBeAdmin, async (req: Re
  *         description: User couldn't be deleted due to restrictions etc.
  *
  */
-adminRouter.delete("/:userType/:userId", authenticateToken, needsToBeAdmin, async (req: Request<{ userType: string, userId: string }, unknown, IAgency | IWorker | IBusiness | IAdmin>, res: Response, next: NextFunction) => {
-  const { params } = req
-  const { userType, userId } = params
+adminRouter.delete(
+  "/:userType/:userId",
+  authenticateToken,
+  needsToBeAdmin,
+  async (
+    req: Request<
+      { userType: string; userId: string },
+      unknown,
+      IAgency | IWorker | IBusiness | IAdmin
+    >,
+    res: Response,
+    next: NextFunction
+  ) => {
+    const { params } = req;
+    const { userType, userId } = params;
 
-  try {
-    let user: IAgencyDocument | IWorkerDocument | IBusinessDocument | IAdminDocument | null = null;
-    switch (userType.toLowerCase()) {
-      case 'worker':
-        user = await Worker.findOneAndDelete({ _id: userId, workContracts: { $eq: { requested: [], accepted: [], declined: [] } }, businessContracts: { $eq: [] } });
-        break;
-      case 'business':
-        user = await Business.findOneAndDelete({ _id: userId, workContracts: { $eq: [] }, businessContracts: { $eq: [] }, forms: { $eq: [] } });
-        break;
-      case 'agency':
-        user = await Agency.findOneAndDelete({ _id: userId, workContracts: { $eq: [] }, businessContracts: { $eq: [] }, forms: { $eq: [] } });
-        break;
-      case 'admin':
-        user = await Admin.findOneAndDelete({ _id: userId });
-        break;
+    try {
+      let user:
+        | IAgencyDocument
+        | IWorkerDocument
+        | IBusinessDocument
+        | IAdminDocument
+        | null = null;
+      switch (userType.toLowerCase()) {
+        case "worker":
+          user = await Worker.findOneAndDelete({
+            _id: userId,
+            workContracts: {
+              $eq: { requested: [], accepted: [], declined: [] },
+            },
+            businessContracts: { $eq: [] },
+          });
+          break;
+        case "business":
+          user = await Business.findOneAndDelete({
+            _id: userId,
+            workContracts: { $eq: [] },
+            businessContracts: { $eq: [] },
+            forms: { $eq: [] },
+          });
+          break;
+        case "agency":
+          user = await Agency.findOneAndDelete({
+            _id: userId,
+            workContracts: { $eq: [] },
+            businessContracts: { $eq: [] },
+            forms: { $eq: [] },
+          });
+          break;
+        case "admin":
+          user = await Admin.findOneAndDelete({ _id: userId });
+          break;
+      }
+
+      if (user) {
+        await Profile.remove({ _id: user.profile }).exec();
+        await Notifications.deleteMany({ userId: user._id }).exec();
+        console.log(`${userType} ${user.name} was deleted.`);
+      }
+
+      return res.status(user ? 200 : 404).send();
+    } catch (exception) {
+      return next(exception);
     }
-
-    if (user) {
-      await Profile.remove({ _id: user.profile }).exec();
-      await Notifications.deleteMany({ userId: user._id }).exec();
-      console.log(`${userType} ${user.name} was deleted.`);
-
-    }
-
-    return res
-      .status(user ? 200 : 404)
-      .send()
-
-  } catch (exception) {
-    return next(exception)
   }
-})
+);
 
-adminRouter.patch("/:userType/:userId", authenticateToken, needsToBeAdmin, async (req: Request<{ userType: string, userId: string }, IAgency | IWorker | IBusiness | IAdmin>, res: Response, next: NextFunction) => {
-  const { params, body } = req
-  const { userType, userId } = params
-  const { active } = body
+adminRouter.patch(
+  "/:userType/:userId",
+  authenticateToken,
+  needsToBeAdmin,
+  async (
+    req: Request<
+      { userType: string; userId: string },
+      IAgency | IWorker | IBusiness | IAdmin
+    >,
+    res: Response,
+    next: NextFunction
+  ) => {
+    const { params, body } = req;
+    const { userType, userId } = params;
+    const { active } = body;
 
-  try {
+    try {
+      let user:
+        | IAgencyDocument
+        | IWorkerDocument
+        | IBusinessDocument
+        | IAdminDocument
+        | null = null;
+      switch (userType.toLowerCase()) {
+        case "worker":
+          user = await Worker.findByIdAndUpdate(
+            { _id: userId },
+            { active },
+            { new: true, runValidators: true }
+          );
+          break;
+        case "business":
+          user = await Business.findByIdAndUpdate(
+            { _id: userId },
+            { active },
+            { new: true, runValidators: true }
+          );
+          break;
+        case "agency":
+          user = await Agency.findByIdAndUpdate(
+            { _id: userId },
+            { active },
+            { new: true, runValidators: true }
+          );
+          break;
+        case "admin":
+          user = await Admin.findByIdAndUpdate(
+            { _id: userId },
+            { active },
+            { new: true, runValidators: true }
+          );
+          break;
+      }
 
-    let user: IAgencyDocument | IWorkerDocument | IBusinessDocument | IAdminDocument | null = null;
-    switch (userType.toLowerCase()) {
-      case 'worker':
-        user = await Worker.findByIdAndUpdate({ _id: userId }, { active }, { new: true, runValidators: true });
-        break;
-      case 'business':
-        user = await Business.findByIdAndUpdate({ _id: userId }, { active }, { new: true, runValidators: true });
-        break;
-      case 'agency':
-        user = await Agency.findByIdAndUpdate({ _id: userId }, { active }, { new: true, runValidators: true });
-        break;
-      case 'admin':
-        user = await Admin.findByIdAndUpdate({ _id: userId }, { active }, { new: true, runValidators: true });
-        break;
+      if (user) {
+        console.log(`${userType} ${user.name} was deactivated.`);
+      }
+
+      return res.status(user ? 200 : 404).send();
+    } catch (exception) {
+      return next(exception);
     }
-
-
-    if (user) {
-      console.log(`${userType} ${user.name} was deactivated.`);
-
-    }
-
-    return res
-      .status(user ? 200 : 404)
-      .send()
-
-  } catch (exception) {
-    return next(exception)
   }
-})
+);
 
-adminRouter.put("/:userType/:userId", authenticateToken, needsToBeAdmin, async (req: Request<{ userType: string, userId: string }, unknown, IBaseBody>, res: Response, next: NextFunction) => {
-  const { params } = req
-  const { userType, userId } = params
+adminRouter.put(
+  "/:userType/:userId",
+  authenticateToken,
+  needsToBeAdmin,
+  async (
+    req: Request<{ userType: string; userId: string }, unknown, IBaseBody>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    const { params } = req;
+    const { userType, userId } = params;
 
-  try {
-    let user: IAgencyDocument | IWorkerDocument | IBusinessDocument | IAdminDocument | null = null;
-    switch (userType.toLowerCase()) {
-      case 'worker':
-        user = await Worker.findByIdAndUpdate({ _id: userId }, req.body, { new: true, runValidators: true });
-        break;
-      case 'business':
-        user = await Business.findByIdAndUpdate({ _id: userId }, req.body, { new: true, runValidators: true });
-        break;
-      case 'agency':
-        user = await Agency.findByIdAndUpdate({ _id: userId }, req.body, { new: true, runValidators: true });
-        break;
-      case 'admin':
-        user = await Admin.findByIdAndUpdate({ _id: userId }, req.body, { new: true, runValidators: true });
-        break;
+    try {
+      let user:
+        | IAgencyDocument
+        | IWorkerDocument
+        | IBusinessDocument
+        | IAdminDocument
+        | null = null;
+      switch (userType.toLowerCase()) {
+        case "worker":
+          user = await Worker.findByIdAndUpdate({ _id: userId }, req.body, {
+            new: true,
+            runValidators: true,
+          });
+          break;
+        case "business":
+          user = await Business.findByIdAndUpdate({ _id: userId }, req.body, {
+            new: true,
+            runValidators: true,
+          });
+          break;
+        case "agency":
+          user = await Agency.findByIdAndUpdate({ _id: userId }, req.body, {
+            new: true,
+            runValidators: true,
+          });
+          break;
+        case "admin":
+          user = await Admin.findByIdAndUpdate({ _id: userId }, req.body, {
+            new: true,
+            runValidators: true,
+          });
+          break;
+      }
+
+      if (user) {
+        console.log(`${userType} ${user.name} was updated`);
+      }
+
+      return res.status(user ? 200 : 404).send();
+    } catch (exception) {
+      return next(exception);
     }
-
-
-    if (user) {
-      console.log(`${userType} ${user.name} was updated`);
-
-    }
-
-    return res
-      .status(user ? 200 : 404)
-      .send()
-
-  } catch (exception) {
-    return next(exception)
   }
-})
+);
 
-adminRouter.put("/:profileId", authenticateToken, needsToBeAdmin, async (req: Request<{ profileId: string }, unknown, IProfile>, res: Response, next: NextFunction) => {
-  const { params } = req
-  const { profileId } = params
+adminRouter.put(
+  "/:profileId",
+  authenticateToken,
+  needsToBeAdmin,
+  async (
+    req: Request<{ profileId: string }, unknown, IProfile>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    const { params } = req;
+    const { profileId } = params;
 
-  try {
-    let profile: IProfileDocument | null = null;
-    profile = await Profile.findByIdAndUpdate({ _id: profileId }, req.body, { new: true, runValidators: true });
+    try {
+      let profile: IProfileDocument | null = null;
+      profile = await Profile.findByIdAndUpdate({ _id: profileId }, req.body, {
+        new: true,
+        runValidators: true,
+      });
 
-    if (profile) {
-      console.log(`${profileId} was updated`);
+      if (profile) {
+        console.log(`${profileId} was updated`);
+      }
 
+      return res.status(profile ? 200 : 404).send();
+    } catch (exception) {
+      return next(exception);
     }
-
-    return res
-      .status(profile ? 200 : 404)
-      .send()
-
-  } catch (exception) {
-    return next(exception)
   }
-})
+);
 
-adminRouter.get("/me", authenticateToken, async (_req: Request, res: Response, next: NextFunction) => {
-  try {
-    Admin.findById(res.locals.decoded.id,
-      undefined,
-      undefined,
-      (error: CallbackError, result: IAdminDocument | null) => {
-        if (error) {
-          res.status(500).send(error)
-        } else if (!result) { //Jos ei resultia niin käyttäjän tokenilla ei löydy käyttäjää
-          res.status(401).send({ message: "Not authorized" })
-        } else {
-          res.status(200).send(result)
+adminRouter.get(
+  "/me",
+  authenticateToken,
+  async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      Admin.findById(
+        res.locals.decoded.id,
+        undefined,
+        undefined,
+        (error: CallbackError, result: IAdminDocument | null) => {
+          if (error) {
+            res.status(500).send(error);
+          } else if (!result) {
+            //Jos ei resultia niin käyttäjän tokenilla ei löydy käyttäjää
+            res.status(401).send({ message: "Not authorized" });
+          } else {
+            res.status(200).send(result);
+          }
         }
-      })
-  } catch (exception) {
-    next(exception)
+      );
+    } catch (exception) {
+      next(exception);
+    }
   }
-})
+);
 
-export default adminRouter
+adminRouter.get(
+  "/allReports",
+  authenticateToken,
+  needsToBeAdmin,
+  async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      const reports: Array<IReportDocument> | null = await Report.find({});
+      if (reports) {
+        return res.status(200).json(reports);
+      }
+      return res.status(404).json({ message: "No reports found" });
+    } catch (exception) {
+      return next(exception);
+    }
+  }
+);
+
+adminRouter.get(
+  "/report/:id",
+  authenticateToken,
+  needsToBeAdmin,
+  (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const id: any = req.params.id;
+      return Report.findById(
+        id,
+        (
+          error: CallbackError,
+          report: DocumentDefinition<IReportDocument> | null
+        ) => {
+          console.log(report);
+          if (error) {
+            return res.status(500).json(error);
+          }
+          if (!report) {
+            return res
+              .status(404)
+              .json({ message: `Report with id ${id} is not existing!` });
+          }
+          return res.status(200).json(report);
+        }
+      );
+    } catch (exception) {
+      return next(exception);
+    }
+  }
+);
+export default adminRouter;
