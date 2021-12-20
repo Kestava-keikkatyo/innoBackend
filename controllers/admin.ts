@@ -26,6 +26,7 @@ import {
   IWorker,
   IWorkerDocument,
   IReportDocument,
+  IFeedBackDocument,
 } from "../objecttypes/modelTypes";
 import { needsToBeAdmin } from "../utils/middleware";
 import Admin from "../models/Admin";
@@ -41,6 +42,7 @@ import BusinessContract from "../models/BusinessContract";
 import { IBaseBody } from "./../objecttypes/otherTypes";
 import { CallbackError, DocumentDefinition } from "mongoose";
 import Report from "../models/Report";
+import FeedBack from "../models/FeedBack";
 
 const adminRouter = express.Router();
 
@@ -503,6 +505,56 @@ adminRouter.get(
               .json({ message: `Report with id ${id} is not existing!` });
           }
           return res.status(200).json(report);
+        }
+      );
+    } catch (exception) {
+      return next(exception);
+    }
+  }
+);
+
+adminRouter.get(
+  "/allFeedbacks",
+  authenticateToken,
+  needsToBeAdmin,
+  async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      const feedbacks: Array<IFeedBackDocument> | null = await FeedBack.find(
+        {}
+      );
+      if (feedbacks) {
+        return res.status(200).json(feedbacks);
+      }
+      return res.status(404).json({ message: "No feedbacks found" });
+    } catch (exception) {
+      return next(exception);
+    }
+  }
+);
+
+adminRouter.get(
+  "/feedback/:id",
+  authenticateToken,
+  needsToBeAdmin,
+  (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const id: any = req.params.id;
+      return FeedBack.findById(
+        id,
+        (
+          error: CallbackError,
+          feedback: DocumentDefinition<IFeedBackDocument> | null
+        ) => {
+          console.log(feedback);
+          if (error) {
+            return res.status(500).json(error);
+          }
+          if (!feedback) {
+            return res
+              .status(404)
+              .json({ message: `Feedback with id ${id} is not existing!` });
+          }
+          return res.status(200).json(feedback);
         }
       );
     } catch (exception) {
