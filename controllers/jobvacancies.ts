@@ -1,18 +1,16 @@
-import express from 'express';
-import authenticateToken from '../utils/auhenticateToken';
-import { needsToBeAgency, needsToBeWorker } from './../utils/middleware';
+import express from "express";
+import authenticateToken from "../utils/auhenticateToken";
+import { needsToBeAgency, needsToBeWorker } from "./../utils/middleware";
 import {
-    postJobVacancyDocument,
-    getJobVacancyDocuments,
-    getJobVacancyDocumentsForAgency,
-    getJobVacancyDocumentById,
-    updateJobVacancyDocument,
-    deleteJobVacancyDocument
-} from '../utils/jobVacanciesMiddleware';
+  postJobVacancyDocument,
+  getJobVacancyDocuments,
+  getJobVacancyDocumentsForAgency,
+  getJobVacancyDocumentById,
+  updateJobVacancyDocument,
+  deleteJobVacancyDocument,
+} from "../utils/jobVacanciesMiddleware";
 
-
-const jobvacanciesRouter = express.Router()
-
+const jobvacanciesRouter = express.Router();
 
 /**
  * Route for agency to add a new job vacancy. Job vacancy object is given in body according to its schema model.
@@ -49,8 +47,12 @@ const jobvacanciesRouter = express.Router()
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-jobvacanciesRouter.post("/", authenticateToken, needsToBeAgency, postJobVacancyDocument)
-
+jobvacanciesRouter.post(
+  "/",
+  authenticateToken,
+  needsToBeAgency,
+  postJobVacancyDocument
+);
 
 /**
  * Route for workers to get all available job vacancies.
@@ -91,97 +93,109 @@ jobvacanciesRouter.post("/", authenticateToken, needsToBeAgency, postJobVacancyD
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-jobvacanciesRouter.get("/", authenticateToken, needsToBeWorker, getJobVacancyDocuments)
-
-
-/**
-* Route for agencies to get their own job vacancies
-* @openapi
-* /jobvacancies/mine:
-*   get:
-*     summary: Route for agencies to get their own job vacancies
-*     description: Must be logged in as an agency.
-*     tags: [JobVacancies, Agency]
-*     parameters:
-*       - in: header
-*         name: x-access-token
-*         description: The token you get when logging in is used here. Used to authenticate the user.
-*         required: true
-*         schema:
-*           $ref: "#/components/schemas/AccessToken"
-*     responses:
-*       "200":
-*         description: Returns agency's job vacancies.
-*         content:
-*           application/json:
-*             schema:
-*               type: array
-*               items:
-*                 $ref: "#/components/schemas/JobVacancy"
-*       "404":
-*         description: Job vacancies not found for the agency in question.
-*         content:
-*           application/json:
-*             schema:
-*               $ref: "#/components/schemas/Error"
-*             example:
-*               message: Could not find job vacancy with ID {id}
-*       "500":
-*         description: An error occurred. Either a problem with the database or middleware.
-*         content:
-*           application/json:
-*             schema:
-*               $ref: "#/components/schemas/Error"
-*/
-jobvacanciesRouter.get("/mine", authenticateToken, needsToBeAgency, getJobVacancyDocumentsForAgency)
-
+jobvacanciesRouter.get(
+  "/",
+  authenticateToken,
+  needsToBeWorker,
+  getJobVacancyDocuments
+);
 
 /**
-* Route for agency to get own job vacancy by its id
-* @openapi
-* /jobvacancies/mine/{id}:
-*   get:
-*     summary: Route for agency to get own job vacancy by its id
-*     description: Must be logged in as an agency.
-*     tags: [JobVacancies, Agency]
-*     parameters:
-*       - in: header
-*         name: x-access-token
-*         description: The token you get when logging in is used here. Used to authenticate the user.
-*         required: true
-*         schema:
-*           $ref: "#/components/schemas/AccessToken"
-*       - in: path
-*         name: id
-*         description: ID of the job vacancy which we want.
-*         required: true
-*         schema:
-*           type: string
-*           example: 604021e581a9626810885657
-*     responses:
-*       "200":
-*         description: Returns the wanted job vacancy.
-*         content:
-*           application/json:
-*             schema:
-*               $ref: "#/components/schemas/JobVacancy"
-*       "404":
-*         description: No job vacancy was found with the requested ID.
-*         content:
-*           application/json:
-*             schema:
-*               $ref: "#/components/schemas/Error"
-*             example:
-*               message: Could not find job vacancy with ID {id}
-*       "500":
-*         description: An error occurred when calling the database.
-*         content:
-*           application/json:
-*             schema:
-*               $ref: "#/components/schemas/Error"
-*/
-jobvacanciesRouter.get("/mine/:id", authenticateToken, needsToBeAgency, getJobVacancyDocumentById)
+ * Route for agencies to get their own job vacancies
+ * @openapi
+ * /jobvacancies/mine:
+ *   get:
+ *     summary: Route for agencies to get their own job vacancies
+ *     description: Must be logged in as an agency.
+ *     tags: [JobVacancies, Agency]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     responses:
+ *       "200":
+ *         description: Returns agency's job vacancies.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: "#/components/schemas/JobVacancy"
+ *       "404":
+ *         description: Job vacancies not found for the agency in question.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Could not find job vacancy with ID {id}
+ *       "500":
+ *         description: An error occurred. Either a problem with the database or middleware.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ */
+jobvacanciesRouter.get(
+  "/mine",
+  authenticateToken,
+  needsToBeAgency,
+  getJobVacancyDocumentsForAgency
+);
 
+/**
+ * Route for agency to get own job vacancy by its id
+ * @openapi
+ * /jobvacancies/mine/{id}:
+ *   get:
+ *     summary: Route for agency to get own job vacancy by its id
+ *     description: Must be logged in as an agency.
+ *     tags: [JobVacancies, Agency]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: id
+ *         description: ID of the job vacancy which we want.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 604021e581a9626810885657
+ *     responses:
+ *       "200":
+ *         description: Returns the wanted job vacancy.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/JobVacancy"
+ *       "404":
+ *         description: No job vacancy was found with the requested ID.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Could not find job vacancy with ID {id}
+ *       "500":
+ *         description: An error occurred when calling the database.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ */
+jobvacanciesRouter.get(
+  "/mine/:id",
+  authenticateToken,
+  needsToBeAgency,
+  getJobVacancyDocumentById
+);
 
 /**
  * Route for agency to update own job vacancy.
@@ -240,9 +254,13 @@ jobvacanciesRouter.get("/mine/:id", authenticateToken, needsToBeAgency, getJobVa
  *           application/json:
  *             schema:
  *               $ref: "#/components/schemas/Error"
-*/
-jobvacanciesRouter.put("/mine/:id", authenticateToken, needsToBeAgency, updateJobVacancyDocument)
-
+ */
+jobvacanciesRouter.put(
+  "/mine/:id",
+  authenticateToken,
+  needsToBeAgency,
+  updateJobVacancyDocument
+);
 
 /**
  * Route for agency to delete own job vacancy
@@ -292,7 +310,62 @@ jobvacanciesRouter.put("/mine/:id", authenticateToken, needsToBeAgency, updateJo
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-jobvacanciesRouter.delete("/mine/:id", authenticateToken, needsToBeAgency, deleteJobVacancyDocument)
+jobvacanciesRouter.delete(
+  "/mine/:id",
+  authenticateToken,
+  needsToBeAgency,
+  deleteJobVacancyDocument
+);
 
+/**
+ * Route for worker to get a job vacancy by its id
+ * @openapi
+ * /jobvacancies/job/{id}:
+ *   get:
+ *     summary: Route for worker to get a job vacancy by its id
+ *     description: Must be logged in as a worker.
+ *     tags: [JobVacancies, Worker]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: id
+ *         description: ID of the job vacancy which we want.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 604021e581a9626810885657
+ *     responses:
+ *       "200":
+ *         description: Returns the wanted job vacancy.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/JobVacancy"
+ *       "404":
+ *         description: No job vacancy was found with the requested ID.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Could not find job vacancy with ID {id}
+ *       "500":
+ *         description: An error occurred when calling the database.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ */
+jobvacanciesRouter.get(
+  "/job/:id",
+  authenticateToken,
+  needsToBeWorker,
+  getJobVacancyDocumentById
+);
 
-export default jobvacanciesRouter
+export default jobvacanciesRouter;
