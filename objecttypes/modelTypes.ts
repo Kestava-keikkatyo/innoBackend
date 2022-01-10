@@ -422,3 +422,48 @@ export interface IJobDocument extends Document, IJob {
   _id: Types.ObjectId;
   createdAt: Date;
 }
+
+// Used when we want to type docs given in req.body for example. For calls with {lean: true} option, use DocumentDefinition<IUserDocument> for the result's type
+export interface IUser {
+  name: string;
+  email: string;
+  passwordHash?: string;
+  userType: string;
+  active: boolean;
+  address: {
+    street: string;
+    zipCode: string;
+    city: string;
+  };
+  phoneNumber: string;
+  feelings: Array<IFeelings>;
+  licenses: Array<string>;
+  businessContracts: Array<IBusinessContractDocument["_id"]>;
+  category: string;
+  website: string;
+  videoUriId: string;
+  forms: Array<IFormDocument["_id"]>;
+  instructions: Array<string>;
+  occupationalSafetyRules: Array<string>;
+  notifications: {
+    unread_messages: Array<string>;
+    read_messages: Array<string>;
+    createdAt: Date;
+  };
+}
+
+// Used for typing results gotten from db calls.
+export interface IUserDocument
+  extends Document,
+    Omit<IUser, "forms" | "businessContracts" | "workContracts"> {
+  _id: Types.ObjectId;
+  category: string;
+  userType: string;
+  createdAt: Date;
+  forms: Array<IFormDocument["_id"]> | Array<IFormDocument>;
+  businessContractForms: Array<IFormDocument["_id"]> | Array<IFormDocument>;
+  businessContracts:
+    | Array<IBusinessContractDocument["_id"]>
+    | Array<IBusinessContractDocument>;
+  jobs: Array<IJobDocument["_id"]> | Array<IJobDocument>;
+}
