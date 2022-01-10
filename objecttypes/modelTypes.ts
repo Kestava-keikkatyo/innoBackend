@@ -427,6 +427,7 @@ export interface IJobDocument extends Document, IJob {
 export interface IUser {
   name: string;
   email: string;
+  password: string;
   passwordHash?: string;
   userType: string;
   active: boolean;
