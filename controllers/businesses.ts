@@ -8,22 +8,28 @@
  * @type {object}
  * @const
  * @namespace businessesRouter
-*/
-import express, { NextFunction, Request, Response } from "express"
-import { hash } from "bcryptjs"
-import bcrypt from "bcryptjs"
-import jwt from "jsonwebtoken"
-import { error as _error } from "../utils/logger"
-import Business from "../models/Business"
-import authenticateToken from "../utils/auhenticateToken"
-import { IAgencyDocument, IBusiness, IBusinessDocument, IWorkerDocument, IAdminDocument } from "../objecttypes/modelTypes";
+ */
+import express, { NextFunction, Request, Response } from "express";
+import { hash } from "bcryptjs";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { error as _error } from "../utils/logger";
+import Business from "../models/Business";
+import authenticateToken from "../utils/auhenticateToken";
+import {
+  IAgencyDocument,
+  IBusiness,
+  IBusinessDocument,
+  IWorkerDocument,
+  IAdminDocument,
+} from "../objecttypes/modelTypes";
 import { CallbackError } from "mongoose";
 import { needsToBeAgencyOrWorker } from "../utils/middleware";
-import Agency from "../models/Agency"
-import Worker from "../models/Worker"
-import Admin from "../models/Admin"
+import Agency from "../models/Agency";
+import Worker from "../models/Worker";
+import Admin from "../models/Admin";
 
-const businessesRouter = express.Router()
+const businessesRouter = express.Router();
 /**
  * @openapi
  * /businesses:
@@ -86,62 +92,94 @@ const businessesRouter = express.Router()
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-businessesRouter.post("/", async (req: Request<unknown, unknown, IBusiness>, res: Response, next: NextFunction) => {
-  const { body } = req
+businessesRouter.post(
+  "/",
+  async (
+    req: Request<unknown, unknown, IBusiness>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    const { body } = req;
 
-  const agency: IAgencyDocument | null = await Agency.findOne({ email: body.email })
-  if (agency) {
-    return res.status(409).json({ message: `${body.email} is already registered!` })
-  }
-
-  const worker: IWorkerDocument | null = await Worker.findOne({ email: body.email })
-  if (worker) {
-    return res.status(409).json({ message: `${body.email} is already registered!` })
-  }
-
-  const admin: IAdminDocument | null = await Admin.findOne({ email: body.email })
-  if (admin) {
-    return res.status(409).json({ message: `${body.email} is already registered!` })
-  }
-
-  try {
-    // TODO This could be separated into a validation middleware
-    const passwordLength: number = body.password ? body.password.length : 0
-    if (passwordLength < 3) {
-      return res.status(400).json({ message: "password length less than 3 characters" })
-    }
-    const saltRounds: number = 10
-    const passwordHash: string = await bcrypt.hash(body.password, saltRounds)
-
-    const businessToCreate: IBusinessDocument = new Business({
-      name: body.name,
+    const agency: IAgencyDocument | null = await Agency.findOne({
       email: body.email,
-      category: body.category,
-      passwordHash,
-    })
+    });
+    if (agency) {
+      return res
+        .status(409)
+        .json({ message: `${body.email} is already registered!` });
+    }
 
-    return businessToCreate.save((error: CallbackError, business: IBusinessDocument) => {
-      if (error) {
-        return res.status(500).json({ message: error.message })
+    const worker: IWorkerDocument | null = await Worker.findOne({
+      email: body.email,
+    });
+    if (worker) {
+      return res
+        .status(409)
+        .json({ message: `${body.email} is already registered!` });
+    }
+
+    const admin: IAdminDocument | null = await Admin.findOne({
+      email: body.email,
+    });
+    if (admin) {
+      return res
+        .status(409)
+        .json({ message: `${body.email} is already registered!` });
+    }
+
+    try {
+      // TODO This could be separated into a validation middleware
+      const passwordLength: number = body.password ? body.password.length : 0;
+      if (passwordLength < 3) {
+        return res
+          .status(400)
+          .json({ message: "password length less than 3 characters" });
       }
-      if (!business) {
-        return res.status(500).json({ message: "Unable to save business document" })
-      }
+      const saltRounds: number = 10;
+      const passwordHash: string = await bcrypt.hash(body.password, saltRounds);
 
-      const businessForToken = {
-        email: business.email,
-        id: business._id,
-      }
+      const businessToCreate: IBusinessDocument = new Business({
+        name: body.name,
+        email: body.email,
+        category: body.category,
+        passwordHash,
+      });
 
-      const token: string = jwt.sign(businessForToken, process.env.SECRET || '')
+      return businessToCreate.save(
+        (error: CallbackError, business: IBusinessDocument) => {
+          if (error) {
+            return res.status(500).json({ message: error.message });
+          }
+          if (!business) {
+            return res
+              .status(500)
+              .json({ message: "Unable to save business document" });
+          }
 
-      return res.status(200).send({ token, name: business.name, email: business.email, role: "business" })
-    })
+          const businessForToken = {
+            email: business.email,
+            id: business._id,
+          };
 
-  } catch (exception) {
-    return next(exception)
+          const token: string = jwt.sign(
+            businessForToken,
+            process.env.SECRET || ""
+          );
+
+          return res.status(200).send({
+            token,
+            name: business.name,
+            email: business.email,
+            role: "business",
+          });
+        }
+      );
+    } catch (exception) {
+      return next(exception);
+    }
   }
-})
+);
 
 /**
  * @openapi
@@ -178,26 +216,33 @@ businessesRouter.post("/", async (req: Request<unknown, unknown, IBusiness>, res
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-businessesRouter.get("/me", authenticateToken, (_req: Request, res: Response, next: NextFunction) => {
-  try {
-    //Decodatun tokenin arvo haetaan middlewarelta
-    //Tokeni pitää sisällään userid jolla etsitään oikean käyttäjän tiedot
-    Business.findById(res.locals.decoded.id,
-      undefined,
-      undefined,
-      (error: CallbackError, result: IBusinessDocument | null) => {
-        if (error) {
-          return res.status(500).send(error)
-        } else if (!result) { //Jos ei resultia niin käyttäjän tokenilla ei löydy käyttäjää
-          return res.status(401).send({ message: "Not authorized" })
-        } else {
-          return res.status(200).send(result)
+businessesRouter.get(
+  "/me",
+  authenticateToken,
+  (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      //Decodatun tokenin arvo haetaan middlewarelta
+      //Tokeni pitää sisällään userid jolla etsitään oikean käyttäjän tiedot
+      Business.findById(
+        res.locals.decoded.id,
+        undefined,
+        undefined,
+        (error: CallbackError, result: IBusinessDocument | null) => {
+          if (error) {
+            return res.status(500).send(error);
+          } else if (!result) {
+            //Jos ei resultia niin käyttäjän tokenilla ei löydy käyttäjää
+            return res.status(401).send({ message: "Not authorized" });
+          } else {
+            return res.status(200).send(result);
+          }
         }
-      })
-  } catch (exception) {
-    return next(exception)
+      );
+    } catch (exception) {
+      return next(exception);
+    }
   }
-})
+);
 
 /**
  * Route used to update business's information.
@@ -247,47 +292,60 @@ businessesRouter.get("/me", authenticateToken, (_req: Request, res: Response, ne
  *             example:
  *               message: Business not found
  */
-businessesRouter.put("/", authenticateToken, async (req: Request<unknown, unknown, IBusiness>, res: Response, next: NextFunction) => {
-  const { body } = req
-  let passwordHash: string | undefined
+businessesRouter.put(
+  "/",
+  authenticateToken,
+  async (
+    req: Request<unknown, unknown, IBusiness>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    const { body } = req;
+    let passwordHash: string | undefined;
 
-  try {
-    // Salataan uusi salasana
-    if (body.password) {
-      const passwordLength: number = body.password ? body.password.length : 0
-      if (passwordLength < 3) {
-        return res.status(400).json({ message: "Password length less than 3 characters" })
+    try {
+      // Salataan uusi salasana
+      if (body.password) {
+        const passwordLength: number = body.password ? body.password.length : 0;
+        if (passwordLength < 3) {
+          return res
+            .status(400)
+            .json({ message: "Password length less than 3 characters" });
+        }
+        const saltRounds: number = 10;
+        passwordHash = await bcrypt.hash(body.password, saltRounds);
       }
-      const saltRounds: number = 10
-      passwordHash = await bcrypt.hash(body.password, saltRounds)
+
+      // Poistetaan passwordHash bodysta
+      // (muuten uusi salasana menee sellaisenaan tietokantaan).
+      // Salattu salasana luodaan ylempänä.
+      delete body.passwordHash;
+
+      // päivitetään bodyn kentät (mitä pystytään päivittämään).
+      // lisätään passwordHash päivitykseen, jos annetaan uusi salasana.
+      const updateFields = {
+        ...body,
+        passwordHash,
+      };
+
+      // https://mongoosejs.com/docs/tutorials/findoneandupdate.html
+      // https://mongoosejs.com/docs/api.html#model_Model.findByIdAndUpdate
+      const updatedBusiness: IBusinessDocument | null =
+        await Business.findByIdAndUpdate(
+          res.locals.decoded.id,
+          updateFields, // TODO use callback for error handling
+          { new: true, omitUndefined: true, runValidators: true }
+        );
+
+      if (!updatedBusiness) {
+        return res.status(404).json({ message: "Business not found" });
+      }
+      return res.status(200).json(updatedBusiness);
+    } catch (exception) {
+      return next(exception);
     }
-
-    // Poistetaan passwordHash bodysta
-    // (muuten uusi salasana menee sellaisenaan tietokantaan).
-    // Salattu salasana luodaan ylempänä.
-    delete body.passwordHash
-
-    // päivitetään bodyn kentät (mitä pystytään päivittämään).
-    // lisätään passwordHash päivitykseen, jos annetaan uusi salasana.
-    const updateFields = {
-      ...body,
-      passwordHash
-    }
-
-    // https://mongoosejs.com/docs/tutorials/findoneandupdate.html
-    // https://mongoosejs.com/docs/api.html#model_Model.findByIdAndUpdate
-    const updatedBusiness: IBusinessDocument | null = await Business.findByIdAndUpdate(res.locals.decoded.id, updateFields, // TODO use callback for error handling
-      { new: true, omitUndefined: true, runValidators: true })
-
-    if (!updatedBusiness) {
-      return res.status(404).json({ message: "Business not found" })
-    }
-    return res.status(200).json(updatedBusiness)
-
-  } catch (exception) {
-    return next(exception)
   }
-})
+);
 
 /**
  * @openapi
@@ -321,17 +379,32 @@ businessesRouter.put("/", authenticateToken, async (req: Request<unknown, unknow
  *             example:
  *               message: Businesses not found
  */
-businessesRouter.get("/all", authenticateToken, needsToBeAgencyOrWorker, async (_req: Request, res: Response, next: NextFunction) => {
-  try {
-    const businesses: Array<IBusinessDocument> | null = await Business.find({}, { name: 1, email: 1, businessContracts: 1, profile: 1, userType: 1 }).populate('profile', {}) // TODO use callback for result and errors.
-    if (businesses) {
-      return res.status(200).json(businesses)
+businessesRouter.get(
+  "/all",
+  authenticateToken,
+  needsToBeAgencyOrWorker,
+  async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      const businesses: Array<IBusinessDocument> | null = await Business.find(
+        {},
+        {
+          name: 1,
+          email: 1,
+          businessContracts: 1,
+          profile: 1,
+          userType: 1,
+          active: 1,
+        }
+      ).populate("profile", {}); // TODO use callback for result and errors.
+      if (businesses) {
+        return res.status(200).json(businesses);
+      }
+      return res.status(404).json({ message: "Businesses not found" });
+    } catch (exception) {
+      return next(exception);
     }
-    return res.status(404).json({ message: "Businesses not found" })
-  } catch (exception) {
-    return next(exception)
   }
-})
+);
 
 /**
  * @openapi
@@ -372,31 +445,41 @@ businessesRouter.get("/all", authenticateToken, needsToBeAgencyOrWorker, async (
  *             example:
  *               message: Businesses not found
  */
-businessesRouter.get("/", authenticateToken, needsToBeAgencyOrWorker, async (req: Request, res: Response, next: NextFunction) => {
-  const { query } = req
+businessesRouter.get(
+  "/",
+  authenticateToken,
+  needsToBeAgencyOrWorker,
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { query } = req;
 
-  let name: string | undefined
-  if (query.name) {
-    name = query.name as string
-  }
-  try {
-    if (name) {
-      const businesses: Array<IBusinessDocument> = await Business.find({ name: { $regex: name, $options: "i" } }, { licenses: 0 }) // TODO use callback for result and errors.
-      if (businesses) {
-        return res.status(200).json(businesses)
-      }
-    } else if (!name || name === undefined) {
-      const businesses: Array<IBusinessDocument> = await Business.find({}, { licenses: 0 }) // TODO use callback for result and errors.
-      if (businesses) {
-        return res.status(200).json(businesses)
-      }
+    let name: string | undefined;
+    if (query.name) {
+      name = query.name as string;
     }
-    return res.status(404).json({ message: "Businesses not found" })
-  } catch (exception) {
-    return next(exception)
+    try {
+      if (name) {
+        const businesses: Array<IBusinessDocument> = await Business.find(
+          { name: { $regex: name, $options: "i" } },
+          { licenses: 0 }
+        ); // TODO use callback for result and errors.
+        if (businesses) {
+          return res.status(200).json(businesses);
+        }
+      } else if (!name || name === undefined) {
+        const businesses: Array<IBusinessDocument> = await Business.find(
+          {},
+          { licenses: 0 }
+        ); // TODO use callback for result and errors.
+        if (businesses) {
+          return res.status(200).json(businesses);
+        }
+      }
+      return res.status(404).json({ message: "Businesses not found" });
+    } catch (exception) {
+      return next(exception);
+    }
   }
-})
-
+);
 
 /**
  * Route used to update business's information.
@@ -446,48 +529,60 @@ businessesRouter.get("/", authenticateToken, needsToBeAgencyOrWorker, async (req
  *             example:
  *               message: Business not found
  */
-businessesRouter.put("/", authenticateToken, async (req: Request<unknown, unknown, IBusiness>, res: Response, next: NextFunction) => {
-  const { body } = req
-  let passwordHash: string | undefined
+businessesRouter.put(
+  "/",
+  authenticateToken,
+  async (
+    req: Request<unknown, unknown, IBusiness>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    const { body } = req;
+    let passwordHash: string | undefined;
 
-  try {
-    // Salataan uusi salasana
-    if (body.password) {
-      const passwordLength: number = body.password ? body.password.length : 0
-      if (passwordLength < 3) {
-        return res.status(400).json({ message: "Password length less than 3 characters" })
+    try {
+      // Salataan uusi salasana
+      if (body.password) {
+        const passwordLength: number = body.password ? body.password.length : 0;
+        if (passwordLength < 3) {
+          return res
+            .status(400)
+            .json({ message: "Password length less than 3 characters" });
+        }
+        const saltRounds: number = 10;
+        passwordHash = await bcrypt.hash(body.password, saltRounds);
       }
-      const saltRounds: number = 10
-      passwordHash = await bcrypt.hash(body.password, saltRounds)
+
+      // Poistetaan passwordHash bodysta
+      // (muuten uusi salasana menee sellaisenaan tietokantaan).
+      // Salattu salasana luodaan ylempänä.
+      delete body.passwordHash;
+
+      // päivitetään bodyn kentät (mitä pystytään päivittämään).
+      // lisätään passwordHash päivitykseen, jos annetaan uusi salasana.
+      const updateFields = {
+        ...body,
+        passwordHash,
+      };
+
+      // https://mongoosejs.com/docs/tutorials/findoneandupdate.html
+      // https://mongoosejs.com/docs/api.html#model_Model.findByIdAndUpdate
+      const updatedBusiness: IBusinessDocument | null =
+        await Business.findByIdAndUpdate(
+          res.locals.decoded.id,
+          updateFields, // TODO use callback for error handling
+          { new: true, omitUndefined: true, runValidators: true }
+        );
+
+      if (!updatedBusiness) {
+        return res.status(404).json({ message: "Business not found" });
+      }
+      return res.status(200).json(updatedBusiness);
+    } catch (exception) {
+      return next(exception);
     }
-
-    // Poistetaan passwordHash bodysta
-    // (muuten uusi salasana menee sellaisenaan tietokantaan).
-    // Salattu salasana luodaan ylempänä.
-    delete body.passwordHash
-
-    // päivitetään bodyn kentät (mitä pystytään päivittämään).
-    // lisätään passwordHash päivitykseen, jos annetaan uusi salasana.
-    const updateFields = {
-      ...body,
-      passwordHash
-    }
-
-    // https://mongoosejs.com/docs/tutorials/findoneandupdate.html
-    // https://mongoosejs.com/docs/api.html#model_Model.findByIdAndUpdate
-    const updatedBusiness: IBusinessDocument | null = await Business.findByIdAndUpdate(res.locals.decoded.id, updateFields, // TODO use callback for error handling
-      { new: true, omitUndefined: true, runValidators: true })
-
-    if (!updatedBusiness) {
-      return res.status(404).json({ message: "Business not found" })
-    }
-    return res.status(200).json(updatedBusiness)
-
-  } catch (exception) {
-    return next(exception)
   }
-})
-
+);
 
 /**
  * Route used to update business's password.
@@ -560,65 +655,85 @@ businessesRouter.put("/", authenticateToken, async (req: Request<unknown, unknow
  *             example:
  *               message: Business not found
  */
-businessesRouter.put("/update-password", authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
+businessesRouter.put(
+  "/update-password",
+  authenticateToken,
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { body } = req;
+    try {
+      // find the business
+      const business: IBusinessDocument | null = await Business.findById(
+        res.locals.decoded.id
+      );
+      // check if the current password is correct
+      const currentPasswordCorrect: boolean =
+        business === null
+          ? false
+          : await bcrypt.compare(
+              body.currentPassword,
+              business.passwordHash as string
+            );
 
-  const { body } = req
-  try {
-    // find the business
-    const business: IBusinessDocument | null = await Business.findById(res.locals.decoded.id)
-    // check if the current password is correct
-    const currentPasswordCorrect: boolean = business === null
-      ? false
-      : await bcrypt.compare(body.currentPassword, business.passwordHash as string)
-
-    if (!business) {
-      return res.status(404).json({ message: "Business not found" })
-    }
-    if (!currentPasswordCorrect) {
-      return res.status(406).json({ message: "Current password is incorrect" })
-    }
-    if (body.currentPassword === body.newPassword) {
-      return res.status(406).json({ message: "New password could not be as same as current password" })
-    }
-    if (!body.newPassword) {
-      return res.status(406).json({ message: "New password can't be blank" })
-    }
-
-    let newPasswordHash: string | undefined
-
-    // Salataan uusi salasana
-    if (body.newPassword) {
-      const passwordLength: number = body.newPassword ? body.newPassword.length : 0
-      if (passwordLength < 6) {
-        return res.status(411).json({ message: "Password length less than 3 characters" })
+      if (!business) {
+        return res.status(404).json({ message: "Business not found" });
       }
-      const saltRounds: number = 10
-      newPasswordHash = await hash(body.newPassword, saltRounds)
+      if (!currentPasswordCorrect) {
+        return res
+          .status(406)
+          .json({ message: "Current password is incorrect" });
+      }
+      if (body.currentPassword === body.newPassword) {
+        return res.status(406).json({
+          message: "New password could not be as same as current password",
+        });
+      }
+      if (!body.newPassword) {
+        return res.status(406).json({ message: "New password can't be blank" });
+      }
+
+      let newPasswordHash: string | undefined;
+
+      // Salataan uusi salasana
+      if (body.newPassword) {
+        const passwordLength: number = body.newPassword
+          ? body.newPassword.length
+          : 0;
+        if (passwordLength < 6) {
+          return res
+            .status(411)
+            .json({ message: "Password length less than 3 characters" });
+        }
+        const saltRounds: number = 10;
+        newPasswordHash = await hash(body.newPassword, saltRounds);
+      }
+
+      // Poistetaan passwordHash bodysta
+      // (muuten uusi salasana menee sellaisenaan tietokantaan).
+      // Salattu salasana luodaan ylempänä.
+      delete business.passwordHash;
+
+      // update business's passwordHash with the new passwordHash
+      const updatePasswordField = {
+        passwordHash: newPasswordHash,
+      };
+
+      // https://mongoosejs.com/docs/tutorials/findoneandupdate.html
+      // https://mongoosejs.com/docs/api.html#model_Model.findByIdAndUpdate
+      const updatedBusiness: IBusinessDocument | null =
+        await Business.findByIdAndUpdate(
+          res.locals.decoded.id,
+          updatePasswordField,
+          { new: true, omitUndefined: true, runValidators: true }
+        );
+
+      if (!updatedBusiness) {
+        return res.status(404).json({ message: "Business not found" });
+      }
+      return res.status(200).json(updatedBusiness);
+    } catch (exception) {
+      return next(exception);
     }
-
-    // Poistetaan passwordHash bodysta
-    // (muuten uusi salasana menee sellaisenaan tietokantaan).
-    // Salattu salasana luodaan ylempänä.
-    delete business.passwordHash
-
-    // update business's passwordHash with the new passwordHash
-    const updatePasswordField = {
-      passwordHash: newPasswordHash
-    }
-
-    // https://mongoosejs.com/docs/tutorials/findoneandupdate.html
-    // https://mongoosejs.com/docs/api.html#model_Model.findByIdAndUpdate
-    const updatedBusiness: IBusinessDocument | null = await Business.findByIdAndUpdate(res.locals.decoded.id, updatePasswordField,
-      { new: true, omitUndefined: true, runValidators: true })
-
-    if (!updatedBusiness) {
-      return res.status(404).json({ message: "Business not found" })
-    }
-    return res.status(200).json(updatedBusiness)
-
-  } catch (exception) {
-    return next(exception)
   }
-})
+);
 
-export default businessesRouter
+export default businessesRouter;

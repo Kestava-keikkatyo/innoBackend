@@ -8,24 +8,29 @@
  * @type {object}
  * @const
  * @namespace agenciesRouter
-*/
-import express, { NextFunction, Request, Response } from 'express'
-import bcrypt, { hash } from "bcryptjs"
-import jwt from "jsonwebtoken"
-import authenticateToken from "../utils/auhenticateToken"
-import Agency from "../models/Agency"
-import Worker from "../models/Worker"
-import { IAgency, IAgencyDocument, IBusinessDocument, IWorkerDocument, IAdminDocument } from "../objecttypes/modelTypes";
-import { CallbackError, } from "mongoose";
-import { needsToBeBusinessOrWorker } from '../utils/middleware'
-import BusinessContract from '../models/BusinessContract';
-import { needsToBeAgency } from './../utils/middleware';
-import Business from '../models/Business'
-import Admin from '../models/Admin';
+ */
+import express, { NextFunction, Request, Response } from "express";
+import bcrypt, { hash } from "bcryptjs";
+import jwt from "jsonwebtoken";
+import authenticateToken from "../utils/auhenticateToken";
+import Agency from "../models/Agency";
+import Worker from "../models/Worker";
+import {
+  IAgency,
+  IAgencyDocument,
+  IBusinessDocument,
+  IWorkerDocument,
+  IAdminDocument,
+} from "../objecttypes/modelTypes";
+import { CallbackError } from "mongoose";
+import { needsToBeBusinessOrWorker } from "../utils/middleware";
+import BusinessContract from "../models/BusinessContract";
+import { needsToBeAgency } from "./../utils/middleware";
+import Business from "../models/Business";
+import Admin from "../models/Admin";
 //import BusinessContract from '../models/BusinessContract';
 
-const agenciesRouter = express.Router()
-
+const agenciesRouter = express.Router();
 
 /**
  * @openapi
@@ -89,63 +94,95 @@ const agenciesRouter = express.Router()
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-agenciesRouter.post("/", async (req: Request<unknown, unknown, IAgency>, res: Response, next: NextFunction) => {
-  const { body } = req
+agenciesRouter.post(
+  "/",
+  async (
+    req: Request<unknown, unknown, IAgency>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    const { body } = req;
 
-  const business: IBusinessDocument | null = await Business.findOne({ email: body.email })
-  if (business) {
-    return res.status(409).json({ message: `${body.email} is already registered!` })
-  }
-
-  const worker: IWorkerDocument | null = await Worker.findOne({ email: body.email })
-  if (worker) {
-    return res.status(409).json({ message: `${body.email} is already registered!` })
-  }
-
-  const admin: IAdminDocument | null = await Admin.findOne({ email: body.email })
-  if (admin) {
-    return res.status(409).json({ message: `${body.email} is already registered!` })
-  }
-
-  try {
-    const passwordLength: number = body.password ? body.password.length : 0
-    if (passwordLength < 3) {
-      return res
-        .status(400)
-        .json({ message: "Password length less than 3 characters" })
-    }
-    const saltRounds: number = 10
-    const passwordHash: string = await bcrypt.hash(body.password, saltRounds)
-
-    const agencyToCreate: IAgencyDocument = new Agency({
-      name: body.name,
+    const business: IBusinessDocument | null = await Business.findOne({
       email: body.email,
-      category: body.category,
-      passwordHash,
-    })
+    });
+    if (business) {
+      return res
+        .status(409)
+        .json({ message: `${body.email} is already registered!` });
+    }
 
-    return agencyToCreate.save((error: CallbackError, agency: IAgencyDocument) => {
-      if (error) {
-        return res.status(500).json({ message: error.message })
+    const worker: IWorkerDocument | null = await Worker.findOne({
+      email: body.email,
+    });
+    if (worker) {
+      return res
+        .status(409)
+        .json({ message: `${body.email} is already registered!` });
+    }
+
+    const admin: IAdminDocument | null = await Admin.findOne({
+      email: body.email,
+    });
+    if (admin) {
+      return res
+        .status(409)
+        .json({ message: `${body.email} is already registered!` });
+    }
+
+    try {
+      const passwordLength: number = body.password ? body.password.length : 0;
+      if (passwordLength < 3) {
+        return res
+          .status(400)
+          .json({ message: "Password length less than 3 characters" });
       }
-      if (!agency) {
-        return res.status(500).json({ message: "Unable to save agency document" })
-      }
+      const saltRounds: number = 10;
+      const passwordHash: string = await bcrypt.hash(body.password, saltRounds);
 
-      const agencyForToken = {
-        email: agency.email,
-        id: agency._id,
-      }
+      const agencyToCreate: IAgencyDocument = new Agency({
+        name: body.name,
+        email: body.email,
+        category: body.category,
+        passwordHash,
+      });
 
-      const token: string = jwt.sign(agencyForToken, process.env.SECRET || '')
+      return agencyToCreate.save(
+        (error: CallbackError, agency: IAgencyDocument) => {
+          if (error) {
+            return res.status(500).json({ message: error.message });
+          }
+          if (!agency) {
+            return res
+              .status(500)
+              .json({ message: "Unable to save agency document" });
+          }
 
-      return res.status(200).send({ token, name: agency.name, email: agency.email, role: "agency" })
-    })
+          const agencyForToken = {
+            email: agency.email,
+            id: agency._id,
+          };
 
-  } catch (exception) {
-    return next(exception)
+          const token: string = jwt.sign(
+            agencyForToken,
+            process.env.SECRET || ""
+          );
+
+          return res
+            .status(200)
+            .send({
+              token,
+              name: agency.name,
+              email: agency.email,
+              role: "agency",
+            });
+        }
+      );
+    } catch (exception) {
+      return next(exception);
+    }
   }
-})
+);
 
 /**
  * @openapi
@@ -182,26 +219,33 @@ agenciesRouter.post("/", async (req: Request<unknown, unknown, IAgency>, res: Re
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-agenciesRouter.get("/me", authenticateToken, (_req: Request, res: Response, next: NextFunction) => {
-  try {
-    //Decodatun tokenin arvo haetaan middlewarelta (res.locals.decoded)
-    //Tokeni pitää sisällään userid jolla etsitään oikean käyttäjän tiedot
-    Agency.findById(res.locals.decoded.id,
-      undefined,
-      undefined,
-      (error: CallbackError, result: IAgencyDocument | null) => {
-        if (error) {
-          return res.status(500).send(error)
-        } else if (!result) { //Jos ei resultia niin käyttäjän tokenilla ei löydy käyttäjää
-          return res.status(401).send({ message: "Not authorized" })
-        } else {
-          return res.status(200).send(result)
+agenciesRouter.get(
+  "/me",
+  authenticateToken,
+  (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      //Decodatun tokenin arvo haetaan middlewarelta (res.locals.decoded)
+      //Tokeni pitää sisällään userid jolla etsitään oikean käyttäjän tiedot
+      Agency.findById(
+        res.locals.decoded.id,
+        undefined,
+        undefined,
+        (error: CallbackError, result: IAgencyDocument | null) => {
+          if (error) {
+            return res.status(500).send(error);
+          } else if (!result) {
+            //Jos ei resultia niin käyttäjän tokenilla ei löydy käyttäjää
+            return res.status(401).send({ message: "Not authorized" });
+          } else {
+            return res.status(200).send(result);
+          }
         }
-      })
-  } catch (exception) {
-    return next(exception)
+      );
+    } catch (exception) {
+      return next(exception);
+    }
   }
-})
+);
 
 /**
  * Route used to update agency's information.
@@ -251,49 +295,60 @@ agenciesRouter.get("/me", authenticateToken, (_req: Request, res: Response, next
  *             example:
  *               message: Agency not found
  */
-agenciesRouter.put("/", authenticateToken, async (req: Request<unknown, unknown, IAgency>, res: Response, next: NextFunction) => {
-  const { body } = req
-  let passwordHash: string | undefined
+agenciesRouter.put(
+  "/",
+  authenticateToken,
+  async (
+    req: Request<unknown, unknown, IAgency>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    const { body } = req;
+    let passwordHash: string | undefined;
 
-  try {
-    // Salataan uusi salasana
-    if (body.password) {
-      const passwordLength: number = body.password ? body.password.length : 0
-      if (passwordLength < 3) {
-        return res
-          .status(400)
-          .json({ message: "Password length less than 3 characters" })
+    try {
+      // Salataan uusi salasana
+      if (body.password) {
+        const passwordLength: number = body.password ? body.password.length : 0;
+        if (passwordLength < 3) {
+          return res
+            .status(400)
+            .json({ message: "Password length less than 3 characters" });
+        }
+        const saltRounds: number = 10;
+        passwordHash = await bcrypt.hash(body.password, saltRounds);
       }
-      const saltRounds: number = 10
-      passwordHash = await bcrypt.hash(body.password, saltRounds)
+
+      // Poistetaan passwordHash bodysta
+      // (muuten uusi salasana menee sellaisenaan tietokantaan).
+      // Salattu salasana luodaan ylempänä.
+      delete body.passwordHash;
+
+      // päivitetään bodyn kentät (mitä pystytään päivittämään).
+      // lisätään passwordHash päivitykseen, jos annetaan uusi salasana.
+      const updateFields = {
+        ...body,
+        passwordHash,
+      };
+
+      // https://mongoosejs.com/docs/tutorials/findoneandupdate.html
+      // https://mongoosejs.com/docs/api.html#model_Model.findByIdAndUpdate
+      const updatedAgency: IAgencyDocument | null =
+        await Agency.findByIdAndUpdate(
+          res.locals.decoded.id,
+          updateFields, // TODO use callback for proper error handling
+          { new: true, omitUndefined: true, runValidators: true }
+        );
+
+      if (!updatedAgency) {
+        return res.status(404).json({ message: "Agency not found" });
+      }
+      return res.status(200).json(updatedAgency);
+    } catch (exception) {
+      return next(exception);
     }
-
-    // Poistetaan passwordHash bodysta
-    // (muuten uusi salasana menee sellaisenaan tietokantaan).
-    // Salattu salasana luodaan ylempänä.
-    delete body.passwordHash
-
-    // päivitetään bodyn kentät (mitä pystytään päivittämään).
-    // lisätään passwordHash päivitykseen, jos annetaan uusi salasana.
-    const updateFields = {
-      ...body,
-      passwordHash
-    }
-
-    // https://mongoosejs.com/docs/tutorials/findoneandupdate.html
-    // https://mongoosejs.com/docs/api.html#model_Model.findByIdAndUpdate
-    const updatedAgency: IAgencyDocument | null = await Agency.findByIdAndUpdate(res.locals.decoded.id, updateFields, // TODO use callback for proper error handling
-      { new: true, omitUndefined: true, runValidators: true })
-
-    if (!updatedAgency) {
-      return res.status(404).json({ message: "Agency not found" })
-    }
-    return res.status(200).json(updatedAgency)
-
-  } catch (exception) {
-    return next(exception)
   }
-})
+);
 
 /**
  * @openapi
@@ -327,17 +382,33 @@ agenciesRouter.put("/", authenticateToken, async (req: Request<unknown, unknown,
  *             example:
  *               message: Agencies not found
  */
-agenciesRouter.get("/all", authenticateToken, needsToBeBusinessOrWorker, async (_req: Request, res: Response, next: NextFunction) => {
-  try {
-    const agencies: Array<IAgencyDocument> | null = await Agency.find({}, { name: 1, email: 1, businessContracts: 1, profile: 1, category: 1, userType: 1 }).populate('profile', {}) // TODO use callback for result and errors.
-    if (agencies) {
-      return res.status(200).json(agencies)
+agenciesRouter.get(
+  "/all",
+  authenticateToken,
+  needsToBeBusinessOrWorker,
+  async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      const agencies: Array<IAgencyDocument> | null = await Agency.find(
+        {},
+        {
+          name: 1,
+          email: 1,
+          businessContracts: 1,
+          profile: 1,
+          category: 1,
+          userType: 1,
+          active: 1,
+        }
+      ).populate("profile", {}); // TODO use callback for result and errors.
+      if (agencies) {
+        return res.status(200).json(agencies);
+      }
+      return res.status(404).json({ message: "Agencies not found" });
+    } catch (exception) {
+      return next(exception);
     }
-    return res.status(404).json({ message: "Agencies not found" })
-  } catch (exception) {
-    return next(exception)
   }
-})
+);
 
 /**
  * @openapi
@@ -377,50 +448,64 @@ agenciesRouter.get("/all", authenticateToken, needsToBeBusinessOrWorker, async (
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-agenciesRouter.get("/myworkers", authenticateToken, needsToBeAgency, async (_req: Request, res: Response, next: NextFunction) => {
-
-  try {
-    // find the agency
-    const agency: IAgencyDocument | null = await Agency.findById(res.locals.decoded.id)
-    if (!agency) {
-      return res.status(404).json({ message: "Agency not found!" })
+agenciesRouter.get(
+  "/myworkers",
+  authenticateToken,
+  needsToBeAgency,
+  async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      // find the agency
+      const agency: IAgencyDocument | null = await Agency.findById(
+        res.locals.decoded.id
+      );
+      if (!agency) {
+        return res.status(404).json({ message: "Agency not found!" });
+      }
+      return BusinessContract.aggregate(
+        [
+          {
+            $match: {
+              _id: agency.businessContracts[0],
+            },
+          },
+          {
+            $project: {
+              workerIds: "$madeContracts.workers.workerId",
+              _id: 0,
+            },
+          },
+        ],
+        async (error: CallbackError, businessContracts: any[]) => {
+          if (error) {
+            return res.status(500).json(error.message);
+          }
+          if (!businessContracts.length) {
+            return res
+              .status(404)
+              .json({ message: "Agency does not have buisness contracts!" });
+          }
+          return await Worker.find(
+            { _id: { $in: businessContracts[0].workerIds } },
+            (error: CallbackError, workers: Array<IWorkerDocument> | null) => {
+              if (error) {
+                return res.status(500).json(error.message);
+              }
+              if (!workers || !workers?.length) {
+                return res
+                  .status(404)
+                  .json({ message: "Agency does not have workers!" });
+              }
+              return res.status(200).json(workers);
+            }
+          ).populate("profile", {});
+        }
+      );
+    } catch (exception) {
+      return next(exception);
     }
-    return BusinessContract.aggregate([
-      {
-        $match: {
-          "_id": agency.businessContracts[0]
-        }
-      },
-      {
-        $project: {
-          "workerIds": "$madeContracts.workers.workerId",
-          "_id": 0,
-        }
-      }
-    ], async (error: CallbackError, businessContracts: any[]) => {
-      if (error) {
-        return res.status(500).json(error.message)
-      }
-      if (!businessContracts.length) {
-        return res.status(404).json({ message: "Agency does not have buisness contracts!" })
-      }
-      return await Worker.find({ '_id': { $in: businessContracts[0].workerIds } }, (error: CallbackError, workers: Array<IWorkerDocument> | null) => {
-        if (error) {
-          return res.status(500).json(error.message)
-        }
-        if (!workers || !workers?.length) {
-          return res.status(404).json({ message: "Agency does not have workers!" })
-        }
-        return res.status(200).json(workers)
-      }).populate('profile', {});
 
-    })
-  } catch (exception) {
-    return next(exception)
-  }
-
-  // ### Another way using populate ###
-  /*
+    // ### Another way using populate ###
+    /*
     try {
       // find the agency
       const agency: IAgencyDocument | null = await Agency.findById(res.locals.decoded.id)
@@ -449,9 +534,8 @@ agenciesRouter.get("/myworkers", authenticateToken, needsToBeAgency, async (_req
       return next(exception)
     }
   */
-
-})
-
+  }
+);
 
 /**
  * @openapi
@@ -492,33 +576,42 @@ agenciesRouter.get("/myworkers", authenticateToken, needsToBeAgency, async (_req
  *             example:
  *               message: Agencies not found
  */
-agenciesRouter.get("/", authenticateToken, needsToBeBusinessOrWorker, async (req: Request, res: Response, next: NextFunction) => {
-  const { query } = req
+agenciesRouter.get(
+  "/",
+  authenticateToken,
+  needsToBeBusinessOrWorker,
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { query } = req;
 
-  let name: string | undefined
-  if (query.name) {
-    name = query.name as string
-  }
-  try {
-    if (name) {
-      const agencies: Array<IAgencyDocument> = await Agency.find({ name: { $regex: name, $options: "i" } }, { name: 1, email: 1, businessContracts: 1, profile: 1, category: 1 }) // TODO use callback for result and errors.
-      if (agencies) {
-        return res.status(200).json(agencies)
-      }
-    } else {
-      // if name is undefined or blank, return all agencies
-      const agencies: Array<IAgencyDocument> = await Agency.find({}, { name: 1, email: 1, businessContracts: 1, profile: 1, category: 1 }) // TODO use callback for result and errors.
-      if (agencies) {
-        return res.status(200).json(agencies)
-      }
+    let name: string | undefined;
+    if (query.name) {
+      name = query.name as string;
     }
-    return res.status(404).json({ message: "Agency not found testi" })
-  } catch (exception) {
-    return next(exception)
+    try {
+      if (name) {
+        const agencies: Array<IAgencyDocument> = await Agency.find(
+          { name: { $regex: name, $options: "i" } },
+          { name: 1, email: 1, businessContracts: 1, profile: 1, category: 1 }
+        ); // TODO use callback for result and errors.
+        if (agencies) {
+          return res.status(200).json(agencies);
+        }
+      } else {
+        // if name is undefined or blank, return all agencies
+        const agencies: Array<IAgencyDocument> = await Agency.find(
+          {},
+          { name: 1, email: 1, businessContracts: 1, profile: 1, category: 1 }
+        ); // TODO use callback for result and errors.
+        if (agencies) {
+          return res.status(200).json(agencies);
+        }
+      }
+      return res.status(404).json({ message: "Agency not found testi" });
+    } catch (exception) {
+      return next(exception);
+    }
   }
-})
-
-
+);
 
 /**
  * Route used to update agency's password.
@@ -591,66 +684,87 @@ agenciesRouter.get("/", authenticateToken, needsToBeBusinessOrWorker, async (req
  *             example:
  *               message: Agency not found
  */
-agenciesRouter.put("/update-password", authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
+agenciesRouter.put(
+  "/update-password",
+  authenticateToken,
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { body } = req;
+    try {
+      // find the agency
+      const agency: IAgencyDocument | null = await Agency.findById(
+        res.locals.decoded.id
+      );
+      // check if the current password is correct
+      const currentPasswordCorrect: boolean =
+        agency === null
+          ? false
+          : await bcrypt.compare(
+              body.currentPassword,
+              agency.passwordHash as string
+            );
 
-  const { body } = req
-  try {
-    // find the agency
-    const agency: IAgencyDocument | null = await Agency.findById(res.locals.decoded.id)
-    // check if the current password is correct
-    const currentPasswordCorrect: boolean = agency === null
-      ? false
-      : await bcrypt.compare(body.currentPassword, agency.passwordHash as string)
-
-    if (!agency) {
-      return res.status(404).json({ message: "Agency not found" })
-    }
-    if (!currentPasswordCorrect) {
-      return res.status(406).json({ message: "Current password is incorrect" })
-    }
-    if (body.currentPassword === body.newPassword) {
-      return res.status(406).json({ message: "New password could not be as same as current password" })
-    }
-    if (!body.newPassword) {
-      return res.status(406).json({ message: "New password can't be blank" })
-    }
-
-    let newPasswordHash: string | undefined
-
-    // Salataan uusi salasana
-    if (body.newPassword) {
-      const passwordLength: number = body.newPassword ? body.newPassword.length : 0
-      if (passwordLength < 6) {
-        return res.status(411).json({ message: "Password length less than 6 characters" })
+      if (!agency) {
+        return res.status(404).json({ message: "Agency not found" });
       }
-      const saltRounds: number = 10
-      newPasswordHash = await hash(body.newPassword, saltRounds)
+      if (!currentPasswordCorrect) {
+        return res
+          .status(406)
+          .json({ message: "Current password is incorrect" });
+      }
+      if (body.currentPassword === body.newPassword) {
+        return res
+          .status(406)
+          .json({
+            message: "New password could not be as same as current password",
+          });
+      }
+      if (!body.newPassword) {
+        return res.status(406).json({ message: "New password can't be blank" });
+      }
+
+      let newPasswordHash: string | undefined;
+
+      // Salataan uusi salasana
+      if (body.newPassword) {
+        const passwordLength: number = body.newPassword
+          ? body.newPassword.length
+          : 0;
+        if (passwordLength < 6) {
+          return res
+            .status(411)
+            .json({ message: "Password length less than 6 characters" });
+        }
+        const saltRounds: number = 10;
+        newPasswordHash = await hash(body.newPassword, saltRounds);
+      }
+
+      // Poistetaan passwordHash bodysta
+      // (muuten uusi salasana menee sellaisenaan tietokantaan).
+      // Salattu salasana luodaan ylempänä.
+      delete agency.passwordHash;
+
+      // update agency's passwordHash with the new passwordHash
+      const updatePasswordField = {
+        passwordHash: newPasswordHash,
+      };
+
+      // https://mongoosejs.com/docs/tutorials/findoneandupdate.html
+      // https://mongoosejs.com/docs/api.html#model_Model.findByIdAndUpdate
+      const updatedAgency: IAgencyDocument | null =
+        await Agency.findByIdAndUpdate(
+          res.locals.decoded.id,
+          updatePasswordField,
+          { new: true, omitUndefined: true, runValidators: true }
+        );
+
+      if (!updatedAgency) {
+        return res.status(404).json({ message: "Agency not found" });
+      }
+      return res.status(200).json(updatedAgency);
+    } catch (exception) {
+      return next(exception);
     }
-
-    // Poistetaan passwordHash bodysta
-    // (muuten uusi salasana menee sellaisenaan tietokantaan).
-    // Salattu salasana luodaan ylempänä.
-    delete agency.passwordHash
-
-    // update agency's passwordHash with the new passwordHash
-    const updatePasswordField = {
-      passwordHash: newPasswordHash
-    }
-
-    // https://mongoosejs.com/docs/tutorials/findoneandupdate.html
-    // https://mongoosejs.com/docs/api.html#model_Model.findByIdAndUpdate
-    const updatedAgency: IAgencyDocument | null = await Agency.findByIdAndUpdate(res.locals.decoded.id, updatePasswordField,
-      { new: true, omitUndefined: true, runValidators: true })
-
-    if (!updatedAgency) {
-      return res.status(404).json({ message: "Agency not found" })
-    }
-    return res.status(200).json(updatedAgency)
-
-  } catch (exception) {
-    return next(exception)
   }
-})
+);
 
-
-export default agenciesRouter
+export default agenciesRouter;
