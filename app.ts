@@ -1,45 +1,46 @@
-import express from "express"
-import cors from "cors"
-import mongoose from "mongoose"
-import config from "./utils/config"
-import workersRouter from "./controllers/workers"
-import businessRouter from "./controllers/businesses"
-import agenciesRouter from "./controllers/agencies"
-import uploadsRouter from "./controllers/uploads"
-import loginRouter from "./controllers/login"
-import businesscontractsRouter from "./controllers/businesscontracts"
-import feelingsRouter from "./controllers/feelings"
-import workcontractRouter from "./controllers/workcontracts"
-import formsRouter from "./controllers/forms"
-import businessContractFormsRouter from "./controllers/businesscontractforms"
-import notificationsRouter from "./controllers/notifications"
-import { errorHandler, requestLogger, unknownEndpoint } from "./utils/middleware"
-import { info, error as _error } from "./utils/logger"
-import swaggerUi from "swagger-ui-express"
-import swaggerDocument from "./doc/generateSwaggerDoc"
-import profileRouter from "./controllers/profile"
-import feedBackRouter from "./controllers/feedBack"
-import reportsRouter from "./controllers/reports"
-import jobvacanciesRouter from "./controllers/jobvacancies"
-import adminRouter from "./controllers/admin"
+import express from "express";
+import cors from "cors";
+import mongoose from "mongoose";
+import config from "./utils/config";
+import workersRouter from "./controllers/workers";
+import businessRouter from "./controllers/businesses";
+import agenciesRouter from "./controllers/agencies";
+import uploadsRouter from "./controllers/uploads";
+import loginRouter from "./controllers/login";
+import businesscontractsRouter from "./controllers/businesscontracts";
+import feelingsRouter from "./controllers/feelings";
+import workcontractRouter from "./controllers/workcontracts";
+import formsRouter from "./controllers/forms";
+import businessContractFormsRouter from "./controllers/businesscontractforms";
+import notificationsRouter from "./controllers/notifications";
+import {
+  errorHandler,
+  requestLogger,
+  unknownEndpoint,
+} from "./utils/middleware";
+import { info, error as _error } from "./utils/logger";
+import swaggerUi from "swagger-ui-express";
+import swaggerDocument from "./doc/generateSwaggerDoc";
+import profileRouter from "./controllers/profile";
+import feedBackRouter from "./controllers/feedBack";
+import reportsRouter from "./controllers/reports";
+import jobvacanciesRouter from "./controllers/jobvacancies";
+import adminRouter from "./controllers/admin";
+import jobRouter from "./controllers/job";
 
+const app = express();
 
-
-
-
-const app = express()
-
-info("connecting to", config.MONGODB_URI)
+info("connecting to", config.MONGODB_URI);
 
 // These options fix deprecation warnings
 const options: any = {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   useFindAndModify: false,
-  useCreateIndex: true
-}
+  useCreateIndex: true,
+};
 
-mongoose.connect(config.MONGODB_URI || 'URI_NOTFOUND', options)
+mongoose.connect(config.MONGODB_URI || "URI_NOTFOUND", options);
 /*
   .then(() => {
     info("connected to MongoDB")
@@ -49,30 +50,30 @@ mongoose.connect(config.MONGODB_URI || 'URI_NOTFOUND', options)
   })
  */
 
-app.use(cors())
-app.use(express.json())
-app.use(requestLogger)
+app.use(cors());
+app.use(express.json());
+app.use(requestLogger);
 
-app.use("/api/workers", workersRouter)
-app.use("/api/businesses", businessRouter)
-app.use("/api/agencies", agenciesRouter)
-app.use("/api/uploads", uploadsRouter)
-app.use("/api/login", loginRouter)
-app.use("/api/profile", profileRouter)
-app.use("/api/businesscontracts", businesscontractsRouter)
-app.use("/api/feelings", feelingsRouter)
-app.use("/api/workcontracts", workcontractRouter)
-app.use("/api/forms", formsRouter)
-app.use("/api/businesscontractforms", businessContractFormsRouter)
-app.use("/api/jobvacancies", jobvacanciesRouter)
-app.use("/api/notifications", notificationsRouter)
-app.use("/api/feedback", feedBackRouter)
-app.use("/api/reports", reportsRouter)
-app.use("/api/admin", adminRouter)
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument))
+app.use("/api/workers", workersRouter);
+app.use("/api/businesses", businessRouter);
+app.use("/api/agencies", agenciesRouter);
+app.use("/api/uploads", uploadsRouter);
+app.use("/api/login", loginRouter);
+app.use("/api/profile", profileRouter);
+app.use("/api/businesscontracts", businesscontractsRouter);
+app.use("/api/feelings", feelingsRouter);
+app.use("/api/workcontracts", workcontractRouter);
+app.use("/api/forms", formsRouter);
+app.use("/api/businesscontractforms", businessContractFormsRouter);
+app.use("/api/jobvacancies", jobvacanciesRouter);
+app.use("/api/notifications", notificationsRouter);
+app.use("/api/feedback", feedBackRouter);
+app.use("/api/reports", reportsRouter);
+app.use("/api/admin", adminRouter);
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.use("/api/jobRouter", jobRouter);
 
+app.use(unknownEndpoint);
+app.use(errorHandler);
 
-app.use(unknownEndpoint)
-app.use(errorHandler)
-
-export default app
+export default app;
