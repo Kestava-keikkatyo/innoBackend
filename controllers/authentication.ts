@@ -216,6 +216,76 @@ authRouter.post(
   }
 );
 
+/**
+ * @openapi
+ * /users/changePassword:
+ *   put:
+ *     summary: Route for users to change their own password.
+ *     tags: [User]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     requestBody:
+ *       description: |
+ *         Properties are the current password and the new password of the user object.
+ *       content:
+ *         application/json:
+ *           schema:
+ *             example:
+ *               currentPassword: currentPass123
+ *               newPassword: newPass123
+ *     responses:
+ *       "200":
+ *         description: User password updated. Returns updated user.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Worker"
+ *       "401":
+ *         description: Current password is incorrect
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Current password is incorrect
+ *       "400":
+ *         description: The new password can't be blank
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: The new password can't be blank
+ *       "406":
+ *         description: The new password could not be as same as current password
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: The new password could not be as same as current password
+ *       "411":
+ *         description: Incorrect password "Length required"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Password length less than 3 characters
+ *       "404":
+ *         description: User wasn't found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: User not found
+ */
 authRouter.put(
   "/changePassword",
   authenticateToken,
@@ -275,4 +345,5 @@ authRouter.put(
     }
   }
 );
+
 export default authRouter;
