@@ -216,4 +216,63 @@ authRouter.post(
   }
 );
 
+authRouter.put(
+  "/changePassword",
+  authenticateToken,
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { body } = req;
+    try {
+      const user: IUserDocument | null = await User.findById(
+        res.locals.decoded.id
+      );
+      if (!user) {
+        return res.status(404).json({ message: "User is not existing" });
+      }
+      const currentPasswordCorrect: boolean = await bcrypt.compare(
+        body.currentPassword,
+        user.passwordHash as string
+      );
+
+      if (!currentPasswordCorrect) {
+        return res
+          .status(401)
+          .json({ message: "The current password is incorrect" });
+      }
+      if (body.currentPassword === body.newPassword) {
+        return res.status(406).json({
+          message:
+            "The new password could not be as same as the current password",
+        });
+      }
+      if (!body.newPassword) {
+        return res
+          .status(400)
+          .json({ message: "The new password can't be blank" });
+      }
+      const passwordLength: number = body.newPassword.length;
+      if (passwordLength < 3) {
+        return res
+          .status(411)
+          .json({ message: "password length less than 3 characters" });
+      }
+      const saltRounds: number = 10;
+      let newPasswordHash = await hash(body.newPassword, saltRounds);
+
+      const updatePasswordField = {
+        passwordHash: newPasswordHash,
+      };
+      const updatedUser: IUserDocument | null = await User.findByIdAndUpdate(
+        res.locals.decoded.id,
+        updatePasswordField,
+        { new: true, omitUndefined: true, runValidators: true }
+      );
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      return res.status(200).send();
+    } catch (exception) {
+      return next(exception);
+    }
+  }
+);
 export default authRouter;
