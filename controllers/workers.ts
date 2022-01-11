@@ -1,4 +1,4 @@
-import { needsToBeAgencyOrBusiness } from './../utils/middleware';
+import { needsToBeAgencyOrBusiness } from "./../utils/middleware";
 /** Express router providing Worker-related routes
  * @module controllers/workers
  * @requires express
@@ -9,22 +9,28 @@ import { needsToBeAgencyOrBusiness } from './../utils/middleware';
  * @type {object}
  * @const
  * @namespace workersRouter
-*/
-import express, { NextFunction, Request, Response } from "express"
-import { hash } from "bcryptjs"
-import { sign } from "jsonwebtoken"
-import { error as _error } from "../utils/logger"
-import authenticateToken from "../utils/auhenticateToken"
+ */
+import express, { NextFunction, Request, Response } from "express";
+import { hash } from "bcryptjs";
+import { sign } from "jsonwebtoken";
+import { error as _error } from "../utils/logger";
+import authenticateToken from "../utils/auhenticateToken";
 
-import Worker from "../models/Worker"
-import Agency from "../models/Agency"
-import { IAgencyDocument, IBusinessDocument, IWorker, IWorkerDocument, IAdminDocument } from "../objecttypes/modelTypes";
+import Worker from "../models/Worker";
+import Agency from "../models/Agency";
+import {
+  IAgencyDocument,
+  IBusinessDocument,
+  IWorker,
+  IWorkerDocument,
+  IAdminDocument,
+} from "../objecttypes/modelTypes";
 import { CallbackError } from "mongoose";
-import bcrypt from "bcryptjs"
-import Business from '../models/Business';
-import Admin from '../models/Admin'
+import bcrypt from "bcryptjs";
+import Business from "../models/Business";
+import Admin from "../models/Admin";
 
-const workersRouter = express.Router()
+const workersRouter = express.Router();
 
 /**
  * @openapi
@@ -88,60 +94,91 @@ const workersRouter = express.Router()
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-workersRouter.post("/", async (req: Request<unknown, unknown, IWorker>, res: Response, next: NextFunction) => {
-  try {
-    const { body } = req
+workersRouter.post(
+  "/",
+  async (
+    req: Request<unknown, unknown, IWorker>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { body } = req;
 
-    const business: IBusinessDocument | null = await Business.findOne({ email: body.email })
-    if (business) {
-      return res.status(409).json({ message: `${body.email} is already registered!` })
-    }
-
-    const agency: IAgencyDocument | null = await Agency.findOne({ email: body.email })
-    if (agency) {
-      return res.status(409).json({ message: `${body.email} is already registered!` })
-    }
-
-    const admin: IAdminDocument | null = await Admin.findOne({ email: body.email })
-    if (admin) {
-      return res.status(409).json({ message: `${body.email} is already registered!` })
-    }
-
-    const passwordLength: number = body.password ? body.password.length : 0
-    if (passwordLength < 3) {
-      return res.status(400).json({ message: "Password length less than 3 characters" })
-    }
-    const saltRounds: number = 10
-    const passwordHash: string = await hash(body.password, saltRounds)
-
-    const workerToCreate: IWorkerDocument = new Worker({
-      name: body.name,
-      email: body.email,
-      passwordHash,
-    })
-
-    return workerToCreate.save((error: CallbackError, worker: IWorkerDocument) => {
-      if (error) {
-        return res.status(500).json({ message: error.message })
-      }
-      if (!worker) {
-        return res.status(500).json({ message: "Unable to save agency document" })
+      const business: IBusinessDocument | null = await Business.findOne({
+        email: body.email,
+      });
+      if (business) {
+        return res
+          .status(409)
+          .json({ message: `${body.email} is already registered!` });
       }
 
-      const workerForToken = {
-        email: worker.email,
-        id: worker._id,
+      const agency: IAgencyDocument | null = await Agency.findOne({
+        email: body.email,
+      });
+      if (agency) {
+        return res
+          .status(409)
+          .json({ message: `${body.email} is already registered!` });
       }
 
-      const token: string = sign(workerForToken, process.env.SECRET || '')
+      const admin: IAdminDocument | null = await Admin.findOne({
+        email: body.email,
+      });
+      if (admin) {
+        return res
+          .status(409)
+          .json({ message: `${body.email} is already registered!` });
+      }
 
-      return res.status(200).send({ token, name: worker.name, email: worker.email, role: "worker" })
-    })
+      const passwordLength: number = body.password ? body.password.length : 0;
+      if (passwordLength < 3) {
+        return res
+          .status(400)
+          .json({ message: "Password length less than 3 characters" });
+      }
+      const saltRounds: number = 10;
+      const passwordHash: string = await hash(body.password, saltRounds);
 
-  } catch (exception) {
-    return next(exception)
+      const workerToCreate: IWorkerDocument = new Worker({
+        name: body.name,
+        email: body.email,
+        passwordHash,
+      });
+
+      return workerToCreate.save(
+        (error: CallbackError, worker: IWorkerDocument) => {
+          if (error) {
+            return res.status(500).json({ message: error.message });
+          }
+          if (!worker) {
+            return res
+              .status(500)
+              .json({ message: "Unable to save agency document" });
+          }
+
+          const workerForToken = {
+            email: worker.email,
+            id: worker._id,
+          };
+
+          const token: string = sign(workerForToken, process.env.SECRET || "");
+
+          return res
+            .status(200)
+            .send({
+              token,
+              name: worker.name,
+              email: worker.email,
+              role: "worker",
+            });
+        }
+      );
+    } catch (exception) {
+      return next(exception);
+    }
   }
-})
+);
 
 /**
  * @openapi
@@ -178,26 +215,33 @@ workersRouter.post("/", async (req: Request<unknown, unknown, IWorker>, res: Res
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-workersRouter.get("/me", authenticateToken, async (_req: Request, res: Response, next: NextFunction) => {
-  try {
-    //Decodatun tokenin arvo haetaan middlewarelta
-    //Tokeni pitää sisällään workerid jolla etsitään oikean käyttäjän tiedot
-    Worker.findById(res.locals.decoded.id,
-      undefined,
-      undefined,
-      (error: CallbackError, result: IWorkerDocument | null) => {
-        if (error) {
-          res.status(500).send(error)
-        } else if (!result) { //Jos ei resultia niin käyttäjän tokenilla ei löydy käyttäjää
-          res.status(401).send({ message: "Not authorized" })
-        } else {
-          res.status(200).send(result)
+workersRouter.get(
+  "/me",
+  authenticateToken,
+  async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      //Decodatun tokenin arvo haetaan middlewarelta
+      //Tokeni pitää sisällään workerid jolla etsitään oikean käyttäjän tiedot
+      Worker.findById(
+        res.locals.decoded.id,
+        undefined,
+        undefined,
+        (error: CallbackError, result: IWorkerDocument | null) => {
+          if (error) {
+            res.status(500).send(error);
+          } else if (!result) {
+            //Jos ei resultia niin käyttäjän tokenilla ei löydy käyttäjää
+            res.status(401).send({ message: "Not authorized" });
+          } else {
+            res.status(200).send(result);
+          }
         }
-      })
-  } catch (exception) {
-    next(exception)
+      );
+    } catch (exception) {
+      next(exception);
+    }
   }
-})
+);
 
 /**
  * Route used to update worker's information.
@@ -247,47 +291,60 @@ workersRouter.get("/me", authenticateToken, async (_req: Request, res: Response,
  *             example:
  *               message: Worker not found
  */
-workersRouter.put("/", authenticateToken, async (req: Request<unknown, unknown, IWorker>, res: Response, next: NextFunction) => {
-  const { body } = req
-  let passwordHash: string | undefined
+workersRouter.put(
+  "/",
+  authenticateToken,
+  async (
+    req: Request<unknown, unknown, IWorker>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    const { body } = req;
+    let passwordHash: string | undefined;
 
-  try {
-    // Salataan uusi salasana
-    if (body.password) {
-      const passwordLength: number = body.password ? body.password.length : 0
-      if (passwordLength < 3) {
-        return res.status(400).json({ message: "password length less than 3 characters" })
+    try {
+      // Salataan uusi salasana
+      if (body.password) {
+        const passwordLength: number = body.password ? body.password.length : 0;
+        if (passwordLength < 3) {
+          return res
+            .status(400)
+            .json({ message: "password length less than 3 characters" });
+        }
+        const saltRounds: number = 10;
+        passwordHash = await hash(body.password, saltRounds);
       }
-      const saltRounds: number = 10
-      passwordHash = await hash(body.password, saltRounds)
+
+      // Poistetaan passwordHash bodysta
+      // (muuten uusi salasana menee sellaisenaan tietokantaan).
+      // Salattu salasana luodaan ylempänä.
+      delete body.passwordHash;
+
+      // päivitetään bodyn kentät (mitä pystytään päivittämään).
+      // lisätään passwordHash päivitykseen, jos annetaan uusi salasana.
+      const updateFields = {
+        ...body,
+        passwordHash,
+      };
+
+      // https://mongoosejs.com/docs/tutorials/findoneandupdate.html
+      // https://mongoosejs.com/docs/api.html#model_Model.findByIdAndUpdate
+      const updatedWorker: IWorkerDocument | null =
+        await Worker.findByIdAndUpdate(res.locals.decoded.id, updateFields, {
+          new: true,
+          omitUndefined: true,
+          runValidators: true,
+        });
+
+      if (!updatedWorker) {
+        return res.status(404).json({ message: "Worker not found" });
+      }
+      return res.status(200).json(updatedWorker);
+    } catch (exception) {
+      return next(exception);
     }
-
-    // Poistetaan passwordHash bodysta
-    // (muuten uusi salasana menee sellaisenaan tietokantaan).
-    // Salattu salasana luodaan ylempänä.
-    delete body.passwordHash
-
-    // päivitetään bodyn kentät (mitä pystytään päivittämään).
-    // lisätään passwordHash päivitykseen, jos annetaan uusi salasana.
-    const updateFields = {
-      ...body,
-      passwordHash
-    }
-
-    // https://mongoosejs.com/docs/tutorials/findoneandupdate.html
-    // https://mongoosejs.com/docs/api.html#model_Model.findByIdAndUpdate
-    const updatedWorker: IWorkerDocument | null = await Worker.findByIdAndUpdate(res.locals.decoded.id, updateFields,
-      { new: true, omitUndefined: true, runValidators: true })
-
-    if (!updatedWorker) {
-      return res.status(404).json({ message: "Worker not found" })
-    }
-    return res.status(200).json(updatedWorker)
-
-  } catch (exception) {
-    return next(exception)
   }
-})
+);
 
 /**
  * @openapi
@@ -321,17 +378,25 @@ workersRouter.put("/", authenticateToken, async (req: Request<unknown, unknown, 
  *             example:
  *               message: Workers not found
  */
-workersRouter.get("/all", authenticateToken, needsToBeAgencyOrBusiness, async (_req: Request, res: Response, next: NextFunction) => {
-  try {
-    const workers: Array<IWorkerDocument> | null = await Worker.find({}, { licenses: 0 }).populate('profile', {}) // TODO use callback for result and errors.
-    if (workers) {
-      return res.status(200).json(workers)
+workersRouter.get(
+  "/all",
+  authenticateToken,
+  needsToBeAgencyOrBusiness,
+  async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      const workers: Array<IWorkerDocument> | null = await Worker.find(
+        {},
+        { licenses: 0 }
+      ).populate("profile", {}); // TODO use callback for result and errors.
+      if (workers) {
+        return res.status(200).json(workers);
+      }
+      return res.status(404).json({ message: "Workers not found" });
+    } catch (exception) {
+      return next(exception);
     }
-    return res.status(404).json({ message: "Workers not found" })
-  } catch (exception) {
-    return next(exception)
   }
-})
+);
 
 /**
  * @openapi
@@ -372,171 +437,48 @@ workersRouter.get("/all", authenticateToken, needsToBeAgencyOrBusiness, async (_
  *             example:
  *               message: Workers not found
  */
-workersRouter.get("/", authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
-  const { query } = req
+workersRouter.get(
+  "/",
+  authenticateToken,
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { query } = req;
 
-  let name: string | undefined
-  if (query.name) {
-    name = query.name as string
-  }
+    let name: string | undefined;
+    if (query.name) {
+      name = query.name as string;
+    }
 
-  try {
-    const agency: IAgencyDocument | null = await Agency.findById(res.locals.decoded.id)
-    if (agency && name) {
-      // Työntekijät haetaan SQL:n LIKE operaattorin tapaisesti
-      // Työpassit jätetään hausta pois
-      const workers: Array<IWorkerDocument> = await Worker.find({ name: { $regex: name, $options: "i" } }, { licenses: 0 })
-      if (workers) {
-        return res.status(200).json(workers)
+    try {
+      const agency: IAgencyDocument | null = await Agency.findById(
+        res.locals.decoded.id
+      );
+      if (agency && name) {
+        // Työntekijät haetaan SQL:n LIKE operaattorin tapaisesti
+        // Työpassit jätetään hausta pois
+        const workers: Array<IWorkerDocument> = await Worker.find(
+          { name: { $regex: name, $options: "i" } },
+          { licenses: 0 }
+        );
+        if (workers) {
+          return res.status(200).json(workers);
+        }
+      } else if (agency && name === undefined) {
+        // Työntekijät haetaan SQL:n LIKE operaattorin tapaisesti
+        // Työpassit jätetään hausta pois
+        const workers: Array<IWorkerDocument> = await Worker.find(
+          {},
+          { licenses: 0 }
+        );
+        if (workers) {
+          return res.status(200).json(workers);
+        }
       }
-    } else if (agency && name === undefined) {
-      // Työntekijät haetaan SQL:n LIKE operaattorin tapaisesti
-      // Työpassit jätetään hausta pois
-      const workers: Array<IWorkerDocument> = await Worker.find({}, { licenses: 0 })
-      if (workers) {
-        return res.status(200).json(workers)
-      }
-    }
 
-    return res.status(400).json({ message: "Workers not found" })
-  } catch (exception) {
-    return next(exception)
+      return res.status(400).json({ message: "Workers not found" });
+    } catch (exception) {
+      return next(exception);
+    }
   }
-})
+);
 
-
-
-
-/**
- * Route used to update worker's password.
- * @openapi
- * /workers/update-password:
- *   put:
- *     summary: Route for worker to update their own password.
- *     tags: [Worker]
- *     parameters:
- *       - in: header
- *         name: x-access-token
- *         description: The token you get when logging in is used here. Used to authenticate the user.
- *         required: true
- *         schema:
- *           $ref: "#/components/schemas/AccessToken"
- *     requestBody:
- *       description: |
- *         Properties are the current password and the new password of the worker object.
- *       content:
- *         application/json:
- *           schema:
- *             example:
- *               currentPassword: currentPass123
- *               newPassword: newPass123
- *     responses:
- *       "200":
- *         description: Worker password updated. Returns updated worker.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: "#/components/schemas/Worker"
- *       "401":
- *         description: Current password is incorrect
- *         content:
- *           application/json:
- *             schema:
- *               $ref: "#/components/schemas/Error"
- *             example:
- *               message: Current password is incorrect
- *       "400":
- *         description: The new password can't be blank
- *         content:
- *           application/json:
- *             schema:
- *               $ref: "#/components/schemas/Error"
- *             example:
- *               message: The new password can't be blank
- *       "406":
- *         description: The new password could not be as same as current password
- *         content:
- *           application/json:
- *             schema:
- *               $ref: "#/components/schemas/Error"
- *             example:
- *               message: The new password could not be as same as current password
- *       "411":
- *         description: Incorrect password "Length required"
- *         content:
- *           application/json:
- *             schema:
- *               $ref: "#/components/schemas/Error"
- *             example:
- *               message: Password length less than 3 characters
- *       "404":
- *         description: Worker wasn't found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: "#/components/schemas/Error"
- *             example:
- *               message: Worker not found
- */
-workersRouter.put("/update-password", authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
-
-  const { body } = req
-  try {
-    // find the worker
-    const worker: IWorkerDocument | null = await Worker.findById(res.locals.decoded.id)
-    // check if the current password is correct
-    const currentPasswordCorrect: boolean = worker === null
-      ? false
-      : await bcrypt.compare(body.currentPassword, worker.passwordHash as string)
-
-    if (!worker) {
-      return res.status(404).json({ message: "Worker not found" })
-    }
-    if (!currentPasswordCorrect) {
-      return res.status(401).json({ message: "The current password is incorrect" })
-    }
-    if (body.currentPassword === body.newPassword) {
-      return res.status(406).json({ message: "The new password could not be as same as the current password" })
-    }
-    if (!body.newPassword) {
-      return res.status(400).json({ message: "The new password can't be blank" })
-    }
-
-    let newPasswordHash: string | undefined
-
-    // Salataan uusi salasana
-    if (body.newPassword) {
-      const passwordLength: number = body.newPassword ? body.newPassword.length : 0
-      if (passwordLength < 3) {
-        return res.status(411).json({ message: "password length less than 3 characters" })
-      }
-      const saltRounds: number = 10
-      newPasswordHash = await hash(body.newPassword, saltRounds)
-    }
-
-    // Poistetaan passwordHash bodysta
-    // (muuten uusi salasana menee sellaisenaan tietokantaan).
-    // Salattu salasana luodaan ylempänä.
-    delete worker.passwordHash
-
-    // update worker's passwordHash with the new passwordHash
-    const updatePasswordField = {
-      passwordHash: newPasswordHash
-    }
-
-    // https://mongoosejs.com/docs/tutorials/findoneandupdate.html
-    // https://mongoosejs.com/docs/api.html#model_Model.findByIdAndUpdate
-    const updatedWorker: IWorkerDocument | null = await Worker.findByIdAndUpdate(res.locals.decoded.id, updatePasswordField,
-      { new: true, omitUndefined: true, runValidators: true })
-
-    if (!updatedWorker) {
-      return res.status(404).json({ message: "Worker not found" })
-    }
-    return res.status(200).json(updatedWorker)
-
-  } catch (exception) {
-    return next(exception)
-  }
-})
-
-export default workersRouter
+export default workersRouter;
