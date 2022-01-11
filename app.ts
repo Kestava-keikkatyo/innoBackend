@@ -27,6 +27,7 @@ import reportsRouter from "./controllers/reports";
 import jobvacanciesRouter from "./controllers/jobvacancies";
 import adminRouter from "./controllers/admin";
 import jobRouter from "./controllers/job";
+import authRouter from "./controllers/authentication";
 
 const app = express();
 
@@ -71,7 +72,8 @@ app.use("/api/feedback", feedBackRouter);
 app.use("/api/reports", reportsRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-app.use("/api/jobRouter", jobRouter);
+app.use("/api/job", jobRouter);
+app.use("/api/authentication", authRouter);
 
 app.use(unknownEndpoint);
 app.use(errorHandler);
