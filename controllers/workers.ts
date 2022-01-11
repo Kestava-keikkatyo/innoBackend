@@ -26,7 +26,6 @@ import {
   IAdminDocument,
 } from "../objecttypes/modelTypes";
 import { CallbackError } from "mongoose";
-import bcrypt from "bcryptjs";
 import Business from "../models/Business";
 import Admin from "../models/Admin";
 
@@ -164,14 +163,12 @@ workersRouter.post(
 
           const token: string = sign(workerForToken, process.env.SECRET || "");
 
-          return res
-            .status(200)
-            .send({
-              token,
-              name: worker.name,
-              email: worker.email,
-              role: "worker",
-            });
+          return res.status(200).send({
+            token,
+            name: worker.name,
+            email: worker.email,
+            role: "worker",
+          });
         }
       );
     } catch (exception) {

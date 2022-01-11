@@ -10,7 +10,6 @@
  * @namespace businessesRouter
  */
 import express, { NextFunction, Request, Response } from "express";
-import { hash } from "bcryptjs";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { error as _error } from "../utils/logger";

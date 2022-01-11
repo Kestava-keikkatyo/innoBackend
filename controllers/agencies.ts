@@ -10,7 +10,7 @@
  * @namespace agenciesRouter
  */
 import express, { NextFunction, Request, Response } from "express";
-import bcrypt, { hash } from "bcryptjs";
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import authenticateToken from "../utils/auhenticateToken";
 import Agency from "../models/Agency";
