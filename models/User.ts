@@ -79,12 +79,11 @@ const userSchema: Schema = new Schema({
     type: String,
     ref: "Category",
   },
-  licenses: [
-    {
-      type: String,
-      minlength: 3,
-    },
-  ],
+  licenses: {
+    type: [String],
+    default: undefined,
+    required: false,
+  },
   videoUriId: String,
   profilePicture: {
     type: String,
