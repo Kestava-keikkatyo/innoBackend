@@ -185,13 +185,11 @@ export const deleteJobDocument = async (
       return res
         .status(404)
         .send({ message: `Job with ID ${id}  is not existing!` });
+    } else {
+      return res
+        .status(200)
+        .send({ message: `Job with ${id} was deleted successfuly!` });
     }
-
-    Job.findByIdAndDelete(id, { lean: true });
-    if (job) {
-      console.log(`Job with ${id} was deleted successfuly!`);
-    }
-    return res.status(job ? 200 : 404).send();
   } catch (exception) {
     return next(exception);
   }
