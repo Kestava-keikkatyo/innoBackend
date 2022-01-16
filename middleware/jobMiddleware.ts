@@ -18,7 +18,7 @@ export const postJobDocument = async (
   const { body } = req;
   try {
     const jobDocument: IJobDocument = new Job({
-      agencyId: res.locals.decoded.id,
+      agency: res.locals.decoded.id,
       title: body.title,
       category: body.category,
       jobType: body.jobType,
@@ -61,7 +61,9 @@ export const getJobDocuments = async (
   next: NextFunction
 ) => {
   try {
-    const jobs: Array<IJobDocument> | null = await Job.find({});
+    const jobs: Array<IJobDocument> | null = await Job.find({}).populate(
+      "agency"
+    );
     if (jobs) {
       return res.status(200).json(jobs);
     }
@@ -85,7 +87,7 @@ export const getJobDocumentsForAgency = (
 ) => {
   try {
     Job.find(
-      { agencyId: res.locals.decoded.id },
+      { agency: res.locals.decoded.id },
       (error: CallbackError, docs: IJobDocument[]) => {
         if (error) {
           return res.status(500).json({ message: error.message });

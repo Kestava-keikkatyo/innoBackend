@@ -397,7 +397,7 @@ export interface IJobVacancyDocument extends Document, IJobVacancy {
 }
 
 export interface IJob {
-  agencyId: IAgencyDocument["_id"];
+  agency: IAgencyDocument["_id"];
   title: String;
   category: String;
   jobType: String;
