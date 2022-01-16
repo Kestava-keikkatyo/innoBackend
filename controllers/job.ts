@@ -20,7 +20,7 @@ const jobRouter = express.Router();
  *   post:
  *     summary: Route for agency to add a new job.
  *     description: Must be logged in as an agency.
- *     tags: [Job, Agency]
+ *     tags: [Jobs, Agency]
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -41,25 +41,23 @@ const jobRouter = express.Router();
  *           application/json:
  *             schema:
  *               $ref: "#/components/schemas/Job"
- *        "404":
- *         description: Failed to create a job
+ *       "500":
+ *         description: An error occurred. Either a problem with the database or middleware.
  *         content:
  *           application/json:
  *             schema:
  *               $ref: "#/components/schemas/Error"
- *             example:
- *               message: Failed to create a job
  */
 jobRouter.post("/", authenticateToken, needsToBeAgency, postJobDocument);
 
 /**
  * Route for workers to get all available jobs.
  * @openapi
- * /jobs/allJobsForWorker:
+ * /job/allJobsForWorker:
  *   get:
  *     summary: Route for workers to get all available jobs
  *     description: Need to be logged in as a worker.
- *     tags: [Job, Worker]
+ *     tags: [Jobs, Worker]
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -75,9 +73,9 @@ jobRouter.post("/", authenticateToken, needsToBeAgency, postJobDocument);
  *             schema:
  *               type: array
  *               items:
- *                 $ref: "#/components/schemas/JobVacancy"
+ *                 $ref: "#/components/schemas/Job"
  *       "404":
- *         description: No jobs found
+ *         description: No jobs are existing
  *         content:
  *           application/json:
  *             schema:
@@ -93,12 +91,12 @@ jobRouter.get(
 );
 
 /**
- * Route for worker to get job by its id
+ * Route for worker to get a job by its id
  * @openapi
- * /jojs/jobForWorker/{id}:
+ * /job/jobForWorker/{id}:
  *   get:
- *     summary: Route for worker to get job by its id
- *     description: Must be logged in as an worker.
+ *     summary: Route for worker to get a job by its id
+ *     description: Must be logged in as worker.
  *     tags: [Jobs, Worker]
  *     parameters:
  *       - in: header
@@ -109,18 +107,18 @@ jobRouter.get(
  *           $ref: "#/components/schemas/AccessToken"
  *       - in: path
  *         name: id
- *         description: ID of the job which we want.
+ *         description: ID of the requested job.
  *         required: true
  *         schema:
  *           type: string
  *           example: 604021e581a9626810885657
  *     responses:
  *       "200":
- *         description: Returns the required job
+ *         description: Returns the requested job.
  *         content:
  *           application/json:
  *             schema:
- *               $ref: "#/components/schemas/JobVacancy"
+ *               $ref: "#/components/schemas/Job"
  *       "404":
  *         description: No job was found with the requested ID.
  *         content:
@@ -128,7 +126,7 @@ jobRouter.get(
  *             schema:
  *               $ref: "#/components/schemas/Error"
  *             example:
- *               message: No job with ID {id} found
+ *               message:No job with ID {id} found
  *       "500":
  *         description: An error occurred when calling the database.
  *         content:
@@ -146,7 +144,7 @@ jobRouter.get(
 /**
  * Route for agencies to get their own jobs
  * @openapi
- * /jobs/allJobsForAgency:
+ * /job/allJobsForAgency:
  *   get:
  *     summary: Route for agencies to get their own jobs
  *     description: Must be logged in as an agency.
@@ -168,7 +166,7 @@ jobRouter.get(
  *               items:
  *                 $ref: "#/components/schemas/Job"
  *       "404":
- *         description: Jobs not found for the agency in question.
+ *         description: The requested jobs are not found.
  *         content:
  *           application/json:
  *             schema:
@@ -192,11 +190,11 @@ jobRouter.get(
 /**
  * Route for agency to get own job by its id
  * @openapi
- * /jobs/jobForAgency/{id}:
+ * /job/jobForAgency/{id}:
  *   get:
  *     summary: Route for agency to get own job by its id
  *     description: Must be logged in as an agency.
- *     tags: [Jobs, Agency]
+ *     tags: [Job, Agency]
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -206,18 +204,18 @@ jobRouter.get(
  *           $ref: "#/components/schemas/AccessToken"
  *       - in: path
  *         name: id
- *         description: ID of the job which we want.
+ *         description: ID of the requested job.
  *         required: true
  *         schema:
  *           type: string
  *           example: 604021e581a9626810885657
  *     responses:
  *       "200":
- *         description: Returns the required job
+ *         description: Returns the requested job.
  *         content:
  *           application/json:
  *             schema:
- *               $ref: "#/components/schemas/JobVacancy"
+ *               $ref: "#/components/schemas/Job"
  *       "404":
  *         description: No job was found with the requested ID.
  *         content:
@@ -225,7 +223,7 @@ jobRouter.get(
  *             schema:
  *               $ref: "#/components/schemas/Error"
  *             example:
- *               message: No job with ID {id} found
+ *               message:No job with ID {id} found
  *       "500":
  *         description: An error occurred when calling the database.
  *         content:
@@ -243,11 +241,11 @@ jobRouter.get(
 /**
  * Route for agency to update own job.
  * @openapi
- * /jobs/jobUpdateForAgency/{id}:
+ * /job/jobUpdateForAgency/{id}:
  *   put:
  *     summary: Route for agency to update own job
  *     description: Must be logged in as an agency.
- *     tags: [Jobs, Agency]
+ *     tags: [Job, Agency]
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -257,7 +255,7 @@ jobRouter.get(
  *           $ref: "#/components/schemas/AccessToken"
  *       - in: path
  *         name: id
- *         description: ID of the job vacancy which agency wants to update.
+ *         description: ID of the job which agency wants to update.
  *         required: true
  *         schema:
  *           type: string
@@ -294,11 +292,11 @@ jobRouter.put(
 /**
  * Route for agency to delete own job
  * @openapi
- * /jobs/jobDeleteForAgency/{id}:
+ * /job/jobDeleteForAgency/{id}:
  *   delete:
  *     summary: Route for agency to delete own job
  *     description: Must be logged in as an agency.
- *     tags: [Jobs, Agency]
+ *     tags: [Job, Agency]
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -315,15 +313,15 @@ jobRouter.put(
  *           example: 604021e581a9626810885657
  *     responses:
  *       "200":
- *         description: Job deleted successfully.
+ *         description: Job was deleted successfully.
  *       "404":
- *         description: No job was found with the requested ID.
+ *         description: The job with the requested ID is not existing.
  *         content:
  *           application/json:
  *             schema:
  *               $ref: "#/components/schemas/Error"
  *             example:
- *               message: job with ID {id} is not existing
+ *               message: No job was found with the requested ID {id}
  */
 jobRouter.delete(
   "/jobDeleteForAgency/:id",
