@@ -62,7 +62,10 @@ export const getJobDocuments = async (
 ) => {
   try {
     const jobs: Array<IJobDocument> | null = await Job.find({}).populate(
-      "agency"
+      "agency",
+      {
+        name: 1,
+      }
     );
     if (jobs) {
       return res.status(200).json(jobs);
