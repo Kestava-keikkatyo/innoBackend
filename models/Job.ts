@@ -32,7 +32,8 @@ const jobSchema = new Schema({
     type: Number,
   },
   requirements: {
-    type: Array,
+    type: [String],
+    default: undefined,
     required: false,
   },
   desirableSkills: {
