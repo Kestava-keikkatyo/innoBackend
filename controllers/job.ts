@@ -274,6 +274,57 @@ jobRouter.get(
 jobRouter.get("/allJobsForAdmin", authenticateToken, isAdmin, getJobDocuments);
 
 /**
+ * Route for admin to get job by its id
+ * @openapi
+ * /job/jobForAdmin/{id}:
+ *   get:
+ *     summary: Route for admin to get job by its id
+ *     description: Must be logged in as admin.
+ *     tags: [Job, Admin]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: id
+ *         description: ID of the requested job.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 604021e581a9626810885657
+ *     responses:
+ *       "200":
+ *         description: Returns the requested job.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Job"
+ *       "404":
+ *         description: No job was found with the requested ID.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message:No job with ID {id} found
+ *       "500":
+ *         description: An error occurred when calling the database.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ */
+jobRouter.get(
+  "/jobForAdmin/:id",
+  authenticateToken,
+  isAdmin,
+  getJobDocumentById
+);
+
+/**
  * Route for agency to update own job.
  * @openapi
  * /job/jobUpdateForAgency/{id}:
