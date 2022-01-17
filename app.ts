@@ -28,6 +28,7 @@ import jobvacanciesRouter from "./controllers/jobvacancies";
 import adminRouter from "./controllers/admin";
 import jobRouter from "./controllers/job";
 import authRouter from "./controllers/authentication";
+import userRouter from "./controllers/user";
 
 const app = express();
 
@@ -74,6 +75,7 @@ app.use("/api/admin", adminRouter);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use("/api/job", jobRouter);
 app.use("/api/authentication", authRouter);
+app.use("/api/user", userRouter);
 
 app.use(unknownEndpoint);
 app.use(errorHandler);
