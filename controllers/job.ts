@@ -9,7 +9,7 @@ import {
   updateJobDocument,
   deleteJobDocument,
 } from "../middleware/jobMiddleware";
-import { isAgency, isWorker } from "../utils/authJwt";
+import { isAdmin, isAgency, isWorker } from "../utils/authJwt";
 
 const jobRouter = express.Router();
 
@@ -237,6 +237,41 @@ jobRouter.get(
   isAgency,
   getJobDocumentById
 );
+
+/**
+ * Route for admin to get all jobs.
+ * @openapi
+ * /job/allJobsForAdmin:
+ *   get:
+ *     summary: Route for admin to get all jobs
+ *     description: Need to be logged in as a admin.
+ *     tags: [Jobs, Admin]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     responses:
+ *       "200":
+ *         description: Returns found jobs
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: "#/components/schemas/Job"
+ *       "404":
+ *         description: No jobs are existing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: No jobs found
+ */
+jobRouter.get("/allJobsForAdmin", authenticateToken, isAdmin, getJobDocuments);
 
 /**
  * Route for agency to update own job.
