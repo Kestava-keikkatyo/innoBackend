@@ -12,6 +12,7 @@ import User from "../models/User";
 const getUserSchema = (user: any, hash: any) =>
   new User({
     name: user.name,
+    userType: user.userType,
     email: user.email,
     passwordHash: hash,
   });
@@ -45,7 +46,7 @@ const getAdminSchema = (worker: any, hash: any) =>
   });
 
 const createUser = async (
-  user: { email: string; name: string; password: string },
+  user: { email: string; name: string; password: string; userType?: string},
   type: string
 ) => {
   const saltRounds = 10;
