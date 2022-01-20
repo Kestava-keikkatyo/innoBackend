@@ -35,7 +35,7 @@ export const postJobDocument = async (
       duration: {
         startDate: body.duration.startDate,
         endDate: body.duration.endDate,
-        applicationLastDate: body.duration.applicationLastDate,
+        lastApplicationDate: body.duration.lastApplicationDate,
       },
     });
     const job = await jobDocument.save();

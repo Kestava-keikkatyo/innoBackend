@@ -52,6 +52,7 @@ const jobSchema = new Schema({
     },
     endDate: {
       type: Date,
+      required: false,
     },
     applicationLastDate: {
       type: Date,
