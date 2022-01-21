@@ -22,11 +22,15 @@ const jobSchema = new Schema({
     // Tis uesed to tell the applicant or candidate about employment type like full- or part-time
     type: String,
   },
-  location: {
-    // This is used to tell the applicant or candidate about job location
-    street: String,
-    zipCode: String,
-    city: String,
+  // This is used to tell the applicant or candidate about job location
+  street: {
+    type: String,
+  },
+  zipCode: {
+    type: String,
+  },
+  city: {
+    type: String,
   },
   salary: {
     type: Number,
@@ -46,17 +50,15 @@ const jobSchema = new Schema({
     type: String,
     required: true,
   },
-  duration: {
-    startDate: {
-      type: Date,
-    },
-    endDate: {
-      type: Date,
-      required: false,
-    },
-    applicationLastDate: {
-      type: Date,
-    },
+  startDate: {
+    type: Date,
+  },
+  endDate: {
+    type: Date,
+    required: false,
+  },
+  applicationLastDate: {
+    type: Date,
   },
   createdAt: {
     // This is used for job release date

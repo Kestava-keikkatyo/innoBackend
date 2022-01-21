@@ -401,21 +401,17 @@ export interface IJob {
   title: String;
   category: String;
   jobType: String;
-  location: {
-    street: string;
-    zipCode: string;
-    city: string;
-  };
+  street: string;
+  zipCode: string;
+  city: string;
   salary: Number;
   requirements: String;
   desirableSkills: String;
   benefits: String;
   details: String;
-  duration: {
-    startDate: Date;
-    endDate: Date;
-    applicationLastDate: Date;
-  };
+  startDate: Date;
+  endDate: Date;
+  applicationLastDate: Date;
 }
 
 export interface IJobDocument extends Document, IJob {

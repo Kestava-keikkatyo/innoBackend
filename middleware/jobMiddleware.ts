@@ -22,21 +22,17 @@ export const postJobDocument = async (
       title: body.title,
       category: body.category,
       jobType: body.jobType,
-      location: {
-        street: body.location.street,
-        zipCode: body.location.zipCode,
-        city: body.location.city,
-      },
+      street: body.street,
+      zipCode: body.zipCode,
+      city: body.city,
       salary: body.salary,
       requirements: body.requirements,
       desirableSkills: body.desirableSkills,
       benefits: body.benefits,
       details: body.details,
-      duration: {
-        startDate: body.duration.startDate,
-        endDate: body.duration.endDate,
-        lastApplicationDate: body.duration.lastApplicationDate,
-      },
+      startDate: body.startDate,
+      endDate: body.endDate,
+      applicationLastDate: body.applicationLastDate,
     });
     const job = await jobDocument.save();
     if (!job) {
