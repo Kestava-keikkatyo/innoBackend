@@ -120,3 +120,4 @@ dist
 
 # Local project settings folder created by Jetbrains' IDEs
 .idea
+package-lock.json
