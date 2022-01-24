@@ -41,14 +41,16 @@ const jobSchema = new Schema({
   },
   desirableSkills: {
     type: String,
+    required: false,
   },
   benefits: {
     // This is used to tell worker about supportive care
     type: String,
+    required: false,
   },
   details: {
     type: String,
-    required: true,
+    required: false,
   },
   startDate: {
     type: Date,
