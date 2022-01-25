@@ -9,8 +9,8 @@ import {
   updateJobDocument,
   deleteJobDocument,
 } from "../middleware/jobMiddleware";
-import { isAdmin, isAgency, isWorker } from "../utils/authJwt";
-
+import { isAdmin, isAgency } from "../utils/authJwt";
+import { needsToBeAgency, needsToBeWorker } from "../utils/middleware";
 const jobRouter = express.Router();
 
 /**
@@ -48,7 +48,7 @@ const jobRouter = express.Router();
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-jobRouter.post("/", authenticateToken, isAgency, postJobDocument);
+jobRouter.post("/", authenticateToken, needsToBeAgency, postJobDocument);
 
 /**
  * Route for workers to get all available jobs.
@@ -86,7 +86,7 @@ jobRouter.post("/", authenticateToken, isAgency, postJobDocument);
 jobRouter.get(
   "/allJobsForWorker",
   authenticateToken,
-  isWorker,
+  needsToBeWorker,
   getJobDocuments
 );
 
@@ -137,7 +137,7 @@ jobRouter.get(
 jobRouter.get(
   "/jobForWorker/:id",
   authenticateToken,
-  isWorker,
+  needsToBeWorker,
   getJobDocumentById
 );
 
@@ -183,7 +183,7 @@ jobRouter.get(
 jobRouter.get(
   "/allJobsForAgency",
   authenticateToken,
-  isAgency,
+  needsToBeAgency,
   getJobDocumentsForAgency
 );
 
@@ -412,7 +412,7 @@ jobRouter.put(
 jobRouter.delete(
   "/jobDeleteForAgency/:id",
   authenticateToken,
-  isAgency,
+  needsToBeAgency,
   deleteJobDocument
 );
 
