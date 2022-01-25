@@ -96,7 +96,9 @@ export const getJobDocumentsForAgency = (
         }
         return res.status(200).json(docs);
       }
-    );
+    ).populate("agency", {
+      name: 1,
+    });
   } catch (exception) {
     return next(exception);
   }
@@ -126,6 +128,8 @@ export const getJobDocumentById = (
         return res.status(404).send({ message: `No job with ID ${id} found!` });
       }
       return res.status(200).send(doc);
+    }).populate("agency", {
+      name: 1,
     });
   } catch (exception) {
     return next(exception);
