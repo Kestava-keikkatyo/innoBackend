@@ -1,6 +1,5 @@
 import express from "express";
 import authenticateToken from "../utils/auhenticateToken";
-import {} from "../utils/jobVacanciesMiddleware";
 import { isAdmin } from "../utils/authJwt";
 import {
   deleteUser,
