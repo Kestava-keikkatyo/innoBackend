@@ -1,6 +1,6 @@
 import express from "express";
 import authenticateToken from "../utils/auhenticateToken";
-import { isAdmin } from "../utils/authJwt";
+import { isAdmin, isUser } from "../utils/authJwt";
 import {
   deleteUser,
   getAllWorkers,
@@ -130,6 +130,52 @@ userRouter.get("/allUsersForAdmin", authenticateToken, isAdmin, getAllUsers);
  *               $ref: "#/components/schemas/Error"
  */
 userRouter.get("/userForAdmin/:id", authenticateToken, isAdmin, getUserById);
+
+/**
+ * Route for user to get user info by id
+ * @openapi
+ * /user/user/{id}:
+ *   get:
+ *     summary: Route for user to get user info by id
+ *     description: Must be logged in as user.
+ *     tags: [User, User]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: id
+ *         description: ID of the requested user.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 604021e581a9626810885657
+ *     responses:
+ *       "200":
+ *         description: Returns the requested user.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/user"
+ *       "404":
+ *         description: No user was found with the requested ID.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message:No user with ID {id} found
+ *       "500":
+ *         description: An error occurred when calling the database.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ */
+userRouter.get("/dossier/:id", authenticateToken, isUser, getUserById);
 
 userRouter.get(
   "/allWorkersForAdmin",
