@@ -134,7 +134,7 @@ userRouter.get("/userForAdmin/:id", authenticateToken, isAdmin, getUserById);
 /**
  * Route for user to get user info by id
  * @openapi
- * /user/user/{id}:
+ * /user/dossier/{id}:
  *   get:
  *     summary: Route for user to get user info by id
  *     description: Must be logged in as user.
