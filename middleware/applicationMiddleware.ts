@@ -92,3 +92,33 @@ export const getApplicationById = (
     return next(exception);
   }
 };
+
+/**
+ * This function is used to get all workers's applications.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns Worker's applications
+ */
+export const getWorkerApplications = (
+  _req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    Application.find(
+      { worker: res.locals.decoded.id },
+      (error: CallbackError, docs: IApplicationDocument[]) => {
+        if (error) {
+          return res.status(500).json({ message: error.message });
+        }
+        if (!docs.length) {
+          return res.status(404).json({ message: "No applications found!" });
+        }
+        return res.status(200).json(docs);
+      }
+    );
+  } catch (exception) {
+    return next(exception);
+  }
+};
