@@ -1,6 +1,6 @@
 import express from "express";
 import authenticateToken from "../utils/auhenticateToken";
-import { isAdmin, isUser } from "../utils/authJwt";
+import { isAdmin } from "../utils/authJwt";
 import {
   deleteUser,
   getAllWorkers,
@@ -9,6 +9,9 @@ import {
   createUser,
   updateUser,
   updateUserStatus,
+  getUserProfile,
+  updateUserProfile,
+  getUserNotifications,
 } from "../middleware/userMiddleware";
 
 const userRouter = express.Router();
@@ -175,7 +178,11 @@ userRouter.get("/userForAdmin/:id", authenticateToken, isAdmin, getUserById);
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-userRouter.get("/dossier/:id", authenticateToken, isUser, getUserById);
+userRouter.get("/me", authenticateToken, getUserProfile);
+
+userRouter.get("/notifications", authenticateToken, getUserNotifications);
+
+userRouter.put("/me", authenticateToken, updateUserProfile);
 
 userRouter.get(
   "/allWorkersForAdmin",

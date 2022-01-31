@@ -94,7 +94,7 @@ export const isAdmin = async (
   res: Response,
   next: NextFunction
 ) => {
-  return doesUserExist(["Admin"], req, res, next);
+  return doesUserExist(["admin"], req, res, next);
 };
 
 /**
@@ -111,7 +111,7 @@ export const isBusiness = async (
   res: Response,
   next: NextFunction
 ) => {
-  return doesUserExist(["Business"], req, res, next);
+  return doesUserExist(["business"], req, res, next);
 };
 
 /**
@@ -128,7 +128,7 @@ export const isAgency = async (
   res: Response,
   next: NextFunction
 ) => {
-  return doesUserExist(["Agency"], req, res, next);
+  return doesUserExist(["agency"], req, res, next);
 };
 
 /**
@@ -145,7 +145,7 @@ export const isWorker = async (
   res: Response,
   next: NextFunction
 ) => {
-  return doesUserExist(["Worker"], req, res, next);
+  return doesUserExist(["worker"], req, res, next);
 };
 
 /**
@@ -162,7 +162,15 @@ export const isBusinessOrAdminOrAgency = async (
   res: Response,
   next: NextFunction
 ) => {
-  return doesUserExist(["Business", "Admin", "Agency"], req, res, next);
+  return doesUserExist(["business", "admin", "agency"], req, res, next);
+};
+
+export const isWorkerOrBusinessOrAgency = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  return doesUserExist(["worker", "business", "agency"], req, res, next);
 };
 
 export default {};

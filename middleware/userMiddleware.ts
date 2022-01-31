@@ -98,6 +98,60 @@ export const getUserById = (
 };
 
 /**
+ * Get users own information.
+ * @param {Request} _req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns Users personal information
+ */
+export const getUserProfile = async (
+  _req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const id: string = res.locals.decoded.id;
+
+  try {
+    const doc = await User.findById(id);
+
+    if (!doc) {
+      return res.status(404).send({ message: `User not found!` });
+    }
+
+    return res.status(200).send(doc);
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
+ * Get users notifications.
+ * @param {Request} _req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns Users notifications
+ */
+export const getUserNotifications = async (
+  _req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const id: string = res.locals.decoded.id;
+
+  try {
+    const doc = await User.findById(id);
+
+    if (!doc) {
+      return res.status(404).send({});
+    }
+
+    return res.status(200).send(doc.notifications);
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
  * This function is used to get all users of type Worker.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
@@ -274,10 +328,15 @@ export const updateUserProfile = async (
   const { params, body } = req;
   const { userId } = params;
 
+  const updatableFields = {
+    name: body.name,
+    email: body.email,
+  };
+
   try {
     const user: IUserDocument | null = await User.findByIdAndUpdate(
       { _id: userId },
-      { ...body },
+      { ...updatableFields },
       { new: true, runValidators: true, lean: true }
     );
     if (user) {

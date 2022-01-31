@@ -10,7 +10,7 @@ const userSchema: Schema = new Schema({
   },
   userType: {
     type: String,
-    enum: ["Worker", "Admin", "Agency", "Business"],
+    enum: ["worker", "admin", "agency", "business"],
     required: true,
   },
   email: {
