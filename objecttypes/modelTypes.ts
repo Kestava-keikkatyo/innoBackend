@@ -464,3 +464,14 @@ export interface IUserDocument
     | Array<IBusinessContractDocument>;
   jobs: Array<IJobDocument["_id"]> | Array<IJobDocument>;
 }
+
+export interface IApplication {
+  worker: IUserDocument["_id"];
+  job: IJobDocument["_id"];
+  status: string;
+}
+
+export interface IApplicationDocument extends Document, IApplication {
+  _id: Types.ObjectId;
+  createdAt: Date;
+}
