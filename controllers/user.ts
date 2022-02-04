@@ -135,11 +135,11 @@ userRouter.get("/allUsersForAdmin", authenticateToken, isAdmin, getAllUsers);
 userRouter.get("/userForAdmin/:id", authenticateToken, isAdmin, getUserById);
 
 /**
- * Route for user to get user info by id
+ * Route to get user info
  * @openapi
- * /user/dossier/{id}:
+ * /user/me:
  *   get:
- *     summary: Route for user to get user info by id
+ *     summary: Route to get user info
  *     description: Must be logged in as user.
  *     tags: [User, User]
  *     parameters:
@@ -162,26 +162,100 @@ userRouter.get("/userForAdmin/:id", authenticateToken, isAdmin, getUserById);
  *         content:
  *           application/json:
  *             schema:
- *               $ref: "#/components/schemas/user"
+ *               $ref: "#/components/schemas/User"
  *       "404":
- *         description: No user was found with the requested ID.
+ *         description: No user found.
  *         content:
  *           application/json:
  *             schema:
  *               $ref: "#/components/schemas/Error"
  *             example:
- *               message:No user with ID {id} found
- *       "500":
- *         description: An error occurred when calling the database.
+ *               message: User is not existing
+ */
+userRouter.get("/me", authenticateToken, getUserProfile);
+
+/**
+ * Route to get usernotifications
+ * @openapi
+ * /user/notifications:
+ *   get:
+ *     summary: Route to get user notifications
+ *     description: Must be logged in as user.
+ *     tags: [User, User]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: id
+ *         description: ID of the requested user.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 604021e581a9626810885657
+ *     responses:
+ *       "200":
+ *         description: Returns the requested user.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/User"
+ *       "404":
+ *         description: No notifications found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: No notifications found
+ */
+userRouter.get("/notifications", authenticateToken, getUserNotifications);
+
+/**
+ * Route for user to update own profile.
+ * @openapi
+ * /user/me:
+ *   put:
+ *     summary: Route for user to update own profile
+ *     description: Must be logged in as user.
+ *     tags: [User, User]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: id
+ *         description: ID of the user to update.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 604021e581a9626810885657
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: "#/components/schemas/Uer"
+ *     responses:
+ *       "200":
+ *         description: Updated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Job"
+ *       "404":
+ *         description: Update failed.
  *         content:
  *           application/json:
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-userRouter.get("/me", authenticateToken, getUserProfile);
-
-userRouter.get("/notifications", authenticateToken, getUserNotifications);
-
 userRouter.put("/me", authenticateToken, updateUserProfile);
 
 userRouter.get(

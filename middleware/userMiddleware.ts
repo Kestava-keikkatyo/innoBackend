@@ -5,7 +5,7 @@ import { IUser, IUserDocument } from "../objecttypes/modelTypes";
 import { hash } from "bcryptjs";
 
 /**
- * This function is used to post a new user to database.
+ * Post a new user to database.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next
@@ -43,7 +43,7 @@ export const createUser = async (
 };
 
 /**
- * This function is used to get all users.
+ * Get all users.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next
@@ -66,7 +66,7 @@ export const getAllUsers = async (
 };
 
 /**
- * This function is used to get user by id.
+ * Get user by id.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next
@@ -152,7 +152,7 @@ export const getUserNotifications = async (
 };
 
 /**
- * This function is used to get all users of type Worker.
+ * Get all users of type Worker.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next
@@ -177,7 +177,7 @@ export const getAllWorkers = async (
 };
 
 /**
- * This function is used to get all users of type Business.
+ * Get all users of type Business.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next
@@ -202,7 +202,7 @@ export const getAllBusinesses = async (
 };
 
 /**
- * This function is used to get all users of type Agency.
+ * Get all users of type Agency.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next
@@ -227,7 +227,7 @@ export const getAllAgencies = async (
 };
 
 /**
- * This function is used to get all users of type Admin.
+ * Get all users of type Admin.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next
@@ -252,7 +252,7 @@ export const getAllAdmins = async (
 };
 
 /**
- * This function is used to update user type by id.
+ * Update user type by id.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next
@@ -283,7 +283,7 @@ export const updateUser = async (
 };
 
 /**
- * This function is used to update user status by id.
+ * Update user status by id.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next
@@ -314,7 +314,7 @@ export const updateUserStatus = async (
 };
 
 /**
- * This function is used to update user profile by id.
+ * Update user profile by id.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next
@@ -330,7 +330,15 @@ export const updateUserProfile = async (
 
   const updatableFields = {
     name: body.name,
+    firstName: body.firstName,
+    lastName: body.lastName,
     email: body.email,
+    street: body.street,
+    zipCode: body.zipCode,
+    city: body.city,
+    phoneNumber: body.phoneNumber,
+    website: body.website,
+    licenses: body.licenses,
   };
 
   try {
@@ -349,7 +357,7 @@ export const updateUserProfile = async (
 };
 
 /**
- * This function is used to delete user by id.
+ * Delete user by id.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next

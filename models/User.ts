@@ -8,6 +8,16 @@ const userSchema: Schema = new Schema({
     minlength: 3,
     required: false,
   },
+  firstName: {
+    type: String,
+    minlength: 3,
+    required: false,
+  },
+  lastName: {
+    type: String,
+    minlength: 3,
+    required: false,
+  },
   userType: {
     type: String,
     enum: ["worker", "admin", "agency", "business"],
@@ -33,19 +43,17 @@ const userSchema: Schema = new Schema({
     type: Boolean,
     default: true,
   },
-  address: {
-    street: {
-      type: String,
-      required: false,
-    },
-    zipCode: {
-      type: String,
-      required: false,
-    },
-    city: {
-      type: String,
-      required: false,
-    },
+  street: {
+    type: String,
+    required: false,
+  },
+  zipCode: {
+    type: String,
+    required: false,
+  },
+  city: {
+    type: String,
+    required: false,
   },
   phoneNumber: {
     type: String,
@@ -58,12 +66,6 @@ const userSchema: Schema = new Schema({
     },
   },
   forms: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Form",
-    },
-  ],
-  businessContractForms: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Form",
@@ -134,12 +136,6 @@ const userSchema: Schema = new Schema({
       ref: "Contract",
     },
   ],
-  feedBack: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "FeedBack",
-    },
-  ],
   contactPreference: {
     type: String,
   },
@@ -164,6 +160,10 @@ const userSchema: Schema = new Schema({
       },
     },
   ],
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
 userSchema.plugin(mongoosePaginate);

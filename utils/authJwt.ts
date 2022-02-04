@@ -173,4 +173,12 @@ export const isWorkerOrBusinessOrAgency = async (
   return doesUserExist(["worker", "business", "agency"], req, res, next);
 };
 
+export const isAgencyOrBusiness = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  return doesUserExist(["business", "agency"], req, res, next);
+};
+
 export default {};

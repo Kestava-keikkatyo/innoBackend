@@ -172,7 +172,6 @@ export interface IAgencyDocument
   category: string;
   forms: Array<IFormDocument["_id"]> | Array<IFormDocument>;
   businessContractForms: Array<IFormDocument["_id"]> | Array<IFormDocument>;
-  jobVacancies: Array<IJobVacancyDocument["_id"]> | Array<IJobVacancyDocument>;
   businessContracts:
     | Array<IBusinessContractDocument["_id"]>
     | Array<IBusinessContractDocument>;
@@ -343,16 +342,14 @@ export interface INotificationsDocument extends Document, INotifications {
   _id: Types.ObjectId;
 }
 
-export interface IFeedBack {
-  userId:
-    | IWorkerDocument["_id"]
-    | IBusinessDocument["_id"]
-    | IAgencyDocument["_id"];
+export interface IFeedback {
+  user: IUserDocument["_id"];
   message: String;
 }
 
-export interface IFeedBackDocument extends Document, IFeedBack {
+export interface IFeedbackDocument extends Document, IFeedback {
   _id: Types.ObjectId;
+  createdAt: Date;
 }
 
 export interface IReport {
@@ -375,29 +372,8 @@ export interface IReportDocument extends Document, IReport {
   createdAt: Date;
 }
 
-export interface IJobVacancy {
-  agencyId: IAgencyDocument["_id"];
-  relatedSubContractOfWorkContract: ISubContractDocument;
-  jobTitle: String;
-  jobCategory: String;
-  details: String;
-  requirements: String[];
-  numberOfNeededWorkers: number;
-  startingDate: Date;
-  endingDate: Date;
-  applyingEndsAt: Date;
-  streetAddress: string;
-  zipCode: string;
-  city: string;
-}
-
-export interface IJobVacancyDocument extends Document, IJobVacancy {
-  _id: Types.ObjectId;
-  createdAt: Date;
-}
-
 export interface IJob {
-  agency: IAgencyDocument["_id"];
+  user: IUserDocument["_id"];
   title: String;
   category: String;
   jobType: String;
@@ -422,16 +398,16 @@ export interface IJobDocument extends Document, IJob {
 // Used when we want to type docs given in req.body for example. For calls with {lean: true} option, use DocumentDefinition<IUserDocument> for the result's type
 export interface IUser {
   name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   password: string;
   passwordHash?: string;
   userType: string;
   active: boolean;
-  address: {
-    street: string;
-    zipCode: string;
-    city: string;
-  };
+  street: string;
+  zipCode: string;
+  city: string;
   phoneNumber: string;
   feelings: Array<IFeelings>;
   licenses: Array<string>;
@@ -458,7 +434,6 @@ export interface IUserDocument
   userType: string;
   createdAt: Date;
   forms: Array<IFormDocument["_id"]> | Array<IFormDocument>;
-  businessContractForms: Array<IFormDocument["_id"]> | Array<IFormDocument>;
   businessContracts:
     | Array<IBusinessContractDocument["_id"]>
     | Array<IBusinessContractDocument>;
@@ -466,7 +441,7 @@ export interface IUserDocument
 }
 
 export interface IApplication {
-  worker: IUserDocument["_id"];
+  user: IUserDocument["_id"];
   job: IJobDocument["_id"];
   status: string;
 }

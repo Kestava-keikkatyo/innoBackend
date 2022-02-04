@@ -4,13 +4,13 @@ import Job from "../models/Job";
 import { IJobDocument } from "../objecttypes/modelTypes";
 
 /**
- * This function is used to post a new job to database.
+ * Post a new job to database.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next
  * @returns New job document
  */
-export const postJobDocument = async (
+export const postJob = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -18,7 +18,7 @@ export const postJobDocument = async (
   const { body } = req;
   try {
     const jobDocument: IJobDocument = new Job({
-      agency: res.locals.decoded.id,
+      user: res.locals.decoded.id,
       title: body.title,
       category: body.category,
       jobType: body.jobType,
@@ -45,20 +45,20 @@ export const postJobDocument = async (
 };
 
 /**
- * This function is used to get all jobs.
+ * Get all jobs.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next
  * @returns All jobs
  */
-export const getJobDocuments = async (
+export const getAllJobs = async (
   _req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
     const jobs: Array<IJobDocument> | null = await Job.find({}).populate(
-      "agency",
+      "user",
       {
         name: 1,
       }
@@ -73,20 +73,16 @@ export const getJobDocuments = async (
 };
 
 /**
- * This function is used to get agency's jobs.
+ * Get agency's jobs.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next
  * @returns Agency's jobs
  */
-export const getJobDocumentsForAgency = (
-  _req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getMyJobs = (_req: Request, res: Response, next: NextFunction) => {
   try {
     Job.find(
-      { agency: res.locals.decoded.id },
+      { user: res.locals.decoded.id },
       (error: CallbackError, docs: IJobDocument[]) => {
         if (error) {
           return res.status(500).json({ message: error.message });
@@ -96,7 +92,7 @@ export const getJobDocumentsForAgency = (
         }
         return res.status(200).json(docs);
       }
-    ).populate("agency", {
+    ).populate("user", {
       name: 1,
     });
   } catch (exception) {
@@ -105,17 +101,13 @@ export const getJobDocumentsForAgency = (
 };
 
 /**
- * This function is used to get job by id.
+ * Get job by id.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next
  * @returns Job
  */
-export const getJobDocumentById = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getJobById = (req: Request, res: Response, next: NextFunction) => {
   const { params } = req;
   const id: string = params.id;
 
@@ -128,7 +120,7 @@ export const getJobDocumentById = (
         return res.status(404).send({ message: `No job with ID ${id} found!` });
       }
       return res.status(200).send(doc);
-    }).populate("agency", {
+    }).populate("user", {
       name: 1,
     });
   } catch (exception) {
@@ -137,13 +129,13 @@ export const getJobDocumentById = (
 };
 
 /**
- * This function is used to update job by id.
+ * Update job by id.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next
  * @returns Updated job
  */
-export const updateJobDocument = async (
+export const updateJob = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -173,7 +165,7 @@ export const updateJobDocument = async (
  * @param {NextFunction} next
  * @returns Deleted job
  */
-export const deleteJobDocument = async (
+export const deleteJob = async (
   req: Request,
   res: Response,
   next: NextFunction

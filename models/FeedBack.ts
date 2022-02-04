@@ -1,26 +1,31 @@
-import mongoose, {Schema} from "mongoose"
-import uniqueValidator from "mongoose-unique-validator"
-import { IFeedBackDocument } from "../objecttypes/modelTypes"
+import mongoose, { Schema } from "mongoose";
+import uniqueValidator from "mongoose-unique-validator";
+import { IFeedbackDocument } from "../objecttypes/modelTypes";
 
-const feedBackSchema = new Schema({
-  userId: {
+const feedbackSchema = new Schema({
+  user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Worker Business Agency"
+    ref: "User",
   },
   heading: {
     type: String,
-    ref: "FeedbackHeading"
+    ref: "FeedbackHeading",
   },
   message: {
     type: String,
-    ref: "FeedbackMessage"
+    ref: "FeedbackMessage",
   },
   reply: {
     type: String,
-    ref: "FeedbackReply"
-  }
-})
+    ref: "FeedbackReply",
+  },
+  createdAt: {
+    type: Date,
+    immutable: true,
+    default: Date.now,
+  },
+});
 
-feedBackSchema.plugin(uniqueValidator)
+feedbackSchema.plugin(uniqueValidator);
 
-export default mongoose.model<IFeedBackDocument>("FeedBack", feedBackSchema)
+export default mongoose.model<IFeedbackDocument>("Feedback", feedbackSchema);

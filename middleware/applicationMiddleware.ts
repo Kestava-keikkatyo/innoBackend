@@ -4,7 +4,7 @@ import Application from "../models/Application";
 import { IApplicationDocument } from "../objecttypes/modelTypes";
 
 /**
- * This function is used to post a new application to database.
+ * Post a new application to database.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next
@@ -18,8 +18,8 @@ export const postapplication = async (
   const { body } = req;
   try {
     const applicationDocument: IApplicationDocument = new Application({
-      worker: res.locals.decoded.id,
-      job: res.locals.decoded.id,
+      user: res.locals.decoded.id,
+      job: body.job,
       status: body.status,
     });
     const application = await applicationDocument.save();
@@ -35,7 +35,7 @@ export const postapplication = async (
 };
 
 /**
- * This function is used to get all applications.
+ * Get all applications.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next
@@ -59,7 +59,7 @@ export const getAllApplications = async (
 };
 
 /**
- * This function is used to get application by id.
+ * Get application by id.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next
@@ -81,9 +81,7 @@ export const getApplicationById = (
           return res.status(500).json({ message: error.message });
         }
         if (!doc) {
-          return res
-            .status(404)
-            .send({ message: `No application with ID ${id} found!` });
+          return res.status(404).send({ message: `Application is not found!` });
         }
         return res.status(200).send(doc);
       }
@@ -107,7 +105,7 @@ export const getWorkerApplications = (
 ) => {
   try {
     Application.find(
-      { worker: res.locals.decoded.id },
+      { user: res.locals.decoded.id },
       (error: CallbackError, docs: IApplicationDocument[]) => {
         if (error) {
           return res.status(500).json({ message: error.message });
@@ -117,7 +115,9 @@ export const getWorkerApplications = (
         }
         return res.status(200).json(docs);
       }
-    );
+    ).populate("user", {
+      name: 1,
+    });
   } catch (exception) {
     return next(exception);
   }

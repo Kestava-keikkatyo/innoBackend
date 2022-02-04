@@ -9,7 +9,7 @@ const applicationSchema = new Schema({
     enum: ["pending", "accepted", "rejected"],
     required: false,
   },
-  worker: {
+  user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
@@ -27,6 +27,6 @@ const applicationSchema = new Schema({
 applicationSchema.plugin(mongoosePaginate);
 
 export default mongoose.model<IApplicationDocument>(
-  "Profile",
+  "Application",
   applicationSchema
 );

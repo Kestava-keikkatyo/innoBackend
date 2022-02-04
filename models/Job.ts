@@ -4,10 +4,10 @@ import { IJobDocument } from "../objecttypes/modelTypes";
 
 //This model is used for adding job advertisement/announcement by Agency to inform workers that a certain job position is available
 const jobSchema = new Schema({
-  agency: {
+  user: {
     // This is used to get supplier's contact information
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Agency",
+    ref: "User",
     immutable: true,
   },
   title: {
