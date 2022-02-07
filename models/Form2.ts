@@ -432,4 +432,4 @@ const form2Schema = new Schema(
 
 form2Schema.plugin(mongoosePaginate);
 
-export default mongoose.model<IForm2Document>("Profile", form2Schema);
+export default mongoose.model<IForm2Document>("Form2", form2Schema);
