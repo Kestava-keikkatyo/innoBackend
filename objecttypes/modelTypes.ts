@@ -305,6 +305,22 @@ export interface IFormDocument extends Document, IForm {
   createdAt: Date;
 }
 
+export interface IForm2 {
+  user: IUserDocument["_id"];
+  title: string;
+  isPublic: boolean;
+  filled: boolean;
+  common: boolean;
+  description?: string;
+  questions?: IQuestions;
+  tags?: Array<string>;
+}
+
+export interface IForm2Document extends Document, IForm {
+  _id: Types.ObjectId;
+  createdAt: Date;
+}
+
 export interface FormModel<T extends Document> extends PaginateModel<T> {} // Used so Form.paginate has typing information
 
 export interface IProfile {
