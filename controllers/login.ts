@@ -259,10 +259,4 @@ loginRouter.post(
   }
 );
 
-loginRouter.get("/logout", (_req: Request, res: Response) => {
-    return res.status(200).send({
-        message: "You have been logged out."
-    });
-});
-
 export default loginRouter;
