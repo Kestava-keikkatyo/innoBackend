@@ -152,7 +152,7 @@ loginRouter.post(
       id: admin._id,
       role: "admin",
     };
-    const token: string = jwt.sign(adminForToken, process.env.SECRET || "");
+    const token: string = jwt.sign(adminForToken, process.env.SECRET || "", {expiresIn: '1d'});
 
     return res.status(200).send({
       token,
@@ -242,7 +242,7 @@ loginRouter.post(
         id: user._id,
         role: user.userType.toLowerCase(),
       };
-      const token: string = jwt.sign(workerForToken, process.env.SECRET || "");
+      const token: string = jwt.sign(workerForToken, process.env.SECRET || "", {expiresIn: '2h'});
 
       return res.status(200).send({
         token,
