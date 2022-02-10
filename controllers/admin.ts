@@ -26,7 +26,7 @@ import {
   IWorker,
   IWorkerDocument,
   IReportDocument,
-  IFeedBackDocument,
+  IFeedbackDocument,
 } from "../objecttypes/modelTypes";
 import { needsToBeAdmin } from "../utils/middleware";
 import Admin from "../models/Admin";
@@ -42,7 +42,7 @@ import BusinessContract from "../models/BusinessContract";
 import { IBaseBody } from "./../objecttypes/otherTypes";
 import { CallbackError, DocumentDefinition } from "mongoose";
 import Report from "../models/Report";
-import FeedBack from "../models/FeedBack";
+import FeedBack from "../models/Feedback";
 
 const adminRouter = express.Router();
 
@@ -519,7 +519,7 @@ adminRouter.get(
   needsToBeAdmin,
   async (_req: Request, res: Response, next: NextFunction) => {
     try {
-      const feedbacks: Array<IFeedBackDocument> | null = await FeedBack.find(
+      const feedbacks: Array<IFeedbackDocument> | null = await FeedBack.find(
         {}
       );
       if (feedbacks) {
@@ -543,7 +543,7 @@ adminRouter.get(
         id,
         (
           error: CallbackError,
-          feedback: DocumentDefinition<IFeedBackDocument> | null
+          feedback: DocumentDefinition<IFeedbackDocument> | null
         ) => {
           console.log(feedback);
           if (error) {
