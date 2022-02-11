@@ -4,6 +4,7 @@ import {
   getMyForms,
   postForm,
   updateForm,
+  getFormByCommon
 } from "../middleware/form2Middleware";
 import authenticateToken from "../utils/auhenticateToken";
 import { isAgencyOrBusiness } from "../utils/authJwt";
@@ -46,6 +47,8 @@ const form2Router = express.Router();
  *               $ref: "#/components/schemas/Error"
  */
 form2Router.post("/", authenticateToken, isAgencyOrBusiness, postForm);
+
+form2Router.get("/common", authenticateToken, isAgencyOrBusiness, getFormByCommon);
 
 /**
  * Route for user of role agency or business to get their own forms
