@@ -48,6 +48,43 @@ const form2Router = express.Router();
  */
 form2Router.post("/", authenticateToken, isAgencyOrBusiness, postForm);
 
+/**
+ * Route for user of role agency or business to get common forms
+ * @openapi
+ * /form/common/:
+ *   get:
+ *     summary: Route for user of role agency or business to get common forms
+ *     description: Must be logged in as an agency or business.
+ *     tags: [Job, Agency, Business]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     responses:
+ *       "200":
+ *         description: Returns the requested form.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Form2"
+ *       "404":
+ *         description: No form was found with type common.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message:No job found
+ *       "500":
+ *         description: An error occurred when calling the database.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ */
 form2Router.get("/common", authenticateToken, isAgencyOrBusiness, getFormByCommon);
 
 /**
