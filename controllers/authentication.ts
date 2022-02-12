@@ -30,6 +30,7 @@ const authRouter = express.Router();
  *               - name
  *               - email
  *               - password
+ *               - user type
  *             properties:
  *               name:
  *                 type: string
@@ -194,7 +195,7 @@ authRouter.post(
     if (!(user && passwordCorrect)) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
-    if (user.active === true) {
+    if (user.active) {
       const userForToken = {
         email: user.email,
         id: user._id,

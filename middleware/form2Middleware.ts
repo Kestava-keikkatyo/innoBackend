@@ -67,6 +67,33 @@ export const getMyForms = (
 };
 
 /**
+ * Get form by common.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns Forms
+ */
+export const getFormByCommon = (
+    _req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+  try {
+    Form2.find({common: true, filled: false}, (error: CallbackError, doc: IForm2Document | null) => {
+      if (error) {
+        return res.status(500).json({message: error.message});
+      }
+      if (!doc) {
+        return res.status(404).send({message: `No form found!`});
+      }
+      return res.status(200).send(doc);
+    });
+  }catch(exception){
+    return next(exception);
+  }
+};
+
+/**
  * Get form by id.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.

@@ -26,7 +26,7 @@ import {
   IWorker,
   IWorkerDocument,
   IReportDocument,
-  IFeedbackDocument,
+  //IFeedBackDocument,
 } from "../objecttypes/modelTypes";
 import { needsToBeAdmin } from "../utils/middleware";
 import Admin from "../models/Admin";
@@ -39,10 +39,10 @@ import Notifications from "../models/Notifications";
 import Profile from "../models/Profile";
 import { addProfileToAgencyBusinessOrWorker } from "./profile";
 import BusinessContract from "../models/BusinessContract";
-import { IBaseBody } from "./../objecttypes/otherTypes";
+import { IBaseBody } from "../objecttypes/otherTypes";
 import { CallbackError, DocumentDefinition } from "mongoose";
 import Report from "../models/Report";
-import FeedBack from "../models/Feedback";
+//import FeedBack from "../models/FeedBack";
 
 const adminRouter = express.Router();
 
@@ -422,7 +422,7 @@ adminRouter.put(
     const { profileId } = params;
 
     try {
-      let profile: IProfileDocument | null = null;
+      let profile: IProfileDocument | null;
       profile = await Profile.findByIdAndUpdate({ _id: profileId }, req.body, {
         new: true,
         runValidators: true,
@@ -512,14 +512,14 @@ adminRouter.get(
     }
   }
 );
-
+/*
 adminRouter.get(
   "/allFeedbacks",
   authenticateToken,
   needsToBeAdmin,
   async (_req: Request, res: Response, next: NextFunction) => {
     try {
-      const feedbacks: Array<IFeedbackDocument> | null = await FeedBack.find(
+      const feedbacks: Array<IFeedBackDocument> | null = await FeedBack.find(
         {}
       );
       if (feedbacks) {
@@ -543,7 +543,7 @@ adminRouter.get(
         id,
         (
           error: CallbackError,
-          feedback: DocumentDefinition<IFeedbackDocument> | null
+          feedback: DocumentDefinition<IFeedBackDocument> | null
         ) => {
           console.log(feedback);
           if (error) {
@@ -561,5 +561,5 @@ adminRouter.get(
       return next(exception);
     }
   }
-);
+);*/
 export default adminRouter;
