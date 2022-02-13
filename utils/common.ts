@@ -189,7 +189,8 @@ export const buildPaginatedObjectFromArray = (page: number, limit: number, array
     hasPrevPage: true,
     hasNextPage: true,
     prevPage: page-1,
-    nextPage: page+1
+    nextPage: page+1,
+    offset: 1
   }
   if (page+1 > paginationObject.totalPages) {
     paginationObject.hasNextPage = false

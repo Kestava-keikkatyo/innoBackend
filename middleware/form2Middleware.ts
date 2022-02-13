@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
-import { CallbackError } from "mongoose";
+import {CallbackError} from "mongoose";
 import Form2 from "../models/Form2";
-import { IForm2Document } from "../objecttypes/modelTypes";
+import {IForm2Document} from "../objecttypes/modelTypes";
 
 /**
  * Post a new form to database.
@@ -74,7 +74,7 @@ export const getMyForms = (
  * @returns Forms
  */
 export const getFormByCommon = (
-    _req: Request,
+    req: Request,
     res: Response,
     next: NextFunction
 ) => {
@@ -87,6 +87,8 @@ export const getFormByCommon = (
         return res.status(404).send({message: `No form found!`});
       }
       return res.status(200).send(doc);
+    }).skip(Number(req.query.page) *10).limit(Number(req.query.limit)).exec().then().catch(err => {
+      console.error(err);
     });
   }catch(exception){
     return next(exception);

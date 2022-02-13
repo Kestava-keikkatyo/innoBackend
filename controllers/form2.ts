@@ -85,7 +85,7 @@ form2Router.post("/", authenticateToken, isAgencyOrBusiness, postForm);
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-form2Router.get("/common", authenticateToken, isAgencyOrBusiness, getFormByCommon);
+form2Router.get("/common/", authenticateToken, isAgencyOrBusiness, getFormByCommon);
 
 /**
  * Route for user of role agency or business to get their own forms

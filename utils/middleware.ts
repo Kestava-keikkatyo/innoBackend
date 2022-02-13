@@ -372,7 +372,7 @@ export const needsToBeAgencyOrBusiness = (req: Request, res: Response, next: Nex
 export const needsToBeBusinessOrWorker = (req: Request<unknown, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { body } = req
   try {
-    return Business.findById(res.locals.decoded.id, (error: CallbackError, result:  IBusinessDocument | null) => {
+    return Business.find({id: res.locals.decoded.id}, (error: CallbackError, result:  IBusinessDocument | null) => {
       if (!error) {
         if (!result) {
           Worker.findById(res.locals.decoded.id, (error: CallbackError, result: IWorkerDocument | null) => {
@@ -471,6 +471,7 @@ export const needsToBeBusinessOrWorker = (req: Request<unknown, unknown, IBaseBo
  * @throws {JSON} Status 500 - response.body: { exception }
  * @returns {NextFunction} next()
  */
+/* Needs to be fixed. Goes always to Admin not result */
 export const needsToBeAgencyBusinessOrWorker = (req: Request<unknown, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { body } = req
   try {
@@ -498,7 +499,7 @@ export const needsToBeAgencyBusinessOrWorker = (req: Request<unknown, unknown, I
             body.worker = result
             return next()
           }
-          
+
           Admin.findById(res.locals.decoded.id, (error: CallbackError, result: IAdminDocument | null) => {
             if (error) {
               return res.status(500).send(error)
