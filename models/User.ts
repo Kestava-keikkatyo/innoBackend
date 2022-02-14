@@ -65,12 +65,6 @@ const userSchema: Schema = new Schema({
       message: (props: any) => `${props.value} is not a valid phone number`,
     },
   },
-  forms: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Form",
-    },
-  ],
   businessContracts: [
     {
       type: mongoose.Schema.Types.ObjectId,
