@@ -4,7 +4,7 @@
  */
 
 /**
- * Express router to mount Agency-related functions on.
+ * Express router to mount Admin-related functions on.
  * @type {object}
  * @const
  * @namespace adminRouter
@@ -26,15 +26,12 @@ import {
   IWorker,
   IWorkerDocument,
   IReportDocument,
-  //IFeedBackDocument,
 } from "../objecttypes/modelTypes";
 import { needsToBeAdmin } from "../utils/middleware";
 import Admin from "../models/Admin";
 import Business from "../models/Business";
 import authenticateToken from "../utils/auhenticateToken";
-//import BusinessContract from '../models/BusinessContract';
 import { hash } from "bcryptjs";
-//import { sign } from "jsonwebtoken"
 import Notifications from "../models/Notifications";
 import Profile from "../models/Profile";
 import { addProfileToAgencyBusinessOrWorker } from "./profile";
@@ -42,7 +39,6 @@ import BusinessContract from "../models/BusinessContract";
 import { IBaseBody } from "../objecttypes/otherTypes";
 import { CallbackError, DocumentDefinition } from "mongoose";
 import Report from "../models/Report";
-//import FeedBack from "../models/FeedBack";
 
 const adminRouter = express.Router();
 
@@ -512,54 +508,5 @@ adminRouter.get(
     }
   }
 );
-/*
-adminRouter.get(
-  "/allFeedbacks",
-  authenticateToken,
-  needsToBeAdmin,
-  async (_req: Request, res: Response, next: NextFunction) => {
-    try {
-      const feedbacks: Array<IFeedBackDocument> | null = await FeedBack.find(
-        {}
-      );
-      if (feedbacks) {
-        return res.status(200).json(feedbacks);
-      }
-      return res.status(404).json({ message: "No feedbacks found" });
-    } catch (exception) {
-      return next(exception);
-    }
-  }
-);
 
-adminRouter.get(
-  "/feedback/:id",
-  authenticateToken,
-  needsToBeAdmin,
-  (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const id: any = req.params.id;
-      return FeedBack.findById(
-        id,
-        (
-          error: CallbackError,
-          feedback: DocumentDefinition<IFeedBackDocument> | null
-        ) => {
-          console.log(feedback);
-          if (error) {
-            return res.status(500).json(error);
-          }
-          if (!feedback) {
-            return res
-              .status(404)
-              .json({ message: `Feedback with id ${id} is not existing!` });
-          }
-          return res.status(200).json(feedback);
-        }
-      );
-    } catch (exception) {
-      return next(exception);
-    }
-  }
-);*/
 export default adminRouter;
