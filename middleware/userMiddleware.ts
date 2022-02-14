@@ -165,7 +165,7 @@ export const getAllWorkers = async (
 ) => {
   try {
     const workers: Array<IUserDocument> | null = await User.find({
-      userType: "Worker",
+      userType: "worker",
     });
     if (workers) {
       return res.status(200).json(workers);
