@@ -1,6 +1,6 @@
 import express from "express";
 import authenticateToken from "../utils/auhenticateToken";
-import { isAdmin } from "../utils/authJwt";
+import { isAdmin, isAgencyOrBusiness } from "../utils/authJwt";
 import {
   deleteUser,
   getAllWorkers,
@@ -413,6 +413,45 @@ userRouter.delete(
   authenticateToken,
   isAdmin,
   deleteUser
+);
+
+/**
+ * @openapi
+ * /workers:
+ *   get:
+ *     summary: Route for buisnesses and agencies to get all workers
+ *     description: Need to be logged in as user of type buisness or agency.
+ *     tags: [Business, Agency, Worker]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     responses:
+ *       "200":
+ *         description: Returns all users of type worker
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: "#/components/schemas/User"
+ *       "404":
+ *         description: No workers found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message:  no workers found
+ */
+userRouter.get(
+  "/workers",
+  authenticateToken,
+  isAgencyOrBusiness,
+  getAllWorkers
 );
 
 export default userRouter;
