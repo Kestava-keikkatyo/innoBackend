@@ -108,22 +108,44 @@ const userSchema: Schema = new Schema({
     requeired: false,
   },
   notifications: {
-    unread_messages: [
-      {
-        text: {
-          type: String,
-          ref: "Message",
-        },
+    unread_messages: [{
+      referenceId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "ReferenceId",
       },
-    ],
-    read_messages: [
-      {
-        text: {
-          type: String,
-          ref: "Message",
-        },
+      type: {
+        type: String,
+        ref: "Type",
       },
-    ],
+      text: {
+        type: String,
+        ref: "Message",
+      },
+      createdAt: {
+        type: Date,
+        immutable: true,
+        default: Date.now,
+      }
+    }],
+    read_messages: [{
+      referenceId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "ReferenceId",
+      },
+      type: {
+        type: String,
+        ref: "Type",
+      },
+      text: {
+        type: String,
+        ref: "Message",
+      },
+      createdAt: {
+        type: Date,
+        immutable: true,
+        default: Date.now,
+      }
+    }],
     createdAt: {
       type: Date,
       immutable: true,

@@ -1,6 +1,6 @@
 import express from "express";
 import authenticateToken from "../utils/auhenticateToken";
-import { isAdmin, isAgencyOrBusiness } from "../utils/authJwt";
+import {isAdmin, isAgencyOrBusiness, isWorkerOrBusinessOrAgency} from "../utils/authJwt";
 import {
   deleteUser,
   getAllWorkers,
@@ -11,7 +11,7 @@ import {
   updateUserStatus,
   getUserProfile,
   updateUserProfile,
-  getUserNotifications,
+  getUserNotifications, createUserNotifications,
 } from "../middleware/userMiddleware";
 
 const userRouter = express.Router();
@@ -173,46 +173,6 @@ userRouter.get("/userForAdmin/:id", authenticateToken, isAdmin, getUserById);
  *               message: User is not existing
  */
 userRouter.get("/me", authenticateToken, getUserProfile);
-
-/**
- * Route to get usernotifications
- * @openapi
- * /user/notifications:
- *   get:
- *     summary: Route to get user notifications
- *     description: Must be logged in as user.
- *     tags: [User, User]
- *     parameters:
- *       - in: header
- *         name: x-access-token
- *         description: The token you get when logging in is used here. Used to authenticate the user.
- *         required: true
- *         schema:
- *           $ref: "#/components/schemas/AccessToken"
- *       - in: path
- *         name: id
- *         description: ID of the requested user.
- *         required: true
- *         schema:
- *           type: string
- *           example: 604021e581a9626810885657
- *     responses:
- *       "200":
- *         description: Returns the requested user.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: "#/components/schemas/User"
- *       "404":
- *         description: No notifications found.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: "#/components/schemas/Error"
- *             example:
- *               message: No notifications found
- */
-userRouter.get("/notifications", authenticateToken, getUserNotifications);
 
 /**
  * Route for user to update own profile.
@@ -453,5 +413,52 @@ userRouter.get(
   isAgencyOrBusiness,
   getAllWorkers
 );
+
+/**
+ * NOTIFICATIONS: --------------------------------------------------------------------
+ */
+
+
+/**
+ * Route to get usernotifications
+ * @openapi
+ * /user/notifications:
+ *   get:
+ *     summary: Route to get user notifications
+ *     description: Must be logged in as user.
+ *     tags: [User, User]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: id
+ *         description: ID of the requested user.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 604021e581a9626810885657
+ *     responses:
+ *       "200":
+ *         description: Returns the requested user.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/User"
+ *       "404":
+ *         description: No notifications found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: No notifications found
+ */
+userRouter.get("/notifications", authenticateToken, getUserNotifications);
+
+userRouter.put("/newNotification", authenticateToken, isWorkerOrBusinessOrAgency, createUserNotifications);
 
 export default userRouter;

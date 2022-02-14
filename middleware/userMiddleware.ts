@@ -125,33 +125,6 @@ export const getUserProfile = async (
 };
 
 /**
- * Get users notifications.
- * @param {Request} _req - Express Request.
- * @param {Response} res - Express Response.
- * @param {NextFunction} next
- * @returns Users notifications
- */
-export const getUserNotifications = async (
-  _req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const id: string = res.locals.decoded.id;
-
-  try {
-    const doc = await User.findById(id);
-
-    if (!doc) {
-      return res.status(404).send({});
-    }
-
-    return res.status(200).send(doc.notifications);
-  } catch (exception) {
-    return next(exception);
-  }
-};
-
-/**
  * Get all users of type Worker.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
@@ -386,6 +359,69 @@ export const deleteUser = async (
         .send({ message: `User with ${user._id} was deleted successfuly!` });
     }
   } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
+ *  NOTIFICATIONS:
+ */
+
+
+/**
+ * Get users notifications.
+ * @param {Request} _req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns Users notifications
+ */
+export const getUserNotifications = async (
+    _req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+  const id: string = res.locals.decoded.id;
+
+  try {
+    const doc = await User.findById(id);
+
+    if (!doc) {
+      return res.status(404).send({});
+    }
+
+    return res.status(200).send(doc.notifications);
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
+ *  Create user notification.
+ */
+export const createUserNotifications = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+  const { body } = req;
+
+  const updatableFields = {
+    message: body.message,
+    date: new Date(),
+    referenceId: body.referenceId,
+    type: body.type
+  }
+
+  try{
+    const user: IUserDocument | null = await User.findByIdAndUpdate(
+        {_id: body.id},
+        { ...updatableFields }
+    );
+    if (user) {
+      console.log('USER with id ${user._id} updated!');
+    }
+    return res.status(user ? 200 : 404).send();
+  }catch(exception){
     return next(exception);
   }
 };
