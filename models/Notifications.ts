@@ -8,15 +8,45 @@ const notificationsSchema = new Schema({
         ref: "Worker Business Agency Admin"
     },
     unread_messages: [{
+        notificationId:{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "NotificationId"
+        },
+        referenceId: {
+            type: String,
+            ref: "ReferenceId",
+        },
+        type: {
+            type: String,
+            ref: "Type",
+        },
         text: {
             type: String,
-            ref: "Message"
+            ref: "Message",
+        },
+        createdAt: {
+            type: Date,
+            immutable: true,
+            default: Date.now,
         }
     }],
     read_messages: [{
+        referenceId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "ReferenceId",
+        },
+        type: {
+            type: String,
+            ref: "Type",
+        },
         text: {
             type: String,
-            ref: "Message"
+            ref: "Message",
+        },
+        createdAt: {
+            type: Date,
+            immutable: true,
+            default: Date.now,
         }
     }],
     createdAt: {
@@ -24,7 +54,7 @@ const notificationsSchema = new Schema({
         immutable: true,
         default: Date.now,
     },
-}) 
+})
 
 notificationsSchema.plugin(uniqueValidator)
 

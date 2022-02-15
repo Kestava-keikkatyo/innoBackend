@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { CallbackError } from "mongoose";
 import User from "../models/User";
-import { IUser, IUserDocument } from "../objecttypes/modelTypes";
+import { IUser, IUserDocument} from "../objecttypes/modelTypes";
 import { hash } from "bcryptjs";
 
 /**
@@ -405,21 +405,22 @@ export const createUserNotifications = async (
 ) => {
   const { body } = req;
 
-  const updatableFields = {
-    message: body.message,
-    date: new Date(),
-    referenceId: body.referenceId,
-    type: body.type
+  const updatableFields : { createdAt: Date; message: any; type: any; referenceId: any } = {
+      message: body.message,
+      createdAt: new Date(),
+      referenceId: body.referenceId,
+      type: body.type
   }
 
   try{
     const user: IUserDocument | null = await User.findByIdAndUpdate(
         {_id: body.id},
-        { ...updatableFields }
+        { $set: {
+            ...updatableFields
+          }
+        },
+        { new: true, runValidators: true, lean: true }
     );
-    if (user) {
-      console.log('USER with id ${user._id} updated!');
-    }
     return res.status(user ? 200 : 404).send();
   }catch(exception){
     return next(exception);

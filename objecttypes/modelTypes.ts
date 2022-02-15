@@ -344,14 +344,12 @@ export interface IProfileDocument extends Document, IProfile {
 }
 
 export interface INotifications {
-  userId:
-    | IWorkerDocument["_id"]
-    | IBusinessDocument["_id"]
-    | IAgencyDocument["_id"]
-    | IAdminDocument["_id"];
+  //userId: IUserDocument["_id"];
   message: String;
+  referenceId: String;
   is_read: Boolean;
   createdAt: Date;
+  type: String;
 }
 
 export interface INotificationsDocument extends Document, INotifications {
@@ -454,6 +452,8 @@ export interface IUserDocument
     | Array<IBusinessContractDocument["_id"]>
     | Array<IBusinessContractDocument>;
   jobs: Array<IJobDocument["_id"]> | Array<IJobDocument>;
+  unread_messages: Array<INotificationsDocument>;
+  read_messages: Array<INotificationsDocument>;
 }
 
 export interface IApplication {
