@@ -369,16 +369,13 @@ export interface IFeedbackDocument extends Document, IFeedback {
 }
 
 export interface IReport {
-  workTitle: String;
-  reportTitle: String;
+  title: String;
   details: String;
-  date: String;
-  workerId: IWorkerDocument["_id"];
-  workerName: String;
-  workerEmail: String;
-  workerPhone: String;
-  buisnessAsHandler: String;
-  agencyAsHandler: String;
+  date: Date;
+  status: String;
+  reply: String;
+  user: IUserDocument["_id"];
+  receiver: String;
   fileUrl: String;
   fileType: String;
 }
