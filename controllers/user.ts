@@ -1,6 +1,6 @@
 import express from "express";
 import authenticateToken from "../utils/auhenticateToken";
-import { isAdmin, isAgencyOrBusiness } from "../utils/authJwt";
+import { isAdmin, isAgencyOrBusiness, isUser } from "../utils/authJwt";
 import {
   deleteUser,
   getAllWorkers,
@@ -132,7 +132,7 @@ userRouter.get("/allUsersForAdmin", authenticateToken, isAdmin, getAllUsers);
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-userRouter.get("/userForAdmin/:id", authenticateToken, isAdmin, getUserById);
+userRouter.get("/any/:id", authenticateToken, isUser, getUserById);
 
 /**
  * Route to get user info
