@@ -25,7 +25,6 @@ import {
   IProfileDocument,
   IWorker,
   IWorkerDocument,
-  IReportDocument,
 } from "../objecttypes/modelTypes";
 import { needsToBeAdmin } from "../utils/middleware";
 import Admin from "../models/Admin";
@@ -37,8 +36,7 @@ import Profile from "../models/Profile";
 import { addProfileToAgencyBusinessOrWorker } from "./profile";
 import BusinessContract from "../models/BusinessContract";
 import { IBaseBody } from "../objecttypes/otherTypes";
-import { CallbackError, DocumentDefinition } from "mongoose";
-import Report from "../models/Report";
+import { CallbackError } from "mongoose";
 
 const adminRouter = express.Router();
 
@@ -457,54 +455,6 @@ adminRouter.get(
       );
     } catch (exception) {
       next(exception);
-    }
-  }
-);
-
-adminRouter.get(
-  "/allReports",
-  authenticateToken,
-  needsToBeAdmin,
-  async (_req: Request, res: Response, next: NextFunction) => {
-    try {
-      const reports: Array<IReportDocument> | null = await Report.find({});
-      if (reports) {
-        return res.status(200).json(reports);
-      }
-      return res.status(404).json({ message: "No reports found" });
-    } catch (exception) {
-      return next(exception);
-    }
-  }
-);
-
-adminRouter.get(
-  "/report/:id",
-  authenticateToken,
-  needsToBeAdmin,
-  (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const id: any = req.params.id;
-      return Report.findById(
-        id,
-        (
-          error: CallbackError,
-          report: DocumentDefinition<IReportDocument> | null
-        ) => {
-          console.log(report);
-          if (error) {
-            return res.status(500).json(error);
-          }
-          if (!report) {
-            return res
-              .status(404)
-              .json({ message: `Report with id ${id} is not existing!` });
-          }
-          return res.status(200).json(report);
-        }
-      );
-    } catch (exception) {
-      return next(exception);
     }
   }
 );
