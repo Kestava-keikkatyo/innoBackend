@@ -77,7 +77,7 @@ export const getUserById = (
   res: Response,
   next: NextFunction
 ) => {
-  const { params } = req;
+  const { params, body } = req;
   const id: string = params.id;
 
   try {
@@ -90,7 +90,27 @@ export const getUserById = (
           .status(404)
           .send({ message: `No user with ID ${id} found!` });
       }
-      return res.status(200).send(doc);
+
+      if (doc._id.toString() === body.user._id.toString()) {
+        return res.status(200).send(doc);
+      }
+
+      switch (body.user.userType) {
+        case "agency":
+          if (doc.userType === "worker") {
+            return res.status(200).send(doc);
+          }
+          break;
+        case "business":
+          if (doc.userType === "worker" || doc.userType === "agency") {
+            return res.status(200).send(doc);
+          }
+          break;
+        case "admin":
+          return res.status(200).send(doc);
+      }
+
+      return res.status(403).json();
     });
   } catch (exception) {
     return next(exception);
