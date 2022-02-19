@@ -7,18 +7,18 @@ import {
   updateAgreement,
 } from "../middleware/agreementMiddleware";
 import authenticateToken from "../utils/auhenticateToken";
-import { isAgency } from "../utils/authJwt";
+import { isAgencyOrBusiness } from "../utils/authJwt";
 
 const agreementRouter = express.Router();
 
 /**
- * Route for agency to add a new agreement. Agreement object is given in body according to its schema model.
+ * Route for agency and business to add a new agreement. Agreement object is given in body according to its schema model.
  * @openapi
  * /agreement/:
  *   post:
- *     summary: Route for agency to add a new agreement.
- *     description: Must be logged in as a user of type agency.
- *     tags: [Agreement, Agency]
+ *     summary: Route for agency and business to add a new agreement.
+ *     description: Must be logged in as a user of type agency or business.
+ *     tags: [Agreement, Agency, Business]
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -46,16 +46,16 @@ const agreementRouter = express.Router();
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-agreementRouter.post("/", authenticateToken, isAgency, postAgreement);
+agreementRouter.post("/", authenticateToken, isAgencyOrBusiness, postAgreement);
 
 /**
- * Route for agency to sign agreement.
+ * Route for agency and business to sign agreement.
  * @openapi
  * /agreement/sign/{id}:
  *   put:
- *     summary: Route for agency to sign own agreement
- *     description: Must be logged in as a user of type agency.
- *     tags: [Agreement, Agency]
+ *     summary: Route for agency and business to sign own agreement
+ *     description: Must be logged in as a user of type agency or business.
+ *     tags: [Agreement, Agency, Business]
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -92,16 +92,21 @@ agreementRouter.post("/", authenticateToken, isAgency, postAgreement);
  *             example:
  *               message: No agreement found!
  */
-agreementRouter.put("/sign/:id", authenticateToken, isAgency, signAgreement);
+agreementRouter.put(
+  "/sign/:id",
+  authenticateToken,
+  isAgencyOrBusiness,
+  signAgreement
+);
 
 /**
- * Route for agency to update own agreement.
+ * Route for agency and business to update own agreement.
  * @openapi
  * /agreement/update/{id}:
  *   put:
- *     summary: Route for agency to update own agreement
- *     description: Must be logged in as a user of type agency.
- *     tags: [Agreement, Agency]
+ *     summary: Route for agency and business to update own agreement
+ *     description: Must be logged in as a user of type agency or business.
+ *     tags: [Agreement, Agency, Business]
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -141,18 +146,18 @@ agreementRouter.put("/sign/:id", authenticateToken, isAgency, signAgreement);
 agreementRouter.put(
   "/update/:id",
   authenticateToken,
-  isAgency,
+  isAgencyOrBusiness,
   updateAgreement
 );
 
 /**
- * Route for agency to reject agreement.
+ * Route for agency and business to reject agreement.
  * @openapi
  * /agreement/reject/{id}:
  *   put:
- *     summary: Route for agency to reject an agreement
- *     description: Must be logged in as a user of type agency.
- *     tags: [Agreement, Agency]
+ *     summary: Route for agency and business to reject an agreement
+ *     description: Must be logged in as a user of type agency or business.
+ *     tags: [Agreement, Agency, Business]
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -192,18 +197,18 @@ agreementRouter.put(
 agreementRouter.put(
   "/reject/:id",
   authenticateToken,
-  isAgency,
+  isAgencyOrBusiness,
   rejectAgreement
 );
 
 /**
- * Route for agency to delete own agreement
+ * Route for agency and business to delete own agreement
  * @openapi
  * /agreement/delete/{id}:
  *   delete:
- *     summary: Route for agency to delete own agreement
- *     description: Must be logged in as a user of type agency.
- *     tags: [Agreement, Agency]
+ *     summary: Route for agency and business to delete own agreement
+ *     description: Must be logged in as a user of type agency or business.
+ *     tags: [Agreement, Agency, Business]
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -233,7 +238,7 @@ agreementRouter.put(
 agreementRouter.delete(
   "/delete/:id",
   authenticateToken,
-  isAgency,
+  isAgencyOrBusiness,
   deleteAgreement
 );
 
