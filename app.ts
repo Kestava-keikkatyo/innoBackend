@@ -29,6 +29,7 @@ import authRouter from "./controllers/authentication";
 import userRouter from "./controllers/user";
 import applicationRouter from "./controllers/application";
 import form2Router from "./controllers/form2";
+import agreementRouter from "./controllers/agreement";
 
 const app = express();
 
@@ -76,6 +77,7 @@ app.use("/api/authentication", authRouter);
 app.use("/api/user", userRouter);
 app.use("/api/application", applicationRouter);
 app.use("/api/form2", form2Router);
+app.use("/api/agreement", agreementRouter);
 
 app.use(unknownEndpoint);
 app.use(errorHandler);
