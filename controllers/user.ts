@@ -18,6 +18,7 @@ import {
   updateUserProfile,
   getUserNotifications,
   postUserFeeling,
+  getUserFeelings,
 } from "../middleware/userMiddleware";
 
 const userRouter = express.Router();
@@ -181,7 +182,7 @@ userRouter.get("/any/:id", authenticateToken, isUser, getUserById);
 userRouter.get("/me", authenticateToken, getUserProfile);
 
 /**
- * Route to get usernotifications
+ * Route to get user notifications
  * @openapi
  * /user/notifications:
  *   get:
@@ -508,5 +509,45 @@ userRouter.put(
   isWorker,
   postUserFeeling
 );
+
+/**
+ * Route to get user feelings
+ * @openapi
+ * /user/feelings:
+ *   get:
+ *     summary: Route to get user feelings
+ *     description: Must be logged in as user of role worker.
+ *     tags: [User, User]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: id
+ *         description: ID of the requested user.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 604021e581a9626810885657
+ *     responses:
+ *       "200":
+ *         description: Returns the requested user.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/User"
+ *       "404":
+ *         description: No feelings found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: No feelings found
+ */
+userRouter.get("/feelings", authenticateToken, getUserFeelings);
 
 export default userRouter;
