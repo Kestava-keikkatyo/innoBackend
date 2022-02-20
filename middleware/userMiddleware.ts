@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { CallbackError } from "mongoose";
 import User from "../models/User";
-import { IUser, IUserDocument } from "../objecttypes/modelTypes";
+import { IFeelings, IUser, IUserDocument } from "../objecttypes/modelTypes";
 import { hash } from "bcryptjs";
 
 /**
@@ -405,6 +405,41 @@ export const deleteUser = async (
         .status(200)
         .send({ message: `User with ${user._id} was deleted successfuly!` });
     }
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
+ * Update user's feeling.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns Updated user's feeling
+ */
+export const postUserFeeling = async (
+  req: Request<{ userId: string }, IUser>,
+  res: Response,
+  next: NextFunction
+) => {
+  const { params, body } = req;
+  const { userId } = params;
+
+  const myFeeling: IFeelings = {
+    value: body.value,
+    note: body.note,
+    fileUrl: body.fileUrl,
+  };
+  try {
+    const user: IUserDocument | null = await User.findByIdAndUpdate(
+      { _id: userId },
+      { $addToSet: { feelings: myFeeling } },
+      { new: true, omitUndefined: true, runValidators: true, lean: true }
+    );
+    if (user) {
+      console.log(`User's feeling was updated successfully!`);
+    }
+    return res.status(user ? 200 : 404).send();
   } catch (exception) {
     return next(exception);
   }
