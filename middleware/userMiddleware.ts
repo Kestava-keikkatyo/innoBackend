@@ -444,3 +444,30 @@ export const postUserFeeling = async (
     return next(exception);
   }
 };
+
+/**
+ * Get user's feelings.
+ * @param {Request} _req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns User's feelings
+ */
+export const getUserFeelings = async (
+  _req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const id: string = res.locals.decoded.id;
+
+  try {
+    const doc = await User.findById(id);
+
+    if (!doc) {
+      return res.status(404).send({});
+    }
+
+    return res.status(200).send(doc.feelings);
+  } catch (exception) {
+    return next(exception);
+  }
+};
