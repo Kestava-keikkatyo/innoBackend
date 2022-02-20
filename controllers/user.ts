@@ -1,6 +1,11 @@
 import express from "express";
 import authenticateToken from "../utils/auhenticateToken";
-import { isAdmin, isAgencyOrBusiness, isUser } from "../utils/authJwt";
+import {
+  isAdmin,
+  isAgencyOrBusiness,
+  isUser,
+  isWorker,
+} from "../utils/authJwt";
 import {
   deleteUser,
   getAllWorkers,
@@ -12,6 +17,7 @@ import {
   getUserProfile,
   updateUserProfile,
   getUserNotifications,
+  postUserFeeling,
 } from "../middleware/userMiddleware";
 
 const userRouter = express.Router();
@@ -248,7 +254,7 @@ userRouter.get("/notifications", authenticateToken, getUserNotifications);
  *         content:
  *           application/json:
  *             schema:
- *               $ref: "#/components/schemas/Job"
+ *               $ref: "#/components/schemas/User"
  *       "404":
  *         description: Update failed.
  *         content:
@@ -377,7 +383,7 @@ userRouter.patch(
 /**
  * Route for admin to delete user
  * @openapi
- * /job/userDelete/{userId}:
+ * /user/userDelete/{userId}:
  *   delete:
  *     summary: Route for admin to delete
  *     description: Must be logged in as an admin.
@@ -452,6 +458,55 @@ userRouter.get(
   authenticateToken,
   isAgencyOrBusiness,
   getAllWorkers
+);
+
+/**
+ * Route for user of role worker to post feeling.
+ * @openapi
+ * /user//feeling/{userId}:
+ *   put:
+ *     summary: Route for user of role worker to post feeling
+ *     description: Must be logged in as user of role worker.
+ *     tags: [User, Worker]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: id
+ *         description: ID of the user to post feeling.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 604021e581a9626810885657
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: "#/components/schemas/Uer"
+ *     responses:
+ *       "200":
+ *         description: Feeling posted successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/User"
+ *       "404":
+ *         description: Failed to post feeling.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ */
+userRouter.put(
+  "/feeling/:userId",
+  authenticateToken,
+  isWorker,
+  postUserFeeling
 );
 
 export default userRouter;
