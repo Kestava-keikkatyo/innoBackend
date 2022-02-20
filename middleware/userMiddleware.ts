@@ -418,12 +418,11 @@ export const deleteUser = async (
  * @returns Updated user's feeling
  */
 export const postUserFeeling = async (
-  req: Request<{ userId: string }, IUser>,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const { params, body } = req;
-  const { userId } = params;
+  const { body } = req;
 
   const myFeeling: IFeelings = {
     value: body.value,
@@ -432,7 +431,7 @@ export const postUserFeeling = async (
   };
   try {
     const user: IUserDocument | null = await User.findByIdAndUpdate(
-      { _id: userId },
+      res.locals.decoded.id,
       { $addToSet: { feelings: myFeeling } },
       { new: true, omitUndefined: true, runValidators: true, lean: true }
     );

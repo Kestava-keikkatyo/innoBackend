@@ -503,12 +503,7 @@ userRouter.get(
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-userRouter.put(
-  "/feeling/:userId",
-  authenticateToken,
-  isWorker,
-  postUserFeeling
-);
+userRouter.post("/feeling/", authenticateToken, isWorker, postUserFeeling);
 
 /**
  * Route to get user feelings
