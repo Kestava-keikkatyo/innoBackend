@@ -95,6 +95,29 @@ export const getFormByCommon = (
   }
 };
 
+export const getFormByPublic = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+  try {
+    Form2.find({isPublic: true, common: false, filled: false}, (error: CallbackError, doc: IForm2Document | null) => {
+      if (error) {
+        return res.status(500).json({message: error.message});
+      }
+      if (!doc) {
+        return res.status(404).send({message: `No form found!`});
+      }
+      console.log(doc);
+      return res.status(200).send(doc);
+    }).skip(Number(req.query.page) *10).limit(Number(req.query.limit)).exec().then().catch(err => {
+      console.error(err);
+    });
+  }catch(exception){
+    return next(exception);
+  }
+};
+
 /**
  * Get form by id.
  * @param {Request} req - Express Request.
