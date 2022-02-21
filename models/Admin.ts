@@ -1,13 +1,13 @@
-import mongoose, {Schema} from "mongoose"
+import mongoose, { Schema } from "mongoose";
 //const uniqueValidator = require("mongoose-unique-validator")
-import mongoosePaginate from 'mongoose-paginate-v2';
-import {IAdminDocument} from "../objecttypes/modelTypes"
+import mongoosePaginate from "mongoose-paginate-v2";
+import { IAdminDocument } from "../objecttypes/modelTypes";
 
 const adminSchema = new Schema({
   name: {
     type: String,
     minlength: 3,
-    required: true
+    required: true,
   },
   email: {
     type: String,
@@ -16,10 +16,10 @@ const adminSchema = new Schema({
     immutable: true,
     validate: {
       validator: (value: string) => {
-        return /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(value)
+        return /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(value);
       },
-      message: (props: any) => `${props.value} is not a valid email address`
-    }
+      message: (props: any) => `${props.value} is not a valid email address!`,
+    },
   },
   city: {
     type: String,
@@ -34,21 +34,22 @@ const adminSchema = new Schema({
     type: String,
     validate: {
       validator: (value: string) => {
-        // https://regexr.com/3c53v
-        return /^[+]*[(]?[0-9]{1,4}[)]?[-\s.\/0-9]*$/g.test(value)
+        return /^[+]*[(]?[0-9]{1,4}[)]?[-\s.\/0-9]*$/g.test(value);
       },
-      message: (props: any) => `${props.value} is not a valid phone number`
-    }
+      message: (props: any) => `${props.value} is not a valid phone number!`,
+    },
   },
   passwordHash: {
     type: String,
-    required: true
+    required: true,
   },
-notifications: [{
-  type: mongoose.Schema.Types.ObjectId,
-  ref: "Notifications"
-}],
- profile: {
+  notifications: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Notifications",
+    },
+  ],
+  profile: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Profile",
   },
@@ -59,20 +60,20 @@ notifications: [{
   },
   userType: {
     type: String,
-    default: "Admin"
+    default: "Admin",
   },
   active: {
     type: Boolean,
-    default: true
-  }
-})
+    default: true,
+  },
+});
 
-adminSchema.plugin(mongoosePaginate)
+adminSchema.plugin(mongoosePaginate);
 
 adminSchema.set("toJSON", {
   transform: (_doc: any, returnedObject: any) => {
-    delete returnedObject.passwordHash
+    delete returnedObject.passwordHash;
   },
-})
+});
 
-export default mongoose.model<IAdminDocument>("Admin", adminSchema)
+export default mongoose.model<IAdminDocument>("Admin", adminSchema);
