@@ -108,7 +108,6 @@ export const getFormByPublic = (
       if (!doc) {
         return res.status(404).send({message: `No form found!`});
       }
-      console.log(doc);
       return res.status(200).send(doc);
     }).skip(Number(req.query.page) *10).limit(Number(req.query.limit)).exec().then().catch(err => {
       console.error(err);
