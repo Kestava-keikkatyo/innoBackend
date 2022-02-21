@@ -19,6 +19,7 @@ import {
   getUserNotifications,
   postUserFeeling,
   getUserFeelings,
+  deleteUserFeeling,
 } from "../middleware/userMiddleware";
 
 const userRouter = express.Router();
@@ -543,6 +544,47 @@ userRouter.post("/feeling/", authenticateToken, isWorker, postUserFeeling);
  *             example:
  *               message: No feelings found
  */
-userRouter.get("/feelings", authenticateToken, getUserFeelings);
+userRouter.get("/myFeelings", authenticateToken, getUserFeelings);
+
+/**
+ * Route for user of role worker to delete own feeling
+ * @openapi
+ * /feeling/myFeelings/{id}:
+ *   delete:
+ *     summary: Route for user of role worker to delete own feeling
+ *     description: Must be logged in as a user of role worker.
+ *     tags: [Feeling, Worker]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: id
+ *         description: ID of the feeling to be delete.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 604021e581a9626810885657
+ *     responses:
+ *       "200":
+ *         description: feeling was deleted successfully.
+ *       "404":
+ *         description: The feeling with the requested ID is not existing.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: No feeling was found with the requested ID {id}
+ */
+userRouter.delete(
+  "/myFeelings/:feelingId",
+  authenticateToken,
+  isWorker,
+  deleteUserFeeling
+);
 
 export default userRouter;

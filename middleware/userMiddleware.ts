@@ -470,3 +470,33 @@ export const getUserFeelings = async (
     return next(exception);
   }
 };
+
+/**
+ * Delete user's feelings.
+ * @param {Request} _req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns User's feelings
+ */
+export const deleteUserFeeling = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { params } = req;
+  const id: string = res.locals.decoded.id;
+
+  try {
+    const doc = await User.findByIdAndUpdate(
+      id,
+      { $pull: { feelings: { _id: params.feelingId } } },
+      { new: true, omitUndefined: true, runValidators: true, lean: true }
+    );
+    if (!doc) {
+      return res.status(404).send({});
+    }
+    return res.status(200).send(doc.feelings);
+  } catch (exception) {
+    return next(exception);
+  }
+};
