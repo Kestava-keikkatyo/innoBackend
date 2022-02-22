@@ -210,7 +210,7 @@ export const getAllBusinesses = async (
 ) => {
   try {
     const businesses: Array<IUserDocument> | null = await User.find({
-      userType: "Business",
+      userType: "business",
     });
     if (businesses) {
       return res.status(200).json(businesses);
@@ -235,7 +235,7 @@ export const getAllAgencies = async (
 ) => {
   try {
     const agencies: Array<IUserDocument> | null = await User.find({
-      userType: "Agency",
+      userType: "agency",
     });
     if (agencies) {
       return res.status(200).json(agencies);
@@ -260,7 +260,7 @@ export const getAllAdmins = async (
 ) => {
   try {
     const admins: Array<IUserDocument> | null = await User.find({
-      userType: "Admin",
+      userType: "admin",
     });
     if (admins) {
       return res.status(200).json(admins);
