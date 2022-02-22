@@ -3,6 +3,7 @@ import authenticateToken from "../utils/auhenticateToken";
 import {
   isAdmin,
   isAgencyOrBusiness,
+  isBusiness,
   isUser,
   isWorker,
 } from "../utils/authJwt";
@@ -20,6 +21,7 @@ import {
   postUserFeeling,
   getUserFeelings,
   deleteUserFeeling,
+  getAllAgencies,
 } from "../middleware/userMiddleware";
 
 const userRouter = express.Router();
@@ -461,6 +463,40 @@ userRouter.get(
   isAgencyOrBusiness,
   getAllWorkers
 );
+
+/**
+ * @openapi
+ * /workers:
+ *   get:
+ *     summary: Route for user of role business to get all agencies
+ *     description: Need to be logged in as user of type buisness.
+ *     tags: [User, Business]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     responses:
+ *       "200":
+ *         description: Returns all users of type agency
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: "#/components/schemas/User"
+ *       "404":
+ *         description: No agencies found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message:  no agencies found
+ */
+userRouter.get("/agencies", authenticateToken, isBusiness, getAllAgencies);
 
 /**
  * Route for user of role worker to post feeling.
