@@ -176,3 +176,29 @@ export const updateForm = async (
     return next(exception);
   }
 };
+
+/**
+ * Delete form by id.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns Updated form
+ */
+export const deleteForm = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+  const { params } = req;
+  const { id } = params;
+
+  try {
+    const form: IForm2Document | null = await Form2.findByIdAndRemove(id);
+    if (form) {
+      console.log(`Form was deleted!`);
+    }
+    return res.status(form === null ? 200 : 404).send();
+  } catch (exception) {
+    return next(exception);
+  }
+};

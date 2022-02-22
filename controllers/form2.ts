@@ -4,7 +4,7 @@ import {
   getMyForms,
   postForm,
   updateForm,
-  getFormByCommon, getFormByPublic
+  getFormByCommon, getFormByPublic, deleteForm
 } from "../middleware/form2Middleware";
 import authenticateToken from "../utils/auhenticateToken";
 import { isAgencyOrBusiness } from "../utils/authJwt";
@@ -267,6 +267,57 @@ form2Router.put(
   authenticateToken,
   isAgencyOrBusiness,
   updateForm
+);
+
+/**
+ * Route for user of role agency or business to update own form.
+ * @openapi
+ * /form/update/{id}:
+ *   put:
+ *     summary: Route for user of role agency or business to update own form
+ *     description: Must be logged in as an agency or business.
+ *     tags: [Form, Agency, Business]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: id
+ *         description: ID of the form to be updated.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 604021e581a9626810885657
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: "#/components/schemas/Form"
+ *     responses:
+ *       "200":
+ *         description: Returns the updated Form.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Form2"
+ *       "404":
+ *         description: No form was found!.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: No form found
+ */
+form2Router.delete(
+    "/delete/:id",
+    authenticateToken,
+    isAgencyOrBusiness,
+    deleteForm
 );
 
 export default form2Router;
