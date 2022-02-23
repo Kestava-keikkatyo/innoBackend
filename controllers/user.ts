@@ -1,6 +1,12 @@
 import express from "express";
 import authenticateToken from "../utils/auhenticateToken";
-import { isAdmin, isAgencyOrBusiness } from "../utils/authJwt";
+import {
+  isAdmin,
+  isAgencyOrBusiness,
+  isBusiness,
+  isUser,
+  isWorker,
+} from "../utils/authJwt";
 import {
   deleteUser,
   getAllWorkers,
@@ -12,6 +18,10 @@ import {
   getUserProfile,
   updateUserProfile,
   getUserNotifications,
+  postUserFeeling,
+  getUserFeelings,
+  deleteUserFeeling,
+  getAllAgencies,
 } from "../middleware/userMiddleware";
 
 const userRouter = express.Router();
@@ -132,7 +142,7 @@ userRouter.get("/allUsersForAdmin", authenticateToken, isAdmin, getAllUsers);
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-userRouter.get("/userForAdmin/:id", authenticateToken, isAdmin, getUserById);
+userRouter.get("/any/:id", authenticateToken, isUser, getUserById);
 
 /**
  * Route to get user info
@@ -175,7 +185,7 @@ userRouter.get("/userForAdmin/:id", authenticateToken, isAdmin, getUserById);
 userRouter.get("/me", authenticateToken, getUserProfile);
 
 /**
- * Route to get usernotifications
+ * Route to get user notifications
  * @openapi
  * /user/notifications:
  *   get:
@@ -248,7 +258,7 @@ userRouter.get("/notifications", authenticateToken, getUserNotifications);
  *         content:
  *           application/json:
  *             schema:
- *               $ref: "#/components/schemas/Job"
+ *               $ref: "#/components/schemas/User"
  *       "404":
  *         description: Update failed.
  *         content:
@@ -377,7 +387,7 @@ userRouter.patch(
 /**
  * Route for admin to delete user
  * @openapi
- * /job/userDelete/{userId}:
+ * /user/userDelete/{userId}:
  *   delete:
  *     summary: Route for admin to delete
  *     description: Must be logged in as an admin.
@@ -452,6 +462,165 @@ userRouter.get(
   authenticateToken,
   isAgencyOrBusiness,
   getAllWorkers
+);
+
+/**
+ * @openapi
+ * /workers:
+ *   get:
+ *     summary: Route for user of role business to get all agencies
+ *     description: Need to be logged in as user of type buisness.
+ *     tags: [User, Business]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     responses:
+ *       "200":
+ *         description: Returns all users of type agency
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: "#/components/schemas/User"
+ *       "404":
+ *         description: No agencies found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message:  no agencies found
+ */
+userRouter.get("/agencies", authenticateToken, isBusiness, getAllAgencies);
+
+/**
+ * Route for user of role worker to post feeling.
+ * @openapi
+ * /user//feeling/{userId}:
+ *   put:
+ *     summary: Route for user of role worker to post feeling
+ *     description: Must be logged in as user of role worker.
+ *     tags: [User, Worker]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: id
+ *         description: ID of the user to post feeling.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 604021e581a9626810885657
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: "#/components/schemas/Uer"
+ *     responses:
+ *       "200":
+ *         description: Feeling posted successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/User"
+ *       "404":
+ *         description: Failed to post feeling.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ */
+userRouter.post("/feeling/", authenticateToken, isWorker, postUserFeeling);
+
+/**
+ * Route to get user feelings
+ * @openapi
+ * /user/feelings:
+ *   get:
+ *     summary: Route to get user feelings
+ *     description: Must be logged in as user of role worker.
+ *     tags: [User, User]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: id
+ *         description: ID of the requested user.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 604021e581a9626810885657
+ *     responses:
+ *       "200":
+ *         description: Returns the requested user.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/User"
+ *       "404":
+ *         description: No feelings found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: No feelings found
+ */
+userRouter.get("/myFeelings", authenticateToken, getUserFeelings);
+
+/**
+ * Route for user of role worker to delete own feeling
+ * @openapi
+ * /feeling/myFeelings/{id}:
+ *   delete:
+ *     summary: Route for user of role worker to delete own feeling
+ *     description: Must be logged in as a user of role worker.
+ *     tags: [Feeling, Worker]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: id
+ *         description: ID of the feeling to be delete.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 604021e581a9626810885657
+ *     responses:
+ *       "200":
+ *         description: feeling was deleted successfully.
+ *       "404":
+ *         description: The feeling with the requested ID is not existing.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: No feeling was found with the requested ID {id}
+ */
+userRouter.delete(
+  "/myFeelings/:feelingId",
+  authenticateToken,
+  isWorker,
+  deleteUserFeeling
 );
 
 export default userRouter;

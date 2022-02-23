@@ -369,16 +369,13 @@ export interface IFeedbackDocument extends Document, IFeedback {
 }
 
 export interface IReport {
-  workTitle: String;
-  reportTitle: String;
+  title: String;
   details: String;
-  date: String;
-  workerId: IWorkerDocument["_id"];
-  workerName: String;
-  workerEmail: String;
-  workerPhone: String;
-  buisnessAsHandler: String;
-  agencyAsHandler: String;
+  date: Date;
+  status: String;
+  reply: String;
+  user: IUserDocument["_id"];
+  receiver: String;
   fileUrl: String;
   fileType: String;
 }
@@ -407,6 +404,17 @@ export interface IJob {
 }
 
 export interface IJobDocument extends Document, IJob {
+  _id: Types.ObjectId;
+  createdAt: Date;
+}
+
+export interface IAgreement {
+  user: IUserDocument["_id"];
+  form2: IForm2Document["_id"];
+  status: string;
+}
+
+export interface IAgreementDocument extends Document, IJob {
   _id: Types.ObjectId;
   createdAt: Date;
 }

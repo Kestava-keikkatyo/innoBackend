@@ -4,7 +4,9 @@ import {
   getMyForms,
   postForm,
   updateForm,
-  getFormByCommon, getFormByPublic, deleteForm
+  getFormByCommon,
+  deleteForm,
+  getPublicForms,
 } from "../middleware/form2Middleware";
 import authenticateToken from "../utils/auhenticateToken";
 import { isAgencyOrBusiness } from "../utils/authJwt";
@@ -55,7 +57,7 @@ form2Router.post("/", authenticateToken, isAgencyOrBusiness, postForm);
  *   get:
  *     summary: Route for user of role agency or business to get common forms
  *     description: Must be logged in as an agency or business.
- *     tags: [Job, Agency, Business]
+ *     tags: [Form, Agency, Business]
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -77,7 +79,7 @@ form2Router.post("/", authenticateToken, isAgencyOrBusiness, postForm);
  *             schema:
  *               $ref: "#/components/schemas/Error"
  *             example:
- *               message:No job found
+ *               message:No form found
  *       "500":
  *         description: An error occurred when calling the database.
  *         content:
@@ -85,7 +87,12 @@ form2Router.post("/", authenticateToken, isAgencyOrBusiness, postForm);
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-form2Router.get("/common/", authenticateToken, isAgencyOrBusiness, getFormByCommon);
+form2Router.get(
+  "/common/",
+  authenticateToken,
+  isAgencyOrBusiness,
+  getFormByCommon
+);
 
 /**
  * Route for user of role agency or business to get public forms
@@ -174,7 +181,7 @@ form2Router.get("/myForm", authenticateToken, isAgencyOrBusiness, getMyForms);
  *   get:
  *     summary: Route for user of role agency or business to get own form by its id
  *     description: Must be logged in as an agency or business.
- *     tags: [Job, Agency, Business]
+ *     tags: [Form, Agency, Business]
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -203,7 +210,7 @@ form2Router.get("/myForm", authenticateToken, isAgencyOrBusiness, getMyForms);
  *             schema:
  *               $ref: "#/components/schemas/Error"
  *             example:
- *               message:No job found
+ *               message:No form found
  *       "500":
  *         description: An error occurred when calling the database.
  *         content:
@@ -270,12 +277,56 @@ form2Router.put(
 );
 
 /**
- * Route for user of role agency or business to update own form.
+ * Route for user of type agency or business to get public forms
  * @openapi
- * /form/update/{id}:
- *   put:
- *     summary: Route for user of role agency or business to update own form
+ * /form/public/:
+ *   get:
+ *     summary: Route for user of type agency or business to get public forms
  *     description: Must be logged in as an agency or business.
+ *     tags: [Form, Agency, Business]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     responses:
+ *       "200":
+ *         description: Returns the requested forms.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Form2"
+ *       "404":
+ *         description: No form was found with type common.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message:No form found
+ *       "500":
+ *         description: An error occurred when calling the database.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ */
+form2Router.get(
+  "/public/",
+  authenticateToken,
+  isAgencyOrBusiness,
+  getPublicForms
+);
+
+/**
+ * Route for user of type agency or agency or business to delete form
+ * @openapi
+ * /form/delete/{formId}:
+ *   delete:
+ *     summary: Route for user of type agency or business to delete form
+ *     description: Must be logged in as user of type agency or business.
  *     tags: [Form, Agency, Business]
  *     parameters:
  *       - in: header
@@ -286,38 +337,28 @@ form2Router.put(
  *           $ref: "#/components/schemas/AccessToken"
  *       - in: path
  *         name: id
- *         description: ID of the form to be updated.
+ *         description: ID of the form to be deleted.
  *         required: true
  *         schema:
  *           type: string
  *           example: 604021e581a9626810885657
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: "#/components/schemas/Form"
  *     responses:
  *       "200":
- *         description: Returns the updated Form.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: "#/components/schemas/Form2"
+ *         description: Form was deleted successfully.
  *       "404":
- *         description: No form was found!.
+ *         description: The form with the requested ID is not existing.
  *         content:
  *           application/json:
  *             schema:
  *               $ref: "#/components/schemas/Error"
  *             example:
- *               message: No form found
+ *               message: No form was found with the requested ID {formId}
  */
 form2Router.delete(
-    "/delete/:id",
-    authenticateToken,
-    isAgencyOrBusiness,
-    deleteForm
+  "/delete/:formId",
+  authenticateToken,
+  isAgencyOrBusiness,
+  deleteForm
 );
 
 export default form2Router;

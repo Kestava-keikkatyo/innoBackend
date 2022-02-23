@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { CallbackError } from "mongoose";
 import User from "../models/User";
-import { IUser, IUserDocument } from "../objecttypes/modelTypes";
+import { IFeelings, IUser, IUserDocument } from "../objecttypes/modelTypes";
 import { hash } from "bcryptjs";
 
 /**
@@ -77,7 +77,7 @@ export const getUserById = (
   res: Response,
   next: NextFunction
 ) => {
-  const { params } = req;
+  const { params, body } = req;
   const id: string = params.id;
 
   try {
@@ -90,7 +90,27 @@ export const getUserById = (
           .status(404)
           .send({ message: `No user with ID ${id} found!` });
       }
-      return res.status(200).send(doc);
+
+      if (doc._id.toString() === body.user._id.toString()) {
+        return res.status(200).send(doc);
+      }
+
+      switch (body.user.userType) {
+        case "agency":
+          if (doc.userType === "worker") {
+            return res.status(200).send(doc);
+          }
+          break;
+        case "business":
+          if (doc.userType === "worker" || doc.userType === "agency") {
+            return res.status(200).send(doc);
+          }
+          break;
+        case "admin":
+          return res.status(200).send(doc);
+      }
+
+      return res.status(403).json();
     });
   } catch (exception) {
     return next(exception);
@@ -190,7 +210,7 @@ export const getAllBusinesses = async (
 ) => {
   try {
     const businesses: Array<IUserDocument> | null = await User.find({
-      userType: "Business",
+      userType: "business",
     });
     if (businesses) {
       return res.status(200).json(businesses);
@@ -215,7 +235,7 @@ export const getAllAgencies = async (
 ) => {
   try {
     const agencies: Array<IUserDocument> | null = await User.find({
-      userType: "Agency",
+      userType: "agency",
     });
     if (agencies) {
       return res.status(200).json(agencies);
@@ -240,7 +260,7 @@ export const getAllAdmins = async (
 ) => {
   try {
     const admins: Array<IUserDocument> | null = await User.find({
-      userType: "Admin",
+      userType: "admin",
     });
     if (admins) {
       return res.status(200).json(admins);
@@ -385,6 +405,97 @@ export const deleteUser = async (
         .status(200)
         .send({ message: `User with ${user._id} was deleted successfuly!` });
     }
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
+ * Update user's feeling.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns Updated user's feeling
+ */
+export const postUserFeeling = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { body } = req;
+
+  const myFeeling: IFeelings = {
+    value: body.value,
+    note: body.note,
+    fileUrl: body.fileUrl,
+  };
+  try {
+    const user: IUserDocument | null = await User.findByIdAndUpdate(
+      res.locals.decoded.id,
+      { $addToSet: { feelings: myFeeling } },
+      { new: true, omitUndefined: true, runValidators: true, lean: true }
+    );
+    if (user) {
+      console.log(`User's feeling was updated successfully!`);
+    }
+    return res.status(user ? 200 : 404).send();
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
+ * Get user's feelings.
+ * @param {Request} _req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns User's feelings
+ */
+export const getUserFeelings = async (
+  _req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const id: string = res.locals.decoded.id;
+
+  try {
+    const doc = await User.findById(id);
+
+    if (!doc) {
+      return res.status(404).send({});
+    }
+
+    return res.status(200).send(doc.feelings);
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
+ * Delete user's feelings.
+ * @param {Request} _req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns User's feelings
+ */
+export const deleteUserFeeling = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { params } = req;
+  const id: string = res.locals.decoded.id;
+
+  try {
+    const doc = await User.findByIdAndUpdate(
+      id,
+      { $pull: { feelings: { _id: params.feelingId } } },
+      { new: true, omitUndefined: true, runValidators: true, lean: true }
+    );
+    if (!doc) {
+      return res.status(404).send({});
+    }
+    return res.status(200).send(doc.feelings);
   } catch (exception) {
     return next(exception);
   }
