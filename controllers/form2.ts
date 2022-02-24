@@ -7,6 +7,7 @@ import {
   getFormByCommon,
   deleteForm,
   getPublicForms,
+  getFormByPublic,
 } from "../middleware/form2Middleware";
 import authenticateToken from "../utils/auhenticateToken";
 import { isAgencyOrBusiness } from "../utils/authJwt";
@@ -131,7 +132,12 @@ form2Router.get(
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-form2Router.get("/public", authenticateToken, isAgencyOrBusiness, getFormByPublic);
+form2Router.get(
+  "/public",
+  authenticateToken,
+  isAgencyOrBusiness,
+  getFormByPublic
+);
 
 /**
  * Route for user of role agency or business to get their own forms
