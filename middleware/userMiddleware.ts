@@ -3,6 +3,7 @@ import { CallbackError } from "mongoose";
 import User from "../models/User";
 import { IFeelings, IUser, IUserDocument } from "../objecttypes/modelTypes";
 import { hash } from "bcryptjs";
+import { removeEmptyProperties } from "../utils/common";
 
 /**
  * Post a new user to database.
@@ -348,10 +349,10 @@ export const updateUserProfile = async (
   const { params, body } = req;
   const { userId } = params;
 
-  const updatableFields = {
+  const updatableFields = removeEmptyProperties({
     name: body.name,
-    firstName: body.firstName,
-    lastName: body.lastName,
+    //firstName: body.firstName,
+    //lastName: body.lastName,
     email: body.email,
     street: body.street,
     zipCode: body.zipCode,
@@ -359,7 +360,9 @@ export const updateUserProfile = async (
     phoneNumber: body.phoneNumber,
     website: body.website,
     licenses: body.licenses,
-  };
+    category: body.category,
+    profilePicture: body.profilePicture,
+  });
 
   try {
     const user: IUserDocument | null = await User.findByIdAndUpdate(

@@ -266,7 +266,7 @@ userRouter.get("/notifications", authenticateToken, getUserNotifications);
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-userRouter.put("/me", authenticateToken, updateUserProfile);
+userRouter.put("/:userId", authenticateToken, updateUserProfile);
 
 userRouter.get(
   "/allWorkersForAdmin",
