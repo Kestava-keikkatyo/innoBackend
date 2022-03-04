@@ -99,6 +99,7 @@ authRouter.post(
         name: body.name,
         email: body.email,
         userType: body.userType,
+        category: body.category,
         passwordHash,
       });
       return user.save((error: CallbackError, user: IUserDocument) => {
