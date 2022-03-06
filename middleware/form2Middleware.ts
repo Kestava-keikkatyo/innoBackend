@@ -16,6 +16,8 @@ export const postForm = async (
   next: NextFunction
 ) => {
   const { body } = req;
+  console.log(body.questions);
+
   try {
     const formDocument: IForm2Document = new Form2({
       user: res.locals.decoded.id,
@@ -198,15 +200,13 @@ export const deleteForm = async (
   next: NextFunction
 ) => {
   const { params } = req;
-  const { id } = params;
+  const id : string = params.formId;
 
   try {
-    const form: IForm2Document | null = await Form2.findByIdAndDelete({
-      _id: id,
-    });
+    const form: IForm2Document | null = await Form2.findByIdAndDelete(id);
 
     if (!form) {
-      return res.status(404).send({ message: `Form  is not existing!` });
+      return res.status(404).send({ message: `Form by id: ` + id +  ` is not existing!` });
     } else {
       return res.status(200).send({ message: `Form was deleted successfully!` });
     }
