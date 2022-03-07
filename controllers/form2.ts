@@ -361,7 +361,7 @@ form2Router.get(
  *               message: No form was found with the requested ID {formId}
  */
 form2Router.delete(
-  "/delete/:formId",
+  "/delete/:id",
   authenticateToken,
   isAgencyOrBusiness,
   deleteForm

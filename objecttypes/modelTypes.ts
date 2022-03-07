@@ -312,11 +312,11 @@ export interface IForm2 {
   filled: boolean;
   common: boolean;
   description?: string;
-  questions?: IQuestions;
+  questions?: Array<AnyQuestion>;
   tags?: Array<string>;
 }
 
-export interface IForm2Document extends Document, IForm {
+export interface IForm2Document extends Document, IForm2 {
   _id: Types.ObjectId;
   createdAt: Date;
 }
