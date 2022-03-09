@@ -16,7 +16,6 @@ export const postForm = async (
   next: NextFunction
 ) => {
   const { body } = req;
-  console.log(body.questions);
 
   try {
     const formDocument: IForm2Document = new Form2({
@@ -106,23 +105,31 @@ export const getFormByCommon = (
 };
 
 export const getFormByPublic = (
-    req: Request,
-    res: Response,
-    next: NextFunction
+  req: Request,
+  res: Response,
+  next: NextFunction
 ) => {
   try {
-    Form2.find({isPublic: true, common: false, filled: false}, (error: CallbackError, doc: IForm2Document | null) => {
-      if (error) {
-        return res.status(500).json({message: error.message});
+    Form2.find(
+      { isPublic: true, common: false, filled: false },
+      (error: CallbackError, doc: IForm2Document | null) => {
+        if (error) {
+          return res.status(500).json({ message: error.message });
+        }
+        if (!doc) {
+          return res.status(404).send({ message: `No form found!` });
+        }
+        return res.status(200).send(doc);
       }
-      if (!doc) {
-        return res.status(404).send({message: `No form found!`});
-      }
-      return res.status(200).send(doc);
-    }).skip(Number(req.query.page) *10).limit(Number(req.query.limit)).exec().then().catch(err => {
-      console.error(err);
-    });
-  }catch(exception){
+    )
+      .skip(Number(req.query.page) * 10)
+      .limit(Number(req.query.limit))
+      .exec()
+      .then()
+      .catch((err) => {
+        console.error(err);
+      });
+  } catch (exception) {
     return next(exception);
   }
 };
@@ -200,15 +207,19 @@ export const deleteForm = async (
   next: NextFunction
 ) => {
   const { params } = req;
-  const id : string = params.formId;
+  const { id } = params;
 
   try {
-    const form: IForm2Document | null = await Form2.findByIdAndDelete(id);
+    const form: IForm2Document | null = await Form2.findByIdAndDelete({
+      _id: id,
+    });
 
     if (!form) {
-      return res.status(404).send({ message: `Form by id: ` + id +  ` is not existing!` });
+      return res.status(404).send({ message: `Form  is not existing!` });
     } else {
-      return res.status(200).send({ message: `Form was deleted successfully!` });
+      return res
+        .status(200)
+        .send({ message: `Form was deleted successfully!` });
     }
   } catch (exception) {
     return next(exception);
