@@ -14,7 +14,6 @@ import authenticateToken from "../utils/auhenticateToken"
 import BusinessContract from "../models/BusinessContract"
 import {
   needsToBeAgency,
-  needsToBeAgencyBusinessOrWorker,
   needsToBeBusinessOrWorker
 } from "../utils/middleware"
 import { error as _error } from "../utils/logger"
@@ -26,7 +25,8 @@ import {
   initBusinessContractFormUpdate, initBusinessContractAddUpdate, addContractToBusinessContract, businessContractExists, businessContractIncludesUser,
   businessContractUpdate, declineBusinessContract, makeBusinessContract, businessContractAgencyUpdate, initBusinessContractSendUpdate, initBusinessContractDeclineUpdate, initBusinessContractAcceptUpdate, initBusinessContractSendBackUpdate
 } from "../utils/businessContractMiddleware";
-import Agency from "../models/Agency"
+import Agency from "../models/Agency";
+import { isAgencyOrBusiness } from "../utils/authJwt";
 
 const businesscontractsRouter = express.Router()
 
@@ -77,7 +77,7 @@ const businesscontractsRouter = express.Router()
  *             example:
  *               message: User who is trying to use this route is not in the business contract
  */
-businesscontractsRouter.get("/:businessContractId", authenticateToken, needsToBeAgencyBusinessOrWorker, businessContractExists, businessContractIncludesUser,
+businesscontractsRouter.get("/:businessContractId", authenticateToken, isAgencyOrBusiness, businessContractExists, businessContractIncludesUser,
   async (req: Request<unknown, unknown, IBaseBody>, res: Response, next: NextFunction) => {
     const { body } = req
     try {
@@ -161,7 +161,7 @@ businesscontractsRouter.get("/:businessContractId", authenticateToken, needsToBe
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-businesscontractsRouter.get("/", authenticateToken, needsToBeAgencyBusinessOrWorker, async (req: Request<unknown, unknown, IBaseBody>, res: Response, next: NextFunction) => {
+businesscontractsRouter.get("/", authenticateToken, isAgencyOrBusiness, async (req: Request<unknown, unknown, IBaseBody>, res: Response, next: NextFunction) => {
   const { query, body } = req
   try {
     //Initialise page, limit, myId, model

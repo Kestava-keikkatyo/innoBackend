@@ -446,6 +446,7 @@ workersRouter.get(
     }
 
     try {
+        /*
       const agency: IAgencyDocument | null = await Agency.findById(
         res.locals.decoded.id
       );
@@ -469,7 +470,15 @@ workersRouter.get(
         if (workers) {
           return res.status(200).json(workers);
         }
-      }
+      }*/
+
+        const workers: Array<IWorkerDocument> = await Worker.find(
+            { name: { $regex: name, $options: "i" } },
+            { licenses: 0 }
+        );
+        if (workers) {
+            return res.status(200).json(workers);
+        }
 
       return res.status(400).json({ message: "Workers not found" });
     } catch (exception) {
