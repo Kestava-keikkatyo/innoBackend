@@ -172,6 +172,27 @@ export const getUserNotifications = async (
   }
 };
 
+export const getUserByUserType = async(
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+  const { params } = req;
+  const { userType } = params;
+
+  try {
+    const users: Array<IUserDocument> | null = await User.find({
+      userType: userType,
+    });
+    if (users) {
+      return res.status(200).json(users);
+    }
+    return res.status(404).json({ message: "No users found!" });
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
 /**
  * Get all users of type Worker.
  * @param {Request} req - Express Request.
