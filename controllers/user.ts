@@ -464,7 +464,7 @@ userRouter.delete(
  *               message:  no workers found
  */
 userRouter.get(
-    "/getByUserType/:userType",
+    "/getByUserType/:userType/name=:names",
     authenticateToken,
     isAgencyOrBusiness,
     getUserByUserType
