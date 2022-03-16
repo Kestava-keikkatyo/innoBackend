@@ -18,7 +18,9 @@ export const postAgreement = async (
   const { body } = req;
   try {
     const agreementDocument: IAgreementDocument = new Agreement({
-      user: res.locals.decoded.id,
+      id: res.locals.decoded.id,
+      creator: body.creator,
+      target: body.target,
       form2: body.form2,
       status: body.status,
     });

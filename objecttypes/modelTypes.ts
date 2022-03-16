@@ -409,7 +409,8 @@ export interface IJobDocument extends Document, IJob {
 }
 
 export interface IAgreement {
-  user: IUserDocument["_id"];
+  creator: IUserDocument["_id"];
+  target: IUserDocument["_id"];
   form2: IForm2Document["_id"];
   status: string;
 }
