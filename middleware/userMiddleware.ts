@@ -233,6 +233,56 @@ export const getAllWorkers = async (
 };
 
 /**
+ * Get all users of type Business.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns businesses
+ */
+export const getAllBusinesses = async (
+  _req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const businesses: Array<IUserDocument> | null = await User.find({
+      userType: "business",
+    });
+    if (businesses) {
+      return res.status(200).json(businesses);
+    }
+    return res.status(404).json({ message: "No businesses found!" });
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
+ * Get all users of type Agency.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns agencies
+ */
+export const getAllAgencies = async (
+  _req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const agencies: Array<IUserDocument> | null = await User.find({
+      userType: "agency",
+    });
+    if (agencies) {
+      return res.status(200).json(agencies);
+    }
+    return res.status(404).json({ message: "No agencies found!" });
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
  * Get all users of type Admin.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
