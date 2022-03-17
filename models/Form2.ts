@@ -69,6 +69,7 @@ const form2Schema = new Schema(
             "textarea",
             "checkbox",
             "checkbox_group",
+            "contact_information",
             "radiobutton_group",
             "radiobutton_group_horizontal",
             "datepicker",
