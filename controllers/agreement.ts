@@ -1,15 +1,78 @@
 import express from "express";
 import {
-  deleteAgreement,
+  deleteAgreement, getMyAgreements,
   postAgreement,
   rejectAgreement,
   signAgreement,
   updateAgreement,
+  getTargetAgreements
 } from "../middleware/agreementMiddleware";
 import authenticateToken from "../utils/auhenticateToken";
-import { isAgencyOrBusiness } from "../utils/authJwt";
+import { isAgencyOrBusiness, isWorkerOrBusinessOrAgency } from "../utils/authJwt";
 
 const agreementRouter = express.Router();
+
+/**
+ * Route for agency and business to get their agreements.
+ * @openapi
+ * /agreement/:
+ *   get:
+ *     summary: Route for agency and business to get their agreements.
+ *     description: Must be logged in as a user of type agency or business.
+ *     tags: [Agreement, Agency, Business]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     responses:
+ *       "200":
+ *         description: Agreement added. Returns added agreement object.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Agreement"
+ *       "500":
+ *         description: An error occurred. Either a problem with the database or middleware.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ */
+agreementRouter.get("/", authenticateToken, isAgencyOrBusiness, getMyAgreements);
+
+/**
+ * Route for agency and business to get their agreements.
+ * @openapi
+ * /agreement/target:
+ *   get:
+ *     summary: Route for agency, business and worker to get their agreements where they are the target.
+ *     description: Must be logged in as a user of type agency, business or worker.
+ *     tags: [Agreement, Agency, Business, Worker]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     responses:
+ *       "200":
+ *         description: Agreement added. Returns added agreement object.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Agreement"
+ *       "500":
+ *         description: An error occurred. Either a problem with the database or middleware.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ */
+agreementRouter.get("/target", authenticateToken, isWorkerOrBusinessOrAgency, getTargetAgreements);
 
 /**
  * Route for agency and business to add a new agreement. Agreement object is given in body according to its schema model.

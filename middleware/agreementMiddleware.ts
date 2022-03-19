@@ -41,13 +41,15 @@ export const postAgreement = async (
  * @returns User's agreements
  */
 export const getMyAgreements = (
-  _req: Request,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
+  const { body } = req;
+
   try {
     Agreement.find(
-      { user: res.locals.decoded.id },
+      { creator: body.user._id },
       (error: CallbackError, docs: IAgreementDocument[]) => {
         if (error) {
           return res.status(500).json({ message: error.message });
@@ -57,9 +59,39 @@ export const getMyAgreements = (
         }
         return res.status(200).json(docs);
       }
-    ).populate("user", {
-      name: 1,
-    });
+    );
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
+ * Get agreements user is target of.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns User's agreements
+ */
+export const getTargetAgreements = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+  const { body } = req;
+
+  try {
+    Agreement.find(
+        { target: body.user._id },
+        (error: CallbackError, docs: IAgreementDocument[]) => {
+          if (error) {
+            return res.status(500).json({ message: error.message });
+          }
+          if (!docs.length) {
+            return res.status(404).json({ message: "No agreements found!" });
+          }
+          return res.status(200).json(docs);
+        }
+    );
   } catch (exception) {
     return next(exception);
   }
