@@ -21,7 +21,7 @@ export const postAgreement = async (
       creator: body.user._id,
       target: body.target,
       form2: body.form2,
-      status: body.status,
+      status: "pending",
     });
     const agreement = await agreementDocument.save();
     if (!agreement) {
@@ -172,52 +172,34 @@ export const updateAgreement = async (
  * @returns Signed agreement
  */
 export const signAgreement = async (
-  req: Request<{ id: string }, IAgreement>,
+  req: Request<{ id: string, status: string }, IAgreement>,
   res: Response,
   next: NextFunction
 ) => {
   const { params } = req;
   const { id } = params;
+  const { status } = params;
+
   try {
+    switch(status.toLowerCase()){
+      case "signed":
+        break;
+      case "rejected":
+        break;
+      case "terminated":
+        break;
+      default:
+        return res.status(500).json("Wrong parameter given.");
+    }
+
     const agreement: IAgreementDocument | null =
       await Agreement.findByIdAndUpdate(
         id,
-        { status: "signed" },
+        { status: status },
         { new: true, runValidators: true, lean: true }
       );
     if (agreement) {
       console.log(`Agreement was signed!`);
-    }
-    return res.status(agreement ? 200 : 404).send();
-  } catch (exception) {
-    return next(exception);
-  }
-};
-
-/**
- * Reject agreement.
- * @param {Request} req - Express Request.
- * @param {Response} res - Express Response.
- * @param {NextFunction} next
- * @returns Rejected agreement
- */
-export const rejectAgreement = async (
-  req: Request<{ id: string }, IAgreement>,
-  res: Response,
-  next: NextFunction
-) => {
-  const { params } = req;
-  const { id } = params;
-
-  try {
-    const agreement: IAgreementDocument | null =
-      await Agreement.findByIdAndUpdate(
-        id,
-        { status: "rejected" },
-        { new: true, runValidators: true, lean: true }
-      );
-    if (agreement) {
-      console.log(`Agreement was rejected!`);
     }
     return res.status(agreement ? 200 : 404).send();
   } catch (exception) {
