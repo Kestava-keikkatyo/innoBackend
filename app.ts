@@ -9,9 +9,8 @@ import {
   GraphQLString,
   GraphQLID,
   GraphQLList,
-  
+
 } from "graphql";
-import crossloginRouter from './controllers/crosslogin'
 import workersRouter from "./controllers/workers";
 import businessRouter from "./controllers/businesses";
 import agenciesRouter from "./controllers/agencies";
@@ -129,7 +128,6 @@ app.use("/api/application", applicationRouter);
 app.use("/api/form2", form2Router);
 app.use("/api/agreement", agreementRouter);
 app.use("/api/report", reportRouter);
-app.use('/crosslogin', crossloginRouter)
 app.use('/graphql', graphqlHTTP({
   schema: schema,
   rootValue: root,
