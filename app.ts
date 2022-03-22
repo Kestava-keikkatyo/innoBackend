@@ -1,7 +1,17 @@
+var { graphqlHTTP } = require('express-graphql');
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
 import config from "./utils/config";
+import {
+  GraphQLSchema,
+  GraphQLObjectType,
+  GraphQLString,
+  GraphQLID,
+  GraphQLList,
+  
+} from "graphql";
+import crossloginRouter from './controllers/crosslogin'
 import workersRouter from "./controllers/workers";
 import businessRouter from "./controllers/businesses";
 import agenciesRouter from "./controllers/agencies";
@@ -19,6 +29,7 @@ import {
 } from "./utils/middleware";
 import { info, error as _error } from "./utils/logger";
 import swaggerUi from "swagger-ui-express";
+
 import swaggerDocument from "./doc/generateSwaggerDoc";
 import profileRouter from "./controllers/profile";
 import feedbackRouter from "./controllers/feedBack";
@@ -34,7 +45,38 @@ import reportRouter from "./controllers/report";
 const app = express();
 
 info("connecting to", config.MONGODB_URI);
-
+let humanType = new GraphQLObjectType({
+  name: "Profile",
+  fields: () => ({
+    id: { type: GraphQLString },
+    email: { type: GraphQLString }
+  })
+});
+let schema = new GraphQLSchema({
+  query: new GraphQLObjectType({
+  name: "RootQueryType",
+  fields: {
+    hello: {
+      type: GraphQLString,
+      resolve() {
+        return "world";
+      }
+    },
+    profile: {
+      type: new GraphQLList(humanType),
+      args: {
+            id: {
+                type: GraphQLID
+            }
+        },
+      resolve(parent:any,args:any) {
+        console.log(parent,args.id);
+        return getProfile(args.id);
+      }
+    }
+  }
+})
+});
 // These options fix deprecation warnings
 const options: any = {
   useNewUrlParser: true,
@@ -43,6 +85,15 @@ const options: any = {
   useCreateIndex: true,
 };
 
+const getProfile = (id:number) => {
+  return Promise.resolve([{
+    id: id,
+    email : 'matt@mail.com'
+  }]);
+}
+// The root provides a resolver function for each API endpoint
+var root = {
+};
 mongoose.connect(config.MONGODB_URI || "URI_NOTFOUND", options);
 /*
   .then(() => {
@@ -78,6 +129,12 @@ app.use("/api/application", applicationRouter);
 app.use("/api/form2", form2Router);
 app.use("/api/agreement", agreementRouter);
 app.use("/api/report", reportRouter);
+app.use('/crosslogin', crossloginRouter)
+app.use('/graphql', graphqlHTTP({
+  schema: schema,
+  rootValue: root,
+  graphiql: true,
+}));
 
 app.use(unknownEndpoint);
 app.use(errorHandler);
