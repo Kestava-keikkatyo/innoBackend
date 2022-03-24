@@ -68,12 +68,6 @@ const userSchema: Schema = new Schema({
       message: (props: any) => `${props.value} is not a valid phone number`,
     },
   },
-  businessContracts: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "BusinessContract",
-    },
-  ],
   category: {
     type: String,
     ref: "Category",
@@ -126,15 +120,6 @@ const userSchema: Schema = new Schema({
       immutable: true,
       default: Date.now,
     },
-  },
-  contracts: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Contract",
-    },
-  ],
-  contactPreference: {
-    type: String,
   },
   feelings: [
     {
