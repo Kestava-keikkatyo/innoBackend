@@ -27,6 +27,10 @@ const agreementSchema = new Schema({
     type: Date,
     default: Date.now,
   },
+  signed: {
+    type: Date,
+    default: null,
+  },
 });
 
 agreementSchema.plugin(uniqueValidator);

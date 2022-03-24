@@ -195,7 +195,7 @@ export const signAgreement = async (
     const agreement: IAgreementDocument | null =
       await Agreement.findByIdAndUpdate(
         id,
-        { status: status },
+        { status: status, signed: new Date() },
         { new: true, runValidators: true, lean: true }
       );
     if (agreement) {
