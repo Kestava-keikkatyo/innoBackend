@@ -6,7 +6,7 @@ import {
   postJob,
   updateJob,
   deleteJob,
-  getMyJobs,
+  getMyJobs, addApplicant,
 } from "../middleware/jobMiddleware";
 import { isAdmin, isAgency, isWorker } from "../utils/authJwt";
 const jobRouter = express.Router();
@@ -342,6 +342,52 @@ jobRouter.get("/jobForAdmin/:id", authenticateToken, isAdmin, getJobById);
  *               message: No job with ID {id} found
  */
 jobRouter.put("/jobUpdate/:id", authenticateToken, isAgency, updateJob);
+
+/**
+ * Route for agency to update own job.
+ * @openapi
+ * /job/jobUpdateForAgency/{id}:
+ *   put:
+ *     summary: Route for agency to update own job
+ *     description: Must be logged in as an agency.
+ *     tags: [Job, Agency]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: id
+ *         description: ID of the job which agency wants to update.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 604021e581a9626810885657
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: "#/components/schemas/Job"
+ *     responses:
+ *       "200":
+ *         description: Returns the updated job.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Job"
+ *       "404":
+ *         description: No job was found with the requested ID.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: No job with ID {id} found
+ */
+jobRouter.put("/apply/:jobId/:userId", authenticateToken, isWorker, addApplicant);
 
 /**
  * Route for agency to delete own job

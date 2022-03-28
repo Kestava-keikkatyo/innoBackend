@@ -401,6 +401,7 @@ export interface IJob {
   startDate: Date;
   endDate: Date;
   applicationLastDate: Date;
+  applicants: Array<IUserDocument["_id"]>;
 }
 
 export interface IJobDocument extends Document, IJob {

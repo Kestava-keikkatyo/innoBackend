@@ -159,6 +159,36 @@ export const updateJob = async (
 };
 
 /**
+ * Add applicant by job id.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns Updated job
+ */
+export const addApplicant = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+  const { params } = req;
+  const { jobId, userId } = params;
+
+  try {
+    const job: IJobDocument | null = await Job.findByIdAndUpdate(
+        { _id: jobId },
+        { $push: { applicants: userId } },
+        { new: true, runValidators: true, lean: true }
+    );
+    if (job) {
+      console.log(`Job with ${jobId} was updated!`);
+    }
+    return res.status(job ? 200 : 404).send();
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
  * This function is used to delete job by id.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
