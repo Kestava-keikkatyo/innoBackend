@@ -344,13 +344,13 @@ jobRouter.get("/jobForAdmin/:id", authenticateToken, isAdmin, getJobById);
 jobRouter.put("/jobUpdate/:id", authenticateToken, isAgency, updateJob);
 
 /**
- * Route for agency to update own job.
+ * Route for worker to apply for a job.
  * @openapi
- * /job/jobUpdateForAgency/{id}:
+ * /job/apply/{jobId}/{userId}:
  *   put:
- *     summary: Route for agency to update own job
- *     description: Must be logged in as an agency.
- *     tags: [Job, Agency]
+ *     summary: Route for worker to apply for a job.
+ *     description: Must be logged in as an worker.
+ *     tags: [Job, Worker]
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -359,12 +359,33 @@ jobRouter.put("/jobUpdate/:id", authenticateToken, isAgency, updateJob);
  *         schema:
  *           $ref: "#/components/schemas/AccessToken"
  *       - in: path
- *         name: id
- *         description: ID of the job which agency wants to update.
+ *         name: jobId
+ *         description: ID of the job which worker wants to apply to.
  *         required: true
  *         schema:
  *           type: string
  *           example: 604021e581a9626810885657
+ *       - in: path
+ *         name: userId
+ *         description: ID of the user who wants to apply.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 604021e581a9626810885657
+ *        - in: body
+ *          name: coverLetter
+ *          description: Short cover letter to agency.
+ *          required: false
+ *          schema:
+ *            type: string
+ *            example: This is a short description of myself...
+ *        - in: body
+ *          name: cv
+ *          description: Link to the cv or user profile.
+ *          required: false
+ *          schema:
+ *            type: string
+ *            example: https://userscv.com
  *     requestBody:
  *       required: true
  *       content:
