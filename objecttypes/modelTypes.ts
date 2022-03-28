@@ -437,11 +437,9 @@ export interface IUser {
   phoneNumber: string;
   feelings: Array<IFeelings>;
   licenses: Array<string>;
-  businessContracts: Array<IBusinessContractDocument["_id"]>;
   category: string;
   website: string;
   videoUriId: string;
-  forms: Array<IFormDocument["_id"]>;
   instructions: Array<string>;
   occupationalSafetyRules: Array<string>;
   notifications: {
@@ -452,18 +450,11 @@ export interface IUser {
 }
 
 // Used for typing results gotten from db calls.
-export interface IUserDocument
-  extends Document,
-    Omit<IUser, "forms" | "businessContracts" | "workContracts"> {
+export interface IUserDocument extends Document, IUser {
   _id: Types.ObjectId;
   category: string;
   userType: string;
   createdAt: Date;
-  forms: Array<IFormDocument["_id"]> | Array<IFormDocument>;
-  businessContracts:
-    | Array<IBusinessContractDocument["_id"]>
-    | Array<IBusinessContractDocument>;
-  jobs: Array<IJobDocument["_id"]> | Array<IJobDocument>;
 }
 
 export interface IApplication {

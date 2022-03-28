@@ -21,8 +21,6 @@ import {
   IBusinessDocument,
   IBusinessContractDocument,
   INotificationsDocument,
-  IProfile,
-  IProfileDocument,
   IWorker,
   IWorkerDocument,
 } from "../objecttypes/modelTypes";
@@ -32,8 +30,6 @@ import Business from "../models/Business";
 import authenticateToken from "../utils/auhenticateToken";
 import { hash } from "bcryptjs";
 import Notifications from "../models/Notifications";
-import Profile from "../models/Profile";
-import { addProfileToAgencyBusinessOrWorker } from "./profile";
 import BusinessContract from "../models/BusinessContract";
 import { IBaseBody } from "../objecttypes/otherTypes";
 import { CallbackError } from "mongoose";
@@ -178,22 +174,6 @@ adminRouter.post(
       });
 
       await notificationDocument.save();
-
-      // Create profile for the new user
-      const newprofile: IProfileDocument = new Profile({
-        name: body.name,
-        email: body.email,
-      });
-
-      const profileResult = await newprofile.save();
-
-      return addProfileToAgencyBusinessOrWorker(
-        user.userType,
-        user._id,
-        profileResult,
-        res,
-        next
-      );
     } catch (exception) {
       return next(exception);
     }
@@ -269,7 +249,6 @@ adminRouter.delete(
       }
 
       if (user) {
-        await Profile.remove({ _id: user.profile }).exec();
         await Notifications.deleteMany({ userId: user._id }).exec();
         console.log(`${userType} ${user.name} was deleted.`);
       }
@@ -397,36 +376,6 @@ adminRouter.put(
       }
 
       return res.status(user ? 200 : 404).send();
-    } catch (exception) {
-      return next(exception);
-    }
-  }
-);
-
-adminRouter.put(
-  "/:profileId",
-  authenticateToken,
-  needsToBeAdmin,
-  async (
-    req: Request<{ profileId: string }, unknown, IProfile>,
-    res: Response,
-    next: NextFunction
-  ) => {
-    const { params } = req;
-    const { profileId } = params;
-
-    try {
-      let profile: IProfileDocument | null;
-      profile = await Profile.findByIdAndUpdate({ _id: profileId }, req.body, {
-        new: true,
-        runValidators: true,
-      });
-
-      if (profile) {
-        console.log(`${profileId} was updated`);
-      }
-
-      return res.status(profile ? 200 : 404).send();
     } catch (exception) {
       return next(exception);
     }
