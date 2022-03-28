@@ -172,11 +172,13 @@ export const addApplicant = async (
 ) => {
   const { params } = req;
   const { jobId, userId } = params;
+  const { body } = req;
+  const { coverLetter, cv } = body;
 
   try {
     const job: IJobDocument | null = await Job.findByIdAndUpdate(
         { _id: jobId },
-        { $push: { applicants: userId } },
+        { $push: { applicants: { id: userId, coverLetter: coverLetter, cv: cv }}},
         { new: true, runValidators: true, lean: true }
     );
     if (job) {
