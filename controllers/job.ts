@@ -372,20 +372,20 @@ jobRouter.put("/jobUpdate/:id", authenticateToken, isAgency, updateJob);
  *         schema:
  *           type: string
  *           example: 604021e581a9626810885657
- *        - in: body
- *          name: coverLetter
- *          description: Short cover letter to agency.
- *          required: false
- *          schema:
- *            type: string
- *            example: This is a short description of myself...
- *        - in: body
- *          name: cv
- *          description: Link to the cv or user profile.
- *          required: false
- *          schema:
- *            type: string
- *            example: https://userscv.com
+ *       - in: body
+ *         name: coverLetter
+ *         description: Short cover letter to agency.
+ *         required: false
+ *         schema:
+ *           type: string
+ *           example: This is a short description of myself...
+ *       - in: body
+ *         name: cv
+ *         description: Link to the cv or user profile.
+ *         required: false
+ *         schema:
+ *           type: string
+ *           example: https://userscv.com
  *     requestBody:
  *       required: true
  *       content:
