@@ -21,7 +21,7 @@ import {
   postUserFeeling,
   getUserFeelings,
   deleteUserFeeling,
-  getAllAgencies,
+  getAllAgencies, addUserNotification,
 } from "../middleware/userMiddleware";
 
 const userRouter = express.Router();
@@ -223,6 +223,46 @@ userRouter.get("/me", authenticateToken, getUserProfile);
  *               message: No notifications found
  */
 userRouter.get("/notifications", authenticateToken, getUserNotifications);
+
+/**
+ * Route to add user notifications
+ * @openapi
+ * /user/notifications:
+ *   put:
+ *     summary: Route to add user notifications
+ *     description: Must be logged in as user.
+ *     tags: [User, User]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: body
+ *         name: id
+ *         description: ID of the requested user.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 604021e581a9626810885657
+ *     responses:
+ *       "200":
+ *         description: Returns the requested user.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/User"
+ *       "404":
+ *         description: No notifications found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: No notifications found
+ */
+userRouter.put("/notifications/:id", authenticateToken, addUserNotification);
 
 /**
  * Route for user to update own profile.
