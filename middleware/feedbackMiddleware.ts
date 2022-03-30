@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { CallbackError } from "mongoose";
-import Feedback from "../models/Feedback";
+import FeedBack from "../models/FeedBack";
 import { IFeedbackDocument } from "../objecttypes/modelTypes";
 
 /**
@@ -17,7 +17,7 @@ export const postFeedback = async (
 ) => {
   try {
     const { body } = req;
-    const feedbackDocument: IFeedbackDocument = new Feedback({
+    const feedbackDocument: IFeedbackDocument = new FeedBack({
       user: res.locals.decoded.id,
       heading: body.heading,
       message: body.message,
@@ -46,7 +46,7 @@ export const getMyFeedbacks = (
   next: NextFunction
 ) => {
   try {
-    Feedback.find(
+    FeedBack.find(
       { user: res.locals.decoded.id },
       (error: CallbackError, docs: IFeedbackDocument[]) => {
         if (error) {
@@ -79,7 +79,7 @@ export const getFeedbackById = (
   const id: string = params.id;
 
   try {
-    Feedback.findById(
+    FeedBack.findById(
       id,
       (error: CallbackError, doc: IFeedbackDocument | null) => {
         if (error) {
@@ -109,7 +109,7 @@ export const getAllFeddbacks = async (
   next: NextFunction
 ) => {
   try {
-    const feedbacks: Array<IFeedbackDocument> | null = await Feedback.find({});
+    const feedbacks: Array<IFeedbackDocument> | null = await FeedBack.find({});
     if (feedbacks) {
       return res.status(200).json(feedbacks);
     }
@@ -132,7 +132,7 @@ export const replyFeedback = (
     const updateFilter = { _id: params.feedbackId };
     const update = { $set: { reply: body.replyMessage } };
 
-    return Feedback.updateOne(
+    return FeedBack.updateOne(
       updateFilter,
       update,
       undefined,

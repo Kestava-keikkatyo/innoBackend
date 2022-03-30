@@ -1,75 +1,22 @@
 {
-  "worker": [
-    {
-      "email": "jarmo@test.com",
-      "name": "jarmo-worker",
-      "password": "jarmo123"
-    },
-    {
-      "email": "mirka@test.com",
-      "name": "mirka-worker",
-      "password": "jarmo123"
-    }
-  ],
-  "business": [
-    {
-      "email": "jarmo@test.com",
-      "name": "jarmo-business",
-      "password": "jarmo123"
-    },
-    {
-      "email": "mirka@test.com",
-      "name": "mirka-business",
-      "password": "jarmo123"
-    }
-  ],
-  "agency": [
-    {
-      "email": "jarmo@test.com",
-      "name": "jarmo-agency",
-      "password": "jarmo123"
-    },
-    {
-      "email": "mirka@test.com",
-      "name": "mirka-agency",
-      "password": "jarmo123"
-    }
-  ],
-  "admin": [
-    {
-      "email": "amanda@test.com",
-      "name": "amanda-admin",
-      "password": "amanda123"
-    },
-    {
-      "email": "jack@test.com",
-      "name": "jack-admin",
-      "password": "jack123"
-    },
-    {
-      "email": "jerry@hello.com",
-      "name": "jerry-admin",
-      "password": "jerry123"
-    }
-  ],
   "user": [
     {
       "email": "reem@test.com",
       "name": "Reem",
       "password": "reem123",
-      "userType": "Worker"
+      "userType": "worker"
     },
     {
       "email": "jim@test.com",
       "name": "Jim",
       "password": "jim123",
-      "userType": "Business"
+      "userType": "business"
     },
     {
       "email": "pam@test.com",
       "name": "Pam",
       "password": "pam123",
-      "userType": "Agency"
+      "userType": "agency"
     }
   ]
 }

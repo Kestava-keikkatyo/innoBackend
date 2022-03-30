@@ -60,23 +60,14 @@ const userSchema: Schema = new Schema({
     required: false,
     validate: {
       validator: (value: string) => {
-        return /^[+]*[(]?[0-9]{1,4}[)]?[-\s.\/0-9]*$/g.test(value);
+        return (
+          !value ||
+          (value > "0" && /^[+]*[(]?[0-9]{1,4}[)]?[-\s.\/0-9]*$/g.test(value))
+        );
       },
       message: (props: any) => `${props.value} is not a valid phone number`,
     },
   },
-  forms: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Form",
-    },
-  ],
-  businessContracts: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "BusinessContract",
-    },
-  ],
   category: {
     type: String,
     ref: "Category",
@@ -151,15 +142,6 @@ const userSchema: Schema = new Schema({
       immutable: true,
       default: Date.now,
     },
-  },
-  contracts: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Contract",
-    },
-  ],
-  contactPreference: {
-    type: String,
   },
   feelings: [
     {

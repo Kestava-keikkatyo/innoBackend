@@ -2,16 +2,9 @@ import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
 import config from "./utils/config";
-import workersRouter from "./controllers/workers";
-import businessRouter from "./controllers/businesses";
-import agenciesRouter from "./controllers/agencies";
 import uploadsRouter from "./controllers/uploads";
-import loginRouter from "./controllers/login";
-import businesscontractsRouter from "./controllers/businesscontracts";
 import feelingsRouter from "./controllers/feelings";
 import workcontractRouter from "./controllers/workcontracts";
-import formsRouter from "./controllers/forms";
-import businessContractFormsRouter from "./controllers/businesscontractforms";
 import notificationsRouter from "./controllers/notifications";
 import {
   errorHandler,
@@ -21,15 +14,15 @@ import {
 import { info, error as _error } from "./utils/logger";
 import swaggerUi from "swagger-ui-express";
 import swaggerDocument from "./doc/generateSwaggerDoc";
-import profileRouter from "./controllers/profile";
 import feedbackRouter from "./controllers/feedBack";
-import reportsRouter from "./controllers/reports";
 import adminRouter from "./controllers/admin";
 import jobRouter from "./controllers/job";
 import authRouter from "./controllers/authentication";
 import userRouter from "./controllers/user";
 import applicationRouter from "./controllers/application";
 import form2Router from "./controllers/form2";
+import agreementRouter from "./controllers/agreement";
+import reportRouter from "./controllers/report";
 
 const app = express();
 
@@ -57,20 +50,11 @@ app.use(cors());
 app.use(express.json());
 app.use(requestLogger);
 
-app.use("/api/workers", workersRouter);
-app.use("/api/businesses", businessRouter);
-app.use("/api/agencies", agenciesRouter);
 app.use("/api/uploads", uploadsRouter);
-app.use("/api/login", loginRouter);
-app.use("/api/profile", profileRouter);
-app.use("/api/businesscontracts", businesscontractsRouter);
 app.use("/api/feelings", feelingsRouter);
 app.use("/api/workcontracts", workcontractRouter);
-app.use("/api/forms", formsRouter);
-app.use("/api/businesscontractforms", businessContractFormsRouter);
 app.use("/api/notifications", notificationsRouter);
 app.use("/api/feedback", feedbackRouter);
-app.use("/api/reports", reportsRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use("/api/job", jobRouter);
@@ -78,6 +62,8 @@ app.use("/api/authentication", authRouter);
 app.use("/api/user", userRouter);
 app.use("/api/application", applicationRouter);
 app.use("/api/form2", form2Router);
+app.use("/api/agreement", agreementRouter);
+app.use("/api/report", reportRouter);
 
 app.use(unknownEndpoint);
 app.use(errorHandler);

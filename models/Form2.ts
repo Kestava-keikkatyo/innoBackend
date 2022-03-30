@@ -32,7 +32,117 @@ const form2Schema = new Schema(
       type: Boolean,
       required: true,
     },
-    questions: {
+    submissions: [
+      {
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+        answers: [
+          {
+            questionId: {
+              type: String,
+              unique: true,
+              required: true,
+            },
+            answer: {
+              type: String,
+              required: true,
+            },
+          },
+        ],
+      },
+    ],
+    questions: [
+      {
+        title: {
+          type: String,
+          minlength: 0,
+          maxlength: 1000,
+          required: true,
+        },
+        questionType: {
+          type: String,
+          enum: [
+            "comment",
+            "text",
+            "textarea",
+            "checkbox",
+            "checkbox_group",
+            "contact_information",
+            "radiobutton_group",
+            "radiobutton_group_horizontal",
+            "datepicker",
+            "timepicker",
+          ],
+        },
+        subTitle: {
+          type: String,
+          minlength: 0,
+          maxlength: 1000,
+        },
+        optional: {
+          type: Boolean,
+          required: true,
+        },
+        answerMaxLength: {
+          type: Number,
+          required: true,
+        },
+        answerMinLength: {
+          type: Number,
+          required: true,
+        },
+        rows: {
+          type: Number,
+          min: 0,
+          max: 50,
+          required: true,
+        },
+        checked: {
+          type: Boolean,
+        },
+        options: [
+          {
+            type: String,
+            minlength: 0,
+            maxlength: 500,
+          },
+        ],
+        optionValues: [
+          {
+            type: Object,
+          },
+        ],
+        scale: {
+          type: Number,
+          required: true,
+        },
+        scaleOptionTitleLeft: {
+          type: String,
+          minlength: 0,
+          maxlength: 75,
+        },
+        scaleOptionTitleCenter: {
+          type: String,
+          minlength: 0,
+          maxlength: 75,
+        },
+        scaleOptionTitleRight: {
+          type: String,
+          minlength: 0,
+          maxlength: 75,
+        },
+        contactInfoAnswer: {
+          type: Object,
+        },
+        isClosedTimeFrame: {
+          type: Boolean,
+          required: false,
+        },
+      },
+    ],
+    /*questionsOld: {
       comment: [
         {
           ordering: {
@@ -411,7 +521,7 @@ const form2Schema = new Schema(
           },
         },
       ],
-    },
+    },*/
     tags: [
       {
         type: String,

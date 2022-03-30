@@ -1,8 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import { CallbackError } from "mongoose";
 import User from "../models/User";
-import { IUser, IUserDocument} from "../objecttypes/modelTypes";
+import { IFeelings, IUser, IUserDocument } from "../objecttypes/modelTypes";
 import { hash } from "bcryptjs";
+import { removeEmptyProperties } from "../utils/common";
 
 /**
  * Post a new user to database.
@@ -77,7 +78,7 @@ export const getUserById = (
   res: Response,
   next: NextFunction
 ) => {
-  const { params } = req;
+  const { params, body } = req;
   const id: string = params.id;
 
   try {
@@ -90,7 +91,27 @@ export const getUserById = (
           .status(404)
           .send({ message: `No user with ID ${id} found!` });
       }
-      return res.status(200).send(doc);
+
+      if (doc._id.toString() === body.user._id.toString()) {
+        return res.status(200).send(doc);
+      }
+
+      switch (body.user.userType) {
+        case "agency":
+          if (doc.userType === "worker") {
+            return res.status(200).send(doc);
+          }
+          break;
+        case "business":
+          if (doc.userType === "worker" || doc.userType === "agency") {
+            return res.status(200).send(doc);
+          }
+          break;
+        case "admin":
+          return res.status(200).send(doc);
+      }
+
+      return res.status(403).json();
     });
   } catch (exception) {
     return next(exception);
@@ -119,6 +140,33 @@ export const getUserProfile = async (
     }
 
     return res.status(200).send(doc);
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
+ * Get users notifications.
+ * @param {Request} _req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns Users notifications
+ */
+export const getUserNotifications = async (
+  _req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const id: string = res.locals.decoded.id;
+
+  try {
+    const doc = await User.findById(id);
+
+    if (!doc) {
+      return res.status(404).send({});
+    }
+
+    return res.status(200).send(doc.notifications);
   } catch (exception) {
     return next(exception);
   }
@@ -163,7 +211,7 @@ export const getAllBusinesses = async (
 ) => {
   try {
     const businesses: Array<IUserDocument> | null = await User.find({
-      userType: "Business",
+      userType: "business",
     });
     if (businesses) {
       return res.status(200).json(businesses);
@@ -188,7 +236,7 @@ export const getAllAgencies = async (
 ) => {
   try {
     const agencies: Array<IUserDocument> | null = await User.find({
-      userType: "Agency",
+      userType: "agency",
     });
     if (agencies) {
       return res.status(200).json(agencies);
@@ -213,7 +261,7 @@ export const getAllAdmins = async (
 ) => {
   try {
     const admins: Array<IUserDocument> | null = await User.find({
-      userType: "Admin",
+      userType: "admin",
     });
     if (admins) {
       return res.status(200).json(admins);
@@ -301,10 +349,10 @@ export const updateUserProfile = async (
   const { params, body } = req;
   const { userId } = params;
 
-  const updatableFields = {
+  const updatableFields = removeEmptyProperties({
     name: body.name,
-    firstName: body.firstName,
-    lastName: body.lastName,
+    //firstName: body.firstName,
+    //lastName: body.lastName,
     email: body.email,
     street: body.street,
     zipCode: body.zipCode,
@@ -312,7 +360,9 @@ export const updateUserProfile = async (
     phoneNumber: body.phoneNumber,
     website: body.website,
     licenses: body.licenses,
-  };
+    category: body.category,
+    profilePicture: body.profilePicture,
+  });
 
   try {
     const user: IUserDocument | null = await User.findByIdAndUpdate(
@@ -364,21 +414,50 @@ export const deleteUser = async (
 };
 
 /**
- *  NOTIFICATIONS:
+ * Update user's feeling.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns Updated user's feeling
  */
+export const postUserFeeling = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { body } = req;
 
+  const myFeeling: IFeelings = {
+    value: body.value,
+    note: body.note,
+    fileUrl: body.fileUrl,
+  };
+  try {
+    const user: IUserDocument | null = await User.findByIdAndUpdate(
+      res.locals.decoded.id,
+      { $addToSet: { feelings: myFeeling } },
+      { new: true, omitUndefined: true, runValidators: true, lean: true }
+    );
+    if (user) {
+      console.log(`User's feeling was updated successfully!`);
+    }
+    return res.status(user ? 200 : 404).send();
+  } catch (exception) {
+    return next(exception);
+  }
+};
 
 /**
- * Get users notifications.
+ * Get user's feelings.
  * @param {Request} _req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next
- * @returns Users notifications
+ * @returns User's feelings
  */
-export const getUserNotifications = async (
-    _req: Request,
-    res: Response,
-    next: NextFunction
+export const getUserFeelings = async (
+  _req: Request,
+  res: Response,
+  next: NextFunction
 ) => {
   const id: string = res.locals.decoded.id;
 
@@ -389,40 +468,38 @@ export const getUserNotifications = async (
       return res.status(404).send({});
     }
 
-    return res.status(200).send(doc.notifications);
+    return res.status(200).send(doc.feelings);
   } catch (exception) {
     return next(exception);
   }
 };
 
 /**
- *  Create user notification.
+ * Delete user's feelings.
+ * @param {Request} _req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns User's feelings
  */
-export const createUserNotifications = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
+export const deleteUserFeeling = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
 ) => {
-  const { body } = req;
+  const { params } = req;
+  const id: string = res.locals.decoded.id;
 
-  const updatableFields : { createdAt: Date; message: any; type: any; referenceId: any } = {
-      message: body.message,
-      createdAt: new Date(),
-      referenceId: body.referenceId,
-      type: body.type
-  }
-
-  try{
-    const user: IUserDocument | null = await User.findByIdAndUpdate(
-        {_id: body.id},
-        { $set: {
-            ...updatableFields
-          }
-        },
-        { new: true, runValidators: true, lean: true }
+  try {
+    const doc = await User.findByIdAndUpdate(
+      id,
+      { $pull: { feelings: { _id: params.feelingId } } },
+      { new: true, omitUndefined: true, runValidators: true, lean: true }
     );
-    return res.status(user ? 200 : 404).send();
-  }catch(exception){
+    if (!doc) {
+      return res.status(404).send({});
+    }
+    return res.status(200).send(doc.feelings);
+  } catch (exception) {
     return next(exception);
   }
 };

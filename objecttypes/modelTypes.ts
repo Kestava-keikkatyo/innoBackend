@@ -312,11 +312,11 @@ export interface IForm2 {
   filled: boolean;
   common: boolean;
   description?: string;
-  questions?: IQuestions;
+  questions?: Array<AnyQuestion>;
   tags?: Array<string>;
 }
 
-export interface IForm2Document extends Document, IForm {
+export interface IForm2Document extends Document, IForm2 {
   _id: Types.ObjectId;
   createdAt: Date;
 }
@@ -344,12 +344,14 @@ export interface IProfileDocument extends Document, IProfile {
 }
 
 export interface INotifications {
-  //userId: IUserDocument["_id"];
+  userId:
+    | IWorkerDocument["_id"]
+    | IBusinessDocument["_id"]
+    | IAgencyDocument["_id"]
+    | IAdminDocument["_id"];
   message: String;
-  referenceId: String;
   is_read: Boolean;
   createdAt: Date;
-  type: String;
 }
 
 export interface INotificationsDocument extends Document, INotifications {
@@ -367,16 +369,13 @@ export interface IFeedbackDocument extends Document, IFeedback {
 }
 
 export interface IReport {
-  workTitle: String;
-  reportTitle: String;
+  title: String;
   details: String;
-  date: String;
-  workerId: IWorkerDocument["_id"];
-  workerName: String;
-  workerEmail: String;
-  workerPhone: String;
-  buisnessAsHandler: String;
-  agencyAsHandler: String;
+  date: Date;
+  status: String;
+  reply: String;
+  user: IUserDocument["_id"];
+  receiver: String;
   fileUrl: String;
   fileType: String;
 }
@@ -402,9 +401,21 @@ export interface IJob {
   startDate: Date;
   endDate: Date;
   applicationLastDate: Date;
+  applicants: Array<IUserDocument["_id"]>;
 }
 
 export interface IJobDocument extends Document, IJob {
+  _id: Types.ObjectId;
+  createdAt: Date;
+}
+
+export interface IAgreement {
+  user: IUserDocument["_id"];
+  form2: IForm2Document["_id"];
+  status: string;
+}
+
+export interface IAgreementDocument extends Document, IJob {
   _id: Types.ObjectId;
   createdAt: Date;
 }
@@ -425,11 +436,9 @@ export interface IUser {
   phoneNumber: string;
   feelings: Array<IFeelings>;
   licenses: Array<string>;
-  businessContracts: Array<IBusinessContractDocument["_id"]>;
   category: string;
   website: string;
   videoUriId: string;
-  forms: Array<IFormDocument["_id"]>;
   instructions: Array<string>;
   occupationalSafetyRules: Array<string>;
   notifications: {
@@ -440,20 +449,11 @@ export interface IUser {
 }
 
 // Used for typing results gotten from db calls.
-export interface IUserDocument
-  extends Document,
-    Omit<IUser, "forms" | "businessContracts" | "workContracts"> {
+export interface IUserDocument extends Document, IUser {
   _id: Types.ObjectId;
   category: string;
   userType: string;
   createdAt: Date;
-  forms: Array<IFormDocument["_id"]> | Array<IFormDocument>;
-  businessContracts:
-    | Array<IBusinessContractDocument["_id"]>
-    | Array<IBusinessContractDocument>;
-  jobs: Array<IJobDocument["_id"]> | Array<IJobDocument>;
-  unread_messages: Array<INotificationsDocument>;
-  read_messages: Array<INotificationsDocument>;
 }
 
 export interface IApplication {

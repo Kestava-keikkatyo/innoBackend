@@ -95,11 +95,11 @@ authRouter.post(
       }
       const saltRounds: number = 10;
       const passwordHash: string = await hash(body.password, saltRounds);
-
       let user: IUserDocument = new User({
         name: body.name,
         email: body.email,
         userType: body.userType,
+        category: body.category,
         passwordHash,
       });
       return user.save((error: CallbackError, user: IUserDocument) => {
@@ -208,6 +208,7 @@ authRouter.post(
         name: user.name,
         email: user.email,
         role: userForToken.role,
+        _id: user.id,
       });
     } else {
       return res.status(403).json({
