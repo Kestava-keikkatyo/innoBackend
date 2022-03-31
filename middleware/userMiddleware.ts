@@ -160,7 +160,7 @@ export const getUserNotifications = async (
   const id: string = res.locals.decoded.id;
 
   try {
-    const doc = await User.findById(id);
+    const doc : IUserDocument | null = await User.findById(id);
 
     if (!doc) {
       return res.status(404).send({});
