@@ -410,7 +410,8 @@ export interface IJobDocument extends Document, IJob {
 }
 
 export interface IAgreement {
-  user: IUserDocument["_id"];
+  creator: IUserDocument["_id"];
+  target: IUserDocument["_id"];
   form2: IForm2Document["_id"];
   status: string;
 }
@@ -418,6 +419,7 @@ export interface IAgreement {
 export interface IAgreementDocument extends Document, IJob {
   _id: Types.ObjectId;
   createdAt: Date;
+  signed: Date;
 }
 
 // Used when we want to type docs given in req.body for example. For calls with {lean: true} option, use DocumentDefinition<IUserDocument> for the result's type

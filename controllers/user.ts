@@ -1,7 +1,7 @@
 import express from "express";
 import authenticateToken from "../utils/auhenticateToken";
 import {
-  isAdmin,
+  isAdmin, isAgency,
   isAgencyOrBusiness,
   isBusiness,
   isUser,
@@ -21,7 +21,7 @@ import {
   postUserFeeling,
   getUserFeelings,
   deleteUserFeeling,
-  getAllAgencies,
+  getAllAgencies, getAllBusinesses, getUserByUserType,
 } from "../middleware/userMiddleware";
 
 const userRouter = express.Router();
@@ -427,6 +427,52 @@ userRouter.delete(
 
 /**
  * @openapi
+ * /getByUserType/{userType}:
+ *   get:
+ *     summary: Route for buisnesses and agencies to get all users by their usertype.
+ *     description: Need to be logged in as user of type buisness or agency.
+ *     tags: [Business, Agency, Worker]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: userType
+ *         description: Usertype we want to fetch. [worker, business, agency, admin]
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: worker
+ *     responses:
+ *       "200":
+ *         description: Returns all users of type worker
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: "#/components/schemas/User"
+ *       "404":
+ *         description: No usertype found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message:  no workers found
+ */
+userRouter.get(
+    "/getByUserType/:userType/name=:names",
+    authenticateToken,
+    isAgencyOrBusiness,
+    getUserByUserType
+);
+
+/**
+ * @openapi
  * /workers:
  *   get:
  *     summary: Route for buisnesses and agencies to get all workers
@@ -497,6 +543,40 @@ userRouter.get(
  *               message:  no agencies found
  */
 userRouter.get("/agencies", authenticateToken, isBusiness, getAllAgencies);
+
+/**
+ * @openapi
+ * /workers:
+ *   get:
+ *     summary: Route for user of role business to get all agencies
+ *     description: Need to be logged in as user of type buisness.
+ *     tags: [User, Business]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     responses:
+ *       "200":
+ *         description: Returns all users of type agency
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: "#/components/schemas/User"
+ *       "404":
+ *         description: No agencies found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message:  no agencies found
+ */
+userRouter.get("/businesses", authenticateToken, isAgency, getAllBusinesses);
 
 /**
  * Route for user of role worker to post feeling.

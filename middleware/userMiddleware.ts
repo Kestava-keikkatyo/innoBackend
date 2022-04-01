@@ -173,6 +173,41 @@ export const getUserNotifications = async (
 };
 
 /**
+ * Get all users by type.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns users
+ */
+export const getUserByUserType = async(
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+  const { params } = req;
+  const { userType, names } = params;
+
+  try {
+    const users: Array<IUserDocument> | null = await User.find({
+      userType: userType
+    });
+
+    if(names != null || names == "") {
+      users.filter((user) => {
+        return user.name.includes(names);
+      });
+    }
+
+    if (users) {
+      return res.status(200).json(users);
+    }
+    return res.status(404).json({ message: "No users found!" });
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
  * Get all users of type Worker.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
