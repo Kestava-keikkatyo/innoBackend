@@ -20,7 +20,8 @@ const reportSchema = new Schema({
     ref: "User",
   },
   receiver: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
     required: true,
   },
   status: {

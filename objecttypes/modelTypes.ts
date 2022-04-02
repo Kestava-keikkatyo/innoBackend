@@ -375,7 +375,7 @@ export interface IReport {
   status: String;
   reply: String;
   user: IUserDocument["_id"];
-  receiver: String;
+  receiver: IUserDocument["_id"];
   fileUrl: String;
   fileType: String;
 }
