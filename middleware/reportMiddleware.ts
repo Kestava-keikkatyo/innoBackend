@@ -23,7 +23,6 @@ export const postReport = async (
       date: body.date,
       title: body.title,
       details: body.details,
-      status: body.status,
       fileUrl: body.fileUrl,
       fileType: body.fileType,
     });
