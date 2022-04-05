@@ -70,6 +70,38 @@ export const getMyReports = (
 };
 
 /**
+ * Get workers's reports.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns Workers's reports
+ */
+export const getReports = (
+    _req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+  try {
+    Report.find(
+        { receiver: res.locals.decoded.id },
+        (error: CallbackError, docs: IReportDocument[]) => {
+          if (error) {
+            return res.status(500).json({ message: error.message });
+          }
+          if (!docs.length) {
+            return res.status(404).json({ message: "No reports found!" });
+          }
+          return res.status(200).json(docs);
+        }
+    ).populate("user", {
+      name: 1,
+    });
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
  * Get all reports.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
