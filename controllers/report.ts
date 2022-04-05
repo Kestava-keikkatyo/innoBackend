@@ -13,7 +13,6 @@ import {
   getReportsForReceiver,
   postReport,
   replyReport,
-  getReports,
 } from "../middleware/reportMiddleware";
 const reportRouter = express.Router();
 
@@ -94,47 +93,6 @@ reportRouter.post("/", authenticateToken, isWorker, postReport);
  *               $ref: "#/components/schemas/Error"
  */
 reportRouter.get("/myReports", authenticateToken, isWorker, getMyReports);
-
-/**
- * Route for user of type agency or business to get own reports
- * @openapi
- * /report/receiverReports:
- *   get:
- *     summary: Route for user of type worker to get own reports
- *     description: Must be logged in as user of type worker.
- *     tags: [Report, Worker]
- *     parameters:
- *       - in: header
- *         name: x-access-token
- *         description: The token you get when logging in is used here. Used to authenticate the user.
- *         required: true
- *         schema:
- *           $ref: "#/components/schemas/AccessToken"
- *     responses:
- *       "200":
- *         description: Returns worker's reports.
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: "#/components/schemas/Report"
- *       "404":
- *         description: The requested reports are not found.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: "#/components/schemas/Error"
- *             example:
- *               message: No reports found
- *       "500":
- *         description: An error occurred. Either a problem with the database or middleware.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: "#/components/schemas/Error"
- */
-reportRouter.get("/receiverReports", authenticateToken, isAgencyOrBusiness, getReports);
 
 /**
  * Route for user to report by its id
