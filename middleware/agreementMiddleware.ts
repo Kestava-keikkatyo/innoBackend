@@ -92,7 +92,7 @@ export const getTargetAgreements = (
           }
           return res.status(200).json(docs);
         }
-    );
+    ).populate("creator", { name: 1 }, User);
   } catch (exception) {
     return next(exception);
   }
