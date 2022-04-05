@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from "express";
-import { CallbackError } from "mongoose";
+import {CallbackError} from "mongoose";
 import Agreement from "../models/Agreement";
 import { IAgreement, IAgreementDocument } from "../objecttypes/modelTypes";
+import User from "../models/User";
 
 /**
  * Post a new agreement to database.
@@ -50,16 +51,16 @@ export const getMyAgreements = (
   try {
     Agreement.find(
       { creator: body.user._id },
-      (error: CallbackError, docs: IAgreementDocument[]) => {
-        if (error) {
-          return res.status(500).json({ message: error.message });
-        }
-        if (!docs.length) {
-          return res.status(404).json({ message: "No agreements found!" });
-        }
-        return res.status(200).json(docs);
-      }
-    );
+        (error: CallbackError, docs: IAgreementDocument[]) => {
+          if (error) {
+            return res.status(500).json({message: error.message});
+          }
+          if (!docs.length) {
+            return res.status(404).json({message: "No agreements found!"});
+          }
+          return res.status(200).json(docs)
+        }).populate("target", { name: 1 }, User)
+        /*.populate("form2", { title: 1 }, Form2)*/;
   } catch (exception) {
     return next(exception);
   }

@@ -2,7 +2,7 @@ import mongoose, { Schema } from "mongoose";
 import uniqueValidator from "mongoose-unique-validator";
 import { IAgreementDocument } from "../objecttypes/modelTypes";
 
-const agreementSchema = new Schema({
+const agreementSchema : Schema = new Schema({
   creator: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Creator",
@@ -16,6 +16,7 @@ const agreementSchema = new Schema({
   form2: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Form2",
+    immutable: true,
   },
   status: {
     type: String,

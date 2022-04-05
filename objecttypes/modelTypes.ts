@@ -415,7 +415,7 @@ export interface IAgreement {
   status: string;
 }
 
-export interface IAgreementDocument extends Document, IJob {
+export interface IAgreementDocument extends Document, IAgreement {
   _id: Types.ObjectId;
   createdAt: Date;
   signed: Date;
