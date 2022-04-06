@@ -3,6 +3,7 @@ import {CallbackError} from "mongoose";
 import Agreement from "../models/Agreement";
 import { IAgreement, IAgreementDocument } from "../objecttypes/modelTypes";
 import User from "../models/User";
+import Form2 from "../models/Form2";
 
 /**
  * Post a new agreement to database.
@@ -60,7 +61,7 @@ export const getMyAgreements = (
           }
           return res.status(200).json(docs)
         }).populate("target", { name: 1 }, User)
-        /*.populate("form2", { title: 1 }, Form2)*/;
+        .populate("form2", { title: 1 }, Form2)
   } catch (exception) {
     return next(exception);
   }
