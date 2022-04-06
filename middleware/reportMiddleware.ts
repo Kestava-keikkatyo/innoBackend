@@ -179,7 +179,7 @@ export const getReportsForReceiver = async (
     const reports: Array<IReportDocument> | null = await Report.find({
       receiver: res.locals.decoded.id
     }).populate("user", {
-      name: 1,
+      name: 1, email: 1, phoneNumber: 1
     });
     if (reports) {
       return res.status(200).json(reports);
