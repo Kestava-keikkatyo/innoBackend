@@ -19,6 +19,7 @@ export const postFeedback = async (
     const { body } = req;
     const feedbackDocument: IFeedbackDocument = new FeedBack({
       user: res.locals.decoded.id,
+      target: body.target,
       heading: body.heading,
       message: body.message,
     });

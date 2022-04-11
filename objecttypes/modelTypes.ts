@@ -360,7 +360,10 @@ export interface INotificationsDocument extends Document, INotifications {
 
 export interface IFeedback {
   user: IUserDocument["_id"];
+  target: IUserDocument["_id"];
+  heading: String;
   message: String;
+  reply: String;
 }
 
 export interface IFeedbackDocument extends Document, IFeedback {
