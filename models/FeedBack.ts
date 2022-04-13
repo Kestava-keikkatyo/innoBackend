@@ -11,7 +11,7 @@ const feedbackSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
-  heading: {
+  title: {
     type: String,
     ref: "FeedbackHeading",
   },
