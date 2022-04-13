@@ -28,6 +28,10 @@ const feedbackSchema = new Schema({
     immutable: true,
     default: Date.now,
   },
+  value: {
+    type: String,
+    ref: "Value"
+  }
 });
 
 feedbackSchema.plugin(uniqueValidator);

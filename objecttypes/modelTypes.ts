@@ -364,6 +364,7 @@ export interface IFeedback {
   title: String;
   message: String;
   reply: String;
+  value: String;
 }
 
 export interface IFeedbackDocument extends Document, IFeedback {
