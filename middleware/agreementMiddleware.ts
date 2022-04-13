@@ -98,6 +98,33 @@ export const getTargetAgreements = (
 };
 
 /**
+ * Get agreements user is part of.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns User's agreements
+ */
+export const getAllAgreements = async (
+    _req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+  try {
+    const [target] = await Promise.all([Agreement.find(
+        {target: res.locals.decoded.id})]);
+    const [creator] = await Promise.all([Agreement.find(
+        {creator: res.locals.decoded.id})]);
+
+    if (target.length == 0 && creator.length == 0)
+      return res.status(404).json({message: "No agreements found!"});
+
+    return res.status(200).json([target, creator]);
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
  * Get agreement by id.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
