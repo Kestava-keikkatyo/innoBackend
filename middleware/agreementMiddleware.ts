@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { CallbackError } from "mongoose";
 import Agreement from "../models/Agreement";
 import { IAgreement, IAgreementDocument } from "../objecttypes/modelTypes";
+import User from "../models/User";
 
 /**
  * Post a new agreement to database.
@@ -111,9 +112,13 @@ export const getAllAgreements = async (
 ) => {
   try {
     const [target] = await Promise.all([Agreement.find(
-        {target: res.locals.decoded.id})]);
+        {target: res.locals.decoded.id}
+    ).populate("creator", { name: 1 }, User)
+    ]);
     const [creator] = await Promise.all([Agreement.find(
-        {creator: res.locals.decoded.id})]);
+        {creator: res.locals.decoded.id}
+    ).populate("target", { name: 1 }, User)
+    ]);
 
     if (target.length == 0 && creator.length == 0)
       return res.status(404).json({message: "No agreements found!"});
