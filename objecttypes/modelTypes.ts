@@ -365,6 +365,7 @@ export interface IFeedback {
   message: String;
   reply: String;
   value: String;
+  anon: Boolean;
 }
 
 export interface IFeedbackDocument extends Document, IFeedback {

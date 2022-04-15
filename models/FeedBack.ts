@@ -31,6 +31,11 @@ const feedbackSchema = new Schema({
   value: {
     type: String,
     ref: "Value"
+  },
+  anon: {
+    type: Boolean,
+    ref: "Anon",
+    default: false,
   }
 });
 

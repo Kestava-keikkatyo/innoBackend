@@ -23,6 +23,7 @@ export const postFeedback = async (
       title: body.title,
       message: body.message,
       value: body.value,
+      anon: body.anon,
     });
 
     const feedback = await feedbackDocument.save();
