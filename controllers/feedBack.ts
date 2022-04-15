@@ -6,7 +6,7 @@ import {
   getMyFeedbacks,
   replyFeedback,
   getFeedbackById,
-  getAllFeddbacks,
+  getAllFeedbacks, getAllFeedbacksToMe,
 } from "../middleware/feedbackMiddleware";
 
 const feedbackRouter = express.Router();
@@ -187,7 +187,47 @@ feedbackRouter.get(
   "/allFeedbacks",
   authenticateToken,
   isAdmin,
-  getAllFeddbacks
+  getAllFeedbacks
+);
+
+/**
+ * Route for user to get all feedbacks they are target of and feedbacks are non anon.
+ * @openapi
+ * /feedback/all:
+ *   get:
+ *     summary: Route for user to get all feedbacks they are target of and feedbacks are non anon
+ *     description: Need to be logged in
+ *     tags: [Feedbacks, Worker, Agency, Business]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     responses:
+ *       "200":
+ *         description: Returns found feedbacks
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: "#/components/schemas/Feedback"
+ *       "404":
+ *         description: No feedbacks are existing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: No feedbacks found
+ */
+feedbackRouter.get(
+    "/allFeedbacksToMe",
+    authenticateToken,
+    isWorkerOrBusinessOrAgency,
+    getAllFeedbacksToMe
 );
 
 /**

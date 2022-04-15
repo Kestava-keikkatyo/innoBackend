@@ -106,13 +106,36 @@ export const getFeedbackById = (
  * @param {NextFunction} next
  * @returns All feedbacks
  */
-export const getAllFeddbacks = async (
+export const getAllFeedbacks = async (
   _req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
     const feedbacks: Array<IFeedbackDocument> | null = await FeedBack.find({});
+    if (feedbacks) {
+      return res.status(200).json(feedbacks);
+    }
+    return res.status(404).json({ message: "No feedbacks found!" });
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
+ * Get all feedbacks you are target of and they are send non anon.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns All feedbacks
+ */
+export const getAllFeedbacksToMe = async (
+    _req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+  try {
+    const feedbacks: Array<IFeedbackDocument> | null = await FeedBack.find({target: res.locals.decoded.id, anon: false});
     if (feedbacks) {
       return res.status(200).json(feedbacks);
     }
