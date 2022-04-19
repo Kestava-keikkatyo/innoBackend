@@ -146,6 +146,37 @@ export const getAllFeedbacksToMe = async (
 };
 
 /**
+ * Get summary of all feedbacks you are target of.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns All feedbacks
+ */
+export const getFeedbackSummary = async (
+    _req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+  try {
+    const feedbacks: Array<IFeedbackDocument> | null = await FeedBack.find({target: res.locals.decoded.id});
+    let avg = 0, index = 0;
+
+    for(let feedback in feedbacks){
+      let json = JSON.parse(feedback);
+      avg += json.value;
+      index++;
+    }
+
+    if (feedbacks) {
+      return res.status(200).json(avg / index);
+    }
+    return res.status(404).json({ message: "No feedbacks found!" });
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
  * TO DO ckeck this method
  */
 export const replyFeedback = (

@@ -1,12 +1,12 @@
 import express from "express";
 import authenticateToken from "../utils/auhenticateToken";
-import { isAdmin, isWorkerOrBusinessOrAgency } from "../utils/authJwt";
+import {isAdmin, isAgencyOrBusiness, isWorkerOrBusinessOrAgency} from "../utils/authJwt";
 import {
   postFeedback,
   getMyFeedbacks,
   replyFeedback,
   getFeedbackById,
-  getAllFeedbacks, getAllFeedbacksToMe,
+  getAllFeedbacks, getAllFeedbacksToMe, getFeedbackSummary,
 } from "../middleware/feedbackMiddleware";
 
 const feedbackRouter = express.Router();
@@ -193,7 +193,7 @@ feedbackRouter.get(
 /**
  * Route for user to get all feedbacks they are target of and feedbacks are non anon.
  * @openapi
- * /feedback/all:
+ * /feedback/allFeedbacksToMe:
  *   get:
  *     summary: Route for user to get all feedbacks they are target of and feedbacks are non anon
  *     description: Need to be logged in
@@ -228,6 +228,46 @@ feedbackRouter.get(
     authenticateToken,
     isWorkerOrBusinessOrAgency,
     getAllFeedbacksToMe
+);
+
+/**
+ * Route for user to get summary of all feedbacks.
+ * @openapi
+ * /feedback/summary:
+ *   get:
+ *     summary: Route for user to get all feedbacks they are target of and feedbacks are non anon
+ *     description: Need to be logged in
+ *     tags: [Feedbacks, Worker, Agency, Business]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     responses:
+ *       "200":
+ *         description: Returns found feedbacks
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: "#/components/schemas/Feedback"
+ *       "404":
+ *         description: No feedbacks are existing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: No feedbacks found
+ */
+feedbackRouter.get(
+    "/summary",
+    authenticateToken,
+    isAgencyOrBusiness,
+    getFeedbackSummary
 );
 
 /**
