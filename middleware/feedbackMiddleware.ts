@@ -130,16 +130,27 @@ export const getAllFeedbacks = async (
  * @returns All feedbacks
  */
 export const getAllFeedbacksToMe = async (
-    _req: Request,
+    req: Request,
     res: Response,
     next: NextFunction
 ) => {
   try {
-    const feedbacks: Array<IFeedbackDocument> | null = await FeedBack.find({target: res.locals.decoded.id, anon: false});
-    if (feedbacks) {
-      return res.status(200).json(feedbacks);
-    }
-    return res.status(404).json({ message: "No feedbacks found!" });
+    const { params } = req;
+    const id: string = params.id;
+
+    await FeedBack.find({target: id, anon: false},
+        (error: CallbackError, docs: IFeedbackDocument[]) => {
+          if (error) {
+            return res.status(500).json({ message: error.message });
+          }
+          if (!docs.length) {
+            return res.status(404).json({ message: "No feedbacks found!" });
+          }
+          return res.status(200).json(docs);
+
+        }).populate("user", {
+      name: 1
+    });
   } catch (exception) {
     return next(exception);
   }

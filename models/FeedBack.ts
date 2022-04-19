@@ -6,10 +6,12 @@ const feedbackSchema = new Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
+    immutable: true,
   },
   target: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    ref: "Target",
+    immutable: true,
   },
   title: {
     type: String,
