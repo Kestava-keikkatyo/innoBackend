@@ -130,15 +130,13 @@ export const getAllFeedbacks = async (
  * @returns All feedbacks
  */
 export const getAllFeedbacksToMe = async (
-    req: Request,
+    _req: Request,
     res: Response,
     next: NextFunction
 ) => {
   try {
-    const { params } = req;
-    const id: string = params.id;
-
-    await FeedBack.find({target: id, anon: false},
+    FeedBack.find(
+        { target: res.locals.decoded.id, anon: false },
         (error: CallbackError, docs: IFeedbackDocument[]) => {
           if (error) {
             return res.status(500).json({ message: error.message });
@@ -147,10 +145,8 @@ export const getAllFeedbacksToMe = async (
             return res.status(404).json({ message: "No feedbacks found!" });
           }
           return res.status(200).json(docs);
-
-        }).populate("user", {
-      name: 1
-    });
+        }
+    );
   } catch (exception) {
     return next(exception);
   }
@@ -169,19 +165,23 @@ export const getFeedbackSummary = async (
     next: NextFunction
 ) => {
   try {
-    const feedbacks: Array<IFeedbackDocument> | null = await FeedBack.find({target: res.locals.decoded.id});
-    let avg = 0, index = 0;
+     FeedBack.find({target: res.locals.decoded.id},
+        (error: CallbackError, docs: IFeedbackDocument[]) => {
+          if (error) {
+            return res.status(500).json({ message: error.message });
+          }
+          if (!docs.length) {
+            return res.status(404).json({ message: "No feedbacks found!" });
+          }
+          let avg = 0;
 
-    for(let feedback in feedbacks){
-      let json = JSON.parse(feedback);
-      avg += json.value;
-      index++;
-    }
+          for(let feedback in docs){
+            let json = JSON.parse(feedback);
+            avg += json.value;
+          }
 
-    if (feedbacks) {
-      return res.status(200).json(avg / index);
-    }
-    return res.status(404).json({ message: "No feedbacks found!" });
+          return res.status(200).json(avg / docs.length);
+        });
   } catch (exception) {
     return next(exception);
   }

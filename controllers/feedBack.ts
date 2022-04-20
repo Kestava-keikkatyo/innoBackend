@@ -264,7 +264,7 @@ feedbackRouter.get(
  *               message: No feedbacks found
  */
 feedbackRouter.get(
-    "/summary",
+    "/summary/:id",
     authenticateToken,
     isAgencyOrBusiness,
     getFeedbackSummary
