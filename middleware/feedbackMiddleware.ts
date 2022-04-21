@@ -146,7 +146,9 @@ export const getAllFeedbacksToMe = async (
           }
           return res.status(200).json(docs);
         }
-    );
+    ).populate("user", {
+        name: 1
+    });
   } catch (exception) {
     return next(exception);
   }
@@ -173,14 +175,16 @@ export const getFeedbackSummary = async (
           if (!docs.length) {
             return res.status(404).json({ message: "No feedbacks found!" });
           }
-          let avg = 0;
+          let sum = 0;
+          let comments : string[] = [];
 
-          for(let feedback in docs){
-            let json = JSON.parse(feedback);
-            avg += json.value;
+          for(let i = 0; i < docs.length; i++){
+              sum += parseInt(docs[i].value);
+              console.log(docs[i].value);
+              comments.push(docs[i].title + "\n" + docs[i].message + "\n\n");
           }
 
-          return res.status(200).json(avg / docs.length);
+          return res.status(200).json([ sum / docs.length , comments ] );
         });
   } catch (exception) {
     return next(exception);

@@ -361,10 +361,10 @@ export interface INotificationsDocument extends Document, INotifications {
 export interface IFeedback {
   user: IUserDocument["_id"];
   target: IUserDocument["_id"];
-  title: String;
-  message: String;
+  title: string;
+  message: string;
   reply: String;
-  value: String;
+  value: string;
   anon: Boolean;
 }
 
