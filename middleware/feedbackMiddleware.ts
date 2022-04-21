@@ -162,12 +162,17 @@ export const getAllFeedbacksToMe = async (
  * @returns All feedbacks
  */
 export const getFeedbackSummary = async (
-    _req: Request,
+    req: Request,
     res: Response,
     next: NextFunction
 ) => {
+    const {params} = req;
+    const {startDate, endDate} = params;
   try {
-     FeedBack.find({target: res.locals.decoded.id},
+     FeedBack.find({ target: res.locals.decoded.id, createAt: {
+                 $gte: new Date(startDate),
+                 $lte: new Date(endDate)
+             }},
         (error: CallbackError, docs: IFeedbackDocument[]) => {
           if (error) {
             return res.status(500).json({ message: error.message });
@@ -185,7 +190,7 @@ export const getFeedbackSummary = async (
           }
 
           return res.status(200).json([ sum / docs.length , comments ] );
-        });
+        }).sort({ createdAt: 'asc'});
   } catch (exception) {
     return next(exception);
   }
