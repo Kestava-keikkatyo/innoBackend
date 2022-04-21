@@ -183,8 +183,8 @@ export const getFeedbackSummary = async (
           }
       }).sort({createdAt: 'asc'});
 
-      if (!feedbacks) {
-          return res.status(404).json({ message: "No feedbacks found!" });
+      if (!feedbacks || feedbacks.length < 5) {
+          return res.status(404).json({ message: "No summary found!" });
       }else{
           let sum = 0;
           let comments : string[] = [];
