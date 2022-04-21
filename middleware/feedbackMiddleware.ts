@@ -169,28 +169,27 @@ export const getFeedbackSummary = async (
     const {params} = req;
     const {startDate, endDate} = params;
   try {
-     FeedBack.find({ target: res.locals.decoded.id, createAt: {
-                 $gte: new Date(startDate),
-                 $lte: new Date(endDate)
-             }},
-        (error: CallbackError, docs: IFeedbackDocument[]) => {
-          if (error) {
-            return res.status(500).json({ message: error.message });
+      const feedbacks : IFeedbackDocument[] = await FeedBack.find({
+          target: res.locals.decoded.id, createdAt: {
+              $gte: new Date(startDate),
+              $lte: new Date(endDate)
           }
-          if (!docs.length) {
-            return res.status(404).json({ message: "No feedbacks found!" });
-          }
+      }).sort({createdAt: 'asc'});
+
+      if (!feedbacks) {
+          return res.status(404).json({ message: "No feedbacks found!" });
+      }else{
           let sum = 0;
           let comments : string[] = [];
 
-          for(let i = 0; i < docs.length; i++){
-              sum += parseInt(docs[i].value);
-              console.log(docs[i].value);
-              comments.push(docs[i].title + "\n" + docs[i].message + "\n\n");
+          for(let i = 0; i < feedbacks.length; i++){
+              sum += parseInt(feedbacks[i].value);
+              console.log(feedbacks[i].value);
+              comments.push(feedbacks[i].title + "\n" + feedbacks[i].message + "\n\n");
           }
 
-          return res.status(200).json([ sum / docs.length , comments ] );
-        }).sort({ createdAt: 'asc'});
+          return res.status(200).json([ sum / feedbacks.length , comments ] );
+      }
   } catch (exception) {
     return next(exception);
   }
