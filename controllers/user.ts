@@ -5,7 +5,7 @@ import {
   isAgencyOrBusiness,
   isBusiness,
   isUser,
-  isWorker,
+  isWorker, isWorkerOrBusinessOrAgency,
 } from "../utils/authJwt";
 import {
   deleteUser,
@@ -467,7 +467,7 @@ userRouter.delete(
 userRouter.get(
     "/getByUserType/:userType/name=:names",
     authenticateToken,
-    isAgencyOrBusiness,
+    isWorkerOrBusinessOrAgency,
     getUserByUserType
 );
 

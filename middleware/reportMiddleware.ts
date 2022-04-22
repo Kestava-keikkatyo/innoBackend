@@ -23,7 +23,6 @@ export const postReport = async (
       date: body.date,
       title: body.title,
       details: body.details,
-      status: body.status,
       fileUrl: body.fileUrl,
       fileType: body.fileType,
     });
@@ -176,13 +175,12 @@ export const getReportsForReceiver = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { body } = _req;
   try {
-    const name = body.user.name;
     const reports: Array<IReportDocument> | null = await Report.find({
-      receiver: name,
+      receiver: res.locals.decoded.id
+    }).populate("user", {
+      name: 1, email: 1, phoneNumber: 1
     });
-    console.log(name);
     if (reports) {
       return res.status(200).json(reports);
     }

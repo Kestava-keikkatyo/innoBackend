@@ -375,7 +375,7 @@ export interface IReport {
   status: String;
   reply: String;
   user: IUserDocument["_id"];
-  receiver: String;
+  receiver: IUserDocument["_id"];
   fileUrl: String;
   fileType: String;
 }
@@ -401,6 +401,7 @@ export interface IJob {
   startDate: Date;
   endDate: Date;
   applicationLastDate: Date;
+  applicants: Array<IUserDocument["_id"]>;
 }
 
 export interface IJobDocument extends Document, IJob {
