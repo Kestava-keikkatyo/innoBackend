@@ -164,7 +164,8 @@ agreementRouter.post("/", authenticateToken, isAgencyOrBusiness, postAgreement);
 agreementRouter.put(
   "/sign/:id/:status",
   authenticateToken,
-  isAgencyOrBusiness,
+  // isAgencyOrBusiness,
+  isWorkerOrBusinessOrAgency,
   signAgreement
 );
 
