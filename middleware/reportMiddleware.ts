@@ -153,11 +153,25 @@ export const replyReport = async (
   const { id } = params;
 
   try {
-    const report: IReportDocument | null = await Report.findByIdAndUpdate(
-      id,
-      { reply: body.reply, status: "replied" },
-      { new: true, runValidators: true, lean: true }
-    );
+    let report;
+
+    switch(res.locals.decoded.role){
+      case "business":
+        report = await Report.findOneAndUpdate(
+            { _id: id, business: res.locals.decoded.id },
+            { businessReply: body.reply, status: "replied" },
+            { new: true, runValidators: true, lean: true }
+        );
+        break;
+      case "agency":
+        report = await Report.findOneAndUpdate(
+            { _id: id, agency: res.locals.decoded.id },
+            { agencyReply: body.reply, status: "replied" },
+            { new: true, runValidators: true, lean: true }
+        );
+        break;
+    }
+
     if (report) {
       console.log(`Report was replied successfully!`);
     }

@@ -35,7 +35,11 @@ const reportSchema = new Schema({
     default: "pending",
     required: false,
   },
-  reply: {
+  businessReply: {
+    type: String,
+    required: false,
+  },
+  agencyReply: {
     type: String,
     required: false,
   },

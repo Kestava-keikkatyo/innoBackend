@@ -373,7 +373,8 @@ export interface IReport {
   details: String;
   date: Date;
   status: String;
-  reply: String;
+  businessReply: String;
+  agencyReply: String;
   user: IUserDocument["_id"];
   business?: IUserDocument["_id"];
   agency?: IUserDocument["_id"];
