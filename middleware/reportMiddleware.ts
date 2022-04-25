@@ -17,9 +17,9 @@ export const postReport = async (
 ) => {
   try {
     const { body } = req;
-    if(body.agency && body.business)
+    //console.log('reportMiddleware.postReport: body: ',body)
+    if(!body.agency && !body.business)
       return res.status(400).send({ error: "Agency and Business can't be both empty!" });
-
     const reportDocument: IReportDocument = new Report({
       user: res.locals.decoded.id,
       business: body.business,
@@ -30,7 +30,6 @@ export const postReport = async (
       fileUrl: body.fileUrl,
       fileType: body.fileType,
     });
-
     const report = await reportDocument.save();
     if (!report) {
       return res.status(400).send({ error: "Failed to send report!" });
@@ -67,6 +66,12 @@ export const getMyReports = (
       }
     ).populate("user", {
       name: 1,
+    }).populate("agency", {
+      name: 1,
+      userType: 1,
+    }).populate("business", {
+      name: 1,
+      userType: 1,
     });
   } catch (exception) {
     return next(exception);
@@ -90,6 +95,12 @@ export const getAllReports = async (
       {}
     ).populate("user", {
       name: 1,
+    }).populate("agency", {
+      name: 1,
+      userType: 1,
+    }).populate("business", {
+      name: 1,
+      userType: 1,
     });
     if (reports) {
       return res.status(200).json(reports);
@@ -131,6 +142,12 @@ export const getReportById = (
       street: 1,
       zipCose: 1,
       city: 1,
+    }).populate("agency", {
+      name: 1,
+      userType: 1,
+    }).populate("business", {
+      name: 1,
+      userType: 1,
     });
   } catch (exception) {
     return next(exception);
@@ -151,7 +168,7 @@ export const replyReport = async (
 ) => {
   const { params, body } = req;
   const { id } = params;
-
+  //console.log('reportMiddleware: replyReport: body:', body)
   try {
     let report;
 
@@ -202,6 +219,12 @@ export const getReportsForReceiver = async (
           business: res.locals.decoded.id
         }).populate("user", {
           name: 1, email: 1, phoneNumber: 1
+        }).populate("agency", {
+          name: 1,
+          userType: 1,
+        }).populate("business", {
+          name: 1,
+          userType: 1,
         });
         break;
       case "agency":
@@ -209,6 +232,12 @@ export const getReportsForReceiver = async (
           agency: res.locals.decoded.id
         }).populate("user", {
           name: 1, email: 1, phoneNumber: 1
+        }).populate("agency", {
+          name: 1,
+          userType: 1,
+        }).populate("business", {
+          name: 1,
+          userType: 1,
         });
         break;
     }
