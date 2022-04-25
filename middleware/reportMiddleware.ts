@@ -17,9 +17,13 @@ export const postReport = async (
 ) => {
   try {
     const { body } = req;
+    if(body.agency && body.business)
+      return res.status(400).send({ error: "Agency and Business can't be both empty!" });
+
     const reportDocument: IReportDocument = new Report({
       user: res.locals.decoded.id,
-      receiver: body.receiver,
+      business: body.business,
+      agency: body.agency,
       date: body.date,
       title: body.title,
       details: body.details,
@@ -176,11 +180,12 @@ export const getReportsForReceiver = async (
   next: NextFunction
 ) => {
   try {
-    const reports: Array<IReportDocument> | null = await Report.find({
-      receiver: res.locals.decoded.id
-    }).populate("user", {
-      name: 1, email: 1, phoneNumber: 1
-    });
+    const reports: Array<IReportDocument> | null =
+      await Report.find({
+        business: res.locals.decoded.id
+      }).populate("user", {
+        name: 1, email: 1, phoneNumber: 1
+      });
     if (reports) {
       return res.status(200).json(reports);
     }
