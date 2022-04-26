@@ -380,6 +380,9 @@ export interface IReport {
   agency?: IUserDocument["_id"];
   fileUrl: String;
   fileType: String;
+  businessArchived: String;
+  agencyArchived: String;
+  workerArchived: String;
 }
 
 export interface IReportDocument extends Document, IReport {

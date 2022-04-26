@@ -199,6 +199,59 @@ export const replyReport = async (
 };
 
 /**
+ * Archive report by id.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns Archived report
+ */
+export const archiveReport = async (
+    req: Request<{ id: string, archived: string }, IReport>,
+    res: Response,
+    next: NextFunction
+) => {
+  const { params } = req;
+  const { id, archived } = params;
+
+  try {
+    let report;
+
+    switch(res.locals.decoded.role){
+      case "business":
+        report = await Report.findOneAndUpdate(
+            { _id: id, business: res.locals.decoded.id },
+            { businessArchived: archived },
+            { new: true, runValidators: true, lean: true }
+        );
+        break;
+      case "agency":
+        report = await Report.findOneAndUpdate(
+            { _id: id, agency: res.locals.decoded.id },
+            { agencyArchived: archived },
+            { new: true, runValidators: true, lean: true }
+        );
+        break;
+      case "worker":
+        report = await Report.findOneAndUpdate(
+            { _id: id, user: res.locals.decoded.id },
+            { workerArchived: archived },
+            { new: true, runValidators: true, lean: true }
+        );
+        break;
+      default:
+        break;
+    }
+
+    if (report) {
+      console.log(`Report was archived successfully!`);
+    }
+    return res.status(report ? 200 : 404).send();
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
  * Get all reports for receiver.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.

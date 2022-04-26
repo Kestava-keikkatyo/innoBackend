@@ -55,6 +55,24 @@ const reportSchema = new Schema({
     type: Date,
     default: Date.now,
   },
+  businessArchived: {
+    type: String,
+    enum: ["true", "false"],
+    default: "false",
+    required: false,
+  },
+  agencyArchived: {
+    type: String,
+    enum: ["true", "false"],
+    default: "false",
+    required: false,
+  },
+  workerArchived: {
+    type: String,
+    enum: ["true", "false"],
+    default: "false",
+    required: false,
+  },
 });
 
 reportSchema.plugin(uniqueValidator);
