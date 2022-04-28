@@ -243,7 +243,15 @@ export const archiveReport = async (
     }
 
     if (report) {
-      console.log(`Report was archived successfully!`);
+      switch(archived) {
+        case 'true':
+          console.log(`Report was archived successfully!`);
+        break;
+        case 'false':
+          console.log(`Report was UNarchived successfully!`);
+        break;
+      }
+      
     }
     return res.status(report ? 200 : 404).send();
   } catch (exception) {
