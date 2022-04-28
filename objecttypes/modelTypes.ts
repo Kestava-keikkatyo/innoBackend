@@ -413,6 +413,7 @@ export interface IAgreement {
   creator: IUserDocument["_id"];
   target: IUserDocument["_id"];
   form2: IForm2Document["_id"];
+  type: string;
   status: string;
 }
 

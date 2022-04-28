@@ -22,7 +22,8 @@ export const postAgreement = async (
     const agreementDocument: IAgreementDocument = new Agreement({
       creator: body.user._id,
       target: body.target,
-      form2: body.form2,
+      form2: body.type != "request" ? body.form2 : null,
+      type: body.type,
       status: "pending",
     });
     const agreement = await agreementDocument.save();

@@ -18,6 +18,12 @@ const agreementSchema : Schema = new Schema({
     ref: "Form2",
     immutable: true,
   },
+  type: {
+    type: String,
+    enum: ["request", "contract"],
+    default: "contract",
+    required: true,
+  },
   status: {
     type: String,
     enum: ["signed", "rejected", "pending"],
