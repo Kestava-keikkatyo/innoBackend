@@ -19,18 +19,29 @@ export const postAgreement = async (
 ) => {
   const { body } = req;
   try {
-    const agreementDocument: IAgreementDocument = new Agreement({
-      creator: body.user._id,
-      target: body.target,
-      form2: body.type != "request" ? body.form2 : null,
-      type: body.type,
-      status: "pending",
-    });
-    const agreement = await agreementDocument.save();
-    if (!agreement) {
-      return res.status(400).send({ error: "Failed to create an agreement!" });
+    const agreementDocument : IAgreementDocument | null = await Agreement.findOne(
+        {target: body.user._id, creator: body.target, type: "request"});
+
+    if(agreementDocument){
+      Agreement.findByIdAndUpdate(agreementDocument.id, {
+        form: body.form2,
+        type: "agreement",
+        createdAt: new Date()
+      });
+    }else {
+      const agreementDocument: IAgreementDocument = new Agreement({
+        creator: body.user._id,
+        target: body.target,
+        form2: body.type != "request" ? body.form2 : null,
+        type: body.type,
+        status: "pending",
+      });
+      const agreement = await agreementDocument.save();
+      if (!agreement) {
+        return res.status(400).send({error: "Failed to create an agreement!"});
+      }
+      return res.status(200).send(agreement);
     }
-    return res.status(200).send(agreement);
   } catch (exception) {
     return next(exception);
   }
