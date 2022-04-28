@@ -14,9 +14,8 @@ const agreementSchema : Schema = new Schema({
     immutable: true,
   },
   form2: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: Array,
     ref: "Form2",
-    immutable: true,
   },
   type: {
     type: String,
