@@ -12,13 +12,13 @@ import { isAgencyOrBusiness, isWorkerOrBusinessOrAgency } from "../utils/authJwt
 const agreementRouter = express.Router();
 
 /**
- * Route for agency and business to get their agreements.
+ * Route for agency, worker and business to get their agreements.
  * @openapi
  * /agreement/:
  *   get:
- *     summary: Route for agency and business to get their agreements.
- *     description: Must be logged in as a user of type agency or business.
- *     tags: [Agreement, Agency, Business]
+ *     summary: Route for agency, worker and business to get their agreements.
+ *     description: Must be logged in as a user of type agency, worker or business.
+ *     tags: [Agreement, Agency, Worker, Business]
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -40,7 +40,7 @@ const agreementRouter = express.Router();
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-agreementRouter.get("/", authenticateToken, isAgencyOrBusiness, getMyAgreements);
+agreementRouter.get("/", authenticateToken, isWorkerOrBusinessOrAgency, getMyAgreements);
 
 /**
  * Route for agency and business to get their agreements.
