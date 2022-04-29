@@ -1,4 +1,4 @@
-import { Document, PaginateModel, Types } from "mongoose";
+import {Document, PaginateModel, Types} from "mongoose";
 
 // Typing for a workers feelings object
 export interface IFeelings {
@@ -412,7 +412,8 @@ export interface IJobDocument extends Document, IJob {
 export interface IAgreement {
   creator: IUserDocument["_id"];
   target: IUserDocument["_id"];
-  form2: IForm2Document["_id"];
+  form2: Array<IForm2Document>[];
+  type: string;
   status: string;
 }
 
