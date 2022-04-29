@@ -373,11 +373,16 @@ export interface IReport {
   details: String;
   date: Date;
   status: String;
-  reply: String;
+  businessReply: String;
+  agencyReply: String;
   user: IUserDocument["_id"];
-  receiver: IUserDocument["_id"];
+  business?: IUserDocument["_id"];
+  agency?: IUserDocument["_id"];
   fileUrl: String;
   fileType: String;
+  businessArchived: String;
+  agencyArchived: String;
+  workerArchived: String;
 }
 
 export interface IReportDocument extends Document, IReport {

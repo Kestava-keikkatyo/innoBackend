@@ -17,16 +17,19 @@ export const postReport = async (
 ) => {
   try {
     const { body } = req;
+    //console.log('reportMiddleware.postReport: body: ',body)
+    if(!body.agency && !body.business)
+      return res.status(400).send({ error: "Agency and Business can't be both empty!" });
     const reportDocument: IReportDocument = new Report({
       user: res.locals.decoded.id,
-      receiver: body.receiver,
+      business: body.business,
+      agency: body.agency,
       date: body.date,
       title: body.title,
       details: body.details,
       fileUrl: body.fileUrl,
       fileType: body.fileType,
     });
-
     const report = await reportDocument.save();
     if (!report) {
       return res.status(400).send({ error: "Failed to send report!" });
@@ -63,6 +66,12 @@ export const getMyReports = (
       }
     ).populate("user", {
       name: 1,
+    }).populate("agency", {
+      name: 1,
+      userType: 1,
+    }).populate("business", {
+      name: 1,
+      userType: 1,
     });
   } catch (exception) {
     return next(exception);
@@ -86,6 +95,12 @@ export const getAllReports = async (
       {}
     ).populate("user", {
       name: 1,
+    }).populate("agency", {
+      name: 1,
+      userType: 1,
+    }).populate("business", {
+      name: 1,
+      userType: 1,
     });
     if (reports) {
       return res.status(200).json(reports);
@@ -127,6 +142,12 @@ export const getReportById = (
       street: 1,
       zipCose: 1,
       city: 1,
+    }).populate("agency", {
+      name: 1,
+      userType: 1,
+    }).populate("business", {
+      name: 1,
+      userType: 1,
     });
   } catch (exception) {
     return next(exception);
@@ -147,15 +168,90 @@ export const replyReport = async (
 ) => {
   const { params, body } = req;
   const { id } = params;
-
+  //console.log('reportMiddleware: replyReport: body:', body)
   try {
-    const report: IReportDocument | null = await Report.findByIdAndUpdate(
-      id,
-      { reply: body.reply, status: "replied" },
-      { new: true, runValidators: true, lean: true }
-    );
+    let report;
+
+    switch(res.locals.decoded.role){
+      case "business":
+        report = await Report.findOneAndUpdate(
+            { _id: id, business: res.locals.decoded.id },
+            { businessReply: body.reply, status: "replied" },
+            { new: true, runValidators: true, lean: true }
+        );
+        break;
+      case "agency":
+        report = await Report.findOneAndUpdate(
+            { _id: id, agency: res.locals.decoded.id },
+            { agencyReply: body.reply, status: "replied" },
+            { new: true, runValidators: true, lean: true }
+        );
+        break;
+    }
+
     if (report) {
       console.log(`Report was replied successfully!`);
+    }
+    return res.status(report ? 200 : 404).send();
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
+ * Archive report by id.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns Archived report
+ */
+export const archiveReport = async (
+    req: Request<{ id: string, archived: string }, IReport>,
+    res: Response,
+    next: NextFunction
+) => {
+  const { params } = req;
+  const { id, archived } = params;
+
+  try {
+    let report;
+
+    switch(res.locals.decoded.role){
+      case "business":
+        report = await Report.findOneAndUpdate(
+            { _id: id, business: res.locals.decoded.id },
+            { businessArchived: archived },
+            { new: true, runValidators: true, lean: true }
+        );
+        break;
+      case "agency":
+        report = await Report.findOneAndUpdate(
+            { _id: id, agency: res.locals.decoded.id },
+            { agencyArchived: archived },
+            { new: true, runValidators: true, lean: true }
+        );
+        break;
+      case "worker":
+        report = await Report.findOneAndUpdate(
+            { _id: id, user: res.locals.decoded.id },
+            { workerArchived: archived },
+            { new: true, runValidators: true, lean: true }
+        );
+        break;
+      default:
+        break;
+    }
+
+    if (report) {
+      switch(archived) {
+        case 'true':
+          console.log(`Report was archived successfully!`);
+        break;
+        case 'false':
+          console.log(`Report was UNarchived successfully!`);
+        break;
+      }
+      
     }
     return res.status(report ? 200 : 404).send();
   } catch (exception) {
@@ -176,12 +272,38 @@ export const getReportsForReceiver = async (
   next: NextFunction
 ) => {
   try {
-    const reports: Array<IReportDocument> | null = await Report.find({
-      receiver: res.locals.decoded.id
-    }).populate("user", {
-      name: 1, email: 1, phoneNumber: 1
-    });
-    if (reports) {
+    let reports;
+
+    switch(res.locals.decoded.role){
+      case "business":
+        reports = await Report.find({
+          business: res.locals.decoded.id
+        }).populate("user", {
+          name: 1, email: 1, phoneNumber: 1
+        }).populate("agency", {
+          name: 1,
+          userType: 1,
+        }).populate("business", {
+          name: 1,
+          userType: 1,
+        });
+        break;
+      case "agency":
+        reports = await Report.find({
+          agency: res.locals.decoded.id
+        }).populate("user", {
+          name: 1, email: 1, phoneNumber: 1
+        }).populate("agency", {
+          name: 1,
+          userType: 1,
+        }).populate("business", {
+          name: 1,
+          userType: 1,
+        });
+        break;
+    }
+
+    if (reports != null && reports.length > 0) {
       return res.status(200).json(reports);
     }
     return res.status(404).json({ message: "No reports found!" });
