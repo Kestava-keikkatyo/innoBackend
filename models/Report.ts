@@ -19,10 +19,15 @@ const reportSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
-  receiver: {
+  business: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
-    required: true,
+    required: false,
+  },
+  agency: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: false,
   },
   status: {
     type: String,
@@ -30,7 +35,11 @@ const reportSchema = new Schema({
     default: "pending",
     required: false,
   },
-  reply: {
+  businessReply: {
+    type: String,
+    required: false,
+  },
+  agencyReply: {
     type: String,
     required: false,
   },
@@ -45,6 +54,24 @@ const reportSchema = new Schema({
   createdAt: {
     type: Date,
     default: Date.now,
+  },
+  businessArchived: {
+    type: String,
+    enum: ["true", "false"],
+    default: "false",
+    required: false,
+  },
+  agencyArchived: {
+    type: String,
+    enum: ["true", "false"],
+    default: "false",
+    required: false,
+  },
+  workerArchived: {
+    type: String,
+    enum: ["true", "false"],
+    default: "false",
+    required: false,
   },
 });
 
