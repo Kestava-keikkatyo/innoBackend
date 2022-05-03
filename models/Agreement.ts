@@ -25,7 +25,7 @@ const agreementSchema : Schema = new Schema({
   },
   status: {
     type: String,
-    enum: ["signed", "rejected", "pending"],
+    enum: ["signed", "rejected", "pending", "request"],
     default: "pending",
     required: false,
   },
