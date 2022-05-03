@@ -30,11 +30,11 @@ export const postAgreement = async (
       });
     }else {
       const agreementDocument: IAgreementDocument = new Agreement({
-        creator: body.user._id,
-        target: body.target,
+        creator: body.type != "request" ? body.user._id : body.target,
+        target: body.type != "request" ? body.target : body.user._id,
         form2: body.type != "request" ? body.form2 : null,
         type: body.type,
-        status: "pending",
+        status: body.type != "request" ? "pending" : "request",
       });
       const agreement = await agreementDocument.save();
       if (!agreement) {
@@ -60,7 +60,6 @@ export const getMyAgreements = (
   next: NextFunction
 ) => {
   const { body } = req;
-
   try {
     Agreement.find(
       { creator: body.user._id },
