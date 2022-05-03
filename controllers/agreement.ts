@@ -108,7 +108,7 @@ agreementRouter.get("/target", authenticateToken, isWorkerOrBusinessOrAgency, ge
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-agreementRouter.post("/", authenticateToken, isAgencyOrBusiness, postAgreement);
+agreementRouter.post("/", authenticateToken, isWorkerOrBusinessOrAgency, postAgreement);
 
 /**
  * Route for agency and business to sign or reject agreement.
