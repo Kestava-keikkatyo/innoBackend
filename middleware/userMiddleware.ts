@@ -160,7 +160,45 @@ export const getUserNotifications = async (
   const id: string = res.locals.decoded.id;
 
   try {
-    const doc = await User.findById(id);
+    const doc : IUserDocument | null = await User.findById(id);
+
+    if (!doc) {
+      return res.status(404).send({});
+    }
+
+    return res.status(200).send(doc.notifications);
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
+ * Add users notifications.
+ * @param {Request} _req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns Users notifications
+ */
+export const addUserNotification = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+  const { params, body } = req;
+  const { id } = params;
+  const { message, link } = body;
+
+  try {
+    const doc : IUserDocument | null = await User.findByIdAndUpdate(id, { $push: {
+      notifications: {
+              message: message,
+              is_read: false,
+              link: link,
+              createdAt: Date.now()
+            }
+      }
+    }
+  );
 
     if (!doc) {
       return res.status(404).send({});

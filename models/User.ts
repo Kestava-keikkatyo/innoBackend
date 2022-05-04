@@ -99,27 +99,7 @@ const userSchema: Schema = new Schema({
     requeired: false,
   },
   notifications: {
-    unread_messages: [
-      {
-        text: {
-          type: String,
-          ref: "Message",
-        },
-      },
-    ],
-    read_messages: [
-      {
-        text: {
-          type: String,
-          ref: "Message",
-        },
-      },
-    ],
-    createdAt: {
-      type: Date,
-      immutable: true,
-      default: Date.now,
-    },
+    type: Array
   },
   feelings: [
     {

@@ -344,18 +344,14 @@ export interface IProfileDocument extends Document, IProfile {
 }
 
 export interface INotifications {
-  userId:
-    | IWorkerDocument["_id"]
-    | IBusinessDocument["_id"]
-    | IAgencyDocument["_id"]
-    | IAdminDocument["_id"];
   message: String;
   is_read: Boolean;
-  createdAt: Date;
+  link: string;
 }
 
 export interface INotificationsDocument extends Document, INotifications {
   _id: Types.ObjectId;
+  createdAt: Date;
 }
 
 export interface IFeedback {
@@ -449,11 +445,7 @@ export interface IUser {
   videoUriId: string;
   instructions: Array<string>;
   occupationalSafetyRules: Array<string>;
-  notifications: {
-    unread_messages: Array<string>;
-    read_messages: Array<string>;
-    createdAt: Date;
-  };
+  notifications: Array<INotificationsDocument["_id"]>;
 }
 
 // Used for typing results gotten from db calls.
