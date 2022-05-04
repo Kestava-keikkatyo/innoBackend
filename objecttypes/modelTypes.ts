@@ -1,4 +1,4 @@
-import { Document, PaginateModel, Types } from "mongoose";
+import {Document, PaginateModel, Types} from "mongoose";
 
 // Typing for a workers feelings object
 export interface IFeelings {
@@ -369,11 +369,16 @@ export interface IReport {
   details: String;
   date: Date;
   status: String;
-  reply: String;
+  businessReply: String;
+  agencyReply: String;
   user: IUserDocument["_id"];
-  receiver: String;
+  business?: IUserDocument["_id"];
+  agency?: IUserDocument["_id"];
   fileUrl: String;
   fileType: String;
+  businessArchived: String;
+  agencyArchived: String;
+  workerArchived: String;
 }
 
 export interface IReportDocument extends Document, IReport {
@@ -406,14 +411,17 @@ export interface IJobDocument extends Document, IJob {
 }
 
 export interface IAgreement {
-  user: IUserDocument["_id"];
-  form2: IForm2Document["_id"];
+  creator: IUserDocument["_id"];
+  target: IUserDocument["_id"];
+  form2: Array<IForm2Document>[];
+  type: string;
   status: string;
 }
 
-export interface IAgreementDocument extends Document, IJob {
+export interface IAgreementDocument extends Document, IAgreement {
   _id: Types.ObjectId;
   createdAt: Date;
+  signed: Date;
 }
 
 // Used when we want to type docs given in req.body for example. For calls with {lean: true} option, use DocumentDefinition<IUserDocument> for the result's type

@@ -3,7 +3,7 @@ import mongoosePaginate from "mongoose-paginate-v2";
 import { IForm2Document } from "../objecttypes/modelTypes";
 import { error as _error } from "../utils/logger";
 
-const form2Schema = new Schema(
+const form2Schema : Schema = new Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,

@@ -1,15 +1,77 @@
 import express from "express";
 import {
-  deleteAgreement,
+  deleteAgreement, getMyAgreements,
   postAgreement,
-  rejectAgreement,
   signAgreement,
   updateAgreement,
+  getTargetAgreements
 } from "../middleware/agreementMiddleware";
 import authenticateToken from "../utils/auhenticateToken";
-import { isAgencyOrBusiness } from "../utils/authJwt";
+import { isAgencyOrBusiness, isWorkerOrBusinessOrAgency } from "../utils/authJwt";
 
 const agreementRouter = express.Router();
+
+/**
+ * Route for agency, worker and business to get their agreements.
+ * @openapi
+ * /agreement/:
+ *   get:
+ *     summary: Route for agency, worker and business to get their agreements.
+ *     description: Must be logged in as a user of type agency, worker or business.
+ *     tags: [Agreement, Agency, Worker, Business]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     responses:
+ *       "200":
+ *         description: Agreement added. Returns added agreement object.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Agreement"
+ *       "500":
+ *         description: An error occurred. Either a problem with the database or middleware.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ */
+agreementRouter.get("/", authenticateToken, isWorkerOrBusinessOrAgency, getMyAgreements);
+
+/**
+ * Route for agency and business to get their agreements.
+ * @openapi
+ * /agreement/target:
+ *   get:
+ *     summary: Route for agency, business and worker to get their agreements where they are the target.
+ *     description: Must be logged in as a user of type agency, business or worker.
+ *     tags: [Agreement, Agency, Business, Worker]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     responses:
+ *       "200":
+ *         description: Agreement added. Returns added agreement object.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Agreement"
+ *       "500":
+ *         description: An error occurred. Either a problem with the database or middleware.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ */
+agreementRouter.get("/target", authenticateToken, isWorkerOrBusinessOrAgency, getTargetAgreements);
 
 /**
  * Route for agency and business to add a new agreement. Agreement object is given in body according to its schema model.
@@ -46,12 +108,12 @@ const agreementRouter = express.Router();
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-agreementRouter.post("/", authenticateToken, isAgencyOrBusiness, postAgreement);
+agreementRouter.post("/", authenticateToken, isWorkerOrBusinessOrAgency, postAgreement);
 
 /**
- * Route for agency and business to sign agreement.
+ * Route for agency and business to sign or reject agreement.
  * @openapi
- * /agreement/sign/{id}:
+ * /agreement/sign/{id}/{status}:
  *   put:
  *     summary: Route for agency and business to sign own agreement
  *     description: Must be logged in as a user of type agency or business.
@@ -70,6 +132,13 @@ agreementRouter.post("/", authenticateToken, isAgencyOrBusiness, postAgreement);
  *         schema:
  *           type: string
  *           example: 604021e581a9626810885657
+ *       - in: path
+ *         name: status
+ *         description: Agreements new status.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: signed, rejected, terminated...
  *     requestBody:
  *       required: true
  *       content:
@@ -93,9 +162,10 @@ agreementRouter.post("/", authenticateToken, isAgencyOrBusiness, postAgreement);
  *               message: No agreement found!
  */
 agreementRouter.put(
-  "/sign/:id",
+  "/sign/:id/:status",
   authenticateToken,
-  isAgencyOrBusiness,
+  // isAgencyOrBusiness,
+  isWorkerOrBusinessOrAgency,
   signAgreement
 );
 
@@ -148,57 +218,6 @@ agreementRouter.put(
   authenticateToken,
   isAgencyOrBusiness,
   updateAgreement
-);
-
-/**
- * Route for agency and business to reject agreement.
- * @openapi
- * /agreement/reject/{id}:
- *   put:
- *     summary: Route for agency and business to reject an agreement
- *     description: Must be logged in as a user of type agency or business.
- *     tags: [Agreement, Agency, Business]
- *     parameters:
- *       - in: header
- *         name: x-access-token
- *         description: The token you get when logging in is used here. Used to authenticate the user.
- *         required: true
- *         schema:
- *           $ref: "#/components/schemas/AccessToken"
- *       - in: path
- *         name: id
- *         description: ID of the agreement to be rejected.
- *         required: true
- *         schema:
- *           type: string
- *           example: 604021e581a9626810885657
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: "#/components/schemas/Agreement"
- *     responses:
- *       "200":
- *         description: Returns the rejected agreement.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: "#/components/schemas/Agreement"
- *       "404":
- *         description: No agreement was found with the requested ID.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: "#/components/schemas/Error"
- *             example:
- *               message: No agreement found!
- */
-agreementRouter.put(
-  "/reject/:id",
-  authenticateToken,
-  isAgencyOrBusiness,
-  rejectAgreement
 );
 
 /**

@@ -10,7 +10,7 @@ import {
   getFormByPublic,
 } from "../middleware/form2Middleware";
 import authenticateToken from "../utils/auhenticateToken";
-import { isAgencyOrBusiness } from "../utils/authJwt";
+import { isAgencyOrBusiness, isWorkerOrBusinessOrAgency } from "../utils/authJwt";
 
 const form2Router = express.Router();
 
@@ -227,7 +227,7 @@ form2Router.get("/myForm", authenticateToken, isAgencyOrBusiness, getMyForms);
 form2Router.get(
   "/myForm/:id",
   authenticateToken,
-  isAgencyOrBusiness,
+  isWorkerOrBusinessOrAgency,
   getFormById
 );
 

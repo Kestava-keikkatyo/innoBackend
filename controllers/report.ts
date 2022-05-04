@@ -4,9 +4,10 @@ import {
   isAdmin,
   isAgencyOrBusiness,
   isUser,
-  isWorker,
+  isWorker, isWorkerOrBusinessOrAgency,
 } from "../utils/authJwt";
 import {
+  archiveReport,
   getAllReports,
   getMyReports,
   getReportById,
@@ -224,6 +225,64 @@ reportRouter.put(
   authenticateToken,
   isAgencyOrBusiness,
   replyReport
+);
+
+/**
+ * Route for user of type agency or business to archive a report.
+ * @openapi
+ * /report/archive/{id}/{archived}:
+ *   put:
+ *     summary: Route for user of type agency or business to archive a report
+ *     description: Must be logged in as a user of type agency or business or worker.
+ *     tags: [report, Agency, Business, Worker]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: id
+ *         description: ID of the report to be replied.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 604021e581a9626810885657
+ *       - in: path
+ *         name: archived
+ *         description: Value of archive status.
+ *         required: true
+ *         schema:
+ *           type: boolean
+ *           example: false
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: "#/components/schemas/Report"
+ *     responses:
+ *       "200":
+ *         description: Returns the replied report.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Report"
+ *       "404":
+ *         description: No report was found with the requested ID.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: No report found
+ */
+reportRouter.put(
+    "/archive/:id/:archived",
+    authenticateToken,
+    isWorkerOrBusinessOrAgency,
+    archiveReport
 );
 
 /**
