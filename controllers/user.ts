@@ -428,7 +428,7 @@ userRouter.patch(
 /**
  * Route for admin to delete user
  * @openapi
- * /user/userDelete/{userId}:
+ * /user/delete/{userId}:
  *   delete:
  *     summary: Route for admin to delete
  *     description: Must be logged in as an admin.
@@ -459,12 +459,7 @@ userRouter.patch(
  *             example:
  *               message: No user was found with the requested ID {userId}
  */
-userRouter.delete(
-  "/userDelete/:userId",
-  authenticateToken,
-  isAdmin,
-  deleteUser
-);
+userRouter.delete("/delete/:userId", authenticateToken, isAdmin, deleteUser);
 
 /**
  * @openapi
