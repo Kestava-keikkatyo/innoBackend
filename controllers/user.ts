@@ -21,7 +21,8 @@ import {
   postUserFeeling,
   getUserFeelings,
   deleteUserFeeling,
-  getAllAgencies, addUserNotification,
+  getAllAgencies,
+  addUserNotification,
 } from "../middleware/userMiddleware";
 
 const userRouter = express.Router();
@@ -61,7 +62,7 @@ const userRouter = express.Router();
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-userRouter.post("/", authenticateToken, isAdmin, createUser);
+userRouter.post("/create", authenticateToken, isAdmin, createUser);
 
 /**
  * Route for admin to get all users.
