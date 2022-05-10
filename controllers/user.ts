@@ -371,7 +371,7 @@ userRouter.put("/userUpdate/:userId", authenticateToken, isAdmin, updateUser);
 /**
  * Route for admin to update user status.
  * @openapi
- * /updateUserStatus/{userId}:
+ * /updateStatus/{userId}:
  *   patch:
  *     summary: Route for admin to update user status
  *     description: Must be logged in as admin.
@@ -419,7 +419,7 @@ userRouter.put("/userUpdate/:userId", authenticateToken, isAdmin, updateUser);
  *               $ref: "#/components/schemas/Error"
  */
 userRouter.patch(
-  "/userUpdate/:userId",
+  "/updateStatus/:userId",
   authenticateToken,
   isAdmin,
   updateUserStatus
