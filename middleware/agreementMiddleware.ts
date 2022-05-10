@@ -7,6 +7,7 @@ import Form2 from "../models/Form2";
 
 /**
  * Post a new agreement to database.
+ * Agreement type is 'request' if sent by Worker or Business and 'agreement' if sent by Agency.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next
