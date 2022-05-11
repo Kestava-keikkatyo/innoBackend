@@ -4,7 +4,6 @@ import mongoose from "mongoose";
 import config from "./utils/config";
 import uploadsRouter from "./controllers/uploads";
 import feelingsRouter from "./controllers/feelings";
-import notificationsRouter from "./controllers/notifications";
 import {
   errorHandler,
   requestLogger,
@@ -50,7 +49,6 @@ app.use(requestLogger);
 
 app.use("/api/uploads", uploadsRouter);
 app.use("/api/feelings", feelingsRouter);
-app.use("/api/notifications", notificationsRouter);
 app.use("/api/feedback", feedbackRouter);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use("/api/job", jobRouter);
