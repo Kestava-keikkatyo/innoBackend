@@ -3,7 +3,6 @@ import cors from "cors";
 import mongoose from "mongoose";
 import config from "./utils/config";
 import uploadsRouter from "./controllers/uploads";
-import feelingsRouter from "./controllers/feelings";
 import {
   errorHandler,
   requestLogger,
@@ -48,7 +47,6 @@ app.use(express.json());
 app.use(requestLogger);
 
 app.use("/api/uploads", uploadsRouter);
-app.use("/api/feelings", feelingsRouter);
 app.use("/api/feedback", feedbackRouter);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use("/api/job", jobRouter);

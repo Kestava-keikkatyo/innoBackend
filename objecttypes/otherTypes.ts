@@ -1,15 +1,4 @@
-import {
-  IAdminDocument,
-  IAgencyDocument,
-  IBusinessDocument,
-  IBusinessContractDocument,
-  IFeelings,
-  IForm,
-  IWorkContractDocument,
-  IWorkerDocument,
-  IProfile,
-  IUserDocument,
-} from "./modelTypes";
+import { IUserDocument } from "./modelTypes";
 
 export interface IBaseBody {
   startDate: string;
@@ -19,27 +8,14 @@ export interface IBaseBody {
   detailedInfo: string;
   form: string;
   userId: string;
-  admin?: IAdminDocument;
-  agency?: IAgencyDocument;
-  business?: IBusinessDocument;
-  worker?: IWorkerDocument;
   user?: IUserDocument;
   userInWorkContract?: boolean;
   userInBusinessContract?: boolean;
-  workContract?: IWorkContractDocument;
   workContractUpdate?: {};
-  workersArray?: Array<IWorkerDocument["_id"]>;
   updateFilterQuery?: {};
-  businessContract?: IBusinessContractDocument;
   businessContractUpdate?: {};
   businessContractUpdateFilterQuery?: {};
 }
-
-export interface IBodyWithForm extends IBaseBody, IForm {}
-
-export interface IBodyWithProfile extends IBaseBody, IProfile {}
-
-export interface IBodyWithFeelings extends IBaseBody, IFeelings {}
 
 export interface IBodyLogin {
   email: string;
