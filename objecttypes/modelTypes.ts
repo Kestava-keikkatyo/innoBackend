@@ -230,3 +230,14 @@ export interface IApplicationDocument extends Document, IApplication {
   _id: Types.ObjectId;
   createdAt: Date;
 }
+
+export interface ITopic {
+  user: IUserDocument["_id"];
+  question: String;
+  answer: String;
+}
+
+export interface ITopicDocument extends Document, ITopic {
+  _id: Types.ObjectId;
+  createdAt: Date;
+}
