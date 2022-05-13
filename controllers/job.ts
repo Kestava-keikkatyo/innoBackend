@@ -6,9 +6,15 @@ import {
   postJob,
   updateJob,
   deleteJob,
-  getMyJobs, addApplicant,
+  getMyJobs,
+  addApplicant,
 } from "../middleware/jobMiddleware";
-import { isAdmin, isAgency, isWorker } from "../utils/authJwt";
+import {
+  isAdmin,
+  isAgency,
+  isWorker,
+  isWorkerOrBusinessOrAgency,
+} from "../utils/authJwt";
 const jobRouter = express.Router();
 
 /**
@@ -84,13 +90,13 @@ jobRouter.post("/", authenticateToken, isAgency, postJob);
 jobRouter.get("/allJobsForWorker", authenticateToken, isWorker, getAllJobs);
 
 /**
- * Route for worker to get a job by its id
+ * Route for worker or agency to get a job by its id
  * @openapi
- * /job/jobForWorker/{id}:
+ * /job/any/{id}:
  *   get:
- *     summary: Route for worker to get a job by its id
- *     description: Must be logged in as worker.
- *     tags: [Jobs, Worker]
+ *     summary: Route for worker or agency to get a job by its id
+ *     description: Must be logged in as worker or agency.
+ *     tags: [Jobs, Worker, Agency]
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -127,7 +133,12 @@ jobRouter.get("/allJobsForWorker", authenticateToken, isWorker, getAllJobs);
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-jobRouter.get("/jobForWorker/:id", authenticateToken, isWorker, getJobById);
+jobRouter.get(
+  "/any/:id",
+  authenticateToken,
+  isWorkerOrBusinessOrAgency,
+  getJobById
+);
 
 /**
  * Route for agencies to get their own jobs
@@ -169,52 +180,6 @@ jobRouter.get("/jobForWorker/:id", authenticateToken, isWorker, getJobById);
  *               $ref: "#/components/schemas/Error"
  */
 jobRouter.get("/allJobsForAgency", authenticateToken, isAgency, getMyJobs);
-
-/**
- * Route for agency to get own job by its id
- * @openapi
- * /job/jobForAgency/{id}:
- *   get:
- *     summary: Route for agency to get own job by its id
- *     description: Must be logged in as an agency.
- *     tags: [Job, Agency]
- *     parameters:
- *       - in: header
- *         name: x-access-token
- *         description: The token you get when logging in is used here. Used to authenticate the user.
- *         required: true
- *         schema:
- *           $ref: "#/components/schemas/AccessToken"
- *       - in: path
- *         name: id
- *         description: ID of the requested job.
- *         required: true
- *         schema:
- *           type: string
- *           example: 604021e581a9626810885657
- *     responses:
- *       "200":
- *         description: Returns the requested job.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: "#/components/schemas/Job"
- *       "404":
- *         description: No job was found with the requested ID.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: "#/components/schemas/Error"
- *             example:
- *               message:No job with ID {id} found
- *       "500":
- *         description: An error occurred when calling the database.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: "#/components/schemas/Error"
- */
-jobRouter.get("/jobForAgency/:id", authenticateToken, isAgency, getJobById);
 
 /**
  * Route for admin to get all jobs.
@@ -300,7 +265,7 @@ jobRouter.get("/jobForAdmin/:id", authenticateToken, isAdmin, getJobById);
 /**
  * Route for agency to update own job.
  * @openapi
- * /job/jobUpdateForAgency/{id}:
+ * /job/jobUpdate/{id}:
  *   put:
  *     summary: Route for agency to update own job
  *     description: Must be logged in as an agency.
@@ -408,12 +373,17 @@ jobRouter.put("/jobUpdate/:id", authenticateToken, isAgency, updateJob);
  *             example:
  *               message: No job with ID {id} found
  */
-jobRouter.put("/apply/:jobId/:userId", authenticateToken, isWorker, addApplicant);
+jobRouter.put(
+  "/apply/:jobId/:userId",
+  authenticateToken,
+  isWorker,
+  addApplicant
+);
 
 /**
  * Route for agency to delete own job
  * @openapi
- * /job/jobDeleteForAgency/{id}:
+ * /job/jobDelete/{id}:
  *   delete:
  *     summary: Route for agency to delete own job
  *     description: Must be logged in as an agency.

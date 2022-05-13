@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { CallbackError } from "mongoose";
 import Job from "../models/Job";
 import { IJobDocument } from "../objecttypes/modelTypes";
+import { removeEmptyProperties } from "../utils/common";
 
 /**
  * Post a new job to database.
@@ -144,9 +145,26 @@ export const updateJob = async (
   const { id } = params;
 
   try {
+    const updatableFields = removeEmptyProperties({
+      title: body.title,
+      category: body.category,
+      jobType: body.jobType,
+      street: body.street,
+      zipCode: body.zipCode,
+      city: body.city,
+      salary: body.salary,
+      requirements: body.requirements,
+      desirableSkills: body.desirableSkills,
+      benefits: body.benefits,
+      details: body.details,
+      startDate: body.startDate,
+      endDate: body.endDate,
+      applicationLastDate: body.applicationLastDate,
+    });
+
     const job: IJobDocument | null = await Job.findByIdAndUpdate(
-      { _id: id },
-      { ...body },
+      id,
+      updatableFields,
       { new: true, runValidators: true, lean: true }
     );
     if (job) {
@@ -166,9 +184,9 @@ export const updateJob = async (
  * @returns Updated job
  */
 export const addApplicant = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
+  req: Request,
+  res: Response,
+  next: NextFunction
 ) => {
   const { params } = req;
   const { jobId, userId } = params;
@@ -177,9 +195,11 @@ export const addApplicant = async (
 
   try {
     const job: IJobDocument | null = await Job.findByIdAndUpdate(
-        { _id: jobId },
-        { $push: { applicants: { id: userId, coverLetter: coverLetter, cv: cv }}},
-        { new: true, runValidators: true, lean: true }
+      { _id: jobId },
+      {
+        $push: { applicants: { id: userId, coverLetter: coverLetter, cv: cv } },
+      },
+      { new: true, runValidators: true, lean: true }
     );
     if (job) {
       console.log(`Job with ${jobId} was updated!`);
