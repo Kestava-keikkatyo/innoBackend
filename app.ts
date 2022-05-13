@@ -3,9 +3,6 @@ import cors from "cors";
 import mongoose from "mongoose";
 import config from "./utils/config";
 import uploadsRouter from "./controllers/uploads";
-import feelingsRouter from "./controllers/feelings";
-import workcontractRouter from "./controllers/workcontracts";
-import notificationsRouter from "./controllers/notifications";
 import {
   errorHandler,
   requestLogger,
@@ -15,7 +12,6 @@ import { info, error as _error } from "./utils/logger";
 import swaggerUi from "swagger-ui-express";
 import swaggerDocument from "./doc/generateSwaggerDoc";
 import feedbackRouter from "./controllers/feedBack";
-import adminRouter from "./controllers/admin";
 import jobRouter from "./controllers/job";
 import authRouter from "./controllers/authentication";
 import userRouter from "./controllers/user";
@@ -51,11 +47,7 @@ app.use(express.json());
 app.use(requestLogger);
 
 app.use("/api/uploads", uploadsRouter);
-app.use("/api/feelings", feelingsRouter);
-app.use("/api/workcontracts", workcontractRouter);
-app.use("/api/notifications", notificationsRouter);
 app.use("/api/feedback", feedbackRouter);
-app.use("/api/admin", adminRouter);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use("/api/job", jobRouter);
 app.use("/api/authentication", authRouter);
