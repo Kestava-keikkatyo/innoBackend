@@ -18,7 +18,7 @@ export const postFeedback = async (
   try {
     const { body } = req;
     const feedbackDocument: IFeedbackDocument = new FeedBack({
-      user: res.locals.decoded.id,
+      user: res.locals.userId,
       heading: body.heading,
       message: body.message,
     });
@@ -47,7 +47,7 @@ export const getMyFeedbacks = (
 ) => {
   try {
     FeedBack.find(
-      { user: res.locals.decoded.id },
+      { user: res.locals.userId },
       (error: CallbackError, docs: IFeedbackDocument[]) => {
         if (error) {
           return res.status(500).json({ message: error.message });

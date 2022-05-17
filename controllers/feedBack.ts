@@ -1,5 +1,4 @@
 import express from "express";
-import authenticateToken from "../utils/auhenticateToken";
 import { isAdmin, isWorkerOrBusinessOrAgency } from "../utils/authJwt";
 import {
   postFeedback,
@@ -8,6 +7,7 @@ import {
   getFeedbackById,
   getAllFeddbacks,
 } from "../middleware/feedbackMiddleware";
+import { tokenAuthentication } from "../middleware/authenticationMiddleware";
 
 const feedbackRouter = express.Router();
 
@@ -48,7 +48,7 @@ const feedbackRouter = express.Router();
  */
 feedbackRouter.post(
   "/",
-  authenticateToken,
+  tokenAuthentication,
   isWorkerOrBusinessOrAgency,
   postFeedback
 );
@@ -94,7 +94,7 @@ feedbackRouter.post(
  */
 feedbackRouter.get(
   "/allMyFeedbacks",
-  authenticateToken,
+  tokenAuthentication,
   isWorkerOrBusinessOrAgency,
   getMyFeedbacks
 );
@@ -145,7 +145,7 @@ feedbackRouter.get(
  */
 feedbackRouter.get(
   "/:id",
-  authenticateToken,
+  tokenAuthentication,
   isWorkerOrBusinessOrAgency,
   getFeedbackById
 );
@@ -185,7 +185,7 @@ feedbackRouter.get(
  */
 feedbackRouter.get(
   "/allFeedbacks",
-  authenticateToken,
+  tokenAuthentication,
   isAdmin,
   getAllFeddbacks
 );

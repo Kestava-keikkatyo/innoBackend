@@ -20,7 +20,7 @@ export const postForm = async (
 
   try {
     const formDocument: IForm2Document = new Form2({
-      user: res.locals.decoded.id,
+      user: res.locals.userId,
       title: body.title,
       isPublic: body.isPublic,
       filled: body.filled,
@@ -52,7 +52,7 @@ export const getMyForms = (
 ) => {
   try {
     Form2.find(
-      { user: res.locals.decoded.id },
+      { user: res.locals.userId },
       (error: CallbackError, docs: IForm2Document[]) => {
         if (error) {
           return res.status(500).json({ message: error.message });
@@ -106,23 +106,31 @@ export const getFormByCommon = (
 };
 
 export const getFormByPublic = (
-    req: Request,
-    res: Response,
-    next: NextFunction
+  req: Request,
+  res: Response,
+  next: NextFunction
 ) => {
   try {
-    Form2.find({isPublic: true, common: false, filled: false}, (error: CallbackError, doc: IForm2Document | null) => {
-      if (error) {
-        return res.status(500).json({message: error.message});
+    Form2.find(
+      { isPublic: true, common: false, filled: false },
+      (error: CallbackError, doc: IForm2Document | null) => {
+        if (error) {
+          return res.status(500).json({ message: error.message });
+        }
+        if (!doc) {
+          return res.status(404).send({ message: `No form found!` });
+        }
+        return res.status(200).send(doc);
       }
-      if (!doc) {
-        return res.status(404).send({message: `No form found!`});
-      }
-      return res.status(200).send(doc);
-    }).skip(Number(req.query.page) *10).limit(Number(req.query.limit)).exec().then().catch(err => {
-      console.error(err);
-    });
-  }catch(exception){
+    )
+      .skip(Number(req.query.page) * 10)
+      .limit(Number(req.query.limit))
+      .exec()
+      .then()
+      .catch((err) => {
+        console.error(err);
+      });
+  } catch (exception) {
     return next(exception);
   }
 };
@@ -200,15 +208,19 @@ export const deleteForm = async (
   next: NextFunction
 ) => {
   const { params } = req;
-  const id : string = params.id;
+  const id: string = params.id;
 
   try {
     const form: IForm2Document | null = await Form2.findByIdAndDelete(id);
 
     if (!form) {
-      return res.status(404).send({ message: `Form by id: ` + id +  ` is not existing!` });
+      return res
+        .status(404)
+        .send({ message: `Form by id: ` + id + ` is not existing!` });
     } else {
-      return res.status(200).send({ message: `Form was deleted successfully!` });
+      return res
+        .status(200)
+        .send({ message: `Form was deleted successfully!` });
     }
   } catch (exception) {
     return next(exception);

@@ -1,11 +1,11 @@
 import express from "express";
-import authenticateToken from "../utils/auhenticateToken";
 import { isWorker } from "../utils/authJwt";
 import {
   getApplicationById,
   getWorkerApplications,
   postapplication,
 } from "../middleware/applicationMiddleware";
+import { tokenAuthentication } from "../middleware/authenticationMiddleware";
 
 const applicationRouter = express.Router();
 
@@ -44,7 +44,7 @@ const applicationRouter = express.Router();
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-applicationRouter.post("/", authenticateToken, isWorker, postapplication);
+applicationRouter.post("/", tokenAuthentication, isWorker, postapplication);
 
 /**
  * Route for worker to get own application by its id
@@ -90,7 +90,12 @@ applicationRouter.post("/", authenticateToken, isWorker, postapplication);
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-applicationRouter.get("/:id", authenticateToken, isWorker, getApplicationById);
+applicationRouter.get(
+  "/:id",
+  tokenAuthentication,
+  isWorker,
+  getApplicationById
+);
 
 /**
  * Route for workers to get their own applications
@@ -133,7 +138,7 @@ applicationRouter.get("/:id", authenticateToken, isWorker, getApplicationById);
  */
 applicationRouter.get(
   "/allMyApplications",
-  authenticateToken,
+  tokenAuthentication,
   isWorker,
   getWorkerApplications
 );

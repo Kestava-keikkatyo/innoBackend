@@ -43,7 +43,7 @@ const doesUserExist = async (
   const { body } = req;
   try {
     let filters: any = {
-      _id: res.locals.decoded.id,
+      _id: res.locals.userId,
     };
 
     if (userTypes) {
@@ -66,7 +66,7 @@ const doesUserExist = async (
 /**
  * Checks if the logged in user is a User.
  * User object from database is populated to req.body.agency
- * @param {String} res.locals.decoded.id - UsersId (UserId) from token.
+ * @param {String} res.locals.userId - UsersId (UserId) from token.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next - NextFunction.
@@ -83,7 +83,7 @@ export const isUser = async (
 /**
  * Checks if the logged in user is an Admin.
  * User object of type Admin from database is populated to req.body.user
- * @param {String} res.locals.decoded.id - UsersId (AdminId) from token.
+ * @param {String} res.locals.userId - UsersId (AdminId) from token.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next - NextFunction.
@@ -100,7 +100,7 @@ export const isAdmin = async (
 /**
  * Checks if the logged in user is a Business.
  * User object of type Business from database is populated to req.body.user
- * @param {String} res.locals.decoded.id - UsersId (BusinessId) from token.
+ * @param {String} res.locals.userId - UsersId (BusinessId) from token.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next - NextFunction.
@@ -117,7 +117,7 @@ export const isBusiness = async (
 /**
  * Checks if the logged in user is an Agency.
  * User object of type Agency from database is populated to req.body.user
- * @param {String} res.locals.decoded.id - UsersId (AgencyId) from token.
+ * @param {String} res.locals.userId - UsersId (AgencyId) from token.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next - NextFunction.
@@ -134,7 +134,7 @@ export const isAgency = async (
 /**
  * Checks if the logged in user is a Worker.
  * User object of type Worker from database is populated to req.body.user
- * @param {String} res.locals.decoded.id - UsersId (WorkerId) from token.
+ * @param {String} res.locals.userId - UsersId (WorkerId) from token.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next - NextFunction.
@@ -151,7 +151,7 @@ export const isWorker = async (
 /**
  * Checks if the logged in user is a Business, Admin or Agency.
  * User object of type Business, Admin or Agency from database is populated to req.body.user
- * @param {String} res.locals.decoded.id - UsersId (WorkerId) from token.
+ * @param {String} res.locals.userId - UsersId (WorkerId) from token.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next - NextFunction.

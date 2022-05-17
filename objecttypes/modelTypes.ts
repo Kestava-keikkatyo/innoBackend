@@ -241,3 +241,13 @@ export interface ITopicDocument extends Document, ITopic {
   _id: Types.ObjectId;
   createdAt: Date;
 }
+
+export interface IToken {
+  token: String;
+  lastUsedAt: Date;
+  user: IUserDocument["_id"];
+}
+
+export interface ITokenDocument extends Document, IToken {
+  _id: Types.ObjectId;
+}

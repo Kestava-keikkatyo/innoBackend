@@ -1,13 +1,17 @@
 import express from "express";
 import {
-  deleteAgreement, getMyAgreements,
+  deleteAgreement,
+  getMyAgreements,
   postAgreement,
   signAgreement,
   updateAgreement,
-  getTargetAgreements
+  getTargetAgreements,
 } from "../middleware/agreementMiddleware";
-import authenticateToken from "../utils/auhenticateToken";
-import { isAgencyOrBusiness, isWorkerOrBusinessOrAgency } from "../utils/authJwt";
+import { tokenAuthentication } from "../middleware/authenticationMiddleware";
+import {
+  isAgencyOrBusiness,
+  isWorkerOrBusinessOrAgency,
+} from "../utils/authJwt";
 
 const agreementRouter = express.Router();
 
@@ -40,7 +44,12 @@ const agreementRouter = express.Router();
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-agreementRouter.get("/", authenticateToken, isWorkerOrBusinessOrAgency, getMyAgreements);
+agreementRouter.get(
+  "/",
+  tokenAuthentication,
+  isWorkerOrBusinessOrAgency,
+  getMyAgreements
+);
 
 /**
  * Route for agency and business to get their agreements.
@@ -71,7 +80,12 @@ agreementRouter.get("/", authenticateToken, isWorkerOrBusinessOrAgency, getMyAgr
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-agreementRouter.get("/target", authenticateToken, isWorkerOrBusinessOrAgency, getTargetAgreements);
+agreementRouter.get(
+  "/target",
+  tokenAuthentication,
+  isWorkerOrBusinessOrAgency,
+  getTargetAgreements
+);
 
 /**
  * Route for agency and business to add a new agreement. Agreement object is given in body according to its schema model.
@@ -108,7 +122,12 @@ agreementRouter.get("/target", authenticateToken, isWorkerOrBusinessOrAgency, ge
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-agreementRouter.post("/", authenticateToken, isWorkerOrBusinessOrAgency, postAgreement);
+agreementRouter.post(
+  "/",
+  tokenAuthentication,
+  isWorkerOrBusinessOrAgency,
+  postAgreement
+);
 
 /**
  * Route for agency and business to sign or reject agreement.
@@ -163,7 +182,7 @@ agreementRouter.post("/", authenticateToken, isWorkerOrBusinessOrAgency, postAgr
  */
 agreementRouter.put(
   "/sign/:id/:status",
-  authenticateToken,
+  tokenAuthentication,
   // isAgencyOrBusiness,
   isWorkerOrBusinessOrAgency,
   signAgreement
@@ -215,7 +234,7 @@ agreementRouter.put(
  */
 agreementRouter.put(
   "/update/:id",
-  authenticateToken,
+  tokenAuthentication,
   isAgencyOrBusiness,
   updateAgreement
 );
@@ -256,7 +275,7 @@ agreementRouter.put(
  */
 agreementRouter.delete(
   "/delete/:id",
-  authenticateToken,
+  tokenAuthentication,
   isAgencyOrBusiness,
   deleteAgreement
 );

@@ -1,5 +1,4 @@
 import express from "express";
-import authenticateToken from "../utils/auhenticateToken";
 import {
   getJobById,
   getAllJobs,
@@ -15,6 +14,7 @@ import {
   isWorker,
   isWorkerOrBusinessOrAgency,
 } from "../utils/authJwt";
+import { tokenAuthentication } from "../middleware/authenticationMiddleware";
 const jobRouter = express.Router();
 
 /**
@@ -52,7 +52,7 @@ const jobRouter = express.Router();
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-jobRouter.post("/", authenticateToken, isAgency, postJob);
+jobRouter.post("/", tokenAuthentication, isAgency, postJob);
 
 /**
  * Route for workers to get all available jobs.
@@ -87,7 +87,7 @@ jobRouter.post("/", authenticateToken, isAgency, postJob);
  *             example:
  *               message: No jobs found
  */
-jobRouter.get("/allJobsForWorker", authenticateToken, isWorker, getAllJobs);
+jobRouter.get("/allJobsForWorker", tokenAuthentication, isWorker, getAllJobs);
 
 /**
  * Route for worker or agency to get a job by its id
@@ -135,7 +135,7 @@ jobRouter.get("/allJobsForWorker", authenticateToken, isWorker, getAllJobs);
  */
 jobRouter.get(
   "/any/:id",
-  authenticateToken,
+  tokenAuthentication,
   isWorkerOrBusinessOrAgency,
   getJobById
 );
@@ -179,7 +179,7 @@ jobRouter.get(
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-jobRouter.get("/allJobsForAgency", authenticateToken, isAgency, getMyJobs);
+jobRouter.get("/allJobsForAgency", tokenAuthentication, isAgency, getMyJobs);
 
 /**
  * Route for admin to get all jobs.
@@ -214,7 +214,7 @@ jobRouter.get("/allJobsForAgency", authenticateToken, isAgency, getMyJobs);
  *             example:
  *               message: No jobs found
  */
-jobRouter.get("/allJobsForAdmin", authenticateToken, isAdmin, getAllJobs);
+jobRouter.get("/allJobsForAdmin", tokenAuthentication, isAdmin, getAllJobs);
 
 /**
  * Route for admin to get job by its id
@@ -260,7 +260,7 @@ jobRouter.get("/allJobsForAdmin", authenticateToken, isAdmin, getAllJobs);
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-jobRouter.get("/jobForAdmin/:id", authenticateToken, isAdmin, getJobById);
+jobRouter.get("/jobForAdmin/:id", tokenAuthentication, isAdmin, getJobById);
 
 /**
  * Route for agency to update own job.
@@ -306,7 +306,7 @@ jobRouter.get("/jobForAdmin/:id", authenticateToken, isAdmin, getJobById);
  *             example:
  *               message: No job with ID {id} found
  */
-jobRouter.put("/jobUpdate/:id", authenticateToken, isAgency, updateJob);
+jobRouter.put("/jobUpdate/:id", tokenAuthentication, isAgency, updateJob);
 
 /**
  * Route for worker to apply for a job.
@@ -375,7 +375,7 @@ jobRouter.put("/jobUpdate/:id", authenticateToken, isAgency, updateJob);
  */
 jobRouter.put(
   "/apply/:jobId/:userId",
-  authenticateToken,
+  tokenAuthentication,
   isWorker,
   addApplicant
 );
@@ -414,6 +414,6 @@ jobRouter.put(
  *             example:
  *               message: No job was found with the requested ID {id}
  */
-jobRouter.delete("/jobDelete/:id", authenticateToken, isAgency, deleteJob);
+jobRouter.delete("/jobDelete/:id", tokenAuthentication, isAgency, deleteJob);
 
 export default jobRouter;

@@ -1,10 +1,10 @@
 import express from "express";
-import authenticateToken from "../utils/auhenticateToken";
 import {
   isAdmin,
   isAgencyOrBusiness,
   isUser,
-  isWorker, isWorkerOrBusinessOrAgency,
+  isWorker,
+  isWorkerOrBusinessOrAgency,
 } from "../utils/authJwt";
 import {
   archiveReport,
@@ -15,6 +15,7 @@ import {
   postReport,
   replyReport,
 } from "../middleware/reportMiddleware";
+import { tokenAuthentication } from "../middleware/authenticationMiddleware";
 const reportRouter = express.Router();
 
 /**
@@ -52,7 +53,7 @@ const reportRouter = express.Router();
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-reportRouter.post("/", authenticateToken, isWorker, postReport);
+reportRouter.post("/", tokenAuthentication, isWorker, postReport);
 
 /**
  * Route for user of type worker to get own reports
@@ -93,7 +94,7 @@ reportRouter.post("/", authenticateToken, isWorker, postReport);
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-reportRouter.get("/myReports", authenticateToken, isWorker, getMyReports);
+reportRouter.get("/myReports", tokenAuthentication, isWorker, getMyReports);
 
 /**
  * Route for user to report by its id
@@ -139,7 +140,7 @@ reportRouter.get("/myReports", authenticateToken, isWorker, getMyReports);
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-reportRouter.get("/status/:id", authenticateToken, isUser, getReportById);
+reportRouter.get("/status/:id", tokenAuthentication, isUser, getReportById);
 
 /**
  * Route for user of type admin to get all reports.
@@ -174,7 +175,7 @@ reportRouter.get("/status/:id", authenticateToken, isUser, getReportById);
  *             example:
  *               message: No reports found
  */
-reportRouter.get("/allReports", authenticateToken, isAdmin, getAllReports);
+reportRouter.get("/allReports", tokenAuthentication, isAdmin, getAllReports);
 
 /**
  * Route for user of type agency or business to reply a report.
@@ -222,7 +223,7 @@ reportRouter.get("/allReports", authenticateToken, isAdmin, getAllReports);
  */
 reportRouter.put(
   "/reply/:id",
-  authenticateToken,
+  tokenAuthentication,
   isAgencyOrBusiness,
   replyReport
 );
@@ -279,10 +280,10 @@ reportRouter.put(
  *               message: No report found
  */
 reportRouter.put(
-    "/archive/:id/:archived",
-    authenticateToken,
-    isWorkerOrBusinessOrAgency,
-    archiveReport
+  "/archive/:id/:archived",
+  tokenAuthentication,
+  isWorkerOrBusinessOrAgency,
+  archiveReport
 );
 
 /**
@@ -320,7 +321,7 @@ reportRouter.put(
  */
 reportRouter.get(
   "/receivedReports",
-  authenticateToken,
+  tokenAuthentication,
   isAgencyOrBusiness,
   getReportsForReceiver
 );

@@ -19,7 +19,7 @@ export const postJob = async (
   const { body } = req;
   try {
     const jobDocument: IJobDocument = new Job({
-      user: res.locals.decoded.id,
+      user: res.locals.userId,
       title: body.title,
       category: body.category,
       jobType: body.jobType,
@@ -83,7 +83,7 @@ export const getAllJobs = async (
 export const getMyJobs = (_req: Request, res: Response, next: NextFunction) => {
   try {
     Job.find(
-      { user: res.locals.decoded.id },
+      { user: res.locals.userId },
       (error: CallbackError, docs: IJobDocument[]) => {
         if (error) {
           return res.status(500).json({ message: error.message });

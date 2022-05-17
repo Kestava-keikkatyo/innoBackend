@@ -1,4 +1,5 @@
 import express from "express";
+import { tokenAuthentication } from "../middleware/authenticationMiddleware";
 import {
   getFormById,
   getMyForms,
@@ -9,8 +10,10 @@ import {
   getPublicForms,
   getFormByPublic,
 } from "../middleware/form2Middleware";
-import authenticateToken from "../utils/auhenticateToken";
-import { isAgencyOrBusiness, isWorkerOrBusinessOrAgency } from "../utils/authJwt";
+import {
+  isAgencyOrBusiness,
+  isWorkerOrBusinessOrAgency,
+} from "../utils/authJwt";
 
 const form2Router = express.Router();
 
@@ -49,7 +52,7 @@ const form2Router = express.Router();
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-form2Router.post("/", authenticateToken, isAgencyOrBusiness, postForm);
+form2Router.post("/", tokenAuthentication, isAgencyOrBusiness, postForm);
 
 /**
  * Route for user of role agency or business to get common forms
@@ -90,7 +93,7 @@ form2Router.post("/", authenticateToken, isAgencyOrBusiness, postForm);
  */
 form2Router.get(
   "/common/",
-  authenticateToken,
+  tokenAuthentication,
   isAgencyOrBusiness,
   getFormByCommon
 );
@@ -134,7 +137,7 @@ form2Router.get(
  */
 form2Router.get(
   "/public",
-  authenticateToken,
+  tokenAuthentication,
   isAgencyOrBusiness,
   getFormByPublic
 );
@@ -178,7 +181,7 @@ form2Router.get(
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-form2Router.get("/myForm", authenticateToken, isAgencyOrBusiness, getMyForms);
+form2Router.get("/myForm", tokenAuthentication, isAgencyOrBusiness, getMyForms);
 
 /**
  * Route for user of role agency or business to get own form by id
@@ -226,7 +229,7 @@ form2Router.get("/myForm", authenticateToken, isAgencyOrBusiness, getMyForms);
  */
 form2Router.get(
   "/myForm/:id",
-  authenticateToken,
+  tokenAuthentication,
   isWorkerOrBusinessOrAgency,
   getFormById
 );
@@ -277,7 +280,7 @@ form2Router.get(
  */
 form2Router.put(
   "/update/:id",
-  authenticateToken,
+  tokenAuthentication,
   isAgencyOrBusiness,
   updateForm
 );
@@ -321,7 +324,7 @@ form2Router.put(
  */
 form2Router.get(
   "/public/",
-  authenticateToken,
+  tokenAuthentication,
   isAgencyOrBusiness,
   getPublicForms
 );
@@ -362,7 +365,7 @@ form2Router.get(
  */
 form2Router.delete(
   "/delete/:id",
-  authenticateToken,
+  tokenAuthentication,
   isAgencyOrBusiness,
   deleteForm
 );

@@ -130,7 +130,7 @@ export const getUserProfile = async (
   res: Response,
   next: NextFunction
 ) => {
-  const id: string = res.locals.decoded.id;
+  const id: string = res.locals.userId;
 
   try {
     const doc = await User.findById(id);
@@ -157,10 +157,10 @@ export const getUserNotifications = async (
   res: Response,
   next: NextFunction
 ) => {
-  const id: string = res.locals.decoded.id;
+  const id: string = res.locals.userId;
 
   try {
-    const doc : IUserDocument | null = await User.findById(id);
+    const doc: IUserDocument | null = await User.findById(id);
 
     if (!doc) {
       return res.status(404).send({});
@@ -180,25 +180,25 @@ export const getUserNotifications = async (
  * @returns Users notifications
  */
 export const addUserNotification = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
+  req: Request,
+  res: Response,
+  next: NextFunction
 ) => {
   const { params, body } = req;
   const { id } = params;
   const { message, link } = body;
 
   try {
-    const doc : IUserDocument | null = await User.findByIdAndUpdate(id, { $push: {
-      notifications: {
-              message: message,
-              is_read: false,
-              link: link,
-              createdAt: Date.now()
-            }
-      }
-    }
-  );
+    const doc: IUserDocument | null = await User.findByIdAndUpdate(id, {
+      $push: {
+        notifications: {
+          message: message,
+          is_read: false,
+          link: link,
+          createdAt: Date.now(),
+        },
+      },
+    });
 
     if (!doc) {
       return res.status(404).send({});
@@ -217,20 +217,20 @@ export const addUserNotification = async (
  * @param {NextFunction} next
  * @returns users
  */
-export const getUserByUserType = async(
-    req: Request,
-    res: Response,
-    next: NextFunction
+export const getUserByUserType = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
 ) => {
   const { params } = req;
   const { userType, names } = params;
 
   try {
     const users: Array<IUserDocument> | null = await User.find({
-      userType: userType
+      userType: userType,
     });
 
-    if(names != null || names == "") {
+    if (names != null || names == "") {
       users.filter((user) => {
         return user.name.includes(names);
       });
@@ -507,7 +507,7 @@ export const postUserFeeling = async (
   };
   try {
     const user: IUserDocument | null = await User.findByIdAndUpdate(
-      res.locals.decoded.id,
+      res.locals.userId,
       { $addToSet: { feelings: myFeeling } },
       { new: true, omitUndefined: true, runValidators: true, lean: true }
     );
@@ -532,7 +532,7 @@ export const getUserFeelings = async (
   res: Response,
   next: NextFunction
 ) => {
-  const id: string = res.locals.decoded.id;
+  const id: string = res.locals.userId;
 
   try {
     const doc = await User.findById(id);
@@ -560,7 +560,7 @@ export const deleteUserFeeling = async (
   next: NextFunction
 ) => {
   const { params } = req;
-  const id: string = res.locals.decoded.id;
+  const id: string = res.locals.userId;
 
   try {
     const doc = await User.findByIdAndUpdate(

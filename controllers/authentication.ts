@@ -1,6 +1,5 @@
 import express, { NextFunction, Request, Response } from "express";
 import { hash } from "bcryptjs";
-import { sign } from "jsonwebtoken";
 import { error as _error } from "../utils/logger";
 import User from "../models/User";
 import { IUserDocument, IUser } from "../objecttypes/modelTypes";
@@ -8,8 +7,8 @@ import { CallbackError } from "mongoose";
 import { checkDuplicateEmail } from "../utils/verifySignUp";
 import { IBodyLogin } from "../objecttypes/otherTypes";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import authenticateToken from "../utils/auhenticateToken";
+import { tokenAuthentication } from "../middleware/authenticationMiddleware";
+import TokenService from "../services/TokenService";
 
 const authRouter = express.Router();
 
@@ -102,7 +101,7 @@ authRouter.post(
         category: body.category,
         passwordHash,
       });
-      return user.save((error: CallbackError, user: IUserDocument) => {
+      return user.save(async (error: CallbackError, user: IUserDocument) => {
         if (error) {
           return res.status(500).json({ message: error.message });
         }
@@ -111,11 +110,7 @@ authRouter.post(
             .status(500)
             .json({ message: "Unable to save user document" });
         }
-        const userForToken = {
-          email: user.email,
-          id: user._id,
-        };
-        const token: string = sign(userForToken, process.env.SECRET || "");
+        const token: string = await TokenService.createToken(user);
         return res.status(200).send({
           token,
           name: user.name,
@@ -196,18 +191,13 @@ authRouter.post(
       return res.status(401).json({ message: "Invalid email or password" });
     }
     if (user.active) {
-      const userForToken = {
-        email: user.email,
-        id: user._id,
-        role: user.userType.toLowerCase(),
-      };
-      const token: string = jwt.sign(userForToken, process.env.SECRET || "");
+      const token: string = await TokenService.createToken(user);
 
       return res.status(200).send({
         token,
         name: user.name,
         email: user.email,
-        role: userForToken.role,
+        role: user.userType.toLowerCase(),
         _id: user.id,
       });
     } else {
@@ -290,13 +280,11 @@ authRouter.post(
  */
 authRouter.put(
   "/changePassword",
-  authenticateToken,
+  tokenAuthentication,
   async (req: Request, res: Response, next: NextFunction) => {
     const { body } = req;
     try {
-      const user: IUserDocument | null = await User.findById(
-        res.locals.decoded.id
-      );
+      const user: IUserDocument | null = await User.findById(res.locals.userId);
       if (!user) {
         return res.status(404).json({ message: "User is not existing" });
       }
@@ -334,7 +322,7 @@ authRouter.put(
         passwordHash: newPasswordHash,
       };
       const updatedUser: IUserDocument | null = await User.findByIdAndUpdate(
-        res.locals.decoded.id,
+        res.locals.userId,
         updatePasswordField,
         { new: true, omitUndefined: true, runValidators: true }
       );
@@ -347,5 +335,13 @@ authRouter.put(
     }
   }
 );
+
+authRouter.post("/logout", async (req: Request, res: Response) => {
+  const token: string = req.headers["x-access-token"] as string;
+  if (token) {
+    await TokenService.deleteToken(token);
+  }
+  res.send();
+});
 
 export default authRouter;

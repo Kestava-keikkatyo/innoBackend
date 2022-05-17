@@ -18,7 +18,7 @@ export const postapplication = async (
   const { body } = req;
   try {
     const applicationDocument: IApplicationDocument = new Application({
-      user: res.locals.decoded.id,
+      user: res.locals.userId,
       job: body.job,
       status: body.status,
     });
@@ -105,7 +105,7 @@ export const getWorkerApplications = (
 ) => {
   try {
     Application.find(
-      { user: res.locals.decoded.id },
+      { user: res.locals.userId },
       (error: CallbackError, docs: IApplicationDocument[]) => {
         if (error) {
           return res.status(500).json({ message: error.message });

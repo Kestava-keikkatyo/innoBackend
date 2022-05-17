@@ -1,5 +1,4 @@
 import express from "express";
-import authenticateToken from "../utils/auhenticateToken";
 import {
   isAdmin,
   isAgencyOrBusiness,
@@ -26,6 +25,7 @@ import {
   addUserNotification,
   getUserByUserType,
 } from "../middleware/userMiddleware";
+import { tokenAuthentication } from "../middleware/authenticationMiddleware";
 
 const userRouter = express.Router();
 
@@ -64,7 +64,7 @@ const userRouter = express.Router();
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-userRouter.post("/create", authenticateToken, isAdmin, createUser);
+userRouter.post("/create", tokenAuthentication, isAdmin, createUser);
 
 /**
  * Route for admin to get all users.
@@ -99,7 +99,7 @@ userRouter.post("/create", authenticateToken, isAdmin, createUser);
  *             example:
  *               message: No users found
  */
-userRouter.get("/allUsersForAdmin", authenticateToken, isAdmin, getAllUsers);
+userRouter.get("/allUsersForAdmin", tokenAuthentication, isAdmin, getAllUsers);
 
 /**
  * Route for admin to get user by id
@@ -145,7 +145,7 @@ userRouter.get("/allUsersForAdmin", authenticateToken, isAdmin, getAllUsers);
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-userRouter.get("/any/:id", authenticateToken, isUser, getUserById);
+userRouter.get("/any/:id", tokenAuthentication, isUser, getUserById);
 
 /**
  * Route to get user info
@@ -185,7 +185,7 @@ userRouter.get("/any/:id", authenticateToken, isUser, getUserById);
  *             example:
  *               message: User is not existing
  */
-userRouter.get("/me", authenticateToken, getUserProfile);
+userRouter.get("/me", tokenAuthentication, getUserProfile);
 
 /**
  * Route to get user notifications
@@ -225,7 +225,7 @@ userRouter.get("/me", authenticateToken, getUserProfile);
  *             example:
  *               message: No notifications found
  */
-userRouter.get("/notifications", authenticateToken, getUserNotifications);
+userRouter.get("/notifications", tokenAuthentication, getUserNotifications);
 
 /**
  * Route to add user notifications
@@ -265,7 +265,7 @@ userRouter.get("/notifications", authenticateToken, getUserNotifications);
  *             example:
  *               message: No notifications found
  */
-userRouter.put("/notifications/:id", authenticateToken, addUserNotification);
+userRouter.put("/notifications/:id", tokenAuthentication, addUserNotification);
 
 /**
  * Route for user to update own profile.
@@ -309,11 +309,11 @@ userRouter.put("/notifications/:id", authenticateToken, addUserNotification);
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-userRouter.put("/:userId", authenticateToken, updateUserProfile);
+userRouter.put("/:userId", tokenAuthentication, updateUserProfile);
 
 userRouter.get(
   "/allWorkersForAdmin",
-  authenticateToken,
+  tokenAuthentication,
   isAdmin,
   getAllWorkers
 );
@@ -368,7 +368,7 @@ userRouter.get(
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-userRouter.put("/userUpdate/:userId", authenticateToken, isAdmin, updateUser);
+userRouter.put("/userUpdate/:userId", tokenAuthentication, isAdmin, updateUser);
 
 /**
  * Route for admin to update user status.
@@ -422,7 +422,7 @@ userRouter.put("/userUpdate/:userId", authenticateToken, isAdmin, updateUser);
  */
 userRouter.patch(
   "/updateStatus/:userId",
-  authenticateToken,
+  tokenAuthentication,
   isAdmin,
   updateUserStatus
 );
@@ -461,7 +461,7 @@ userRouter.patch(
  *             example:
  *               message: No user was found with the requested ID {userId}
  */
-userRouter.delete("/delete/:userId", authenticateToken, isAdmin, deleteUser);
+userRouter.delete("/delete/:userId", tokenAuthentication, isAdmin, deleteUser);
 
 /**
  * @openapi
@@ -502,9 +502,9 @@ userRouter.delete("/delete/:userId", authenticateToken, isAdmin, deleteUser);
  *             example:
  *               message:  no workers found
  */
- userRouter.get(
+userRouter.get(
   "/getByUserType/:userType/name=:names",
-  authenticateToken,
+  tokenAuthentication,
   isWorkerOrBusinessOrAgency,
   getUserByUserType
 );
@@ -543,7 +543,7 @@ userRouter.delete("/delete/:userId", authenticateToken, isAdmin, deleteUser);
  */
 userRouter.get(
   "/workers",
-  authenticateToken,
+  tokenAuthentication,
   isAgencyOrBusiness,
   getAllWorkers
 );
@@ -580,7 +580,7 @@ userRouter.get(
  *             example:
  *               message:  no agencies found
  */
-userRouter.get("/agencies", authenticateToken, isBusiness, getAllAgencies);
+userRouter.get("/agencies", tokenAuthentication, isBusiness, getAllAgencies);
 
 /**
  * Route for user of role worker to post feeling.
@@ -624,7 +624,7 @@ userRouter.get("/agencies", authenticateToken, isBusiness, getAllAgencies);
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-userRouter.post("/feeling/", authenticateToken, isWorker, postUserFeeling);
+userRouter.post("/feeling/", tokenAuthentication, isWorker, postUserFeeling);
 
 /**
  * Route to get user feelings
@@ -664,7 +664,7 @@ userRouter.post("/feeling/", authenticateToken, isWorker, postUserFeeling);
  *             example:
  *               message: No feelings found
  */
-userRouter.get("/myFeelings", authenticateToken, getUserFeelings);
+userRouter.get("/myFeelings", tokenAuthentication, getUserFeelings);
 
 /**
  * Route for user of role worker to delete own feeling
@@ -702,7 +702,7 @@ userRouter.get("/myFeelings", authenticateToken, getUserFeelings);
  */
 userRouter.delete(
   "/myFeelings/:feelingId",
-  authenticateToken,
+  tokenAuthentication,
   isWorker,
   deleteUserFeeling
 );
