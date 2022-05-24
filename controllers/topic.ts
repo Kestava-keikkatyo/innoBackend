@@ -1,7 +1,7 @@
 import express from "express";
 import { isAdmin } from "../utils/authJwt";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
-import { postTopic } from "../middleware/topicMiddleware";
+import { getAllTopics, postTopic } from "../middleware/topicMiddleware";
 const topicRouter = express.Router();
 
 /**
@@ -40,5 +40,40 @@ const topicRouter = express.Router();
  *               $ref: "#/components/schemas/Error"
  */
 topicRouter.post("/create", tokenAuthentication, isAdmin, postTopic);
+
+/**
+ * Route for admin to get all topics.
+ * @openapi
+ * /topic/all:
+ *   get:
+ *     summary: Route for admin to get all topics
+ *     description: Need to be logged in as a admin.
+ *     tags: [Topic, Admin]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     responses:
+ *       "200":
+ *         description: Returns all found topics
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: "#/components/schemas/Topic"
+ *       "404":
+ *         description: No topics are existing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: No topics found
+ */
+topicRouter.get("/all", tokenAuthentication, isAdmin, getAllTopics);
 
 export default topicRouter;

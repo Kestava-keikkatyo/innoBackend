@@ -30,3 +30,26 @@ export const postTopic = async (
     return next(exception);
   }
 };
+
+/**
+ * Get all topics.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns All topics
+ */
+export const getAllTopics = async (
+  _req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const topics: Array<ITopicDocument> | null = await Topic.find({});
+    if (topics) {
+      return res.status(200).json(topics);
+    }
+    return res.status(404).json({ message: "No topics found!" });
+  } catch (exception) {
+    return next(exception);
+  }
+};
