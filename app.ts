@@ -19,6 +19,7 @@ import applicationRouter from "./controllers/application";
 import form2Router from "./controllers/form2";
 import agreementRouter from "./controllers/agreement";
 import reportRouter from "./controllers/report";
+import topicRouter from "./controllers/topic";
 
 const app = express();
 
@@ -56,6 +57,7 @@ app.use("/api/application", applicationRouter);
 app.use("/api/form2", form2Router);
 app.use("/api/agreement", agreementRouter);
 app.use("/api/report", reportRouter);
+app.use("/api/topic", topicRouter);
 
 app.use(unknownEndpoint);
 app.use(errorHandler);
