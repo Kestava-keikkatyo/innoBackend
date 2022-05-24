@@ -5,6 +5,7 @@ import {
   getAllTopics,
   getTopicById,
   postTopic,
+  updateTopic,
 } from "../middleware/topicMiddleware";
 const topicRouter = express.Router();
 
@@ -125,5 +126,49 @@ topicRouter.get("/all", tokenAuthentication, isAdmin, getAllTopics);
  *               $ref: "#/components/schemas/Error"
  */
 topicRouter.get("/any/:id", tokenAuthentication, isAdmin, getTopicById);
+
+/**
+ * Route for admin to update a topic.
+ * @openapi
+ * /topic/update/{id}:
+ *   put:
+ *     summary: Route for admin to update a topic.
+ *     description: Must be logged in as an admin.
+ *     tags: [Topic, Admin]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: id
+ *         description: ID of the topic to be updated.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 604021e581a9626810885657
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: "#/components/schemas/Topic"
+ *     responses:
+ *       "200":
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Topic"
+ *       "404":
+ *         description: A topic with the specified ID was not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ */
+topicRouter.put("/update/:id", tokenAuthentication, isAdmin, updateTopic);
 
 export default topicRouter;

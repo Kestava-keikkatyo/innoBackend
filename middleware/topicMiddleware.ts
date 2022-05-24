@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import Topic from "../models/Topic";
 import { ITopicDocument } from "../objecttypes/modelTypes";
 import { CallbackError } from "mongoose";
+import { removeEmptyProperties } from "../utils/common";
 
 /**
  * Post new info to database.
@@ -80,6 +81,41 @@ export const getTopicById = (
       }
       return res.status(200).send(doc);
     });
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
+ * Update topic by id.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns Updated topic
+ */
+export const updateTopic = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { params, body } = req;
+  const { id } = params;
+
+  try {
+    const updatableFields = removeEmptyProperties({
+      question: body.question,
+      answer: body.answer,
+    });
+
+    const topic: ITopicDocument | null = await Topic.findByIdAndUpdate(
+      id,
+      updatableFields,
+      { new: true, runValidators: true, lean: true }
+    );
+    if (topic) {
+      console.log(`Topic was updated successfully!`);
+    }
+    return res.status(topic ? 200 : 404).send();
   } catch (exception) {
     return next(exception);
   }
