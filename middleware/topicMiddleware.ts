@@ -120,3 +120,35 @@ export const updateTopic = async (
     return next(exception);
   }
 };
+
+/**
+ * This function is used to delete topic by id.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns Deleted topic
+ */
+export const deleteTopic = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { params } = req;
+  const { id } = params;
+
+  try {
+    const topic: ITopicDocument | null = await Topic.findByIdAndDelete({
+      _id: id,
+    });
+
+    if (!topic) {
+      return res.status(404).send({ message: `Topic is not existing!` });
+    } else {
+      return res
+        .status(200)
+        .send({ message: `Topic was deleted successfuly!` });
+    }
+  } catch (exception) {
+    return next(exception);
+  }
+};

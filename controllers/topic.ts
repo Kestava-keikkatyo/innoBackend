@@ -2,6 +2,7 @@ import express from "express";
 import { isAdmin } from "../utils/authJwt";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
 import {
+  deleteTopic,
   getAllTopics,
   getTopicById,
   postTopic,
@@ -170,5 +171,41 @@ topicRouter.get("/any/:id", tokenAuthentication, isAdmin, getTopicById);
  *               $ref: "#/components/schemas/Error"
  */
 topicRouter.put("/update/:id", tokenAuthentication, isAdmin, updateTopic);
+
+/**
+ * Route for admin to delete a topic
+ * @openapi
+ * /topic/delete/{id}:
+ *   delete:
+ *     summary: Route for admin to delete a topic.
+ *     description: Must be logged in as an admin.
+ *     tags: [Topic, Admin]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: id
+ *         description: ID of the topic to be deleted.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 604021e581a9626810885657
+ *     responses:
+ *       "200":
+ *         description: Topic was deleted successfully.
+ *       "404":
+ *         description: The topic with the requested ID is not existing.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Topic is not existing.
+ */
+topicRouter.delete("/delete/:id", tokenAuthentication, isAdmin, deleteTopic);
 
 export default topicRouter;
