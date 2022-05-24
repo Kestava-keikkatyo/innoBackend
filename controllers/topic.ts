@@ -1,7 +1,11 @@
 import express from "express";
 import { isAdmin } from "../utils/authJwt";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
-import { getAllTopics, postTopic } from "../middleware/topicMiddleware";
+import {
+  getAllTopics,
+  getTopicById,
+  postTopic,
+} from "../middleware/topicMiddleware";
 const topicRouter = express.Router();
 
 /**
@@ -75,5 +79,51 @@ topicRouter.post("/create", tokenAuthentication, isAdmin, postTopic);
  *               message: No topics found
  */
 topicRouter.get("/all", tokenAuthentication, isAdmin, getAllTopics);
+
+/**
+ * Route for admin to get a topic by its id
+ * @openapi
+ * /topic/any/{id}:
+ *   get:
+ *     summary: Route for admin to get a topic by its id
+ *     description: Must be logged in as admin.
+ *     tags: [Topic, Admin]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: id
+ *         description: ID of the requested topic.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 604021e581a9626810885657
+ *     responses:
+ *       "200":
+ *         description: Returns the requested topic.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Topic"
+ *       "404":
+ *         description: No topic was found with the requested ID.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message:No topic with ID {id} found
+ *       "500":
+ *         description: An error occurred when calling the database.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ */
+topicRouter.get("/any/:id", tokenAuthentication, isAdmin, getTopicById);
 
 export default topicRouter;
