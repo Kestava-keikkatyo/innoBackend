@@ -20,6 +20,7 @@ import form2Router from "./controllers/form2";
 import agreementRouter from "./controllers/agreement";
 import reportRouter from "./controllers/report";
 import topicRouter from "./controllers/topic";
+import workRequestRouter from "./controllers/workRequest";
 
 const app = express();
 
@@ -58,6 +59,7 @@ app.use("/api/form2", form2Router);
 app.use("/api/agreement", agreementRouter);
 app.use("/api/report", reportRouter);
 app.use("/api/topic", topicRouter);
+app.use("/api/workRequest", workRequestRouter);
 
 app.use(unknownEndpoint);
 app.use(errorHandler);
