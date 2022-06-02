@@ -251,3 +251,19 @@ export interface IToken {
 export interface ITokenDocument extends Document, IToken {
   _id: Types.ObjectId;
 }
+
+export interface IWorkRequest {
+  user: IUserDocument["_id"];
+  headline: String;
+  workersNumber: Number;
+  requirements: String;
+  desirableSkills: String;
+  details: String;
+  startDate: Date;
+  endDate: Date;
+}
+
+export interface IWorkRequestDocument extends Document, IWorkRequest {
+  _id: Types.ObjectId;
+  createdAt: Date;
+}
