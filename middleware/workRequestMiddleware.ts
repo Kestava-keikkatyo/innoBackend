@@ -1,7 +1,18 @@
 import { NextFunction, Request, Response } from "express";
 import WorkRequest from "../models/WorkRequest";
 import { IWorkRequestDocument } from "../objecttypes/modelTypes";
+import { copyProperties } from "../utils/common";
 
+const updatableFields = [
+  "recipient",
+  "headline",
+  "workersNumber",
+  "requirements",
+  "desirableSkills",
+  "details",
+  "startDate",
+  "endDate",
+];
 /**
  * Post a new work request to database.
  * @param {Request} req - Express Request.
@@ -17,14 +28,8 @@ export const postWorkRequest = async (
   const { body } = req;
   try {
     const workRequestDocument: IWorkRequestDocument = new WorkRequest({
-      user: res.locals.userId,
-      headline: body.headline,
-      workersNumber: body.workersNumber,
-      requirements: body.requirements,
-      desirableSkills: body.desirableSkills,
-      details: body.details,
-      startDate: body.startDate,
-      endDate: body.endDate,
+      sender: res.locals.userId,
+      ...copyProperties(body, updatableFields),
     });
     const workRequest = await workRequestDocument.save();
     if (!workRequest) {
