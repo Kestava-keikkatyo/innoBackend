@@ -39,7 +39,15 @@ export const buildPaginatedObjectFromArray = (
   return paginationObject;
 };
 
-export const removeEmptyProperties = (obj: any): object =>
+export const removeEmptyProperties = (obj: object): object =>
   Object.keys(obj)
-    .filter((k) => obj[k] != null)
-    .reduce((a, k) => ({ ...a, [k]: obj[k] }), {});
+    .filter((k) => obj[k as keyof object] != null)
+    .reduce((a, k) => ({ ...a, [k]: obj[k as keyof object] }), {});
+
+export const copyProperties = (obj: object, properties: string[]): object => {
+  const result = {};
+  for (let property of properties) {
+    result[property as keyof object] = obj[property as keyof object];
+  }
+  return result;
+};
