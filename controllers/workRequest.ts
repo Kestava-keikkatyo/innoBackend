@@ -1,7 +1,10 @@
 import express from "express";
 import { isBusiness } from "../utils/authJwt";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
-import { postWorkRequest } from "../middleware/workRequestMiddleware";
+import {
+  getMyWorkRequests,
+  postWorkRequest,
+} from "../middleware/workRequestMiddleware";
 
 const workRequestRouter = express.Router();
 
@@ -41,5 +44,51 @@ const workRequestRouter = express.Router();
  *               $ref: "#/components/schemas/Error"
  */
 workRequestRouter.post("/", tokenAuthentication, isBusiness, postWorkRequest);
+
+/**
+ * Route for users of type business to get their own work requests
+ * @openapi
+ * /workRequest/allMyWorkRequests:
+ *   get:
+ *     summary: Route for users of type business to get their own work requests
+ *     description: Must be logged in as a user of type business.
+ *     tags: [WorkRequets, Business]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     responses:
+ *       "200":
+ *         description: Returns user's work requests.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: "#/components/schemas/WorkRequest"
+ *       "404":
+ *         description: The requested workrequests are not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: No work requests found
+ *       "500":
+ *         description: An error occurred. Either a problem with the database or middleware.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ */
+workRequestRouter.get(
+  "/allMyWorkRequests",
+  tokenAuthentication,
+  isBusiness,
+  getMyWorkRequests
+);
 
 export default workRequestRouter;
