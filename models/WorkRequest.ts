@@ -3,10 +3,14 @@ import uniqueValidator from "mongoose-unique-validator";
 import { IWorkRequestDocument } from "../objecttypes/modelTypes";
 
 const workRequestSchema = new Schema({
-  user: {
+  sender: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     immutable: true,
+  },
+  recipient: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
   },
   headline: {
     type: String,

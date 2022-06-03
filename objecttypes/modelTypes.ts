@@ -253,7 +253,8 @@ export interface ITokenDocument extends Document, IToken {
 }
 
 export interface IWorkRequest {
-  user: IUserDocument["_id"];
+  sender: IUserDocument["_id"];
+  recipient: IUserDocument["_id"];
   headline: String;
   workersNumber: Number;
   requirements: String;
