@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import WorkRequest from "../models/WorkRequest";
 import { IWorkRequestDocument } from "../objecttypes/modelTypes";
-import { CallbackError } from "mongoose";
 import { copyProperties } from "../utils/common";
 
 const updatableFields = [
@@ -51,26 +50,20 @@ export const postWorkRequest = async (
  * @param {NextFunction} next
  * @returns user's work requests
  */
-export const getMyWorkRequests = (
+export const getMyWorkRequests = async (
   _req: Request,
   res: Response,
   next: NextFunction
 ) => {
+  const id: string = res.locals.userId;
   try {
-    WorkRequest.find(
-      { user: res.locals.userId },
-      (error: CallbackError, docs: IWorkRequestDocument[]) => {
-        if (error) {
-          return res.status(500).json({ message: error.message });
-        }
-        if (!docs.length) {
-          return res.status(404).json({ message: "No work requests found!" });
-        }
-        return res.status(200).json(docs);
-      }
-    ).populate("user", {
-      name: 1,
+    const docs: Array<IWorkRequestDocument> | null = await WorkRequest.find({
+      sender: id,
     });
+    if (!docs) {
+      return res.status(404).send({});
+    }
+    return res.status(200).send(docs);
   } catch (exception) {
     return next(exception);
   }
