@@ -36,12 +36,14 @@ const workRequestRouter = express.Router();
  *           application/json:
  *             schema:
  *               $ref: "#/components/schemas/WorkRequest"
- *       "500":
- *         description: An error occurred. Either a problem with the database or middleware.
+ *       "400":
+ *         description: Failed to handle the process
  *         content:
  *           application/json:
  *             schema:
  *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Failed to send the work request
  */
 workRequestRouter.post("/", tokenAuthentication, isBusiness, postWorkRequest);
 
@@ -77,12 +79,6 @@ workRequestRouter.post("/", tokenAuthentication, isBusiness, postWorkRequest);
  *               $ref: "#/components/schemas/Error"
  *             example:
  *               message: No work requests found
- *       "500":
- *         description: An error occurred. Either a problem with the database or middleware.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: "#/components/schemas/Error"
  */
 workRequestRouter.get(
   "/allMyWorkRequests",
