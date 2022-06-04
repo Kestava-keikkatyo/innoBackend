@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import WorkRequest from "../models/WorkRequest";
 import { IWorkRequestDocument } from "../objecttypes/modelTypes";
-import { copyProperties } from "../utils/common";
+import { copyProperties, removeEmptyProperties } from "../utils/common";
 
 const updatableFields = [
   "recipient",
@@ -90,6 +90,41 @@ export const getWorkRequestById = async (
       return res.status(404).send({});
     }
     return res.status(200).send(docs);
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
+ * Update work request by id.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns Updated work request
+ */
+export const updateWorkRequest = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { params, body } = req;
+  const { id } = params;
+
+  try {
+    const updatedWorkRequest = removeEmptyProperties({
+      ...copyProperties(body, updatableFields),
+    });
+
+    const workRequest: IWorkRequestDocument | null =
+      await WorkRequest.findByIdAndUpdate(id, updatedWorkRequest, {
+        new: true,
+        runValidators: true,
+        lean: true,
+      });
+    if (workRequest) {
+      console.log(`Work request was updated successfully!`);
+    }
+    return res.status(workRequest ? 200 : 404).send();
   } catch (exception) {
     return next(exception);
   }
