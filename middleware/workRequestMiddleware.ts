@@ -68,3 +68,29 @@ export const getMyWorkRequests = async (
     return next(exception);
   }
 };
+
+/**
+ * Get work request by id.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns Work request
+ */
+export const getWorkRequestById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { params } = req;
+  const id: string = params.id;
+
+  try {
+    const docs: IWorkRequestDocument | null = await WorkRequest.findById(id);
+    if (!docs) {
+      return res.status(404).send({});
+    }
+    return res.status(200).send(docs);
+  } catch (exception) {
+    return next(exception);
+  }
+};
