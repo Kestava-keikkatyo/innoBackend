@@ -3,6 +3,7 @@ import { isBusiness } from "../utils/authJwt";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
 import {
   getMyWorkRequests,
+  getWorkRequestById,
   postWorkRequest,
 } from "../middleware/workRequestMiddleware";
 
@@ -85,6 +86,51 @@ workRequestRouter.get(
   tokenAuthentication,
   isBusiness,
   getMyWorkRequests
+);
+
+/**
+ * Route for user of role business to get a work request by its id
+ * @openapi
+ * /workRequest/any/{id}:
+ *   get:
+ *     summary: Route for user of role business to get a work request by its id
+ *     description: Must be logged in as a user of role.
+ *     tags: [WorkRequest, Business]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: id
+ *         description: ID of the defined work request.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 604021e581a9626810885657
+ *     responses:
+ *       "200":
+ *         description: Returns the defined work request.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/WorkRequest"
+ *       "404":
+ *         description: The work request is not existng.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: No work request was found
+ */
+workRequestRouter.get(
+  "/any/:id",
+  tokenAuthentication,
+  isBusiness,
+  getWorkRequestById
 );
 
 export default workRequestRouter;
