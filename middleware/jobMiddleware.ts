@@ -2,7 +2,24 @@ import { NextFunction, Request, Response } from "express";
 import { CallbackError } from "mongoose";
 import Job from "../models/Job";
 import { IJobDocument } from "../objecttypes/modelTypes";
-import { removeEmptyProperties } from "../utils/common";
+import { copyProperties, removeEmptyProperties } from "../utils/common";
+
+const updatableFields = [
+  "title",
+  "category",
+  "jobType",
+  "street",
+  "zipCode",
+  "city",
+  "salary",
+  "requirements",
+  "desirableSkills",
+  "benefits",
+  "details",
+  "startDate",
+  "endDate",
+  "applicationLastDate",
+];
 
 /**
  * Post a new job to database.
@@ -20,20 +37,7 @@ export const postJob = async (
   try {
     const jobDocument: IJobDocument = new Job({
       user: res.locals.userId,
-      title: body.title,
-      category: body.category,
-      jobType: body.jobType,
-      street: body.street,
-      zipCode: body.zipCode,
-      city: body.city,
-      salary: body.salary,
-      requirements: body.requirements,
-      desirableSkills: body.desirableSkills,
-      benefits: body.benefits,
-      details: body.details,
-      startDate: body.startDate,
-      endDate: body.endDate,
-      applicationLastDate: body.applicationLastDate,
+      ...copyProperties(body, updatableFields),
     });
     const job = await jobDocument.save();
     if (!job) {
