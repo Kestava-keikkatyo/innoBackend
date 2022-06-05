@@ -2,7 +2,9 @@ import { NextFunction, Request, Response } from "express";
 import Topic from "../models/Topic";
 import { ITopicDocument } from "../objecttypes/modelTypes";
 import { CallbackError } from "mongoose";
-import { removeEmptyProperties } from "../utils/common";
+import { copyProperties, removeEmptyProperties } from "../utils/common";
+
+const updatableFields = ["question", "answer"];
 
 /**
  * Post new info to database.
@@ -20,8 +22,7 @@ export const postTopic = async (
   try {
     const topicDocument: ITopicDocument = new Topic({
       user: res.locals.userId,
-      question: body.question,
-      answer: body.answer,
+      ...copyProperties(body, updatableFields),
     });
     const topic = await topicDocument.save();
     if (!topic) {
