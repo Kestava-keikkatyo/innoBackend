@@ -2,7 +2,9 @@ import { NextFunction, Request, Response } from "express";
 import { CallbackError } from "mongoose";
 import FeedBack from "../models/FeedBack";
 import { IFeedbackDocument } from "../objecttypes/modelTypes";
+import { copyProperties } from "../utils/common";
 
+const updatableFields = ["heading", "message"];
 /**
  * Post a new feedback to database.
  * @param {Request} req - Express Request.
@@ -19,8 +21,7 @@ export const postFeedback = async (
     const { body } = req;
     const feedbackDocument: IFeedbackDocument = new FeedBack({
       user: res.locals.userId,
-      heading: body.heading,
-      message: body.message,
+      ...copyProperties(body, updatableFields),
     });
 
     const feedback = await feedbackDocument.save();
