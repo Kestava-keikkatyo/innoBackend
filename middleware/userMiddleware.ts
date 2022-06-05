@@ -3,7 +3,9 @@ import { CallbackError } from "mongoose";
 import User from "../models/User";
 import { IFeelings, IUser, IUserDocument } from "../objecttypes/modelTypes";
 import { hash } from "bcryptjs";
-import { removeEmptyProperties } from "../utils/common";
+import { copyProperties, removeEmptyProperties } from "../utils/common";
+
+const updatableFields = ["name", "email", "userType"];
 
 /**
  * Post a new user to database.
@@ -28,9 +30,7 @@ export const createUser = async (
     const saltRounds: number = 10;
     const passwordHash: string = await hash(body.password, saltRounds);
     const userDocument: IUserDocument = new User({
-      name: body.name,
-      email: body.email,
-      userType: body.userType,
+      ...copyProperties(body, updatableFields),
       passwordHash,
     });
     const user = await userDocument.save();
