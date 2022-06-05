@@ -2,6 +2,16 @@ import { NextFunction, Request, Response } from "express";
 import { CallbackError } from "mongoose";
 import Form2 from "../models/Form2";
 import { IForm2Document } from "../objecttypes/modelTypes";
+import { copyProperties } from "../utils/common";
+
+const updatableFields = [
+  "title",
+  "isPublic",
+  "filled",
+  "common",
+  "questions",
+  "description",
+];
 
 /**
  * Post a new form to database.
@@ -21,12 +31,7 @@ export const postForm = async (
   try {
     const formDocument: IForm2Document = new Form2({
       user: res.locals.userId,
-      title: body.title,
-      isPublic: body.isPublic,
-      filled: body.filled,
-      common: body.common,
-      questions: body.questions,
-      description: body.description,
+      ...copyProperties(body, updatableFields),
     });
     const form = await formDocument.save();
     if (!form) {
