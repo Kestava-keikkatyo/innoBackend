@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { CallbackError } from "mongoose";
-import Form2 from "../models/Form2";
-import { IForm2Document } from "../objecttypes/modelTypes";
+import Form from "../models/Form";
+import { IFormDocument } from "../objecttypes/modelTypes";
 import { copyProperties } from "../utils/common";
 
 const updatableFields = [
@@ -29,7 +29,7 @@ export const postForm = async (
   console.log(body.questions);
 
   try {
-    const formDocument: IForm2Document = new Form2({
+    const formDocument: IFormDocument = new Form({
       user: res.locals.userId,
       ...copyProperties(body, updatableFields),
     });
@@ -56,9 +56,9 @@ export const getMyForms = (
   next: NextFunction
 ) => {
   try {
-    Form2.find(
+    Form.find(
       { user: res.locals.userId },
-      (error: CallbackError, docs: IForm2Document[]) => {
+      (error: CallbackError, docs: IFormDocument[]) => {
         if (error) {
           return res.status(500).json({ message: error.message });
         }
@@ -86,9 +86,9 @@ export const getFormByCommon = (
   next: NextFunction
 ) => {
   try {
-    Form2.find(
+    Form.find(
       { common: true, filled: false },
-      (error: CallbackError, doc: IForm2Document | null) => {
+      (error: CallbackError, doc: IFormDocument | null) => {
         if (error) {
           return res.status(500).json({ message: error.message });
         }
@@ -116,9 +116,9 @@ export const getFormByPublic = (
   next: NextFunction
 ) => {
   try {
-    Form2.find(
+    Form.find(
       { isPublic: true, common: false, filled: false },
-      (error: CallbackError, doc: IForm2Document | null) => {
+      (error: CallbackError, doc: IFormDocument | null) => {
         if (error) {
           return res.status(500).json({ message: error.message });
         }
@@ -156,7 +156,7 @@ export const getFormById = (
   const id: string = params.id;
 
   try {
-    Form2.findById(id, (error: CallbackError, doc: IForm2Document | null) => {
+    Form.findById(id, (error: CallbackError, doc: IFormDocument | null) => {
       if (error) {
         return res.status(500).json({ message: error.message });
       }
@@ -186,7 +186,7 @@ export const updateForm = async (
   const { id } = params;
 
   try {
-    const form: IForm2Document | null = await Form2.findByIdAndUpdate(
+    const form: IFormDocument | null = await Form.findByIdAndUpdate(
       { _id: id },
       { ...body },
       { new: true, runValidators: true, lean: true }
@@ -216,7 +216,7 @@ export const deleteForm = async (
   const id: string = params.id;
 
   try {
-    const form: IForm2Document | null = await Form2.findByIdAndDelete(id);
+    const form: IFormDocument | null = await Form.findByIdAndDelete(id);
 
     if (!form) {
       return res
@@ -245,7 +245,7 @@ export const getPublicForms = async (
   next: NextFunction
 ) => {
   try {
-    const forms: Array<IForm2Document> | null = await Form2.find({
+    const forms: Array<IFormDocument> | null = await Form.find({
       isPublic: true,
       filled: false,
     });

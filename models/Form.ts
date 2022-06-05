@@ -1,9 +1,9 @@
 import mongoose, { Schema } from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2";
-import { IForm2Document } from "../objecttypes/modelTypes";
+import { IFormDocument } from "../objecttypes/modelTypes";
 import { error as _error } from "../utils/logger";
 
-const form2Schema : Schema = new Schema(
+const formSchema: Schema = new Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
@@ -43,6 +43,7 @@ const form2Schema : Schema = new Schema(
             questionId: {
               type: String,
               unique: true,
+              sparse: true,
               required: true,
             },
             answer: {
@@ -540,6 +541,6 @@ const form2Schema : Schema = new Schema(
   }
 );
 
-form2Schema.plugin(mongoosePaginate);
+formSchema.plugin(mongoosePaginate);
 
-export default mongoose.model<IForm2Document>("Form2", form2Schema);
+export default mongoose.model<IFormDocument>("Form", formSchema);

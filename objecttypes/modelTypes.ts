@@ -89,7 +89,7 @@ export interface IQuestions {
 }
 // Typings for Form's questions END
 
-export interface IForm2 {
+export interface IForm {
   user: IUserDocument["_id"];
   title: string;
   isPublic: boolean;
@@ -100,7 +100,7 @@ export interface IForm2 {
   tags?: Array<string>;
 }
 
-export interface IForm2Document extends Document, IForm2 {
+export interface IFormDocument extends Document, IForm {
   _id: Types.ObjectId;
   createdAt: Date;
 }
@@ -177,7 +177,7 @@ export interface IJobDocument extends Document, IJob {
 export interface IAgreement {
   creator: IUserDocument["_id"];
   target: IUserDocument["_id"];
-  form2: Array<IForm2Document>[];
+  form: Array<IFormDocument>[];
   type: string;
   status: string;
 }

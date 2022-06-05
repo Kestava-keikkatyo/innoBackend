@@ -9,13 +9,13 @@ import {
   deleteForm,
   getPublicForms,
   getFormByPublic,
-} from "../middleware/form2Middleware";
+} from "../middleware/formMiddleware";
 import {
   isAgencyOrBusiness,
   isWorkerOrBusinessOrAgency,
 } from "../utils/authJwt";
 
-const form2Router = express.Router();
+const formRouter = express.Router();
 
 /**
  * Route for user of role agency or business to create a new form.
@@ -37,14 +37,14 @@ const form2Router = express.Router();
  *       content:
  *         application/json:
  *           schema:
- *             $ref: "#/components/schemas/Form2"
+ *             $ref: "#/components/schemas/Form"
  *     responses:
  *       "200":
  *         description: Form created. Returns created form object.
  *         content:
  *           application/json:
  *             schema:
- *               $ref: "#/components/schemas/Form2"
+ *               $ref: "#/components/schemas/Form"
  *       "500":
  *         description: An error occurred. Either a problem with the database or middleware.
  *         content:
@@ -52,7 +52,7 @@ const form2Router = express.Router();
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-form2Router.post("/", tokenAuthentication, isAgencyOrBusiness, postForm);
+formRouter.post("/", tokenAuthentication, isAgencyOrBusiness, postForm);
 
 /**
  * Route for user of role agency or business to get common forms
@@ -75,7 +75,7 @@ form2Router.post("/", tokenAuthentication, isAgencyOrBusiness, postForm);
  *         content:
  *           application/json:
  *             schema:
- *               $ref: "#/components/schemas/Form2"
+ *               $ref: "#/components/schemas/Form"
  *       "404":
  *         description: No form was found with type common.
  *         content:
@@ -91,7 +91,7 @@ form2Router.post("/", tokenAuthentication, isAgencyOrBusiness, postForm);
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-form2Router.get(
+formRouter.get(
   "/common/",
   tokenAuthentication,
   isAgencyOrBusiness,
@@ -119,7 +119,7 @@ form2Router.get(
  *         content:
  *           application/json:
  *             schema:
- *               $ref: "#/components/schemas/Form2"
+ *               $ref: "#/components/schemas/Form"
  *       "404":
  *         description: No form was found with type common.
  *         content:
@@ -135,7 +135,7 @@ form2Router.get(
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-form2Router.get(
+formRouter.get(
   "/public",
   tokenAuthentication,
   isAgencyOrBusiness,
@@ -165,7 +165,7 @@ form2Router.get(
  *             schema:
  *               type: array
  *               items:
- *                 $ref: "#/components/schemas/Form2"
+ *                 $ref: "#/components/schemas/Form"
  *       "404":
  *         description: The requested forms are not found.
  *         content:
@@ -181,7 +181,7 @@ form2Router.get(
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-form2Router.get("/myForm", tokenAuthentication, isAgencyOrBusiness, getMyForms);
+formRouter.get("/myForm", tokenAuthentication, isAgencyOrBusiness, getMyForms);
 
 /**
  * Route for user of role agency or business to get own form by id
@@ -211,7 +211,7 @@ form2Router.get("/myForm", tokenAuthentication, isAgencyOrBusiness, getMyForms);
  *         content:
  *           application/json:
  *             schema:
- *               $ref: "#/components/schemas/Form2"
+ *               $ref: "#/components/schemas/Form"
  *       "404":
  *         description: No form was found with the requested ID.
  *         content:
@@ -227,7 +227,7 @@ form2Router.get("/myForm", tokenAuthentication, isAgencyOrBusiness, getMyForms);
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-form2Router.get(
+formRouter.get(
   "/myForm/:id",
   tokenAuthentication,
   isWorkerOrBusinessOrAgency,
@@ -268,7 +268,7 @@ form2Router.get(
  *         content:
  *           application/json:
  *             schema:
- *               $ref: "#/components/schemas/Form2"
+ *               $ref: "#/components/schemas/Form"
  *       "404":
  *         description: No form was found!.
  *         content:
@@ -278,7 +278,7 @@ form2Router.get(
  *             example:
  *               message: No form found
  */
-form2Router.put(
+formRouter.put(
   "/update/:id",
   tokenAuthentication,
   isAgencyOrBusiness,
@@ -306,7 +306,7 @@ form2Router.put(
  *         content:
  *           application/json:
  *             schema:
- *               $ref: "#/components/schemas/Form2"
+ *               $ref: "#/components/schemas/Form"
  *       "404":
  *         description: No form was found with type common.
  *         content:
@@ -322,7 +322,7 @@ form2Router.put(
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-form2Router.get(
+formRouter.get(
   "/public/",
   tokenAuthentication,
   isAgencyOrBusiness,
@@ -363,11 +363,11 @@ form2Router.get(
  *             example:
  *               message: No form was found with the requested ID {formId}
  */
-form2Router.delete(
+formRouter.delete(
   "/delete/:id",
   tokenAuthentication,
   isAgencyOrBusiness,
   deleteForm
 );
 
-export default form2Router;
+export default formRouter;
