@@ -215,21 +215,21 @@ export const deleteJob = async (
   next: NextFunction
 ) => {
   const { params } = req;
-  const { id } = params;
+  const userId: string = res.locals.userId;
+  const id: string = params.id;
 
   try {
-    const job: IJobDocument | null = await Job.findByIdAndDelete({
+    const job: IJobDocument | null = await Job.findOneAndDelete({
       _id: id,
+      user: userId,
     });
 
     if (!job) {
       return res
         .status(404)
-        .send({ message: `Job with ID ${id}  is not existing!` });
+        .send({ message: `Requested job is not existing!` });
     } else {
-      return res
-        .status(200)
-        .send({ message: `Job with ${id} was deleted successfuly!` });
+      return res.status(200).send({ message: `Job was deleted successfuly!` });
     }
   } catch (exception) {
     return next(exception);
