@@ -57,7 +57,7 @@ export const getMyWorkRequests = async (
 ) => {
   const id: string = res.locals.userId;
   try {
-    const docs: Array<IWorkRequestDocument> | null = await WorkRequest.find({
+    const docs: IWorkRequestDocument[] | null = await WorkRequest.find({
       sender: id,
     });
     if (!docs) {
@@ -82,14 +82,18 @@ export const getWorkRequestById = async (
   next: NextFunction
 ) => {
   const { params } = req;
+  const userId: string = res.locals.userId;
   const id: string = params.id;
 
   try {
-    const docs: IWorkRequestDocument | null = await WorkRequest.findById(id);
-    if (!docs) {
+    const doc: IWorkRequestDocument | null = await WorkRequest.findOne({
+      _id: id,
+      sender: userId,
+    });
+    if (!doc) {
       return res.status(404).send({});
     }
-    return res.status(200).send(docs);
+    return res.status(200).send(doc);
   } catch (exception) {
     return next(exception);
   }
@@ -108,7 +112,8 @@ export const updateWorkRequest = async (
   next: NextFunction
 ) => {
   const { params, body } = req;
-  const { id } = params;
+  const userId: string = res.locals.userId;
+  const id: string = params.id;
 
   try {
     const updatedWorkRequest = removeEmptyProperties({
@@ -116,14 +121,15 @@ export const updateWorkRequest = async (
     });
 
     const workRequest: IWorkRequestDocument | null =
-      await WorkRequest.findByIdAndUpdate(id, updatedWorkRequest, {
-        new: true,
-        runValidators: true,
-        lean: true,
-      });
-    if (workRequest) {
-      console.log(`Work request was updated successfully!`);
-    }
+      await WorkRequest.findOneAndUpdate(
+        { _id: id, sender: userId },
+        updatedWorkRequest,
+        {
+          new: true,
+          runValidators: true,
+          lean: true,
+        }
+      );
     return res.status(workRequest ? 200 : 404).send();
   } catch (exception) {
     return next(exception);
