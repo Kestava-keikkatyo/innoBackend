@@ -97,22 +97,23 @@ export const updateTopic = async (
   next: NextFunction
 ) => {
   const { params, body } = req;
-  const { id } = params;
+  const userId: string = res.locals.userId;
+  const id: string = params.id;
 
   try {
-    const updatableFields = removeEmptyProperties({
-      question: body.question,
-      answer: body.answer,
+    const updatedTopic = removeEmptyProperties({
+      ...copyProperties(body, updatableFields),
     });
 
-    const topic: ITopicDocument | null = await Topic.findByIdAndUpdate(
-      id,
-      updatableFields,
-      { new: true, runValidators: true, lean: true }
+    const topic: ITopicDocument | null = await Topic.findOneAndUpdate(
+      { _id: id, user: userId },
+      updatedTopic,
+      {
+        new: true,
+        runValidators: true,
+        lean: true,
+      }
     );
-    if (topic) {
-      console.log(`Topic was updated successfully!`);
-    }
     return res.status(topic ? 200 : 404).send();
   } catch (exception) {
     return next(exception);
