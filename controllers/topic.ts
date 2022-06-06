@@ -118,13 +118,7 @@ topicRouter.get("/all", tokenAuthentication, isAdmin, getAllTopics);
  *             schema:
  *               $ref: "#/components/schemas/Error"
  *             example:
- *               message:No topic with ID {id} found
- *       "500":
- *         description: An error occurred when calling the database.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: "#/components/schemas/Error"
+ *               message:The frequested topic is not existing
  */
 topicRouter.get("/any/:id", tokenAuthentication, isAdmin, getTopicById);
 
