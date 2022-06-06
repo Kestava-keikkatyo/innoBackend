@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import Topic from "../models/Topic";
 import { ITopicDocument } from "../objecttypes/modelTypes";
-import { CallbackError } from "mongoose";
 import { copyProperties, removeEmptyProperties } from "../utils/common";
 
 const updatableFields = ["question", "answer"];
@@ -64,7 +63,7 @@ export const getAllTopics = async (
  * @param {NextFunction} next
  * @returns Topic
  */
-export const getTopicById = (
+export const getTopicById = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -73,15 +72,13 @@ export const getTopicById = (
   const id: string = params.id;
 
   try {
-    Topic.findById(id, (error: CallbackError, doc: ITopicDocument | null) => {
-      if (error) {
-        return res.status(500).json({ message: error.message });
-      }
-      if (!doc) {
-        return res.status(404).send({ message: `No topic found!` });
-      }
-      return res.status(200).send(doc);
+    const doc: ITopicDocument | null = await Topic.findById({
+      _id: id,
     });
+    if (!doc) {
+      return res.status(404).send({});
+    }
+    return res.status(200).send(doc);
   } catch (exception) {
     return next(exception);
   }
