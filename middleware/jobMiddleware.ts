@@ -146,29 +146,17 @@ export const updateJob = async (
   next: NextFunction
 ) => {
   const { params, body } = req;
-  const { id } = params;
+  const userId: string = res.locals.userId;
+  const id: string = params.id;
 
   try {
-    const updatableFields = removeEmptyProperties({
-      title: body.title,
-      category: body.category,
-      jobType: body.jobType,
-      street: body.street,
-      zipCode: body.zipCode,
-      city: body.city,
-      salary: body.salary,
-      requirements: body.requirements,
-      desirableSkills: body.desirableSkills,
-      benefits: body.benefits,
-      details: body.details,
-      startDate: body.startDate,
-      endDate: body.endDate,
-      applicationLastDate: body.applicationLastDate,
+    const updatedJob = removeEmptyProperties({
+      ...copyProperties(body, updatableFields),
     });
 
-    const job: IJobDocument | null = await Job.findByIdAndUpdate(
-      id,
-      updatableFields,
+    const job: IJobDocument | null = await Job.findOneAndUpdate(
+      { _id: id, user: userId },
+      updatedJob,
       { new: true, runValidators: true, lean: true }
     );
     if (job) {
