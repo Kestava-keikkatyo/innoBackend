@@ -84,22 +84,22 @@ export const getAllJobs = async (
  * @param {NextFunction} next
  * @returns Agency's jobs
  */
-export const getMyJobs = (_req: Request, res: Response, next: NextFunction) => {
+export const getMyJobs = async (
+  _req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const id: string = res.locals.userId;
   try {
-    Job.find(
-      { user: res.locals.userId },
-      (error: CallbackError, docs: IJobDocument[]) => {
-        if (error) {
-          return res.status(500).json({ message: error.message });
-        }
-        if (!docs.length) {
-          return res.status(404).json({ message: "No jobs found!" });
-        }
-        return res.status(200).json(docs);
-      }
-    ).populate("user", {
+    const docs: IJobDocument[] | null = await Job.find({
+      user: id,
+    }).populate("user", {
       name: 1,
     });
+    if (!docs) {
+      return res.status(404).send({});
+    }
+    return res.status(200).send(docs);
   } catch (exception) {
     return next(exception);
   }
