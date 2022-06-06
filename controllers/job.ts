@@ -127,13 +127,7 @@ jobRouter.get("/allJobsForWorker", tokenAuthentication, isWorker, getAllJobs);
  *             schema:
  *               $ref: "#/components/schemas/Error"
  *             example:
- *               message:No job with ID {id} found
- *       "500":
- *         description: An error occurred when calling the database.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: "#/components/schemas/Error"
+ *               message:The requested job is not existing
  */
 jobRouter.get(
   "/any/:id",
