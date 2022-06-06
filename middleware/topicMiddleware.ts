@@ -133,11 +133,13 @@ export const deleteTopic = async (
   next: NextFunction
 ) => {
   const { params } = req;
-  const { id } = params;
+  const userId: string = res.locals.userId;
+  const id: string = params.id;
 
   try {
-    const topic: ITopicDocument | null = await Topic.findByIdAndDelete({
+    const topic: ITopicDocument | null = await Topic.findOneAndDelete({
       _id: id,
+      user: userId,
     });
 
     if (!topic) {
