@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from "express";
-import { CallbackError } from "mongoose";
 import Job from "../models/Job";
 import { IJobDocument } from "../objecttypes/modelTypes";
 import { copyProperties, removeEmptyProperties } from "../utils/common";
@@ -112,22 +111,24 @@ export const getMyJobs = async (
  * @param {NextFunction} next
  * @returns Job
  */
-export const getJobById = (req: Request, res: Response, next: NextFunction) => {
+export const getJobById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const { params } = req;
   const id: string = params.id;
 
   try {
-    Job.findById(id, (error: CallbackError, doc: IJobDocument | null) => {
-      if (error) {
-        return res.status(500).json({ message: error.message });
-      }
-      if (!doc) {
-        return res.status(404).send({ message: `No job with ID ${id} found!` });
-      }
-      return res.status(200).send(doc);
+    const doc: IJobDocument | null = await Job.findById({
+      _id: id,
     }).populate("user", {
       name: 1,
     });
+    if (!doc) {
+      return res.status(404).send({});
+    }
+    return res.status(200).send(doc);
   } catch (exception) {
     return next(exception);
   }
