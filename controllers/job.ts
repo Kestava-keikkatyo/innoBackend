@@ -45,12 +45,14 @@ const jobRouter = express.Router();
  *           application/json:
  *             schema:
  *               $ref: "#/components/schemas/Job"
- *       "500":
- *         description: An error occurred. Either a problem with the database or middleware.
+ *       "400":
+ *         description: Failed to handle the process
  *         content:
  *           application/json:
  *             schema:
  *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Failed to create a job
  */
 jobRouter.post("/", tokenAuthentication, isAgency, postJob);
 
@@ -172,12 +174,6 @@ jobRouter.get(
  *               $ref: "#/components/schemas/Error"
  *             example:
  *               message: No jobs found
- *       "500":
- *         description: An error occurred. Either a problem with the database or middleware.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: "#/components/schemas/Error"
  */
 jobRouter.get("/allJobsForAgency", tokenAuthentication, isAgency, getMyJobs);
 
