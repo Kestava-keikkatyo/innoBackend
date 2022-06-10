@@ -52,7 +52,7 @@ workRequestRouter.post("/", tokenAuthentication, isBusiness, postWorkRequest);
 /**
  * Route for users of type business to get their own work requests
  * @openapi
- * /workRequest/allMyWorkRequests:
+ * /workRequest/myWorkRequests:
  *   get:
  *     summary: Route for users of type business to get their own work requests
  *     description: Must be logged in as a user of type business.
@@ -83,7 +83,7 @@ workRequestRouter.post("/", tokenAuthentication, isBusiness, postWorkRequest);
  *               message: No work requests found
  */
 workRequestRouter.get(
-  "/allMyWorkRequests",
+  "/myWorkRequests",
   tokenAuthentication,
   isBusiness,
   getMyWorkRequests
