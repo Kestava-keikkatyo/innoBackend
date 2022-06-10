@@ -41,29 +41,24 @@ export const postFeedback = async (
  * @param {NextFunction} next
  * @returns User's feedbacks
  */
-export const getMyFeedbacks = (
+export const getMyFeedbacks = async (
   _req: Request,
   res: Response,
   next: NextFunction
 ) => {
+  const id: string = res.locals.userId;
   try {
-    FeedBack.find(
-      { user: res.locals.userId },
-      (error: CallbackError, docs: IFeedbackDocument[]) => {
-        if (error) {
-          return res.status(500).json({ message: error.message });
-        }
-        if (!docs.length) {
-          return res.status(404).json({ message: "No feedbacks found!" });
-        }
-        return res.status(200).json(docs);
-      }
-    );
+    const docs: IFeedbackDocument[] | null = await FeedBack.find({
+      user: id,
+    });
+    if (!docs) {
+      return res.status(404).send({});
+    }
+    return res.status(200).send(docs);
   } catch (exception) {
     return next(exception);
   }
 };
-
 /**
  * Get feedback by id.
  * @param {Request} req - Express Request.
