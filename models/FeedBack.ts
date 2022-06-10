@@ -6,18 +6,23 @@ const feedbackSchema = new Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
+    immutable: true,
+  },
+  recipient: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
   },
   heading: {
     type: String,
-    ref: "FeedbackHeading",
+    required: false,
   },
   message: {
     type: String,
-    ref: "FeedbackMessage",
+    required: false,
   },
   reply: {
     type: String,
-    ref: "FeedbackReply",
+    required: false,
   },
   createdAt: {
     type: Date,
