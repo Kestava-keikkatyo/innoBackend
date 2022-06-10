@@ -39,12 +39,6 @@ const feedbackRouter = express.Router();
  *           application/json:
  *             schema:
  *               $ref: "#/components/schemas/Feedback"
- *       "500":
- *         description: An error occurred. Either a problem with the database or middleware.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: "#/components/schemas/Error"
  */
 feedbackRouter.post(
   "/",
@@ -85,12 +79,6 @@ feedbackRouter.post(
  *               $ref: "#/components/schemas/Error"
  *             example:
  *               message: No feedbacks found
- *       "500":
- *         description: An error occurred. Either a problem with the database or middleware.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: "#/components/schemas/Error"
  */
 feedbackRouter.get(
   "/allMyFeedbacks",
@@ -136,12 +124,6 @@ feedbackRouter.get(
  *               $ref: "#/components/schemas/Error"
  *             example:
  *               message:No feedback found
- *       "500":
- *         description: An error occurred when calling the database.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: "#/components/schemas/Error"
  */
 feedbackRouter.get(
   "/:id",
