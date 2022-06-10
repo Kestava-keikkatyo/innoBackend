@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { CallbackError } from "mongoose";
 import FeedBack from "../models/FeedBack";
 import { IFeedbackDocument } from "../objecttypes/modelTypes";
-import { copyProperties } from "../utils/common";
+import { copyProperties, removeEmptyProperties } from "../utils/common";
 
 const updatableFields = ["heading", "message"];
 /**
@@ -105,6 +105,42 @@ export const getAllFeddbacks = async (
       return res.status(200).json(feedbacks);
     }
     return res.status(404).json({ message: "No feedbacks found!" });
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
+ * Update feedback by id.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns Updated feedback
+ */
+export const updateFeedback = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { params, body } = req;
+  const userId: string = res.locals.userId;
+  const id: string = params.id;
+
+  try {
+    const updatedFeedback = removeEmptyProperties({
+      ...copyProperties(body, updatableFields),
+    });
+
+    const feedback: IFeedbackDocument | null = await FeedBack.findOneAndUpdate(
+      { _id: id, user: userId },
+      updatedFeedback,
+      {
+        new: true,
+        runValidators: true,
+        lean: true,
+      }
+    );
+    return res.status(feedback ? 200 : 404).send();
   } catch (exception) {
     return next(exception);
   }
