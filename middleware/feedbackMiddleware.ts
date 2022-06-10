@@ -66,7 +66,7 @@ export const getMyFeedbacks = async (
  * @param {NextFunction} next
  * @returns Feedback
  */
-export const getFeedbackById = (
+export const getFeedbackById = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -75,18 +75,13 @@ export const getFeedbackById = (
   const id: string = params.id;
 
   try {
-    FeedBack.findById(
-      id,
-      (error: CallbackError, doc: IFeedbackDocument | null) => {
-        if (error) {
-          return res.status(500).json({ message: error.message });
-        }
-        if (!doc) {
-          return res.status(404).send({ message: `No feedback found!` });
-        }
-        return res.status(200).send(doc);
-      }
-    );
+    const doc: IFeedbackDocument | null = await FeedBack.findById({
+      _id: id,
+    });
+    if (!doc) {
+      return res.status(404).send({});
+    }
+    return res.status(200).send(doc);
   } catch (exception) {
     return next(exception);
   }
