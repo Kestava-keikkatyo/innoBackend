@@ -100,7 +100,7 @@ export const getAllFeddbacks = async (
   next: NextFunction
 ) => {
   try {
-    const feedbacks: Array<IFeedbackDocument> | null = await FeedBack.find({});
+    const feedbacks: IFeedbackDocument[] | null = await FeedBack.find({});
     if (feedbacks) {
       return res.status(200).json(feedbacks);
     }
