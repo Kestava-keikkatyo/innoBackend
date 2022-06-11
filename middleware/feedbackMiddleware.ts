@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from "express";
-import { CallbackError } from "mongoose";
 import FeedBack from "../models/FeedBack";
 import { IFeedbackDocument } from "../objecttypes/modelTypes";
 import { copyProperties, removeEmptyProperties } from "../utils/common";
@@ -147,34 +146,34 @@ export const updateFeedback = async (
 };
 
 /**
- * TO DO ckeck this method
+ * Update feedback by id.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns Updated feedback
  */
-export const replyFeedback = (
+export const replyFeedback = async (
   req: Request,
   res: Response,
-  _next: NextFunction
+  next: NextFunction
 ) => {
-  try {
-    const { body, params } = req;
-    const updateFilter = { _id: params.feedbackId };
-    const update = { $set: { reply: body.replyMessage } };
+  const { params, body } = req;
+  const userId: string = res.locals.userId;
+  const id: string = params.id;
 
-    return FeedBack.updateOne(
-      updateFilter,
-      update,
-      undefined,
-      (err: CallbackError, res: any) => {
-        if (err)
-          return res.status(500).send({ message: "Fatal error.", error: err });
-        else if (!res)
-          return res
-            .status(404)
-            .send({ message: "Feedback update result was empty." });
-        else return res.status(200).send(res);
+  try {
+    const feedback: IFeedbackDocument | null = await FeedBack.findOneAndUpdate(
+      { _id: id, user: userId },
+      { $addToSet: { reply: body.reply } },
+      {
+        new: true,
+        runValidators: true,
+        lean: true,
       }
     );
+    return res.status(feedback ? 200 : 404).send();
   } catch (exception) {
-    return res.status(500).send({ exception });
+    return next(exception);
   }
 };
 
