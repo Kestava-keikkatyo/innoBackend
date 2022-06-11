@@ -163,7 +163,7 @@ export const replyFeedback = async (
 
   try {
     const feedback: IFeedbackDocument | null = await FeedBack.findOneAndUpdate(
-      { _id: id, user: userId },
+      { _id: id, recipient: userId },
       { $addToSet: { reply: body.reply } },
       {
         new: true,
