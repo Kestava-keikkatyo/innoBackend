@@ -407,6 +407,50 @@ jobRouter.put(
  */
 jobRouter.delete("/jobDelete/:id", tokenAuthentication, isAgency, deleteJob);
 
+/**
+ * Route for user of role agency to update job status.
+ * @openapi
+ * /job/updateStatus/{id}:
+ *   patch:
+ *     summary: Route for user of role agency to update job status
+ *     description: Must be logged in as agency.
+ *     tags: [Job, Agency]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: id
+ *         description: ID of the job to update its status.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 604021e581a9626810885657
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: "#/components/schemas/Job"
+ *     responses:
+ *       "200":
+ *         description: Returns the updated job.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Job"
+ *       "404":
+ *         description: No job was found with the requested ID.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: The requested job is not existing
+ */
 jobRouter.patch(
   "/updateStatus/:Id",
   tokenAuthentication,
