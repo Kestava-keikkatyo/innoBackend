@@ -236,3 +236,35 @@ export const deleteJob = async (
     return next(exception);
   }
 };
+
+/**
+ * Update job status.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns Updated job
+ */
+export const updateJobStatus = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { params, body } = req;
+  const userId: string = res.locals.userId;
+  const id: string = params.id;
+  const { active } = body;
+
+  try {
+    const job: IJobDocument | null = await Job.findOneAndUpdate(
+      { _id: id, user: userId },
+      { active },
+      { new: true, runValidators: true, lean: true }
+    );
+    if (job) {
+      console.log(`job was deactivated!`);
+    }
+    return res.status(job ? 200 : 404).send();
+  } catch (exception) {
+    return next(exception);
+  }
+};
