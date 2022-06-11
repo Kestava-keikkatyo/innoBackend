@@ -24,6 +24,10 @@ const feedbackSchema = new Schema({
     type: String,
     required: false,
   },
+  replied: {
+    type: Boolean,
+    default: false,
+  },
   createdAt: {
     type: Date,
     immutable: true,

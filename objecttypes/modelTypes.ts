@@ -124,6 +124,7 @@ export interface IFeedback {
   heading: String;
   message: String;
   reply: String;
+  replied: boolean;
 }
 
 export interface IFeedbackDocument extends Document, IFeedback {
