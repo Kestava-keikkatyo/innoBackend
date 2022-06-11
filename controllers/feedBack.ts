@@ -6,6 +6,7 @@ import {
   replyFeedback,
   getFeedbackById,
   getAllFeddbacks,
+  updateFeedback,
 } from "../middleware/feedbackMiddleware";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
 
@@ -170,6 +171,57 @@ feedbackRouter.get(
   tokenAuthentication,
   isAdmin,
   getAllFeddbacks
+);
+
+/**
+ * Route for user to update own feedback.
+ * @openapi
+ * /feedback/update/{id}:
+ *   put:
+ *     summary: Route for user to update own feedback.
+ *     description: Must be logged in as a user of role worker, agency or business.
+ *     tags: [Feedback, User]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: id
+ *         description: ID of the feedback to be updated.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 604021e581a9626810885657
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: "#/components/schemas/FeedbBack"
+ *     responses:
+ *       "200":
+ *         description: Returns the updated feedback.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/FeedBack"
+ *       "404":
+ *         description: No feedback was found with the requested ID.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: This feedback is not existing
+ */
+feedbackRouter.put(
+  "/update/:id",
+  tokenAuthentication,
+  isWorkerOrBusinessOrAgency,
+  updateFeedback
 );
 
 /**
