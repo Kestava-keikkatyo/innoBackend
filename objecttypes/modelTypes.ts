@@ -170,6 +170,7 @@ export interface IJob {
   startDate: Date;
   endDate: Date;
   applicationLastDate: Date;
+  active: boolean;
   applicants: Array<IUserDocument["_id"]>;
 }
 

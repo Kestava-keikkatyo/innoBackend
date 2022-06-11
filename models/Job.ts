@@ -68,9 +68,13 @@ const jobSchema = new Schema({
     type: Date,
     default: Date.now,
   },
+  active: {
+    type: Boolean,
+    default: true,
+  },
   applicants: {
     type: Array,
-  }
+  },
 });
 
 jobSchema.plugin(uniqueValidator);
