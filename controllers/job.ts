@@ -7,6 +7,7 @@ import {
   deleteJob,
   getMyJobs,
   addApplicant,
+  updateJobStatus,
 } from "../middleware/jobMiddleware";
 import {
   isAdmin,
@@ -405,5 +406,12 @@ jobRouter.put(
  *               message: No job was found with the requested ID {id}
  */
 jobRouter.delete("/jobDelete/:id", tokenAuthentication, isAgency, deleteJob);
+
+jobRouter.patch(
+  "/updateStatus/:Id",
+  tokenAuthentication,
+  isAgency,
+  updateJobStatus
+);
 
 export default jobRouter;
