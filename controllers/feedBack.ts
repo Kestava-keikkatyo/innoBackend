@@ -224,6 +224,50 @@ feedbackRouter.put(
   updateFeedback
 );
 
+/**
+ * Route for user to reply other users' feedbacks.
+ * @openapi
+ * /feedback/reply/{id}:
+ *   put:
+ *     summary: Route for user to reply other users' feedbacks.
+ *     description: Must be logged in as a user of role business, agency or worker.
+ *     tags: [FeedBack, User]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: id
+ *         description: ID of the feedback to be replied.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 604021e581a9626810885657
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: "#/components/schemas/FeedBack"
+ *     responses:
+ *       "200":
+ *         description: Returns the replied feedback.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/FeedBack"
+ *       "404":
+ *         description: No feedback was found with the requested ID.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: This feedback is not existing
+ */
 feedbackRouter.put(
   "/reply/:id",
   tokenAuthentication,
