@@ -3,10 +3,10 @@ import { isAdmin, isWorkerOrBusinessOrAgency } from "../utils/authJwt";
 import {
   postFeedback,
   getMyFeedbacks,
-  replyFeedback,
   getFeedbackById,
   getAllFeddbacks,
   updateFeedback,
+  replyFeedback,
 } from "../middleware/feedbackMiddleware";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
 
@@ -224,9 +224,11 @@ feedbackRouter.put(
   updateFeedback
 );
 
-/**
- * Käytetään kun halutaan vastata käyttäjän antamaan palautteeseen.
- */
-feedbackRouter.put("/reply", replyFeedback);
+feedbackRouter.put(
+  "/reply/:id",
+  tokenAuthentication,
+  isWorkerOrBusinessOrAgency,
+  replyFeedback
+);
 
 export default feedbackRouter;
