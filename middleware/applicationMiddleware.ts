@@ -20,7 +20,7 @@ export const postApplication = async (
   const { body } = req;
   try {
     const applicationDocument: IApplicationDocument = new Application({
-      sender: res.locals.userId,
+      applicant: res.locals.userId,
       ...copyProperties(body, updatableFields),
     });
     const application = await applicationDocument.save();
@@ -102,7 +102,7 @@ export const getAllMyApplications = async (
   const id: string = res.locals.userId;
   try {
     const docs: IApplicationDocument[] | null = await Application.find({
-      user: id,
+      applicant: id,
     });
     if (!docs) {
       return res.status(404).send({});
@@ -132,7 +132,7 @@ export const getMyApplication = async (
   try {
     const doc: IApplicationDocument | null = await Application.findOne({
       _id: id,
-      user: userId,
+      applicant: userId,
     });
     if (!doc) {
       return res.status(404).send({});

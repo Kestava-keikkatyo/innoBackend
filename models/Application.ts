@@ -9,7 +9,7 @@ const applicationSchema = new Schema({
     enum: ["pending", "accepted", "rejected"],
     required: false,
   },
-  user: {
+  applicant: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },

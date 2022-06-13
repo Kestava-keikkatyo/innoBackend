@@ -226,7 +226,7 @@ export interface IUserDocument extends Document, IUser {
 }
 
 export interface IApplication {
-  user: IUserDocument["_id"];
+  applicant: IUserDocument["_id"];
   job: IJobDocument["_id"];
   status: string;
   explanation: string;
