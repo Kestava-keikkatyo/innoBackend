@@ -116,3 +116,33 @@ export const getAllMyApplications = async (
     return next(exception);
   }
 };
+
+/**
+ * Get user's appliaction by id.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns user's application
+ */
+export const getMyApplication = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { params } = req;
+  const userId: string = res.locals.userId;
+  const id: string = params.id;
+
+  try {
+    const doc: IApplicationDocument | null = await Application.findOne({
+      _id: id,
+      user: userId,
+    });
+    if (!doc) {
+      return res.status(404).send({});
+    }
+    return res.status(200).send(doc);
+  } catch (exception) {
+    return next(exception);
+  }
+};
