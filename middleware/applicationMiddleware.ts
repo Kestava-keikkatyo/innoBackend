@@ -98,7 +98,7 @@ export const getApplicationById = (
  * @param {NextFunction} next
  * @returns user's applications
  */
-export const getMyApplications = async (
+export const getAllMyApplications = async (
   _req: Request,
   res: Response,
   next: NextFunction
