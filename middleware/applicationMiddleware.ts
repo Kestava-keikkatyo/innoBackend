@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from "express";
-import { CallbackError } from "mongoose";
 import Application from "../models/Application";
 import { IApplicationDocument } from "../objecttypes/modelTypes";
 
@@ -65,7 +64,7 @@ export const getAllApplications = async (
  * @param {NextFunction} next
  * @returns Application
  */
-export const getApplicationById = (
+export const getApplicationById = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -74,18 +73,15 @@ export const getApplicationById = (
   const id: string = params.id;
 
   try {
-    Application.findById(
-      id,
-      (error: CallbackError, doc: IApplicationDocument | null) => {
-        if (error) {
-          return res.status(500).json({ message: error.message });
-        }
-        if (!doc) {
-          return res.status(404).send({ message: `Application is not found!` });
-        }
-        return res.status(200).send(doc);
-      }
-    );
+    const doc: IApplicationDocument | null = await Application.findById({
+      _id: id,
+    }).populate("user", {
+      name: 1,
+    });
+    if (!doc) {
+      return res.status(404).send({});
+    }
+    return res.status(200).send(doc);
   } catch (exception) {
     return next(exception);
   }
