@@ -100,11 +100,11 @@ applicationRouter.get(
 /**
  * Route for workers to get their own applications
  * @openapi
- * /application/allWorkerApplications:
+ * /application/myApplications:
  *   get:
  *     summary: Route for workers to get their own applications
  *     description: Must be logged in as an worker.
- *     tags: [Applications, Worker]
+ *     tags: [Application, Worker]
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -129,15 +129,9 @@ applicationRouter.get(
  *               $ref: "#/components/schemas/Error"
  *             example:
  *               message: No applications found
- *       "500":
- *         description: An error occurred. Either a problem with the database or middleware.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: "#/components/schemas/Error"
  */
 applicationRouter.get(
-  "/allMyApplications",
+  "/myApplications",
   tokenAuthentication,
   isWorker,
   getMyApplications
