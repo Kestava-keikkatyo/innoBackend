@@ -92,32 +92,26 @@ export const getApplicationById = (
 };
 
 /**
- * This function is used to get all workers's applications.
+ * Get user's applications.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next
- * @returns Worker's applications
+ * @returns user's applications
  */
-export const getWorkerApplications = (
+export const getMyApplications = async (
   _req: Request,
   res: Response,
   next: NextFunction
 ) => {
+  const id: string = res.locals.userId;
   try {
-    Application.find(
-      { user: res.locals.userId },
-      (error: CallbackError, docs: IApplicationDocument[]) => {
-        if (error) {
-          return res.status(500).json({ message: error.message });
-        }
-        if (!docs.length) {
-          return res.status(404).json({ message: "No applications found!" });
-        }
-        return res.status(200).json(docs);
-      }
-    ).populate("user", {
-      name: 1,
+    const docs: IApplicationDocument[] | null = await Application.find({
+      user: id,
     });
+    if (!docs) {
+      return res.status(404).send({});
+    }
+    return res.status(200).send(docs);
   } catch (exception) {
     return next(exception);
   }

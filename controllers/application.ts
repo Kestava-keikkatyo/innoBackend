@@ -2,7 +2,7 @@ import express from "express";
 import { isWorker } from "../utils/authJwt";
 import {
   getApplicationById,
-  getWorkerApplications,
+  getMyApplications,
   postapplication,
 } from "../middleware/applicationMiddleware";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
@@ -140,7 +140,7 @@ applicationRouter.get(
   "/allMyApplications",
   tokenAuthentication,
   isWorker,
-  getWorkerApplications
+  getMyApplications
 );
 
 export default applicationRouter;
