@@ -3,7 +3,7 @@ import Application from "../models/Application";
 import { IApplicationDocument } from "../objecttypes/modelTypes";
 import { copyProperties } from "../utils/common";
 
-const updatableFields = ["job", "status"];
+const updatableFields = ["job", "explanation", "fileUrl", "status"];
 
 /**
  * Post a new application to database.
