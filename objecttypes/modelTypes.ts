@@ -229,6 +229,8 @@ export interface IApplication {
   user: IUserDocument["_id"];
   job: IJobDocument["_id"];
   status: string;
+  explanation: string;
+  fileUrl: string;
 }
 
 export interface IApplicationDocument extends Document, IApplication {

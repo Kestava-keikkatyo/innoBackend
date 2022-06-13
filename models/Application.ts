@@ -17,6 +17,14 @@ const applicationSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Job",
   },
+  explanation: {
+    type: String,
+    required: false,
+  },
+  fileUrl: {
+    type: String,
+    required: false,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
