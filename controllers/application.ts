@@ -3,6 +3,7 @@ import { isWorker } from "../utils/authJwt";
 import {
   getAllMyApplications,
   getApplicationById,
+  getMyApplication,
   postapplication,
 } from "../middleware/applicationMiddleware";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
@@ -135,6 +136,13 @@ applicationRouter.get(
   tokenAuthentication,
   isWorker,
   getAllMyApplications
+);
+
+applicationRouter.get(
+  "/my/:id",
+  tokenAuthentication,
+  isWorker,
+  getMyApplication
 );
 
 export default applicationRouter;
