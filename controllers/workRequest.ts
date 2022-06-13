@@ -90,12 +90,12 @@ workRequestRouter.get(
 );
 
 /**
- * Route for user of role business to get a work request by its id
+ * Route for user of role business to get own work request by its id
  * @openapi
  * /workRequest/any/{id}:
  *   get:
- *     summary: Route for user of role business to get a work request by its id
- *     description: Must be logged in as a user of role.
+ *     summary: Route for user of role business to get own work request by its id
+ *     description: Must be logged in as a user of role business.
  *     tags: [WorkRequest, Business]
  *     parameters:
  *       - in: header
