@@ -138,6 +138,44 @@ applicationRouter.get(
   getAllMyApplications
 );
 
+/**
+ * Route for user of role worker to get own application by its id
+ * @openapi
+ * /application/my/{id}:
+ *   get:
+ *     summary: Route for user of role worker to get own application by its id
+ *     description: Must be logged in as a user of role worker.
+ *     tags: [Application, Worker]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: id
+ *         description: ID of the requested application.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 604021e581a9626810885657
+ *     responses:
+ *       "200":
+ *         description: Returns the requested application.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Application"
+ *       "404":
+ *         description: The requested application is not existng.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: No appliaction was found
+ */
 applicationRouter.get(
   "/my/:id",
   tokenAuthentication,
