@@ -6,7 +6,6 @@ import {
   updateJob,
   deleteJob,
   getMyJobs,
-  addApplicant,
   updateJobStatus,
 } from "../middleware/jobMiddleware";
 import {
@@ -298,78 +297,6 @@ jobRouter.get("/jobForAdmin/:id", tokenAuthentication, isAdmin, getJobById);
  *               message: No job with ID {id} found
  */
 jobRouter.put("/jobUpdate/:id", tokenAuthentication, isAgency, updateJob);
-
-/**
- * Route for worker to apply for a job.
- * @openapi
- * /job/apply/{jobId}/{userId}:
- *   put:
- *     summary: Route for worker to apply for a job.
- *     description: Must be logged in as an worker.
- *     tags: [Job, Worker]
- *     parameters:
- *       - in: header
- *         name: x-access-token
- *         description: The token you get when logging in is used here. Used to authenticate the user.
- *         required: true
- *         schema:
- *           $ref: "#/components/schemas/AccessToken"
- *       - in: path
- *         name: jobId
- *         description: ID of the job which worker wants to apply to.
- *         required: true
- *         schema:
- *           type: string
- *           example: 604021e581a9626810885657
- *       - in: path
- *         name: userId
- *         description: ID of the user who wants to apply.
- *         required: true
- *         schema:
- *           type: string
- *           example: 604021e581a9626810885657
- *       - in: body
- *         name: coverLetter
- *         description: Short cover letter to agency.
- *         required: false
- *         schema:
- *           type: string
- *           example: This is a short description of myself...
- *       - in: body
- *         name: cv
- *         description: Link to the cv or user profile.
- *         required: false
- *         schema:
- *           type: string
- *           example: https://userscv.com
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: "#/components/schemas/Job"
- *     responses:
- *       "200":
- *         description: Returns the updated job.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: "#/components/schemas/Job"
- *       "404":
- *         description: No job was found with the requested ID.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: "#/components/schemas/Error"
- *             example:
- *               message: No job with ID {id} found
- */
-jobRouter.put(
-  "/apply/:jobId/:userId",
-  tokenAuthentication,
-  isWorker,
-  addApplicant
-);
 
 /**
  * Route for agency to delete own job
