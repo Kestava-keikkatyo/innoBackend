@@ -1,6 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import Application from "../models/Application";
 import { IApplicationDocument } from "../objecttypes/modelTypes";
+import { copyProperties } from "../utils/common";
+
+const updatableFields = ["job", "status"];
 
 /**
  * Post a new application to database.
@@ -9,7 +12,7 @@ import { IApplicationDocument } from "../objecttypes/modelTypes";
  * @param {NextFunction} next
  * @returns New application document
  */
-export const postapplication = async (
+export const postApplication = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -17,15 +20,12 @@ export const postapplication = async (
   const { body } = req;
   try {
     const applicationDocument: IApplicationDocument = new Application({
-      user: res.locals.userId,
-      job: body.job,
-      status: body.status,
+      sender: res.locals.userId,
+      ...copyProperties(body, updatableFields),
     });
     const application = await applicationDocument.save();
     if (!application) {
-      return res
-        .status(400)
-        .send({ error: "Failed to create the application!" });
+      return res.status(400).send({ error: "Failed to post the application!" });
     }
     return res.status(200).send(application);
   } catch (exception) {

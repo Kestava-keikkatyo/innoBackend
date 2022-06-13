@@ -4,7 +4,7 @@ import {
   getAllMyApplications,
   getApplicationById,
   getMyApplication,
-  postapplication,
+  postApplication,
 } from "../middleware/applicationMiddleware";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
 
@@ -45,7 +45,7 @@ const applicationRouter = express.Router();
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-applicationRouter.post("/", tokenAuthentication, isWorker, postapplication);
+applicationRouter.post("/", tokenAuthentication, isWorker, postApplication);
 
 /**
  * Route for user of role agency to get an application by its id
