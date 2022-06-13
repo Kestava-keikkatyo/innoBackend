@@ -1,5 +1,5 @@
 import express from "express";
-import { isWorker } from "../utils/authJwt";
+import { isAgency, isWorker } from "../utils/authJwt";
 import {
   getAllMyApplications,
   getApplicationById,
@@ -48,13 +48,13 @@ const applicationRouter = express.Router();
 applicationRouter.post("/", tokenAuthentication, isWorker, postapplication);
 
 /**
- * Route for worker to get own application by its id
+ * Route for user of role agency to get an application by its id
  * @openapi
- * /application/{id}:
+ * /application/any/{id}:
  *   get:
- *     summary: Route for worker to get own application by its id
- *     description: Must be logged in as a worker.
- *     tags: [Application, Worker]
+ *     summary: Route for user of role agency to get an application by its id
+ *     description: Must be logged in as an agency.
+ *     tags: [Application, Agency]
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -83,18 +83,12 @@ applicationRouter.post("/", tokenAuthentication, isWorker, postapplication);
  *             schema:
  *               $ref: "#/components/schemas/Error"
  *             example:
- *               message:No application found
- *       "500":
- *         description: An error occurred when calling the database.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: "#/components/schemas/Error"
+ *               message:No application was found
  */
 applicationRouter.get(
-  "/:id",
+  "/any/:id",
   tokenAuthentication,
-  isWorker,
+  isAgency,
   getApplicationById
 );
 
