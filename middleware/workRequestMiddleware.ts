@@ -20,11 +20,7 @@ const updatableFields = [
  * @param {NextFunction} next
  * @returns New work request document
  */
-export const postWorkRequest = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const postWorkRequest = async (req: Request, res: Response, next: NextFunction) => {
   const { body } = req;
   try {
     const workRequestDocument: IWorkRequestDocument = new WorkRequest({
@@ -33,9 +29,7 @@ export const postWorkRequest = async (
     });
     const workRequest = await workRequestDocument.save();
     if (!workRequest) {
-      return res
-        .status(400)
-        .send({ error: "Failed to create a work request!" });
+      return res.status(400).send({ error: "Failed to create a work request!" });
     }
     return res.status(200).send(workRequest);
   } catch (exception) {
@@ -50,15 +44,13 @@ export const postWorkRequest = async (
  * @param {NextFunction} next
  * @returns user's work requests
  */
-export const getMyWorkRequests = async (
-  _req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getMyWorkRequests = async (_req: Request, res: Response, next: NextFunction) => {
   const id: string = res.locals.userId;
   try {
     const docs: IWorkRequestDocument[] | null = await WorkRequest.find({
       sender: id,
+    }).populate("recipient", {
+      name: 1,
     });
     if (!docs) {
       return res.status(404).send({});
@@ -76,11 +68,7 @@ export const getMyWorkRequests = async (
  * @param {NextFunction} next
  * @returns Work request
  */
-export const getWorkRequestById = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getWorkRequestById = async (req: Request, res: Response, next: NextFunction) => {
   const { params } = req;
   const userId: string = res.locals.userId;
   const id: string = params.id;
@@ -106,11 +94,7 @@ export const getWorkRequestById = async (
  * @param {NextFunction} next
  * @returns Updated work request
  */
-export const updateWorkRequest = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const updateWorkRequest = async (req: Request, res: Response, next: NextFunction) => {
   const { params, body } = req;
   const userId: string = res.locals.userId;
   const id: string = params.id;
@@ -120,16 +104,15 @@ export const updateWorkRequest = async (
       ...copyProperties(body, updatableFields),
     });
 
-    const workRequest: IWorkRequestDocument | null =
-      await WorkRequest.findOneAndUpdate(
-        { _id: id, sender: userId },
-        updatedWorkRequest,
-        {
-          new: true,
-          runValidators: true,
-          lean: true,
-        }
-      );
+    const workRequest: IWorkRequestDocument | null = await WorkRequest.findOneAndUpdate(
+      { _id: id, sender: userId },
+      updatedWorkRequest,
+      {
+        new: true,
+        runValidators: true,
+        lean: true,
+      }
+    );
     return res.status(workRequest ? 200 : 404).send();
   } catch (exception) {
     return next(exception);
