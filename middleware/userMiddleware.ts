@@ -14,18 +14,12 @@ const updatableFields = ["name", "email", "userType"];
  * @param {NextFunction} next
  * @returns New user document
  */
-export const createUser = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const createUser = async (req: Request, res: Response, next: NextFunction) => {
   const { body } = req;
   try {
     const passwordLength: number = body.password ? body.password.length : 0;
     if (passwordLength < 3) {
-      return res
-        .status(400)
-        .json({ message: "Password length less than 3 characters" });
+      return res.status(400).json({ message: "Password length less than 3 characters" });
     }
     const saltRounds: number = 10;
     const passwordHash: string = await hash(body.password, saltRounds);
@@ -50,11 +44,7 @@ export const createUser = async (
  * @param {NextFunction} next
  * @returns All users
  */
-export const getAllUsers = async (
-  _req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getAllUsers = async (_req: Request, res: Response, next: NextFunction) => {
   try {
     const users: Array<IUserDocument> | null = await User.find({});
     if (users) {
@@ -73,11 +63,7 @@ export const getAllUsers = async (
  * @param {NextFunction} next
  * @returns User
  */
-export const getUserById = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getUserById = (req: Request, res: Response, next: NextFunction) => {
   const { params, body } = req;
   const id: string = params.id;
 
@@ -87,9 +73,7 @@ export const getUserById = (
         return res.status(500).json({ message: error.message });
       }
       if (!doc) {
-        return res
-          .status(404)
-          .send({ message: `No user with ID ${id} found!` });
+        return res.status(404).send({ message: `No user with ID ${id} found!` });
       }
 
       if (doc._id.toString() === body.user._id.toString()) {
@@ -125,11 +109,7 @@ export const getUserById = (
  * @param {NextFunction} next
  * @returns Users personal information
  */
-export const getUserProfile = async (
-  _req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getUserProfile = async (_req: Request, res: Response, next: NextFunction) => {
   const id: string = res.locals.userId;
 
   try {
@@ -152,11 +132,7 @@ export const getUserProfile = async (
  * @param {NextFunction} next
  * @returns Users notifications
  */
-export const getUserNotifications = async (
-  _req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getUserNotifications = async (_req: Request, res: Response, next: NextFunction) => {
   const id: string = res.locals.userId;
 
   try {
@@ -172,39 +148,20 @@ export const getUserNotifications = async (
   }
 };
 
-/**
- * Add users notifications.
- * @param {Request} _req - Express Request.
- * @param {Response} res - Express Response.
- * @param {NextFunction} next
- * @returns Users notifications
- */
-export const addUserNotification = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const { params, body } = req;
-  const { id } = params;
-  const { message, link } = body;
+export const deleteUserNotification = async (req: Request, res: Response, next: NextFunction) => {
+  const { params } = req;
+  const id: string = res.locals.userId;
 
   try {
-    const doc: IUserDocument | null = await User.findByIdAndUpdate(id, {
-      $push: {
-        notifications: {
-          message: message,
-          is_read: false,
-          link: link,
-          createdAt: Date.now(),
-        },
-      },
-    });
-
+    const doc = await User.findByIdAndUpdate(
+      id,
+      { $pull: { notifications: { _id: params.notificationId } } },
+      { new: true, omitUndefined: true, runValidators: true, lean: true }
+    );
     if (!doc) {
       return res.status(404).send({});
     }
-
-    return res.status(200).send(doc.notifications);
+    return res.status(200).send();
   } catch (exception) {
     return next(exception);
   }
@@ -217,11 +174,7 @@ export const addUserNotification = async (
  * @param {NextFunction} next
  * @returns users
  */
-export const getUserByUserType = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getUserByUserType = async (req: Request, res: Response, next: NextFunction) => {
   const { params } = req;
   const { userType, names } = params;
 
@@ -252,11 +205,7 @@ export const getUserByUserType = async (
  * @param {NextFunction} next
  * @returns workers
  */
-export const getAllWorkers = async (
-  _req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getAllWorkers = async (_req: Request, res: Response, next: NextFunction) => {
   try {
     const workers: Array<IUserDocument> | null = await User.find({
       userType: "worker",
@@ -277,11 +226,7 @@ export const getAllWorkers = async (
  * @param {NextFunction} next
  * @returns businesses
  */
-export const getAllBusinesses = async (
-  _req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getAllBusinesses = async (_req: Request, res: Response, next: NextFunction) => {
   try {
     const businesses: Array<IUserDocument> | null = await User.find({
       userType: "business",
@@ -302,15 +247,11 @@ export const getAllBusinesses = async (
  * @param {NextFunction} next
  * @returns agencies
  */
-export const getAllAgencies = async (
-  _req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getAllAgencies = async (_req: Request, res: Response, next: NextFunction) => {
   try {
     const agencies: Array<IUserDocument> | null = await User.find({
       userType: "agency",
-    });
+    }).select("name email city category userType");
     if (agencies) {
       return res.status(200).json(agencies);
     }
@@ -327,11 +268,7 @@ export const getAllAgencies = async (
  * @param {NextFunction} next
  * @returns admins
  */
-export const getAllAdmins = async (
-  _req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getAllAdmins = async (_req: Request, res: Response, next: NextFunction) => {
   try {
     const admins: Array<IUserDocument> | null = await User.find({
       userType: "admin",
@@ -352,11 +289,7 @@ export const getAllAdmins = async (
  * @param {NextFunction} next
  * @returns Updated user
  */
-export const updateUser = async (
-  req: Request<{ userId: string }, IUser>,
-  res: Response,
-  next: NextFunction
-) => {
+export const updateUser = async (req: Request<{ userId: string }, IUser>, res: Response, next: NextFunction) => {
   const { params, body } = req;
   const { userId } = params;
   const { userType } = body;
@@ -383,11 +316,7 @@ export const updateUser = async (
  * @param {NextFunction} next
  * @returns Updated user status
  */
-export const updateUserStatus = async (
-  req: Request<{ userId: string }, IUser>,
-  res: Response,
-  next: NextFunction
-) => {
+export const updateUserStatus = async (req: Request<{ userId: string }, IUser>, res: Response, next: NextFunction) => {
   const { params, body } = req;
   const { userId } = params;
   const { active } = body;
@@ -414,11 +343,7 @@ export const updateUserStatus = async (
  * @param {NextFunction} next
  * @returns Updated user profile
  */
-export const updateUserProfile = async (
-  req: Request<{ userId: string }, IUser>,
-  res: Response,
-  next: NextFunction
-) => {
+export const updateUserProfile = async (req: Request<{ userId: string }, IUser>, res: Response, next: NextFunction) => {
   const { params, body } = req;
   const { userId } = params;
 
@@ -459,11 +384,7 @@ export const updateUserProfile = async (
  * @param {NextFunction} next
  * @returns Deleted user
  */
-export const deleteUser = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
   const { params } = req;
   const { userId } = params;
 
@@ -473,13 +394,9 @@ export const deleteUser = async (
     });
 
     if (!user) {
-      return res
-        .status(404)
-        .send({ message: `User with ID ${userId}  is not existing!` });
+      return res.status(404).send({ message: `User with ID ${userId}  is not existing!` });
     } else {
-      return res
-        .status(200)
-        .send({ message: `User with ${user._id} was deleted successfuly!` });
+      return res.status(200).send({ message: `User with ${user._id} was deleted successfuly!` });
     }
   } catch (exception) {
     return next(exception);
@@ -493,11 +410,7 @@ export const deleteUser = async (
  * @param {NextFunction} next
  * @returns Updated user's feeling
  */
-export const postUserFeeling = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const postUserFeeling = async (req: Request, res: Response, next: NextFunction) => {
   const { body } = req;
 
   const myFeeling: IFeelings = {
@@ -527,11 +440,7 @@ export const postUserFeeling = async (
  * @param {NextFunction} next
  * @returns User's feelings
  */
-export const getUserFeelings = async (
-  _req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getUserFeelings = async (_req: Request, res: Response, next: NextFunction) => {
   const id: string = res.locals.userId;
 
   try {
@@ -554,11 +463,7 @@ export const getUserFeelings = async (
  * @param {NextFunction} next
  * @returns User's feelings
  */
-export const deleteUserFeeling = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const deleteUserFeeling = async (req: Request, res: Response, next: NextFunction) => {
   const { params } = req;
   const id: string = res.locals.userId;
 
