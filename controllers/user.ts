@@ -261,7 +261,7 @@ userRouter.get("/notifications", tokenAuthentication, getUserNotifications);
  *             example:
  *               message: Notification is not existing.
  */
-userRouter.delete("/delete/:id", tokenAuthentication, deleteUserNotification);
+userRouter.delete("/delete/notification/:id", tokenAuthentication, deleteUserNotification);
 
 /**
  * Route for user to update own profile.
