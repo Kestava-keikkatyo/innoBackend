@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import WorkRequest from "../models/WorkRequest";
 import { IWorkRequestDocument } from "../objecttypes/modelTypes";
-import { copyProperties, removeEmptyProperties } from "../utils/common";
+import { addUserNotification, copyProperties, removeEmptyProperties } from "../utils/common";
 
 const updatableFields = [
   "recipient",
@@ -31,6 +31,15 @@ export const postWorkRequest = async (req: Request, res: Response, next: NextFun
     if (!workRequest) {
       return res.status(400).send({ error: "Failed to create a work request!" });
     }
+    addUserNotification(
+      {
+        sender: res.locals.userId,
+        target: workRequest._id,
+        targetDoc: "WorkRequest",
+        type: "assignmet",
+      },
+      body.recipient
+    );
     return res.status(200).send(workRequest);
   } catch (exception) {
     return next(exception);
