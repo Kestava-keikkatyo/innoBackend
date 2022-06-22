@@ -107,13 +107,14 @@ export interface IFormDocument extends Document, IForm {
 
 export interface FormModel<T extends Document> extends PaginateModel<T> {} // Used so Form.paginate has typing information
 
-export interface INotifications {
-  message: String;
-  is_read: Boolean;
-  link: string;
+export interface INotification {
+  sender: IUserDocument["_id"];
+  target: Types.ObjectId;
+  targetDoc: "WorkRequest" | "Agreement" | "Form" | "Application" | "FeedBack";
+  type: "assignmet" | "signature_pending" | "form_pending" | "application_pending" | "feedback_pending" | "reply";
 }
 
-export interface INotificationsDocument extends Document, INotifications {
+export interface INotificationDocument extends Document, INotification {
   _id: Types.ObjectId;
   createdAt: Date;
 }
@@ -214,7 +215,7 @@ export interface IUser {
   videoUriId: string;
   instructions: Array<string>;
   occupationalSafetyRules: Array<string>;
-  notifications: Array<INotificationsDocument["_id"]>;
+  notifications: Array<INotification>;
 }
 
 // Used for typing results gotten from db calls.

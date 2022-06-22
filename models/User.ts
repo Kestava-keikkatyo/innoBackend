@@ -60,10 +60,7 @@ const userSchema: Schema = new Schema({
     required: false,
     validate: {
       validator: (value: string) => {
-        return (
-          !value ||
-          (value > "0" && /^[+]*[(]?[0-9]{1,4}[)]?[-\s.\/0-9]*$/g.test(value))
-        );
+        return !value || (value > "0" && /^[+]*[(]?[0-9]{1,4}[)]?[-\s./0-9]*$/g.test(value));
       },
       message: (props: any) => `${props.value} is not a valid phone number`,
     },
@@ -98,9 +95,33 @@ const userSchema: Schema = new Schema({
     type: [String],
     requeired: false,
   },
-  notifications: {
-    type: Array
-  },
+  notifications: [
+    {
+      sender: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+      target: {
+        type: Schema.Types.ObjectId,
+        required: true,
+        refPath: "targetDoc",
+      },
+      targetDoc: {
+        type: String,
+        required: true,
+        enum: ["WorkRequest", "Agreement", "Form", "Application", "Feedback"],
+      },
+      type: {
+        type: String,
+        enum: ["assignmet", "signature_pending", "form_pending", "application_pending", "feedback_pending", "reply"],
+        required: true,
+      },
+      createdAt: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
   feelings: [
     {
       value: {
