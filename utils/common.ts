@@ -1,8 +1,9 @@
 /** Contains all callback functions that use callback.
  * @module utils/common
  */
-import { error as _error } from "../utils/logger";
 import { PaginateResult } from "mongoose";
+import User from "../models/User";
+import { INotification, IUserDocument } from "../objecttypes/modelTypes";
 /**
  * Function that paginates an array, and returns it as an object
  * that is identical to what mongoose-paginate-v2 library returns.
@@ -50,4 +51,13 @@ export const copyProperties = (obj: object, properties: string[]): object => {
     result[property as keyof object] = obj[property as keyof object];
   }
   return result;
+};
+
+export const addUserNotification = async (notification: INotification, recipientId: string) => {
+  const doc: IUserDocument | null = await User.findByIdAndUpdate(recipientId, {
+    $push: {
+      notifications: notification,
+    },
+  });
+  return doc;
 };
