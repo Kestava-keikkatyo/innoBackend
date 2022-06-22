@@ -22,8 +22,8 @@ import {
   getUserFeelings,
   deleteUserFeeling,
   getAllAgencies,
-  addUserNotification,
   getUserByUserType,
+  deleteUserNotification,
 } from "../middleware/userMiddleware";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
 
@@ -228,13 +228,13 @@ userRouter.get("/me", tokenAuthentication, getUserProfile);
 userRouter.get("/notifications", tokenAuthentication, getUserNotifications);
 
 /**
- * Route to add user notifications
+ * Route to delete user's notification
  * @openapi
- * /user/notifications:
- *   put:
- *     summary: Route to add user notifications
- *     description: Must be logged in as user.
- *     tags: [User, User]
+ * /user/delete/notification/{id}:
+ *   delete:
+ *     summary: Route to delete user's notification.
+ *     description: Must be logged in as a user.
+ *     tags: [Notification, User]
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -242,30 +242,26 @@ userRouter.get("/notifications", tokenAuthentication, getUserNotifications);
  *         required: true
  *         schema:
  *           $ref: "#/components/schemas/AccessToken"
- *       - in: body
+ *       - in: path
  *         name: id
- *         description: ID of the requested user.
+ *         description: ID of the notification to be deleted.
  *         required: true
  *         schema:
  *           type: string
  *           example: 604021e581a9626810885657
  *     responses:
  *       "200":
- *         description: Returns the requested user.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: "#/components/schemas/User"
+ *         description: Notification was deleted successfully.
  *       "404":
- *         description: No notifications found.
+ *         description: The notification with the requested ID is not existing.
  *         content:
  *           application/json:
  *             schema:
  *               $ref: "#/components/schemas/Error"
  *             example:
- *               message: No notifications found
+ *               message: Notification is not existing.
  */
-userRouter.put("/notifications/:id", tokenAuthentication, addUserNotification);
+userRouter.delete("/delete/:id", tokenAuthentication, deleteUserNotification);
 
 /**
  * Route for user to update own profile.
@@ -311,12 +307,7 @@ userRouter.put("/notifications/:id", tokenAuthentication, addUserNotification);
  */
 userRouter.put("/:userId", tokenAuthentication, updateUserProfile);
 
-userRouter.get(
-  "/allWorkersForAdmin",
-  tokenAuthentication,
-  isAdmin,
-  getAllWorkers
-);
+userRouter.get("/allWorkersForAdmin", tokenAuthentication, isAdmin, getAllWorkers);
 
 /**
  * Route for admin to update user.
@@ -420,12 +411,7 @@ userRouter.put("/userUpdate/:userId", tokenAuthentication, isAdmin, updateUser);
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-userRouter.patch(
-  "/updateStatus/:userId",
-  tokenAuthentication,
-  isAdmin,
-  updateUserStatus
-);
+userRouter.patch("/updateStatus/:userId", tokenAuthentication, isAdmin, updateUserStatus);
 
 /**
  * Route for admin to delete user
@@ -541,12 +527,7 @@ userRouter.get(
  *             example:
  *               message:  no workers found
  */
-userRouter.get(
-  "/workers",
-  tokenAuthentication,
-  isAgencyOrBusiness,
-  getAllWorkers
-);
+userRouter.get("/workers", tokenAuthentication, isAgencyOrBusiness, getAllWorkers);
 
 /**
  * @openapi
@@ -700,11 +681,6 @@ userRouter.get("/myFeelings", tokenAuthentication, getUserFeelings);
  *             example:
  *               message: No feeling was found with the requested ID {id}
  */
-userRouter.delete(
-  "/myFeelings/:feelingId",
-  tokenAuthentication,
-  isWorker,
-  deleteUserFeeling
-);
+userRouter.delete("/myFeelings/:feelingId", tokenAuthentication, isWorker, deleteUserFeeling);
 
 export default userRouter;
