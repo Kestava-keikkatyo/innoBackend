@@ -1,8 +1,9 @@
 import express from "express";
-import { isBusiness } from "../utils/authJwt";
+import { isAgency, isBusiness } from "../utils/authJwt";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
 import {
   getMyWorkRequests,
+  getReceivedWorkRequests,
   getWorkRequestById,
   postWorkRequest,
   updateWorkRequest,
@@ -82,12 +83,9 @@ workRequestRouter.post("/", tokenAuthentication, isBusiness, postWorkRequest);
  *             example:
  *               message: No work requests found
  */
-workRequestRouter.get(
-  "/myWorkRequests",
-  tokenAuthentication,
-  isBusiness,
-  getMyWorkRequests
-);
+workRequestRouter.get("/myWorkRequests", tokenAuthentication, isBusiness, getMyWorkRequests);
+
+workRequestRouter.get("/received", tokenAuthentication, isAgency, getReceivedWorkRequests);
 
 /**
  * Route for user of role business to get own work request by its id
@@ -127,12 +125,7 @@ workRequestRouter.get(
  *             example:
  *               message: No work request was found
  */
-workRequestRouter.get(
-  "/any/:id",
-  tokenAuthentication,
-  isBusiness,
-  getWorkRequestById
-);
+workRequestRouter.get("/any/:id", tokenAuthentication, isBusiness, getWorkRequestById);
 
 /**
  * Route for user of role business to update own work request.
@@ -178,11 +171,6 @@ workRequestRouter.get(
  *             example:
  *               message: This work request is not existing
  */
-workRequestRouter.put(
-  "/update/:id",
-  tokenAuthentication,
-  isBusiness,
-  updateWorkRequest
-);
+workRequestRouter.put("/update/:id", tokenAuthentication, isBusiness, updateWorkRequest);
 
 export default workRequestRouter;
