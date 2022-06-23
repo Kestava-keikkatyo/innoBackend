@@ -3,6 +3,7 @@ import { isAgency, isBusiness } from "../utils/authJwt";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
 import {
   getMyWorkRequests,
+  getReceivedWorkRequestById,
   getReceivedWorkRequests,
   getWorkRequestById,
   postWorkRequest,
@@ -159,6 +160,8 @@ workRequestRouter.get("/received", tokenAuthentication, isAgency, getReceivedWor
  *               message: No work request was found
  */
 workRequestRouter.get("/any/:id", tokenAuthentication, isBusiness, getWorkRequestById);
+
+workRequestRouter.get("/received/any/:id", tokenAuthentication, isAgency, getReceivedWorkRequestById);
 
 /**
  * Route for user of role business to update own work request.
