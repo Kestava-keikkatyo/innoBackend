@@ -121,6 +121,32 @@ export const getWorkRequestById = async (req: Request, res: Response, next: Next
 };
 
 /**
+ * Get received work request by id.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns Received work request
+ */
+export const getReceivedWorkRequestById = async (req: Request, res: Response, next: NextFunction) => {
+  const { params } = req;
+  const userId: string = res.locals.userId;
+  const id: string = params.id;
+
+  try {
+    const doc: IWorkRequestDocument | null = await WorkRequest.findOne({
+      _id: id,
+      recipient: userId,
+    });
+    if (!doc) {
+      return res.status(404).send({});
+    }
+    return res.status(200).send(doc);
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
  * Update work request by id.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
