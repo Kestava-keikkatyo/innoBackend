@@ -85,6 +85,39 @@ workRequestRouter.post("/", tokenAuthentication, isBusiness, postWorkRequest);
  */
 workRequestRouter.get("/myWorkRequests", tokenAuthentication, isBusiness, getMyWorkRequests);
 
+/**
+ * Route for users of type agency to get their received work requests.
+ * @openapi
+ * /workRequest/received:
+ *   get:
+ *     summary: Route for users of type agency to get their received work requests
+ *     description: Must be logged in as a user of type agency.
+ *     tags: [WorkRequets, Agency]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     responses:
+ *       "200":
+ *         description: Returns user's received work requests.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: "#/components/schemas/WorkRequest"
+ *       "404":
+ *         description: No received workrequests.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: No received work requests found
+ */
 workRequestRouter.get("/received", tokenAuthentication, isAgency, getReceivedWorkRequests);
 
 /**
