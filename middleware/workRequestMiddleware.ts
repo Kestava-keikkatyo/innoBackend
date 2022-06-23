@@ -71,6 +71,30 @@ export const getMyWorkRequests = async (_req: Request, res: Response, next: Next
 };
 
 /**
+ * Get user's received work requests.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns user's received work requests
+ */
+export const getReceivedWorkRequests = async (_req: Request, res: Response, next: NextFunction) => {
+  const id: string = res.locals.userId;
+  try {
+    const docs: IWorkRequestDocument[] | null = await WorkRequest.find({
+      recipient: id,
+    }).populate("sender", {
+      name: 1,
+    });
+    if (!docs) {
+      return res.status(404).send({});
+    }
+    return res.status(200).send(docs);
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
  * Get work request by id.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
