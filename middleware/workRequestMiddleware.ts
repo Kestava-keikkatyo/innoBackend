@@ -136,6 +136,8 @@ export const getReceivedWorkRequestById = async (req: Request, res: Response, ne
     const doc: IWorkRequestDocument | null = await WorkRequest.findOne({
       _id: id,
       recipient: userId,
+    }).populate("sender", {
+      name: 1,
     });
     if (!doc) {
       return res.status(404).send({});
