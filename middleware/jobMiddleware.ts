@@ -27,11 +27,7 @@ const updatableFields = [
  * @param {NextFunction} next
  * @returns New job document
  */
-export const postJob = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const postJob = async (req: Request, res: Response, next: NextFunction) => {
   const { body } = req;
   try {
     const jobDocument: IJobDocument = new Job({
@@ -49,24 +45,17 @@ export const postJob = async (
 };
 
 /**
- * Get all jobs.
+ * Get all job ads.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next
- * @returns All jobs
+ * @returns All job ads
  */
-export const getAllJobs = async (
-  _req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getJobAds = async (_req: Request, res: Response, next: NextFunction) => {
   try {
-    const jobs: Array<IJobDocument> | null = await Job.find({}).populate(
-      "user",
-      {
-        name: 1,
-      }
-    );
+    const jobs: Array<IJobDocument> | null = await Job.find({}).populate("user", {
+      name: 1,
+    });
     if (jobs) {
       return res.status(200).json(jobs);
     }
@@ -83,11 +72,7 @@ export const getAllJobs = async (
  * @param {NextFunction} next
  * @returns Agency's jobs
  */
-export const getMyJobs = async (
-  _req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getMyJobs = async (_req: Request, res: Response, next: NextFunction) => {
   const id: string = res.locals.userId;
   try {
     const docs: IJobDocument[] | null = await Job.find({
@@ -111,11 +96,7 @@ export const getMyJobs = async (
  * @param {NextFunction} next
  * @returns Job
  */
-export const getJobById = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getJobById = async (req: Request, res: Response, next: NextFunction) => {
   const { params } = req;
   const id: string = params.id;
 
@@ -141,11 +122,7 @@ export const getJobById = async (
  * @param {NextFunction} next
  * @returns Updated job
  */
-export const updateJob = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const updateJob = async (req: Request, res: Response, next: NextFunction) => {
   const { params, body } = req;
   const userId: string = res.locals.userId;
   const id: string = params.id;
@@ -155,11 +132,11 @@ export const updateJob = async (
       ...copyProperties(body, updatableFields),
     });
 
-    const job: IJobDocument | null = await Job.findOneAndUpdate(
-      { _id: id, user: userId },
-      updatedJob,
-      { new: true, runValidators: true, lean: true }
-    );
+    const job: IJobDocument | null = await Job.findOneAndUpdate({ _id: id, user: userId }, updatedJob, {
+      new: true,
+      runValidators: true,
+      lean: true,
+    });
     if (job) {
       console.log(`Job with ${id} was updated!`);
     }
@@ -176,11 +153,7 @@ export const updateJob = async (
  * @param {NextFunction} next
  * @returns Deleted job
  */
-export const deleteJob = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const deleteJob = async (req: Request, res: Response, next: NextFunction) => {
   const { params } = req;
   const userId: string = res.locals.userId;
   const id: string = params.id;
@@ -192,9 +165,7 @@ export const deleteJob = async (
     });
 
     if (!job) {
-      return res
-        .status(404)
-        .send({ message: `Requested job is not existing!` });
+      return res.status(404).send({ message: `Requested job is not existing!` });
     } else {
       return res.status(200).send({ message: `Job was deleted successfuly!` });
     }
@@ -210,11 +181,7 @@ export const deleteJob = async (
  * @param {NextFunction} next
  * @returns Updated job
  */
-export const updateJobStatus = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const updateJobStatus = async (req: Request, res: Response, next: NextFunction) => {
   const { params, body } = req;
   const userId: string = res.locals.userId;
   const id: string = params.id;
