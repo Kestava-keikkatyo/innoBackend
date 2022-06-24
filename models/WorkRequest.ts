@@ -48,7 +48,4 @@ const workRequestSchema = new Schema({
 
 workRequestSchema.plugin(uniqueValidator);
 
-export default mongoose.model<IWorkRequestDocument>(
-  "WorkRequest",
-  workRequestSchema
-);
+export default mongoose.model<IWorkRequestDocument>("WorkRequest", workRequestSchema);
