@@ -1,19 +1,14 @@
 import express from "express";
 import {
   getJobById,
-  getAllJobs,
   postJob,
   updateJob,
   deleteJob,
   getMyJobs,
   updateJobStatus,
+  getJobAds,
 } from "../middleware/jobMiddleware";
-import {
-  isAdmin,
-  isAgency,
-  isWorker,
-  isWorkerOrBusinessOrAgency,
-} from "../utils/authJwt";
+import { isAdmin, isAgency, isWorker, isWorkerOrBusinessOrAgency } from "../utils/authJwt";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
 const jobRouter = express.Router();
 
@@ -57,13 +52,13 @@ const jobRouter = express.Router();
 jobRouter.post("/", tokenAuthentication, isAgency, postJob);
 
 /**
- * Route for workers to get all available jobs.
+ * Route for workers to get all available job ads.
  * @openapi
- * /job/allJobsForWorker:
+ * /job/ads:
  *   get:
- *     summary: Route for workers to get all available jobs
+ *     summary: Route for workers to get all available job ads
  *     description: Need to be logged in as a worker.
- *     tags: [Jobs, Worker]
+ *     tags: [Job, Worker]
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -89,7 +84,7 @@ jobRouter.post("/", tokenAuthentication, isAgency, postJob);
  *             example:
  *               message: No jobs found
  */
-jobRouter.get("/allJobsForWorker", tokenAuthentication, isWorker, getAllJobs);
+jobRouter.get("/ads", tokenAuthentication, isWorker, getJobAds);
 
 /**
  * Route for worker or agency to get a job by its id
@@ -129,12 +124,7 @@ jobRouter.get("/allJobsForWorker", tokenAuthentication, isWorker, getAllJobs);
  *             example:
  *               message:The requested job is not existing
  */
-jobRouter.get(
-  "/any/:id",
-  tokenAuthentication,
-  isWorkerOrBusinessOrAgency,
-  getJobById
-);
+jobRouter.get("/any/:id", tokenAuthentication, isWorkerOrBusinessOrAgency, getJobById);
 
 /**
  * Route for agencies to get their own jobs
@@ -204,7 +194,7 @@ jobRouter.get("/allJobsForAgency", tokenAuthentication, isAgency, getMyJobs);
  *             example:
  *               message: No jobs found
  */
-jobRouter.get("/allJobsForAdmin", tokenAuthentication, isAdmin, getAllJobs);
+jobRouter.get("/allJobsForAdmin", tokenAuthentication, isAdmin, getJobAds);
 
 /**
  * Route for admin to get job by its id
@@ -378,11 +368,6 @@ jobRouter.delete("/jobDelete/:id", tokenAuthentication, isAgency, deleteJob);
  *             example:
  *               message: The requested job is not existing
  */
-jobRouter.patch(
-  "/updateStatus/:Id",
-  tokenAuthentication,
-  isAgency,
-  updateJobStatus
-);
+jobRouter.patch("/updateStatus/:Id", tokenAuthentication, isAgency, updateJobStatus);
 
 export default jobRouter;
