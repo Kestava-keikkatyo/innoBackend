@@ -7,6 +7,7 @@ import {
   getMyJobs,
   updateJobStatus,
   getJobAds,
+  getMyJobById,
 } from "../middleware/jobMiddleware";
 import { isAdmin, isAgency, isWorker, isWorkerOrBusinessOrAgency } from "../utils/authJwt";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
@@ -85,6 +86,8 @@ jobRouter.post("/", tokenAuthentication, isAgency, postJob);
  *               message: No job ads found
  */
 jobRouter.get("/ads", tokenAuthentication, isWorker, getJobAds);
+
+jobRouter.get("/my/any/:id", tokenAuthentication, isAgency, getMyJobById);
 
 /**
  * Route for worker or agency to get a job by its id
