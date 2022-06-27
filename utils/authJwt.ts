@@ -2,11 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { error as _error, info } from "./logger";
 import User from "../models/User";
 
-export const requestLogger = (
-  req: Request,
-  _res: Response,
-  next: NextFunction
-) => {
+export const requestLogger = (req: Request, _res: Response, next: NextFunction) => {
   info("Method:", req.method);
   info("Path:  ", req.path);
   info("Body:  ", req.body);
@@ -18,12 +14,7 @@ export const unknownEndpoint = (_req: Request, res: Response) => {
   res.status(404).send({ error: "unknown endpoint" });
 };
 
-export const errorHandler = (
-  err: any,
-  _req: Request,
-  res: Response,
-  next: NextFunction
-): any => {
+export const errorHandler = (err: any, _req: Request, res: Response, next: NextFunction): any => {
   _error(err.message);
 
   if (err.name === "CastError" && err.kind === "ObjectId") {
@@ -34,12 +25,7 @@ export const errorHandler = (
   return next(err);
 };
 
-const doesUserExist = async (
-  userTypes: string[] | undefined,
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+const doesUserExist = async (userTypes: string[] | undefined, req: Request, res: Response, next: NextFunction) => {
   const { body } = req;
   try {
     let filters: any = {
@@ -72,11 +58,7 @@ const doesUserExist = async (
  * @param {NextFunction} next - NextFunction.
  * @returns {NextFunction} next()
  */
-export const isUser = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const isUser = async (req: Request, res: Response, next: NextFunction) => {
   return doesUserExist(undefined, req, res, next);
 };
 
@@ -89,11 +71,7 @@ export const isUser = async (
  * @param {NextFunction} next - NextFunction.
  * @returns {NextFunction} next()
  */
-export const isAdmin = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const isAdmin = async (req: Request, res: Response, next: NextFunction) => {
   return doesUserExist(["admin"], req, res, next);
 };
 
@@ -106,11 +84,7 @@ export const isAdmin = async (
  * @param {NextFunction} next - NextFunction.
  * @returns {NextFunction} next()
  */
-export const isBusiness = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const isBusiness = async (req: Request, res: Response, next: NextFunction) => {
   return doesUserExist(["business"], req, res, next);
 };
 
@@ -123,11 +97,7 @@ export const isBusiness = async (
  * @param {NextFunction} next - NextFunction.
  * @returns {NextFunction} next()
  */
-export const isAgency = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const isAgency = async (req: Request, res: Response, next: NextFunction) => {
   return doesUserExist(["agency"], req, res, next);
 };
 
@@ -140,11 +110,7 @@ export const isAgency = async (
  * @param {NextFunction} next - NextFunction.
  * @returns {NextFunction} next()
  */
-export const isWorker = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const isWorker = async (req: Request, res: Response, next: NextFunction) => {
   return doesUserExist(["worker"], req, res, next);
 };
 
@@ -157,28 +123,20 @@ export const isWorker = async (
  * @param {NextFunction} next - NextFunction.
  * @returns {NextFunction} next()
  */
-export const isBusinessOrAdminOrAgency = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const isBusinessOrAdminOrAgency = async (req: Request, res: Response, next: NextFunction) => {
   return doesUserExist(["business", "admin", "agency"], req, res, next);
 };
 
-export const isWorkerOrBusinessOrAgency = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const isWorkerOrBusinessOrAgency = async (req: Request, res: Response, next: NextFunction) => {
   return doesUserExist(["worker", "business", "agency"], req, res, next);
 };
 
-export const isAgencyOrBusiness = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const isAgencyOrBusiness = async (req: Request, res: Response, next: NextFunction) => {
   return doesUserExist(["business", "agency"], req, res, next);
+};
+
+export const isWorkerOrAdmin = async (req: Request, res: Response, next: NextFunction) => {
+  return doesUserExist(["worker", "admin"], req, res, next);
 };
 
 export default {};
