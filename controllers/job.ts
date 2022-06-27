@@ -87,6 +87,44 @@ jobRouter.post("/", tokenAuthentication, isAgency, postJob);
  */
 jobRouter.get("/ads", tokenAuthentication, isWorker, getJobAds);
 
+/**
+ * Route for user of role agency to get own created job by its id
+ * @openapi
+ * /job/my/any/{id}:
+ *   get:
+ *     summary: Route for user of role agency to get own created job by its id
+ *     description: Must be logged in as user of role agency.
+ *     tags: [Job, Agency]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: id
+ *         description: ID of the requested job.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 604021e581a9626810885657
+ *     responses:
+ *       "200":
+ *         description: Returns the requested job.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Job"
+ *       "404":
+ *         description: No job was found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: The requested job is not existing
+ */
 jobRouter.get("/my/any/:id", tokenAuthentication, isAgency, getMyJobById);
 
 /**
