@@ -90,6 +90,32 @@ export const getMyJobs = async (_req: Request, res: Response, next: NextFunction
 };
 
 /**
+ * Get job by id for creator.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns User's created job
+ */
+export const getMyJobById = async (req: Request, res: Response, next: NextFunction) => {
+  const { params } = req;
+  const userId: string = res.locals.userId;
+  const id: string = params.id;
+
+  try {
+    const doc: IJobDocument | null = await Job.findOne({
+      _id: id,
+      user: userId,
+    });
+    if (!doc) {
+      return res.status(404).send({});
+    }
+    return res.status(200).send(doc);
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
  * Get job by id.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
