@@ -52,12 +52,12 @@ const jobRouter = express.Router();
 jobRouter.post("/", tokenAuthentication, isAgency, postJob);
 
 /**
- * Route for workers to get all available job ads.
+ * Route for users of role worker to get all available job ads.
  * @openapi
  * /job/ads:
  *   get:
- *     summary: Route for workers to get all available job ads
- *     description: Need to be logged in as a worker.
+ *     summary: Route for users or role worker to get all available job ads
+ *     description: Need to be logged in as a user of role worker.
  *     tags: [Job, Worker]
  *     parameters:
  *       - in: header
@@ -68,7 +68,7 @@ jobRouter.post("/", tokenAuthentication, isAgency, postJob);
  *           $ref: "#/components/schemas/AccessToken"
  *     responses:
  *       "200":
- *         description: Returns found jobs
+ *         description: Returns found jobads
  *         content:
  *           application/json:
  *             schema:
@@ -76,13 +76,13 @@ jobRouter.post("/", tokenAuthentication, isAgency, postJob);
  *               items:
  *                 $ref: "#/components/schemas/Job"
  *       "404":
- *         description: No jobs are existing
+ *         description: No job ads are existing
  *         content:
  *           application/json:
  *             schema:
  *               $ref: "#/components/schemas/Error"
  *             example:
- *               message: No jobs found
+ *               message: No job ads found
  */
 jobRouter.get("/ads", tokenAuthentication, isWorker, getJobAds);
 
@@ -129,11 +129,11 @@ jobRouter.get("/any/:id", tokenAuthentication, isWorkerOrBusinessOrAgency, getJo
 /**
  * Route for agencies to get their own jobs
  * @openapi
- * /job/allJobsForAgency:
+ * /job/my:
  *   get:
- *     summary: Route for agencies to get their own jobs
- *     description: Must be logged in as an agency.
- *     tags: [Jobs, Agency]
+ *     summary: Route for users of role agency to get their own jobs
+ *     description: Must be logged in as a user of role agency.
+ *     tags: [Job, Agency]
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -143,7 +143,7 @@ jobRouter.get("/any/:id", tokenAuthentication, isWorkerOrBusinessOrAgency, getJo
  *           $ref: "#/components/schemas/AccessToken"
  *     responses:
  *       "200":
- *         description: Returns agency's jobs.
+ *         description: Returns agency's own jobs.
  *         content:
  *           application/json:
  *             schema:
@@ -151,7 +151,7 @@ jobRouter.get("/any/:id", tokenAuthentication, isWorkerOrBusinessOrAgency, getJo
  *               items:
  *                 $ref: "#/components/schemas/Job"
  *       "404":
- *         description: The requested jobs are not found.
+ *         description: No jobs are existing.
  *         content:
  *           application/json:
  *             schema:
@@ -159,7 +159,7 @@ jobRouter.get("/any/:id", tokenAuthentication, isWorkerOrBusinessOrAgency, getJo
  *             example:
  *               message: No jobs found
  */
-jobRouter.get("/allJobsForAgency", tokenAuthentication, isAgency, getMyJobs);
+jobRouter.get("/my", tokenAuthentication, isAgency, getMyJobs);
 
 /**
  * Route for admin to get all jobs.
