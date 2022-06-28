@@ -78,6 +78,34 @@ export const getMyFeedbackById = async (req: Request, res: Response, next: NextF
 };
 
 /**
+ * Get received feedback by id.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns Received feedback
+ */
+export const getReceivedFeedbackById = async (req: Request, res: Response, next: NextFunction) => {
+  const { params } = req;
+  const userId: string = res.locals.userId;
+  const id: string = params.id;
+
+  try {
+    const doc: IFeedbackDocument | null = await FeedBack.findOne({
+      _id: id,
+      recipient: userId,
+    }).populate("user", {
+      name: 1,
+    });
+    if (!doc) {
+      return res.status(404).send({});
+    }
+    return res.status(200).send(doc);
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
  * Get feedback by id.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
