@@ -14,13 +14,13 @@ import { tokenAuthentication } from "../middleware/authenticationMiddleware";
 const feedbackRouter = express.Router();
 
 /**
- * Route for user to send feedback.
+ * Route for user of role agency, business or worker to send feedback.
  * @openapi
  * /feedback/:
  *   post:
- *     summary: Route for user to send feedback
- *     description: Must be logged in as a user.
- *     tags: [Feedback,User]
+ *     summary: Route for user of role agency, business or worker to send feedback
+ *     description: Must be logged in as a user of role agency, business or worker.
+ *     tags: [Feedback, Agency, business, Worker]
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -36,22 +36,30 @@ const feedbackRouter = express.Router();
  *             $ref: "#/components/schemas/Feedback"
  *     responses:
  *       "200":
- *         description: Feedback sent. Returns sent feedback object.
+ *         description: Feedback was sent. Returns sent feedback object.
  *         content:
  *           application/json:
  *             schema:
  *               $ref: "#/components/schemas/Feedback"
+ *       "400":
+ *         description: Failed to handle the process
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Failed to send feedback
  */
 feedbackRouter.post("/", tokenAuthentication, isWorkerOrBusinessOrAgency, postFeedback);
 
 /**
- * Route for user to get own feedbacks
+ * Route for user of role agency, business or worker to get own feedbacks
  * @openapi
  * /feedback/allMyFeedbacks:
  *   get:
- *     summary: Route for user to get own feedbacks
- *     description: Must be logged in as a user.
- *     tags: [Feedbacks, User]
+ *     summary: Route for user of role agency, business or worker to get own feedbacks
+ *     description: Must be logged in as a user of role agency, business or worker.
+ *     tags: [FeedBack, Agency, Business, Worker]
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -67,7 +75,7 @@ feedbackRouter.post("/", tokenAuthentication, isWorkerOrBusinessOrAgency, postFe
  *             schema:
  *               type: array
  *               items:
- *                 $ref: "#/components/schemas/feedback"
+ *                 $ref: "#/components/schemas/Feedback"
  *       "404":
  *         description: The requested feedbacks are not found.
  *         content:
