@@ -79,6 +79,44 @@ feedbackRouter.post("/", tokenAuthentication, isWorkerOrBusinessOrAgency, postFe
  */
 feedbackRouter.get("/allMyFeedbacks", tokenAuthentication, isWorkerOrBusinessOrAgency, getMyFeedbacks);
 
+/**
+ * Route for user of role agency, business or worker to get own posted feedback by its id
+ * @openapi
+ * /feedback/my/any/{id}:
+ *   get:
+ *     summary: Route for user of role agency, business or worker to get own posted feedback by its id
+ *     description: Must be logged in as user of role agency, business or worker.
+ *     tags: [Feedback, Agency, Business, Worker]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: id
+ *         description: ID of the requested feedback.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 604021e581a9626810885657
+ *     responses:
+ *       "200":
+ *         description: Returns the requested feedback.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/FeedBack"
+ *       "404":
+ *         description: No feedback was found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: The requested feedback is not existing
+ */
 feedbackRouter.get("/my/any/:id", tokenAuthentication, isWorkerOrBusinessOrAgency, getMyFeedbackById);
 
 /**
