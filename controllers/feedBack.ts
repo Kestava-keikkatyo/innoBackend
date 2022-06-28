@@ -8,6 +8,7 @@ import {
   replyFeedback,
   getMyFeedbackById,
   getReceivedFeedbackById,
+  getFeedbackById,
 } from "../middleware/feedbackMiddleware";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
 
@@ -201,6 +202,8 @@ feedbackRouter.get("/received/any/:id", tokenAuthentication, isWorkerOrBusinessO
  *               message: No feedbacks found
  */
 feedbackRouter.get("/allFeedbacks", tokenAuthentication, isAdmin, getAllFeddbacks);
+
+feedbackRouter.get("/any/:id", tokenAuthentication, isAdmin, getFeedbackById);
 
 /**
  * Route for user to update own feedback.
