@@ -7,6 +7,7 @@ import {
   getAllFeddbacks,
   updateFeedback,
   replyFeedback,
+  getMyFeedbackById,
 } from "../middleware/feedbackMiddleware";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
 
@@ -41,12 +42,7 @@ const feedbackRouter = express.Router();
  *             schema:
  *               $ref: "#/components/schemas/Feedback"
  */
-feedbackRouter.post(
-  "/",
-  tokenAuthentication,
-  isWorkerOrBusinessOrAgency,
-  postFeedback
-);
+feedbackRouter.post("/", tokenAuthentication, isWorkerOrBusinessOrAgency, postFeedback);
 
 /**
  * Route for user to get own feedbacks
@@ -81,12 +77,9 @@ feedbackRouter.post(
  *             example:
  *               message: No feedbacks found
  */
-feedbackRouter.get(
-  "/allMyFeedbacks",
-  tokenAuthentication,
-  isWorkerOrBusinessOrAgency,
-  getMyFeedbacks
-);
+feedbackRouter.get("/allMyFeedbacks", tokenAuthentication, isWorkerOrBusinessOrAgency, getMyFeedbacks);
+
+feedbackRouter.get("/my/any/:id", tokenAuthentication, isWorkerOrBusinessOrAgency, getMyFeedbackById);
 
 /**
  * Route for user to get feedback by its id
@@ -126,12 +119,7 @@ feedbackRouter.get(
  *             example:
  *               message:No feedback found
  */
-feedbackRouter.get(
-  "/:id",
-  tokenAuthentication,
-  isWorkerOrBusinessOrAgency,
-  getFeedbackById
-);
+feedbackRouter.get("/:id", tokenAuthentication, isWorkerOrBusinessOrAgency, getFeedbackById);
 
 /**
  * Route for admin to get all feedbacks.
@@ -166,12 +154,7 @@ feedbackRouter.get(
  *             example:
  *               message: No feedbacks found
  */
-feedbackRouter.get(
-  "/allFeedbacks",
-  tokenAuthentication,
-  isAdmin,
-  getAllFeddbacks
-);
+feedbackRouter.get("/allFeedbacks", tokenAuthentication, isAdmin, getAllFeddbacks);
 
 /**
  * Route for user to update own feedback.
@@ -217,12 +200,7 @@ feedbackRouter.get(
  *             example:
  *               message: This feedback is not existing
  */
-feedbackRouter.put(
-  "/update/:id",
-  tokenAuthentication,
-  isWorkerOrBusinessOrAgency,
-  updateFeedback
-);
+feedbackRouter.put("/update/:id", tokenAuthentication, isWorkerOrBusinessOrAgency, updateFeedback);
 
 /**
  * Route for user to reply other users' feedbacks.
@@ -268,11 +246,6 @@ feedbackRouter.put(
  *             example:
  *               message: This feedback is not existing
  */
-feedbackRouter.put(
-  "/reply/:id",
-  tokenAuthentication,
-  isWorkerOrBusinessOrAgency,
-  replyFeedback
-);
+feedbackRouter.put("/reply/:id", tokenAuthentication, isWorkerOrBusinessOrAgency, replyFeedback);
 
 export default feedbackRouter;
