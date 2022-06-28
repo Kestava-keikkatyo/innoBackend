@@ -11,11 +11,7 @@ const updatableFields = ["heading", "message"];
  * @param {NextFunction} next
  * @returns New feedback document
  */
-export const postFeedback = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const postFeedback = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { body } = req;
     const feedbackDocument: IFeedbackDocument = new FeedBack({
@@ -40,11 +36,7 @@ export const postFeedback = async (
  * @param {NextFunction} next
  * @returns User's feedbacks
  */
-export const getMyFeedbacks = async (
-  _req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getMyFeedbacks = async (_req: Request, res: Response, next: NextFunction) => {
   const id: string = res.locals.userId;
   try {
     const docs: IFeedbackDocument[] | null = await FeedBack.find({
@@ -58,6 +50,33 @@ export const getMyFeedbacks = async (
     return next(exception);
   }
 };
+
+/**
+ * Get user's feedback by id.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns User's feedback
+ */
+export const getMyFeedbackById = async (req: Request, res: Response, next: NextFunction) => {
+  const { params } = req;
+  const userId: string = res.locals.userId;
+  const id: string = params.id;
+
+  try {
+    const doc: IFeedbackDocument | null = await FeedBack.findOne({
+      _id: id,
+      user: userId,
+    });
+    if (!doc) {
+      return res.status(404).send({});
+    }
+    return res.status(200).send(doc);
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
 /**
  * Get feedback by id.
  * @param {Request} req - Express Request.
@@ -65,11 +84,7 @@ export const getMyFeedbacks = async (
  * @param {NextFunction} next
  * @returns Feedback
  */
-export const getFeedbackById = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getFeedbackById = async (req: Request, res: Response, next: NextFunction) => {
   const { params } = req;
   const id: string = params.id;
 
@@ -93,11 +108,7 @@ export const getFeedbackById = async (
  * @param {NextFunction} next
  * @returns All feedbacks
  */
-export const getAllFeddbacks = async (
-  _req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getAllFeddbacks = async (_req: Request, res: Response, next: NextFunction) => {
   try {
     const feedbacks: IFeedbackDocument[] | null = await FeedBack.find({});
     if (feedbacks) {
@@ -116,11 +127,7 @@ export const getAllFeddbacks = async (
  * @param {NextFunction} next
  * @returns Updated feedback
  */
-export const updateFeedback = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const updateFeedback = async (req: Request, res: Response, next: NextFunction) => {
   const { params, body } = req;
   const userId: string = res.locals.userId;
   const id: string = params.id;
@@ -152,11 +159,7 @@ export const updateFeedback = async (
  * @param {NextFunction} next
  * @returns Updated feedback
  */
-export const replyFeedback = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const replyFeedback = async (req: Request, res: Response, next: NextFunction) => {
   const { params, body } = req;
   const userId: string = res.locals.userId;
   const id: string = params.id;
