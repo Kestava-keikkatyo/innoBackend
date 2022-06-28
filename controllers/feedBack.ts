@@ -203,6 +203,44 @@ feedbackRouter.get("/received/any/:id", tokenAuthentication, isWorkerOrBusinessO
  */
 feedbackRouter.get("/allFeedbacks", tokenAuthentication, isAdmin, getAllFeddbacks);
 
+/**
+ * Route for user of role admin to get any posted feedback by its id
+ * @openapi
+ * /feedback/any/{id}:
+ *   get:
+ *     summary: Route for user of role admin to get any posted feedback by its id
+ *     description: Must be logged in as user of role admin.
+ *     tags: [Feedback, Admin]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: id
+ *         description: ID of the requested feedback.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 604021e581a9626810885657
+ *     responses:
+ *       "200":
+ *         description: Returns the requested feedback.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/FeedBack"
+ *       "404":
+ *         description: No feedback was found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: The requested feedback is not existing
+ */
 feedbackRouter.get("/any/:id", tokenAuthentication, isAdmin, getFeedbackById);
 
 /**
