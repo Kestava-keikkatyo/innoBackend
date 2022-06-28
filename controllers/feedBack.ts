@@ -17,7 +17,7 @@ const feedbackRouter = express.Router();
 /**
  * Route for user of role agency, business or worker to send feedback.
  * @openapi
- * /feedback/:
+ * /feedback/send:
  *   post:
  *     summary: Route for user of role agency, business or worker to send feedback
  *     description: Must be logged in as a user of role agency, business or worker.
@@ -51,7 +51,7 @@ const feedbackRouter = express.Router();
  *             example:
  *               message: Failed to send feedback
  */
-feedbackRouter.post("/", tokenAuthentication, isWorkerOrBusinessOrAgency, postFeedback);
+feedbackRouter.post("/send", tokenAuthentication, isWorkerOrBusinessOrAgency, postFeedback);
 
 /**
  * Route for user of role agency, business or worker to get own feedbacks
@@ -116,7 +116,7 @@ feedbackRouter.get("/allMyFeedbacks", tokenAuthentication, isWorkerOrBusinessOrA
  *         content:
  *           application/json:
  *             schema:
- *               $ref: "#/components/schemas/FeedBack"
+ *               $ref: "#/components/schemas/Feedback"
  *       "404":
  *         description: No feedback was found.
  *         content:
@@ -156,7 +156,7 @@ feedbackRouter.get("/my/any/:id", tokenAuthentication, isWorkerOrBusinessOrAgenc
  *         content:
  *           application/json:
  *             schema:
- *               $ref: "#/components/schemas/FeedBack"
+ *               $ref: "#/components/schemas/Feedback"
  *       "404":
  *         description: The feedback is not existng.
  *         content:
@@ -173,9 +173,9 @@ feedbackRouter.get("/received/any/:id", tokenAuthentication, isWorkerOrBusinessO
  * @openapi
  * /feedback/all:
  *   get:
- *     summary: Route for admin to get all feedbacks
- *     description: Need to be logged in as a admin.
- *     tags: [Feedbacks, Admin]
+ *     summary: Route for user of role admin to get all feedbacks
+ *     description: Need to be logged in as user of role admin.
+ *     tags: [Feedback, Admin]
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -201,7 +201,7 @@ feedbackRouter.get("/received/any/:id", tokenAuthentication, isWorkerOrBusinessO
  *             example:
  *               message: No feedbacks found
  */
-feedbackRouter.get("/allFeedbacks", tokenAuthentication, isAdmin, getAllFeddbacks);
+feedbackRouter.get("/all", tokenAuthentication, isAdmin, getAllFeddbacks);
 
 /**
  * Route for user of role admin to get any posted feedback by its id
@@ -244,13 +244,13 @@ feedbackRouter.get("/allFeedbacks", tokenAuthentication, isAdmin, getAllFeddback
 feedbackRouter.get("/any/:id", tokenAuthentication, isAdmin, getFeedbackById);
 
 /**
- * Route for user to update own feedback.
+ * Route for user of role worker, business or agency to update own feedback.
  * @openapi
  * /feedback/update/{id}:
  *   put:
- *     summary: Route for user to update own feedback.
+ *     summary: Route for user of role worker, business or agency to update own feedback.
  *     description: Must be logged in as a user of role worker, agency or business.
- *     tags: [Feedback, User]
+ *     tags: [Feedback, Worker, Business, Agency]
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -270,7 +270,7 @@ feedbackRouter.get("/any/:id", tokenAuthentication, isAdmin, getFeedbackById);
  *       content:
  *         application/json:
  *           schema:
- *             $ref: "#/components/schemas/FeedbBack"
+ *             $ref: "#/components/schemas/Feedbback"
  *     responses:
  *       "200":
  *         description: Returns the updated feedback.
@@ -290,13 +290,13 @@ feedbackRouter.get("/any/:id", tokenAuthentication, isAdmin, getFeedbackById);
 feedbackRouter.put("/update/:id", tokenAuthentication, isWorkerOrBusinessOrAgency, updateFeedback);
 
 /**
- * Route for user to reply other users' feedbacks.
+ * Route for user of role worker, business or agency to reply received feedbacks.
  * @openapi
  * /feedback/reply/{id}:
  *   put:
- *     summary: Route for user to reply other users' feedbacks.
- *     description: Must be logged in as a user of role business, agency or worker.
- *     tags: [FeedBack, User]
+ *     summary: Route for user of role worker, business or agency to reply received feedbacks.
+ *     description: Must be logged in as a user of role worker, business or agency.
+ *     tags: [Feedback, Worker, Business, Agency]
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -316,7 +316,7 @@ feedbackRouter.put("/update/:id", tokenAuthentication, isWorkerOrBusinessOrAgenc
  *       content:
  *         application/json:
  *           schema:
- *             $ref: "#/components/schemas/FeedBack"
+ *             $ref: "#/components/schemas/Feedback"
  *     responses:
  *       "200":
  *         description: Returns the replied feedback.
