@@ -3,11 +3,11 @@ import { isAdmin, isWorkerOrBusinessOrAgency } from "../utils/authJwt";
 import {
   postFeedback,
   getMyFeedbacks,
-  getFeedbackById,
   getAllFeddbacks,
   updateFeedback,
   replyFeedback,
   getMyFeedbackById,
+  getReceivedFeedbackById,
 } from "../middleware/feedbackMiddleware";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
 
@@ -128,13 +128,13 @@ feedbackRouter.get("/allMyFeedbacks", tokenAuthentication, isWorkerOrBusinessOrA
 feedbackRouter.get("/my/any/:id", tokenAuthentication, isWorkerOrBusinessOrAgency, getMyFeedbackById);
 
 /**
- * Route for user to get feedback by its id
+ * Route for user of role worker, business or agency to get own received feedback by its id
  * @openapi
- * /feedback/myFeedback/{id}:
+ * /feedback/received/any/{id}:
  *   get:
- *     summary: Route for user to get feedback by its id
- *     description: Must be logged in as a user.
- *     tags: [Feedback, User]
+ *     summary: Route for user of role worker, business or agency to get own received feedback by its id
+ *     description: Must be logged in as a user of role worker, business or agency.
+ *     tags: [Feedback, Worker, Business, Agency]
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -144,28 +144,28 @@ feedbackRouter.get("/my/any/:id", tokenAuthentication, isWorkerOrBusinessOrAgenc
  *           $ref: "#/components/schemas/AccessToken"
  *       - in: path
  *         name: id
- *         description: ID of the requested feedback.
+ *         description: ID of the defined feedback.
  *         required: true
  *         schema:
  *           type: string
  *           example: 604021e581a9626810885657
  *     responses:
  *       "200":
- *         description: Returns the requested feedback.
+ *         description: Returns the defined feedback.
  *         content:
  *           application/json:
  *             schema:
- *               $ref: "#/components/schemas/Feedback"
+ *               $ref: "#/components/schemas/FeedBack"
  *       "404":
- *         description: No feedback found.
+ *         description: The feedback is not existng.
  *         content:
  *           application/json:
  *             schema:
  *               $ref: "#/components/schemas/Error"
  *             example:
- *               message:No feedback found
+ *               message: No received feedback was found
  */
-feedbackRouter.get("/:id", tokenAuthentication, isWorkerOrBusinessOrAgency, getFeedbackById);
+feedbackRouter.get("/received/any/:id", tokenAuthentication, isWorkerOrBusinessOrAgency, getReceivedFeedbackById);
 
 /**
  * Route for admin to get all feedbacks.
