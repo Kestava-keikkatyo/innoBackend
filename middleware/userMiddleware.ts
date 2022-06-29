@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { CallbackError } from "mongoose";
 import User from "../models/User";
-import { IFeelings, IUser, IUserDocument } from "../objecttypes/modelTypes";
+import { IFeeling, IUser, IUserDocument } from "../objecttypes/modelTypes";
 import { hash } from "bcryptjs";
 import { copyProperties, removeEmptyProperties } from "../utils/common";
 
@@ -413,9 +413,16 @@ export const deleteUser = async (req: Request, res: Response, next: NextFunction
 export const postUserFeeling = async (req: Request, res: Response, next: NextFunction) => {
   const { body } = req;
 
-  const myFeeling: IFeelings = {
-    value: body.value,
-    note: body.note,
+  const myFeeling: IFeeling = {
+    worker: res.locals.userId,
+    comfortable: body.comfortable,
+    satisfied: body.satisfied,
+    energetic: body.energetic,
+    enthusiastic: body.enthusiastic,
+    frustrated: body.frustrated,
+    stressed: body.stressed,
+    anxious: body.anxious,
+    comment: body.comment,
     fileUrl: body.fileUrl,
   };
   try {
