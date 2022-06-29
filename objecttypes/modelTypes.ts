@@ -1,12 +1,22 @@
 import { Document, PaginateModel, Types } from "mongoose";
 
-// Typing for a workers feelings object
-export interface IFeelings {
-  _id?: Types.ObjectId;
-  value: number;
-  note?: string;
-  createdAt?: Date;
+// Typing for a workers feeling object
+export interface IFeeling {
+  worker: IUserDocument["_id"];
+  comfortable: number;
+  satisfied: number;
+  energetic: number;
+  enthusiastic: number;
+  frustrated: number;
+  stressed: number;
+  anxious: number;
+  comment?: string;
   fileUrl?: string;
+}
+
+export interface IFeelingDocument extends Document, IFeeling {
+  _id: Types.ObjectId;
+  createdAt: Date;
 }
 
 // Typings for Form's questions START
@@ -208,7 +218,7 @@ export interface IUser {
   zipCode: string;
   city: string;
   phoneNumber: string;
-  feelings: Array<IFeelings>;
+  feelings: Array<IFeeling>;
   licenses: Array<string>;
   category: string;
   website: string;
