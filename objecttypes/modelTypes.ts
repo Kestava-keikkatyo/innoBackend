@@ -11,7 +11,6 @@ export interface IFeeling {
   stressed: number;
   anxious: number;
   comment?: string;
-  fileUrl?: string;
 }
 
 export interface IFeelingDocument extends Document, IFeeling {

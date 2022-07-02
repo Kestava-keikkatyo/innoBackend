@@ -423,12 +423,11 @@ export const postUserFeeling = async (req: Request, res: Response, next: NextFun
     stressed: body.stressed,
     anxious: body.anxious,
     comment: body.comment,
-    fileUrl: body.fileUrl,
   };
   try {
     const user: IUserDocument | null = await User.findByIdAndUpdate(
       res.locals.userId,
-      { $addToSet: { feelings: myFeeling } },
+      { $push: { feelings: myFeeling } },
       { new: true, omitUndefined: true, runValidators: true, lean: true }
     );
     if (user) {
