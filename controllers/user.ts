@@ -566,7 +566,7 @@ userRouter.get("/agencies", tokenAuthentication, isBusiness, getAllAgencies);
 /**
  * Route for user of role worker to post feeling.
  * @openapi
- * /user//feeling/{userId}:
+ * /user/my/feeling:
  *   put:
  *     summary: Route for user of role worker to post feeling
  *     description: Must be logged in as user of role worker.
@@ -605,7 +605,7 @@ userRouter.get("/agencies", tokenAuthentication, isBusiness, getAllAgencies);
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-userRouter.post("/feeling/", tokenAuthentication, isWorker, postUserFeeling);
+userRouter.put("/my/feeling", tokenAuthentication, isWorker, postUserFeeling);
 
 /**
  * Route to get user feelings
@@ -650,7 +650,7 @@ userRouter.get("/myFeelings", tokenAuthentication, getUserFeelings);
 /**
  * Route for user of role worker to delete own feeling
  * @openapi
- * /feeling/myFeelings/{id}:
+ * /myFeeling/delete/{id}:
  *   delete:
  *     summary: Route for user of role worker to delete own feeling
  *     description: Must be logged in as a user of role worker.
@@ -681,6 +681,6 @@ userRouter.get("/myFeelings", tokenAuthentication, getUserFeelings);
  *             example:
  *               message: No feeling was found with the requested ID {id}
  */
-userRouter.delete("/myFeelings/:feelingId", tokenAuthentication, isWorker, deleteUserFeeling);
+userRouter.delete("/myFeeling/delete/:feelingId", tokenAuthentication, isWorker, deleteUserFeeling);
 
 export default userRouter;
