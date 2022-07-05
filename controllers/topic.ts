@@ -1,13 +1,7 @@
 import express from "express";
-import { isAdmin } from "../utils/authJwt";
+import { isAdmin, isUser } from "../utils/authJwt";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
-import {
-  deleteTopic,
-  getAllTopics,
-  getTopicById,
-  postTopic,
-  updateTopic,
-} from "../middleware/topicMiddleware";
+import { deleteTopic, getAllTopics, getTopicById, postTopic, updateTopic } from "../middleware/topicMiddleware";
 const topicRouter = express.Router();
 
 /**
@@ -48,13 +42,13 @@ const topicRouter = express.Router();
 topicRouter.post("/create", tokenAuthentication, isAdmin, postTopic);
 
 /**
- * Route for admin to get all topics.
+ * Route for any user to get all topics.
  * @openapi
  * /topic/all:
  *   get:
- *     summary: Route for admin to get all topics
- *     description: Need to be logged in as a admin.
- *     tags: [Topic, Admin]
+ *     summary: Route for any user to get all topics
+ *     description: Need to be logged in as a user.
+ *     tags: [Topic, User]
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -80,7 +74,7 @@ topicRouter.post("/create", tokenAuthentication, isAdmin, postTopic);
  *             example:
  *               message: No topics found
  */
-topicRouter.get("/all", tokenAuthentication, isAdmin, getAllTopics);
+topicRouter.get("/all", tokenAuthentication, isUser, getAllTopics);
 
 /**
  * Route for admin to get a topic by its id
