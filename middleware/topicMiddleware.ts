@@ -12,11 +12,7 @@ const updatableFields = ["question", "answer"];
  * @param {NextFunction} next
  * @returns New topic document
  */
-export const postTopic = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const postTopic = async (req: Request, res: Response, next: NextFunction) => {
   const { body } = req;
   try {
     const topicDocument: ITopicDocument = new Topic({
@@ -40,11 +36,7 @@ export const postTopic = async (
  * @param {NextFunction} next
  * @returns All topics
  */
-export const getAllTopics = async (
-  _req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getAllTopics = async (_req: Request, res: Response, next: NextFunction) => {
   try {
     const topics: Array<ITopicDocument> | null = await Topic.find({});
     if (topics) {
@@ -63,11 +55,7 @@ export const getAllTopics = async (
  * @param {NextFunction} next
  * @returns Topic
  */
-export const getTopicById = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getTopicById = async (req: Request, res: Response, next: NextFunction) => {
   const { params } = req;
   const id: string = params.id;
 
@@ -91,11 +79,7 @@ export const getTopicById = async (
  * @param {NextFunction} next
  * @returns Updated topic
  */
-export const updateTopic = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const updateTopic = async (req: Request, res: Response, next: NextFunction) => {
   const { params, body } = req;
   const userId: string = res.locals.userId;
   const id: string = params.id;
@@ -105,15 +89,11 @@ export const updateTopic = async (
       ...copyProperties(body, updatableFields),
     });
 
-    const topic: ITopicDocument | null = await Topic.findOneAndUpdate(
-      { _id: id, user: userId },
-      updatedTopic,
-      {
-        new: true,
-        runValidators: true,
-        lean: true,
-      }
-    );
+    const topic: ITopicDocument | null = await Topic.findOneAndUpdate({ _id: id, user: userId }, updatedTopic, {
+      new: true,
+      runValidators: true,
+      lean: true,
+    });
     return res.status(topic ? 200 : 404).send();
   } catch (exception) {
     return next(exception);
@@ -127,11 +107,7 @@ export const updateTopic = async (
  * @param {NextFunction} next
  * @returns Deleted topic
  */
-export const deleteTopic = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const deleteTopic = async (req: Request, res: Response, next: NextFunction) => {
   const { params } = req;
   const userId: string = res.locals.userId;
   const id: string = params.id;
@@ -145,9 +121,7 @@ export const deleteTopic = async (
     if (!topic) {
       return res.status(404).send({ message: `Topic is not existing!` });
     } else {
-      return res
-        .status(200)
-        .send({ message: `Topic was deleted successfuly!` });
+      return res.status(200).send({ message: `Topic was deleted successfuly!` });
     }
   } catch (exception) {
     return next(exception);
