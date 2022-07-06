@@ -487,3 +487,21 @@ export const deleteUserFeeling = async (req: Request, res: Response, next: NextF
     return next(exception);
   }
 };
+
+export const getUserFeelingById = async (_req: Request, res: Response, next: NextFunction) => {
+  const { params } = _req;
+  // const id: string = res.locals.userId;
+  const feelingId: string = params.id;
+
+  try {
+    const users = await User.find({ "feelings._id": feelingId }, { feelings: { $elemMatch: { _id: feelingId } } });
+
+    if (!users) {
+      return res.status(404).send({});
+    }
+
+    return res.status(200).send(users[0].feelings[0]);
+  } catch (exception) {
+    return next(exception);
+  }
+};
