@@ -1,8 +1,8 @@
 import express from "express";
 import {
   isAdmin,
-  isAgencyOrBusiness,
   isBusiness,
+  isBusinessOrAdminOrAgency,
   isUser,
   isWorker,
   isWorkerOrBusinessOrAgency,
@@ -24,6 +24,7 @@ import {
   getAllAgencies,
   getUserByUserType,
   deleteUserNotification,
+  getLatestJoinedWorkers,
 } from "../middleware/userMiddleware";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
 
@@ -307,8 +308,6 @@ userRouter.delete("/delete/notification/:id", tokenAuthentication, deleteUserNot
  */
 userRouter.put("/:userId", tokenAuthentication, updateUserProfile);
 
-userRouter.get("/allWorkersForAdmin", tokenAuthentication, isAdmin, getAllWorkers);
-
 /**
  * Route for admin to update user.
  * @openapi
@@ -527,7 +526,9 @@ userRouter.get(
  *             example:
  *               message:  no workers found
  */
-userRouter.get("/workers", tokenAuthentication, isAgencyOrBusiness, getAllWorkers);
+userRouter.get("/workers", tokenAuthentication, isBusinessOrAdminOrAgency, getAllWorkers);
+
+userRouter.get("/workers/latest", tokenAuthentication, isBusinessOrAdminOrAgency, getLatestJoinedWorkers);
 
 /**
  * @openapi
