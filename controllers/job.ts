@@ -88,6 +88,39 @@ jobRouter.post("/", tokenAuthentication, isAgency, postJob);
  */
 jobRouter.get("/ads", tokenAuthentication, isWorkerOrAdmin, getJobAds);
 
+/**
+ * Route for users of role worker or admin to get the latest job ads.
+ * @openapi
+ * /job/latest:
+ *   get:
+ *     summary: Route for users or role worker or admin to get the latest job ads.
+ *     description: Need to be logged in as a user of role worker or admin.
+ *     tags: [Job, Worker, Admin]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     responses:
+ *       "200":
+ *         description: Returns found jobads
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: "#/components/schemas/Job"
+ *       "404":
+ *         description: No job ads are existing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: No job ads found
+ */
 jobRouter.get("/latest", tokenAuthentication, isWorkerOrAdmin, getLatestJobs);
 
 /**
