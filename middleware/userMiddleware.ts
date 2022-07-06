@@ -220,6 +220,27 @@ export const getAllWorkers = async (_req: Request, res: Response, next: NextFunc
 };
 
 /**
+ * Get latest joined workers.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns Latest joined workers
+ */
+export const getLatestJoinedWorkers = async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    const workers: Array<IUserDocument> | null = await User.find({ userType: "worker" })
+      .sort({ createdAt: -1 })
+      .limit(30);
+    if (workers) {
+      return res.status(200).json(workers);
+    }
+    return res.status(404).json({ message: "No workers found!" });
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
  * Get all users of type Business.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
