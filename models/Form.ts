@@ -1,7 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2";
 import { IFormDocument } from "../objecttypes/modelTypes";
-import { error as _error } from "../utils/logger";
 
 const formSchema: Schema = new Schema(
   {
