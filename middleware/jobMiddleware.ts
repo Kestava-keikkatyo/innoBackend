@@ -142,6 +142,27 @@ export const getJobById = async (req: Request, res: Response, next: NextFunction
 };
 
 /**
+ * Get latest jobs.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns Latest job ads
+ */
+export const getLatestJobs = async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    const jobs: Array<IJobDocument> | null = await Job.find().sort({ createdAt: -1 }).limit(30).populate("user", {
+      name: 1,
+    });
+    if (jobs) {
+      return res.status(200).json(jobs);
+    }
+    return res.status(404).json({ message: "No jobs found!" });
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
  * Update job by id.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
