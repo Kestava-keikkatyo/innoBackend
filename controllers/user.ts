@@ -528,6 +528,39 @@ userRouter.get(
  */
 userRouter.get("/workers", tokenAuthentication, isBusinessOrAdminOrAgency, getAllWorkers);
 
+/**
+ * Route for users of role agency, business or admin to get the latest joined workers.
+ * @openapi
+ * /user/workers/latest:
+ *   get:
+ *     summary: Route for users of role agency, business or admin to get the latest joined workers.
+ *     description: Need to be logged in as a user of role agency, business or admin.
+ *     tags: [User, Agency, Business, Admin]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     responses:
+ *       "200":
+ *         description: Returns found recently joined workers
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: "#/components/schemas/User"
+ *       "404":
+ *         description: No workers found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: No workers found
+ */
 userRouter.get("/workers/latest", tokenAuthentication, isBusinessOrAdminOrAgency, getLatestJoinedWorkers);
 
 /**
