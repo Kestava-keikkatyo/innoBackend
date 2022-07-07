@@ -1,7 +1,8 @@
 import express from "express";
-import { isAdmin } from "../utils/authJwt";
+import { isAdmin, isWorkerOrBusinessOrAgency } from "../utils/authJwt";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
 import {
+  getMyResponsibilities,
   deleteResponsibility,
   getAllResponsibilities,
   getResponsibilityById,
@@ -54,7 +55,7 @@ responsibilityRouter.post("/create", tokenAuthentication, isAdmin, postResponsib
  * /responsibility/all:
  *   get:
  *     summary: Route for user of role admin to get all responsibilities
- *     description: Need to be logged in as a user.
+ *     description: Need to be logged in as a user of role admin.
  *     tags: [Responsibility, Admin]
  *     parameters:
  *       - in: header
@@ -82,6 +83,41 @@ responsibilityRouter.post("/create", tokenAuthentication, isAdmin, postResponsib
  *               message: No responsibilities found
  */
 responsibilityRouter.get("/all", tokenAuthentication, isAdmin, getAllResponsibilities);
+
+/**
+ * Route for user of role worker,business or agency to get their responsibilities.
+ * @openapi
+ * /responsibility/my:
+ *   get:
+ *     summary: Route for user of role worker, business or agency to get their responsibilities.
+ *     description: Need to be logged in as a user of role worker, business or agency.
+ *     tags: [Responsibility, Worker, Business, Agency]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     responses:
+ *       "200":
+ *         description: Returns all found responsibilities
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: "#/components/schemas/Responsibility"
+ *       "404":
+ *         description: No responsibilities are existing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: No responsibilities found
+ */
+responsibilityRouter.get("/my", tokenAuthentication, isWorkerOrBusinessOrAgency, getMyResponsibilities);
 
 /**
  * Route for admin to get a responsibility by its id
