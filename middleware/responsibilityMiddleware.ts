@@ -49,6 +49,28 @@ export const getAllResponsibilities = async (_req: Request, res: Response, next:
 };
 
 /**
+ * Get all responsibilities based on user type.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns All responsibilities based on user type
+ */
+export const getMyResponsibilities = async (req: Request, res: Response, next: NextFunction) => {
+  const { body } = req;
+  try {
+    const responsibilities: Array<IResponsibilityDocument> | null = await Responsibility.find({
+      responsible: body.user.userType,
+    });
+    if (responsibilities) {
+      return res.status(200).json(responsibilities);
+    }
+    return res.status(404).json({ message: "No responsibilities found!" });
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
  * Get responsibility by id.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
