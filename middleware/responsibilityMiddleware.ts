@@ -47,3 +47,27 @@ export const getAllResponsibilities = async (_req: Request, res: Response, next:
     return next(exception);
   }
 };
+
+/**
+ * Get responsibility by id.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns Responsibility
+ */
+export const getResponsibilityById = async (req: Request, res: Response, next: NextFunction) => {
+  const { params } = req;
+  const id: string = params.id;
+
+  try {
+    const responsibility: IResponsibilityDocument | null = await Responsibility.findById({
+      _id: id,
+    });
+    if (!responsibility) {
+      return res.status(404).send({});
+    }
+    return res.status(200).send(responsibility);
+  } catch (exception) {
+    return next(exception);
+  }
+};
