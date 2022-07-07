@@ -28,3 +28,22 @@ export const postResponsibility = async (req: Request, res: Response, next: Next
     return next(exception);
   }
 };
+
+/**
+ * Get all responsibilities.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns All responsibilities
+ */
+export const getAllResponsibilities = async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    const responsibilities: Array<IResponsibilityDocument> | null = await Responsibility.find({});
+    if (responsibilities) {
+      return res.status(200).json(responsibilities);
+    }
+    return res.status(404).json({ message: "No responsibilities found!" });
+  } catch (exception) {
+    return next(exception);
+  }
+};
