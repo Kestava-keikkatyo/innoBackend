@@ -5,6 +5,7 @@ import {
   getAllResponsibilities,
   getResponsibilityById,
   postResponsibility,
+  updateResponsibility,
 } from "../middleware/responsibilityMiddleware";
 
 const responsibilityRouter = express.Router();
@@ -120,5 +121,49 @@ responsibilityRouter.get("/all", tokenAuthentication, isAdmin, getAllResponsibil
  *               message:The frequested responsibility is not existing
  */
 responsibilityRouter.get("/any/:id", tokenAuthentication, isAdmin, getResponsibilityById);
+
+/**
+ * Route for admin to update a responsibility.
+ * @openapi
+ * /responsibility/update/{id}:
+ *   put:
+ *     summary: Route for admin to update a responsibility.
+ *     description: Must be logged in as an admin.
+ *     tags: [Responsibility, Admin]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: id
+ *         description: ID of the responsibility to be updated.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 604021e581a9626810885657
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: "#/components/schemas/Responsibility"
+ *     responses:
+ *       "200":
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Responsibility"
+ *       "404":
+ *         description: A responsibility with the specified ID was not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ */
+responsibilityRouter.put("/update/:id", tokenAuthentication, isAdmin, updateResponsibility);
 
 export default responsibilityRouter;
