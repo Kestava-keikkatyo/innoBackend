@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import Responsibility from "../models/Responsibility";
 import { IResponsibilityDocument } from "../objecttypes/modelTypes";
-import { copyProperties } from "../utils/common";
+import { copyProperties, removeEmptyProperties } from "../utils/common";
 
 const updatableFields = ["responsible", "rule"];
 
@@ -67,6 +67,38 @@ export const getResponsibilityById = async (req: Request, res: Response, next: N
       return res.status(404).send({});
     }
     return res.status(200).send(responsibility);
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
+ * Update responsibility by id.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns Updated responsibility
+ */
+export const updateResponsibility = async (req: Request, res: Response, next: NextFunction) => {
+  const { params, body } = req;
+  const userId: string = res.locals.userId;
+  const id: string = params.id;
+
+  try {
+    const updatedResponsibility = removeEmptyProperties({
+      ...copyProperties(body, updatableFields),
+    });
+
+    const responsibility: IResponsibilityDocument | null = await Responsibility.findOneAndUpdate(
+      { _id: id, user: userId },
+      updatedResponsibility,
+      {
+        new: true,
+        runValidators: true,
+        lean: true,
+      }
+    );
+    return res.status(responsibility ? 200 : 404).send();
   } catch (exception) {
     return next(exception);
   }
