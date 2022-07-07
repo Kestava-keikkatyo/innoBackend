@@ -1,7 +1,7 @@
 import express from "express";
 import { isAdmin } from "../utils/authJwt";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
-import { postResponsibility } from "../middleware/responsibilityMiddleware";
+import { getAllResponsibilities, postResponsibility } from "../middleware/responsibilityMiddleware";
 
 const responsibilityRouter = express.Router();
 
@@ -41,5 +41,40 @@ const responsibilityRouter = express.Router();
  *               $ref: "#/components/schemas/Error"
  */
 responsibilityRouter.post("/create", tokenAuthentication, isAdmin, postResponsibility);
+
+/**
+ * Route for user of role admin to get all responsibilities.
+ * @openapi
+ * /responsibility/all:
+ *   get:
+ *     summary: Route for user of role admin to get all responsibilities
+ *     description: Need to be logged in as a user.
+ *     tags: [Responsibility, Admin]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     responses:
+ *       "200":
+ *         description: Returns all found responsibilities
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: "#/components/schemas/Responsibility"
+ *       "404":
+ *         description: No responsibilities are existing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: No responsibilities found
+ */
+responsibilityRouter.get("/all", tokenAuthentication, isAdmin, getAllResponsibilities);
 
 export default responsibilityRouter;
