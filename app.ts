@@ -3,12 +3,8 @@ import cors from "cors";
 import mongoose from "mongoose";
 import config from "./utils/config";
 import uploadsRouter from "./controllers/uploads";
-import {
-  errorHandler,
-  requestLogger,
-  unknownEndpoint,
-} from "./utils/middleware";
-import { info, error as _error } from "./utils/logger";
+import { errorHandler, requestLogger, unknownEndpoint } from "./utils/middleware";
+import { info } from "./utils/logger";
 import swaggerUi from "swagger-ui-express";
 import swaggerDocument from "./doc/generateSwaggerDoc";
 import feedbackRouter from "./controllers/feedBack";
@@ -21,6 +17,7 @@ import agreementRouter from "./controllers/agreement";
 import reportRouter from "./controllers/report";
 import topicRouter from "./controllers/topic";
 import workRequestRouter from "./controllers/workRequest";
+import responsibilityRouter from "./controllers/responsibility";
 
 const app = express();
 
@@ -60,6 +57,7 @@ app.use("/api/agreement", agreementRouter);
 app.use("/api/report", reportRouter);
 app.use("/api/topic", topicRouter);
 app.use("/api/workRequest", workRequestRouter);
+app.use("/api/responsibility", responsibilityRouter);
 
 app.use(unknownEndpoint);
 app.use(errorHandler);
