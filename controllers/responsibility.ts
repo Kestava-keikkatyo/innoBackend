@@ -1,7 +1,11 @@
 import express from "express";
 import { isAdmin } from "../utils/authJwt";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
-import { getAllResponsibilities, postResponsibility } from "../middleware/responsibilityMiddleware";
+import {
+  getAllResponsibilities,
+  getResponsibilityById,
+  postResponsibility,
+} from "../middleware/responsibilityMiddleware";
 
 const responsibilityRouter = express.Router();
 
@@ -76,5 +80,45 @@ responsibilityRouter.post("/create", tokenAuthentication, isAdmin, postResponsib
  *               message: No responsibilities found
  */
 responsibilityRouter.get("/all", tokenAuthentication, isAdmin, getAllResponsibilities);
+
+/**
+ * Route for admin to get a responsibility by its id
+ * @openapi
+ * /responsibility/any/{id}:
+ *   get:
+ *     summary: Route for admin to get a responsibility by its id
+ *     description: Must be logged in as admin.
+ *     tags: [Responsibility, Admin]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: id
+ *         description: ID of the requested responsibility.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 604021e581a9626810885657
+ *     responses:
+ *       "200":
+ *         description: Returns the requested responsibility.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Responsibility"
+ *       "404":
+ *         description: No responsibility was found with the requested ID.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message:The frequested responsibility is not existing
+ */
+responsibilityRouter.get("/any/:id", tokenAuthentication, isAdmin, getResponsibilityById);
 
 export default responsibilityRouter;
