@@ -103,3 +103,31 @@ export const updateResponsibility = async (req: Request, res: Response, next: Ne
     return next(exception);
   }
 };
+
+/**
+ * This function is used to delete responsibility by id.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns Deleted responsibility
+ */
+export const deleteResponsibility = async (req: Request, res: Response, next: NextFunction) => {
+  const { params } = req;
+  const userId: string = res.locals.userId;
+  const id: string = params.id;
+
+  try {
+    const responsibility: IResponsibilityDocument | null = await Responsibility.findOneAndDelete({
+      _id: id,
+      user: userId,
+    });
+
+    if (!responsibility) {
+      return res.status(404).send({ message: `Responsibility is not existing!` });
+    } else {
+      return res.status(200).send({ message: `Responsibility was deleted successfuly!` });
+    }
+  } catch (exception) {
+    return next(exception);
+  }
+};
