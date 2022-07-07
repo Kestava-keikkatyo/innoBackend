@@ -7,7 +7,7 @@ const topicRouter = express.Router();
 /**
  * Route for admin to add a new topic.
  * @openapi
- * /topics/:
+ * /topic/:
  *   post:
  *     summary: Route for admin to add a new topic.
  *     description: Must be logged in as an admin.
