@@ -285,3 +285,14 @@ export interface IWorkRequestDocument extends Document, IWorkRequest {
   _id: Types.ObjectId;
   createdAt: Date;
 }
+
+export interface IResponsibility {
+  user: IUserDocument["_id"];
+  responsible: String;
+  rule: String;
+}
+
+export interface IResponsibilityDocument extends Document, IResponsibility {
+  _id: Types.ObjectId;
+  createdAt: Date;
+}
