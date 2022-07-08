@@ -18,6 +18,7 @@ import reportRouter from "./controllers/report";
 import topicRouter from "./controllers/topic";
 import workRequestRouter from "./controllers/workRequest";
 import responsibilityRouter from "./controllers/responsibility";
+import feelingRouter from "./controllers/feeling";
 
 const app = express();
 
@@ -58,6 +59,7 @@ app.use("/api/report", reportRouter);
 app.use("/api/topic", topicRouter);
 app.use("/api/workRequest", workRequestRouter);
 app.use("/api/responsibility", responsibilityRouter);
+app.use("/api/feeling", feelingRouter);
 
 app.use(unknownEndpoint);
 app.use(errorHandler);
