@@ -10,18 +10,12 @@ import { IReport, IReportDocument } from "../objecttypes/modelTypes";
  * @param {NextFunction} next
  * @returns New report document
  */
-export const postReport = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const postReport = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { body } = req;
     //console.log('reportMiddleware.postReport: body: ',body)
     if (!body.agency && !body.business)
-      return res
-        .status(400)
-        .send({ error: "Agency and Business can't be both empty!" });
+      return res.status(400).send({ error: "Agency and Business can't be both empty!" });
     const reportDocument: IReportDocument = new Report({
       user: res.locals.userId,
       business: body.business,
@@ -49,24 +43,17 @@ export const postReport = async (
  * @param {NextFunction} next
  * @returns Workers's reports
  */
-export const getMyReports = (
-  _req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getMyReports = (_req: Request, res: Response, next: NextFunction) => {
   try {
-    Report.find(
-      { user: res.locals.userId },
-      (error: CallbackError, docs: IReportDocument[]) => {
-        if (error) {
-          return res.status(500).json({ message: error.message });
-        }
-        if (!docs.length) {
-          return res.status(404).json({ message: "No reports found!" });
-        }
-        return res.status(200).json(docs);
+    Report.find({ user: res.locals.userId }, (error: CallbackError, docs: IReportDocument[]) => {
+      if (error) {
+        return res.status(500).json({ message: error.message });
       }
-    )
+      if (!docs.length) {
+        return res.status(404).json({ message: "No reports found!" });
+      }
+      return res.status(200).json(docs);
+    })
       .populate("user", {
         name: 1,
       })
@@ -90,11 +77,7 @@ export const getMyReports = (
  * @param {NextFunction} next
  * @returns All reports
  */
-export const getAllReports = async (
-  _req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getAllReports = async (_req: Request, res: Response, next: NextFunction) => {
   try {
     const reports: Array<IReportDocument> | null = await Report.find({})
       .populate("user", {
@@ -124,11 +107,7 @@ export const getAllReports = async (
  * @param {NextFunction} next
  * @returns Report
  */
-export const getReportById = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getReportById = (req: Request, res: Response, next: NextFunction) => {
   const { params } = req;
   const id: string = params.id;
 
@@ -170,11 +149,7 @@ export const getReportById = (
  * @param {NextFunction} next
  * @returns Replied report
  */
-export const replyReport = async (
-  req: Request<{ id: string }, IReport>,
-  res: Response,
-  next: NextFunction
-) => {
+export const replyReport = async (req: Request<{ id: string }, IReport>, res: Response, next: NextFunction) => {
   const { params, body } = req;
   const { id } = params;
   //console.log('reportMiddleware: replyReport: body:', body)
@@ -274,11 +249,7 @@ export const archiveReport = async (
  * @param {NextFunction} next
  * @returns All reports for receiver
  */
-export const getReportsForReceiver = async (
-  _req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getReportsForReceiver = async (_req: Request, res: Response, next: NextFunction) => {
   try {
     let reports;
 
