@@ -1,7 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2";
 import { IApplicationDocument } from "../objecttypes/modelTypes";
-import { error as _error } from "../utils/logger";
 
 const applicationSchema = new Schema({
   status: {
@@ -34,7 +33,4 @@ const applicationSchema = new Schema({
 
 applicationSchema.plugin(mongoosePaginate);
 
-export default mongoose.model<IApplicationDocument>(
-  "Application",
-  applicationSchema
-);
+export default mongoose.model<IApplicationDocument>("Application", applicationSchema);

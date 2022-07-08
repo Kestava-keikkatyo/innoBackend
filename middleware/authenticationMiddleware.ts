@@ -1,11 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import TokenService from "../services/TokenService";
 
-export const tokenAuthentication = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const tokenAuthentication = async (req: Request, res: Response, next: NextFunction) => {
   const token: string = req.headers["x-access-token"] as string;
   if (token) {
     try {

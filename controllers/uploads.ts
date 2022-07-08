@@ -8,28 +8,27 @@
  * @type {object}
  * @const
  * @namespace uploadsRouter
-*/
+ */
 
-import express from 'express'
-import config from "../utils/config"
+import express from "express";
+import config from "../utils/config";
 
-const uploadsRouter = express.Router()
+const uploadsRouter = express.Router();
 
-let aws = require('aws-sdk')
+let aws = require("aws-sdk");
 
 // Configure dotenv to load in the .env file
-require('dotenv').config()
+require("dotenv").config();
 
 // AWS S3 bucket name
-let S3_BUCKET = config.AWS_BUCKET
+let S3_BUCKET = config.AWS_BUCKET;
 
 // Configure AWS with your accessKeyId and your secretAccessKey
 aws.config.update({
   region: config.AWS_REGION,
   accessKeyId: config.AWS_ACCESS_KEY_ID,
-  secretAccessKey: config.AWS_SECRET_ACCESS_KEY
-})
-
+  secretAccessKey: config.AWS_SECRET_ACCESS_KEY,
+});
 
 uploadsRouter.post("/", async (req: any, res: any) => {
   // Create a new instance of S3
@@ -37,19 +36,19 @@ uploadsRouter.post("/", async (req: any, res: any) => {
   const file = req.body.file;
   //const fileName = req.body.fileName;
   const fileType = req.body.fileType;
-  let typePartOne: any = req.body.typePartOne
+  let typePartOne: any = req.body.typePartOne;
 
   // Depending on the file type 'application, image or video', save the file to a certain directory in S3 'pdf, images or videos'
-  if (typePartOne === 'application') {
-    S3_BUCKET = S3_BUCKET + '/pdf'
+  if (typePartOne === "application") {
+    S3_BUCKET = S3_BUCKET + "/pdf";
   }
 
-  if (typePartOne === 'image') {
-    S3_BUCKET = S3_BUCKET + '/images'
+  if (typePartOne === "image") {
+    S3_BUCKET = S3_BUCKET + "/images";
   }
 
-  if (typePartOne === 'video') {
-    S3_BUCKET = S3_BUCKET + '/videos'
+  if (typePartOne === "video") {
+    S3_BUCKET = S3_BUCKET + "/videos";
   }
 
   // Setting up S3 upload parameters
@@ -61,42 +60,38 @@ uploadsRouter.post("/", async (req: any, res: any) => {
   };
 
   // Make a request to the S3 API to get a signed URL which we can use to upload our file
-  s3.getSignedUrl('putObject', params, (err: any, data: any) => {
+  s3.getSignedUrl("putObject", params, (err: any, data: any) => {
     if (err) {
       console.log(err);
-      res.json({ success: false, error: err })
+      res.json({ success: false, error: err });
     }
 
-    S3_BUCKET = config.AWS_BUCKET
+    S3_BUCKET = config.AWS_BUCKET;
 
-    let url: any = `https://${S3_BUCKET}.s3.${config.AWS_REGION}.amazonaws.com/${file}`
+    let url: any = `https://${S3_BUCKET}.s3.${config.AWS_REGION}.amazonaws.com/${file}`;
 
     // Depending on the file type, add the directory name 'pdf, images or videos' to the url
-    if (typePartOne === 'application') {
-      url = `https://${S3_BUCKET}.s3.${config.AWS_REGION}.amazonaws.com/pdf/${file}`
+    if (typePartOne === "application") {
+      url = `https://${S3_BUCKET}.s3.${config.AWS_REGION}.amazonaws.com/pdf/${file}`;
     }
 
-    if (typePartOne === 'image') {
-      url = `https://${S3_BUCKET}.s3.${config.AWS_REGION}.amazonaws.com/images/${file}`
+    if (typePartOne === "image") {
+      url = `https://${S3_BUCKET}.s3.${config.AWS_REGION}.amazonaws.com/images/${file}`;
     }
 
-    if (typePartOne === 'video') {
-      url = `https://${S3_BUCKET}.s3.${config.AWS_REGION}.amazonaws.com/videos/${file}`
+    if (typePartOne === "video") {
+      url = `https://${S3_BUCKET}.s3.${config.AWS_REGION}.amazonaws.com/videos/${file}`;
     }
 
     // Data payload of what we are sending back, the url of the signedRequest and a URL where we can access the content after its saved.
     const returnData = {
       signedRequest: data,
       url: url,
-      fileType: typePartOne
+      fileType: typePartOne,
     };
     // Send it all back
     res.status(200).json({ success: true, data: { returnData } });
-
   });
+});
 
-})
-
-export default uploadsRouter
-
-
+export default uploadsRouter;
