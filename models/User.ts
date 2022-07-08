@@ -104,7 +104,7 @@ const userSchema: Schema = new Schema({
       target: {
         type: Schema.Types.ObjectId,
         required: true,
-        refPath: "targetDoc",
+        refPath: "notifications.targetDoc",
       },
       targetDoc: {
         type: String,

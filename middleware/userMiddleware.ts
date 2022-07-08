@@ -136,8 +136,14 @@ export const getUserNotifications = async (_req: Request, res: Response, next: N
   const id: string = res.locals.userId;
 
   try {
-    const doc: IUserDocument | null = await User.findById(id);
-
+    const doc: IUserDocument | null = await User.findById(id).populate({
+      path: "notifications",
+      populate: {
+        path: "sender",
+        select: "name",
+      },
+    });
+    console.log("doc: ", doc);
     if (!doc) {
       return res.status(404).send({});
     }
@@ -155,7 +161,7 @@ export const deleteUserNotification = async (req: Request, res: Response, next: 
   try {
     const doc = await User.findByIdAndUpdate(
       id,
-      { $pull: { notifications: { _id: params.notificationId } } },
+      { $pull: { notifications: { _id: params.id } } },
       { new: true, omitUndefined: true, runValidators: true, lean: true }
     );
     if (!doc) {
