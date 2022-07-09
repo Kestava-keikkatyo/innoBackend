@@ -46,7 +46,7 @@ const feelingRouter = express.Router();
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-feelingRouter.post("/send", tokenAuthentication, isWorker, postFeeling);
+feelingRouter.post("/send/", tokenAuthentication, isWorker, postFeeling);
 
 /**
  * Route for user of role worker to get own feelings

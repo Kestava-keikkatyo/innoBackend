@@ -3,7 +3,16 @@ import Feeling from "../models/Feeling";
 import { IFeelingDocument } from "../objecttypes/modelTypes";
 import { copyProperties } from "../utils/common";
 
-const updatableFields = ["comfortable", "satisfied", "energetic", "enthusiastic", "frustrated", "stressed", "comment"];
+const updatableFields = [
+  "comfortable",
+  "satisfied",
+  "energetic",
+  "enthusiastic",
+  "frustrated",
+  "stressed",
+  "anxious",
+  "comment",
+];
 
 /**
  * Post worker's feeling to database.
