@@ -1,6 +1,5 @@
 import express, { NextFunction, Request, Response } from "express";
 import { hash } from "bcryptjs";
-import { error as _error } from "../utils/logger";
 import User from "../models/User";
 import { IUserDocument, IUser } from "../objecttypes/modelTypes";
 import { CallbackError } from "mongoose";
@@ -78,20 +77,19 @@ const authRouter = express.Router();
 authRouter.post(
   "/register",
   checkDuplicateEmail,
-  async (
-    req: Request<unknown, unknown, IUser>,
-    res: Response,
-    next: NextFunction
-  ) => {
+  async (req: Request<unknown, unknown, IUser>, res: Response, next: NextFunction) => {
     const { body } = req;
 
     try {
       const passwordLength: number = body.password ? body.password.length : 0;
       if (passwordLength < 3) {
-        return res
-          .status(400)
-          .json({ message: "Password length less than 3 characters" });
+        return res.status(400).json({ message: "Password length less than 3 characters" });
       }
+
+      if (!["worker", "business", "agency"].includes(body.userType)) {
+        return res.status(400).json({ message: "Unknown user type" });
+      }
+
       const saltRounds: number = 10;
       const passwordHash: string = await hash(body.password, saltRounds);
       let user: IUserDocument = new User({
@@ -106,9 +104,7 @@ authRouter.post(
           return res.status(500).json({ message: error.message });
         }
         if (!user) {
-          return res
-            .status(500)
-            .json({ message: "Unable to save user document" });
+          return res.status(500).json({ message: "Unable to save user document" });
         }
         const token: string = await TokenService.createToken(user);
         return res.status(200).send({
@@ -174,39 +170,34 @@ authRouter.post(
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-authRouter.post(
-  "/signin",
-  async (req: Request<unknown, unknown, IBodyLogin>, res: Response) => {
-    const { body } = req;
+authRouter.post("/signin", async (req: Request<unknown, unknown, IBodyLogin>, res: Response) => {
+  const { body } = req;
 
-    const user: IUserDocument | null = await User.findOne({
-      email: body.email,
-    });
-    const passwordCorrect: boolean =
-      user === null
-        ? false
-        : await bcrypt.compare(body.password, user.passwordHash as string);
+  const user: IUserDocument | null = await User.findOne({
+    email: body.email,
+  });
+  const passwordCorrect: boolean =
+    user === null ? false : await bcrypt.compare(body.password, user.passwordHash as string);
 
-    if (!(user && passwordCorrect)) {
-      return res.status(401).json({ message: "Invalid email or password" });
-    }
-    if (user.active) {
-      const token: string = await TokenService.createToken(user);
-
-      return res.status(200).send({
-        token,
-        name: user.name,
-        email: user.email,
-        role: user.userType.toLowerCase(),
-        _id: user.id,
-      });
-    } else {
-      return res.status(403).json({
-        message: "This account has been blocked for security reasons",
-      });
-    }
+  if (!(user && passwordCorrect)) {
+    return res.status(401).json({ message: "Invalid email or password" });
   }
-);
+  if (user.active) {
+    const token: string = await TokenService.createToken(user);
+
+    return res.status(200).send({
+      token,
+      name: user.name,
+      email: user.email,
+      role: user.userType.toLowerCase(),
+      _id: user.id,
+    });
+  } else {
+    return res.status(403).json({
+      message: "This account has been blocked for security reasons",
+    });
+  }
+});
 
 /**
  * @openapi
@@ -278,63 +269,49 @@ authRouter.post(
  *             example:
  *               message: User not found
  */
-authRouter.put(
-  "/changePassword",
-  tokenAuthentication,
-  async (req: Request, res: Response, next: NextFunction) => {
-    const { body } = req;
-    try {
-      const user: IUserDocument | null = await User.findById(res.locals.userId);
-      if (!user) {
-        return res.status(404).json({ message: "User is not existing" });
-      }
-      const currentPasswordCorrect: boolean = await bcrypt.compare(
-        body.currentPassword,
-        user.passwordHash as string
-      );
-
-      if (!currentPasswordCorrect) {
-        return res
-          .status(401)
-          .json({ message: "The current password is incorrect" });
-      }
-      if (body.currentPassword === body.newPassword) {
-        return res.status(406).json({
-          message:
-            "The new password could not be as same as the current password",
-        });
-      }
-      if (!body.newPassword) {
-        return res
-          .status(400)
-          .json({ message: "The new password can't be blank" });
-      }
-      const passwordLength: number = body.newPassword.length;
-      if (passwordLength < 3) {
-        return res
-          .status(411)
-          .json({ message: "password length less than 3 characters" });
-      }
-      const saltRounds: number = 10;
-      let newPasswordHash = await hash(body.newPassword, saltRounds);
-
-      const updatePasswordField = {
-        passwordHash: newPasswordHash,
-      };
-      const updatedUser: IUserDocument | null = await User.findByIdAndUpdate(
-        res.locals.userId,
-        updatePasswordField,
-        { new: true, omitUndefined: true, runValidators: true }
-      );
-      if (!updatedUser) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      return res.status(200).send();
-    } catch (exception) {
-      return next(exception);
+authRouter.put("/changePassword", tokenAuthentication, async (req: Request, res: Response, next: NextFunction) => {
+  const { body } = req;
+  try {
+    const user: IUserDocument | null = await User.findById(res.locals.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User is not existing" });
     }
+    const currentPasswordCorrect: boolean = await bcrypt.compare(body.currentPassword, user.passwordHash as string);
+
+    if (!currentPasswordCorrect) {
+      return res.status(401).json({ message: "The current password is incorrect" });
+    }
+    if (body.currentPassword === body.newPassword) {
+      return res.status(406).json({
+        message: "The new password could not be as same as the current password",
+      });
+    }
+    if (!body.newPassword) {
+      return res.status(400).json({ message: "The new password can't be blank" });
+    }
+    const passwordLength: number = body.newPassword.length;
+    if (passwordLength < 3) {
+      return res.status(411).json({ message: "password length less than 3 characters" });
+    }
+    const saltRounds: number = 10;
+    let newPasswordHash = await hash(body.newPassword, saltRounds);
+
+    const updatePasswordField = {
+      passwordHash: newPasswordHash,
+    };
+    const updatedUser: IUserDocument | null = await User.findByIdAndUpdate(res.locals.userId, updatePasswordField, {
+      new: true,
+      omitUndefined: true,
+      runValidators: true,
+    });
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    return res.status(200).send();
+  } catch (exception) {
+    return next(exception);
   }
-);
+});
 
 authRouter.post("/logout", async (req: Request, res: Response) => {
   const token: string = req.headers["x-access-token"] as string;

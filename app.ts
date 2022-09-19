@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
-import mongoose from "mongoose";
+import mongoose, { ConnectOptions } from "mongoose";
+import { MongoMemoryServer } from "mongodb-memory-server";
 import config from "./utils/config";
 import uploadsRouter from "./controllers/uploads";
 import { errorHandler, requestLogger, unknownEndpoint } from "./utils/middleware";
@@ -20,20 +21,23 @@ import workRequestRouter from "./controllers/workRequest";
 import responsibilityRouter from "./controllers/responsibility";
 import feelingRouter from "./controllers/feeling";
 
-const app = express();
+export default async (useInMemoryDb: boolean) => {
+  const app = express();
+  let mongod: MongoMemoryServer | null = null;
 
-info("connecting to", config.MONGODB_URI);
+  // These options fix deprecation warnings
+  const options: ConnectOptions = {};
 
-// These options fix deprecation warnings
-const options: any = {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  useFindAndModify: false,
-  useCreateIndex: true,
-};
+  if (useInMemoryDb) {
+    mongod = await MongoMemoryServer.create();
+    const uri = mongod.getUri();
+    mongoose.connect(uri, options);
+  } else {
+    info("connecting to", config.MONGODB_URI);
+    mongoose.connect(config.MONGODB_URI || "URI_NOTFOUND", options);
+  }
 
-mongoose.connect(config.MONGODB_URI || "URI_NOTFOUND", options);
-/*
+  /*
   .then(() => {
     info("connected to MongoDB")
   })
@@ -42,26 +46,35 @@ mongoose.connect(config.MONGODB_URI || "URI_NOTFOUND", options);
   })
  */
 
-app.use(cors());
-app.use(express.json());
-app.use(requestLogger);
+  app.use(cors());
+  app.use(express.json());
+  app.use(requestLogger);
 
-app.use("/api/uploads", uploadsRouter);
-app.use("/api/feedback", feedbackRouter);
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-app.use("/api/job", jobRouter);
-app.use("/api/authentication", authRouter);
-app.use("/api/user", userRouter);
-app.use("/api/application", applicationRouter);
-app.use("/api/form", formRouter);
-app.use("/api/agreement", agreementRouter);
-app.use("/api/report", reportRouter);
-app.use("/api/topic", topicRouter);
-app.use("/api/workRequest", workRequestRouter);
-app.use("/api/responsibility", responsibilityRouter);
-app.use("/api/feeling", feelingRouter);
+  app.use("/api/uploads", uploadsRouter);
+  app.use("/api/feedback", feedbackRouter);
+  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+  app.use("/api/job", jobRouter);
+  app.use("/api/authentication", authRouter);
+  app.use("/api/user", userRouter);
+  app.use("/api/application", applicationRouter);
+  app.use("/api/form", formRouter);
+  app.use("/api/agreement", agreementRouter);
+  app.use("/api/report", reportRouter);
+  app.use("/api/topic", topicRouter);
+  app.use("/api/workRequest", workRequestRouter);
+  app.use("/api/responsibility", responsibilityRouter);
+  app.use("/api/feeling", feelingRouter);
 
-app.use(unknownEndpoint);
-app.use(errorHandler);
+  app.use(unknownEndpoint);
+  app.use(errorHandler);
 
-export default app;
+  app.addListener("close", async () => {
+    await mongoose.connection.close();
+
+    if (mongod) {
+      mongod.stop().catch((e) => console.error(e));
+    }
+  });
+
+  return app;
+};
