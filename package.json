@@ -36,10 +36,10 @@
     "jsonwebtoken": "^8.5.1",
     "mongo-mock": "^4.1.0",
     "mongodb": "^3.7.3",
-    "mongoose": "^6.0.0",
+    "mongoose": "^6.6.1",
     "mongoose-paginate-ts": "^1.2.3",
     "mongoose-paginate-v2": "^1.6.2",
-    "mongoose-unique-validator": "^2.0.3",
+    "mongoose-unique-validator": "^3.1.0",
     "swagger-jsdoc": "6.0.0",
     "swagger-ui-express": "^4.3.0"
   },
