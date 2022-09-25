@@ -23,18 +23,18 @@ import feelingRouter from "./controllers/feeling";
 
 export default async (useInMemoryDb: boolean) => {
   const app = express();
-  let mongod: MongoMemoryServer | null = null;
+  let mongoDb: MongoMemoryServer | null = null;
 
   // These options fix deprecation warnings
   const options: ConnectOptions = {};
 
   if (useInMemoryDb) {
-    mongod = await MongoMemoryServer.create();
-    const uri = mongod.getUri();
-    mongoose.connect(uri, options);
+    mongoDb = await MongoMemoryServer.create();
+    const uri = mongoDb.getUri();
+    await mongoose.connect(uri, options);
   } else {
     info("connecting to", config.MONGODB_URI);
-    mongoose.connect(config.MONGODB_URI || "URI_NOTFOUND", options);
+    await mongoose.connect(config.MONGODB_URI || "URI_NOTFOUND", options);
   }
 
   /*
@@ -71,8 +71,8 @@ export default async (useInMemoryDb: boolean) => {
   app.addListener("close", async () => {
     await mongoose.connection.close();
 
-    if (mongod) {
-      mongod.stop().catch((e) => console.error(e));
+    if (mongoDb) {
+      mongoDb.stop().catch((e) => console.error(e));
     }
   });
 
