@@ -13,23 +13,14 @@ const getUserSchema = (user: any, hash: any) =>
     passwordHash: hash,
   });
 
-const createUser = async (user: {
-  email: string;
-  name: string;
-  password: string;
-  userType?: string;
-}) => {
+const createUser = async (user: { email: string; name: string; password: string; userType?: string }) => {
   const saltRounds = 10;
   const passwordHash = await bcrypt.hash(user.password, saltRounds);
-  getUserSchema(user, passwordHash).save();
+  await getUserSchema(user, passwordHash).save();
 };
 if (config.MONGODB_URI) {
   mongoose
-    .connect(config.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      useCreateIndex: true,
-    })
+    .connect(config.MONGODB_URI, {})
     .then(() => {
       logger.info("connected to MongoDB");
     })
