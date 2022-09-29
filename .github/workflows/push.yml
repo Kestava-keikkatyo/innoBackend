@@ -1,7 +1,7 @@
 name: Continuous Deployment
 on:
   push:
-    branches: [ "development" ]
+    branches: [ "dev" ]
 jobs:
   build:
     runs-on: ubuntu-latest
