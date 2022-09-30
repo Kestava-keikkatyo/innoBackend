@@ -99,6 +99,10 @@ authRouter.post(
         category: body.category,
         passwordHash,
       });
+      const validationError = user.validateSync();
+      if (validationError) {
+        return res.status(400).json({ message: validationError.message });
+      }
       return user.save(async (error: CallbackError, user: IUserDocument) => {
         if (error) {
           return res.status(500).json({ message: error.message });
