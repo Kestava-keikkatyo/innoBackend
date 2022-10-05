@@ -3,6 +3,7 @@ import * as express from "express";
 import * as request from "supertest";
 import { StatusCodes } from "http-status-codes";
 import IntegrationHelpers from "../helpers/Integration-helpers";
+import { error } from "console";
 
 describe("authentication api integration tests", () => {
   let app: express.Application;
@@ -14,7 +15,7 @@ describe("authentication api integration tests", () => {
     app.emit("close");
   });
 
-  const workerUser = {
+  let workerUser: any = {
     name: "worker",
     email: "worker@test.fi",
     password: "bambi123",
@@ -30,7 +31,7 @@ describe("authentication api integration tests", () => {
       .expect(statusCode);
   };
   const signInUser = async (credentials: any, statusCode: StatusCodes) => {
-    return request
+    return await request
       .agent(app)
       .post("/api/authentication/signin")
       .send(credentials)
@@ -121,7 +122,7 @@ describe("authentication api integration tests", () => {
       .expect(StatusCodes.CONFLICT);
   });
 
-  it("returns Ok when credentials are correct", async () => {
+  it("returns Ok, token, name, email, role and user id when credentials are correct and login success", async () => {
     const response = await signInUser(
       {
         email: workerUser.email,
@@ -133,5 +134,66 @@ describe("authentication api integration tests", () => {
     expect(response.body.name).toBe(workerUser.name);
     expect(response.body.role).toBe(workerUser.userType);
     expect(Object.keys(response.body)).toEqual(["token", "name", "email", "role", "_id"]);
+
+    workerUser._id = response.body._id;
+  });
+
+  it("returns 401 when user does not exist", async () => {
+    await signInUser(
+      {
+        email: "batman@test.fi",
+        password: "batman123",
+      },
+      StatusCodes.UNAUTHORIZED
+    );
+  });
+
+  it("returns 401 when password is wrong", async () => {
+    await signInUser(
+      {
+        email: workerUser.email,
+        password: "hfhgfghgf123",
+      },
+      StatusCodes.UNAUTHORIZED
+    );
+  });
+
+  it("returns 401 when e-mail is wrong", async () => {
+    await signInUser(
+      {
+        email: "worker@test.com",
+        password: workerUser.password,
+      },
+      StatusCodes.UNAUTHORIZED
+    );
+  });
+
+  it("can't login as inactive user", async () => {
+    const response = await signInUser(
+      {
+        email: "admin@nowhere.com",
+        password: "Fisherman",
+      },
+      StatusCodes.OK
+    );
+    error("workerUser", workerUser);
+    await request
+      .agent(app)
+      .patch("/api/user/updateStatus/" + workerUser._id)
+      .send({
+        userId: workerUser._id,
+        active: false,
+      })
+      .set("x-access-token", response.body.token)
+      .set("Accept", "application/json")
+      .expect(StatusCodes.OK);
+
+    await signInUser(
+      {
+        email: "worker@test.com",
+        password: workerUser.password,
+      },
+      StatusCodes.UNAUTHORIZED
+    );
   });
 });
