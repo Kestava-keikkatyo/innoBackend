@@ -81,6 +81,11 @@ export const getUserById = (req: Request, res: Response, next: NextFunction) => 
       }
 
       switch (body.user.userType) {
+        case "worker":
+          if (doc.userType === "agency") {
+            return res.status(200).send(doc);
+          }
+          break;
         case "agency":
           if (doc.userType === "worker") {
             return res.status(200).send(doc);
