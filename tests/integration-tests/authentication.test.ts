@@ -3,7 +3,7 @@ import * as express from "express";
 import * as request from "supertest";
 import { StatusCodes } from "http-status-codes";
 import IntegrationHelpers from "../helpers/Integration-helpers";
-import { error } from "console";
+import Token from "../../models/Token";
 
 describe("authentication api integration tests", () => {
   let app: express.Application;
@@ -35,6 +35,25 @@ describe("authentication api integration tests", () => {
       .agent(app)
       .post("/api/authentication/signin")
       .send(credentials)
+      .set("Accept", "application/json")
+      .expect(statusCode);
+  };
+
+  const logOutUser = async (token: any, statusCode: StatusCodes) => {
+    return await request
+      .agent(app)
+      .post("/api/authentication/logout")
+      .set("x-access-token", token)
+      .set("Accept", "application/json")
+      .expect(statusCode);
+  };
+
+  const changePassword = async (token: any, currentPassword: string, newPassword: string, statusCode: StatusCodes) => {
+    return await request
+      .agent(app)
+      .put("/api/authentication/changePassword")
+      .send({ currentPassword, newPassword })
+      .set("x-access-token", token)
       .set("Accept", "application/json")
       .expect(statusCode);
   };
@@ -86,7 +105,7 @@ describe("authentication api integration tests", () => {
       StatusCodes.BAD_REQUEST
     ));
 
-  it("returns warning when the password length is less than 3 characters", () =>
+  it("returns 400 when the password length is less than 8 characters", () =>
     registerUser(
       {
         name: "agency1",
@@ -176,7 +195,17 @@ describe("authentication api integration tests", () => {
       },
       StatusCodes.OK
     );
-    error("workerUser", workerUser);
+
+    // Confirm that login works before inactivating user
+    await signInUser(
+      {
+        email: workerUser.email,
+        password: workerUser.password,
+      },
+      StatusCodes.OK
+    );
+
+    // Inactivate user by admin user
     await request
       .agent(app)
       .patch("/api/user/updateStatus/" + workerUser._id)
@@ -188,12 +217,112 @@ describe("authentication api integration tests", () => {
       .set("Accept", "application/json")
       .expect(StatusCodes.OK);
 
+    // Confirm that user login doesn't work anymore
     await signInUser(
       {
-        email: "worker@test.com",
+        email: workerUser.email,
         password: workerUser.password,
       },
-      StatusCodes.UNAUTHORIZED
+      StatusCodes.FORBIDDEN
     );
+  });
+
+  it("returns 200 when user logout and deletes user's token from database", async () => {
+    await registerUser(
+      {
+        name: "user",
+        email: "user@test.com",
+        password: "user1234",
+        userType: "worker",
+      },
+      StatusCodes.OK
+    );
+    const response = await signInUser(
+      {
+        email: "user@test.com",
+        password: "user1234",
+      },
+      StatusCodes.OK
+    );
+    const token = response.body.token;
+    await logOutUser(token, StatusCodes.OK);
+    const storedToken = await Token.findOne({ token: token });
+    expect(storedToken).toBeNull();
+  });
+
+  it("changing password checks", async () => {
+    const response = await registerUser(
+      {
+        name: "good luck",
+        email: "goodluck@test.com",
+        password: "badluck123",
+        userType: "agency",
+      },
+      StatusCodes.OK
+    );
+
+    const token = response.body.token;
+
+    // returns 406 when current password is same as new password
+    await changePassword(token, "badluck123", "badluck123", StatusCodes.NOT_ACCEPTABLE);
+
+    // returns 406 when current password is incorrect
+    await changePassword(token, "badluck12345", "badluck123", StatusCodes.NOT_ACCEPTABLE);
+
+    // returns 400 when the new password is empty
+    await changePassword(token, "badluck123", "", StatusCodes.BAD_REQUEST);
+
+    // returns 411 when the new password is less than 8 characters
+    await changePassword(token, "badluck123", "hello", StatusCodes.LENGTH_REQUIRED);
+
+    // returns 200 when change password succeed
+    await changePassword(token, "badluck123", "Goodluck123", StatusCodes.OK);
+    await logOutUser(token, StatusCodes.OK);
+    await signInUser(
+      {
+        email: "goodluck@test.com",
+        password: "Goodluck123",
+      },
+      StatusCodes.OK
+    );
+  });
+
+  it("token checks", async () => {
+    const response = await registerUser(
+      {
+        name: "Token guy",
+        email: "tokenguy@test.com",
+        password: "qwerty123",
+        userType: "worker",
+      },
+      StatusCodes.OK
+    );
+
+    const userId = response.body._id;
+
+    const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000 - 1);
+
+    const expiredToken = "expired-token";
+    await Token.create({
+      token: expiredToken,
+      user: userId,
+      lastUsedAt: oneWeekAgo,
+    });
+
+    const validToken = "valid-token";
+    await Token.create({
+      token: validToken,
+      user: userId,
+      lastUsedAt: new Date(),
+    });
+
+    // No token given
+    await changePassword(null, "qwerty123", "qwerty456", StatusCodes.UNAUTHORIZED);
+
+    // Expired token given
+    await changePassword(expiredToken, "qwerty123", "qwerty456", StatusCodes.UNAUTHORIZED);
+
+    // Valid token given
+    await changePassword(validToken, "qwerty123", "qwerty456", StatusCodes.OK);
   });
 });

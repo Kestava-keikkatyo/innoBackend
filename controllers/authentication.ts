@@ -82,7 +82,7 @@ authRouter.post(
 
     try {
       const passwordLength: number = body.password ? body.password.length : 0;
-      if (passwordLength < 3) {
+      if (passwordLength < 8) {
         return res.status(400).json({ message: "Password length less than 3 characters" });
       }
 
@@ -115,7 +115,8 @@ authRouter.post(
           token,
           name: user.name,
           email: user.email,
-          role: user.userType,
+          role: user.userType.toLowerCase(),
+          _id: user.id,
         });
       });
     } catch (exception) {
@@ -276,26 +277,24 @@ authRouter.post("/signin", async (req: Request<unknown, unknown, IBodyLogin>, re
 authRouter.put("/changePassword", tokenAuthentication, async (req: Request, res: Response, next: NextFunction) => {
   const { body } = req;
   try {
-    const user: IUserDocument | null = await User.findById(res.locals.userId);
-    if (!user) {
-      return res.status(404).json({ message: "User is not existing" });
-    }
+    const user: IUserDocument = (await User.findById(res.locals.userId)) as IUserDocument;
+
     const currentPasswordCorrect: boolean = await bcrypt.compare(body.currentPassword, user.passwordHash as string);
 
     if (!currentPasswordCorrect) {
-      return res.status(401).json({ message: "The current password is incorrect" });
+      return res.status(406).json({ message: "The current password is incorrect" });
     }
     if (body.currentPassword === body.newPassword) {
       return res.status(406).json({
-        message: "The new password could not be as same as the current password",
+        message: "The new password can not be as same as the current password",
       });
     }
     if (!body.newPassword) {
       return res.status(400).json({ message: "The new password can't be blank" });
     }
     const passwordLength: number = body.newPassword.length;
-    if (passwordLength < 3) {
-      return res.status(411).json({ message: "password length less than 3 characters" });
+    if (passwordLength < 8) {
+      return res.status(411).json({ message: "password length less than 8 characters" });
     }
     const saltRounds: number = 10;
     let newPasswordHash = await hash(body.newPassword, saltRounds);
@@ -303,14 +302,9 @@ authRouter.put("/changePassword", tokenAuthentication, async (req: Request, res:
     const updatePasswordField = {
       passwordHash: newPasswordHash,
     };
-    const updatedUser: IUserDocument | null = await User.findByIdAndUpdate(res.locals.userId, updatePasswordField, {
-      new: true,
-      omitUndefined: true,
-      runValidators: true,
-    });
-    if (!updatedUser) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    await user.update(updatePasswordField);
+    await user.save();
+
     return res.status(200).send();
   } catch (exception) {
     return next(exception);
@@ -322,7 +316,7 @@ authRouter.post("/logout", async (req: Request, res: Response) => {
   if (token) {
     await TokenService.deleteToken(token);
   }
-  res.send();
+  return res.status(200).send();
 });
 
 export default authRouter;
