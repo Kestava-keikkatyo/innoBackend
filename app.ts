@@ -20,6 +20,9 @@ import topicRouter from "./controllers/topic";
 import workRequestRouter from "./controllers/workRequest";
 import responsibilityRouter from "./controllers/responsibility";
 import feelingRouter from "./controllers/feeling";
+import User from "./models/User";
+import { IUserDocument } from "./objecttypes/modelTypes";
+import { hash } from "bcryptjs";
 
 export default async (useInMemoryDb: boolean) => {
   const app = express();
@@ -35,6 +38,22 @@ export default async (useInMemoryDb: boolean) => {
   } else {
     info("connecting to", config.MONGODB_URI);
     await mongoose.connect(config.MONGODB_URI || "URI_NOTFOUND", options);
+  }
+
+  // Create the first admin user if User collection is empty
+  const count = await User.count();
+
+  if (!count && config.DB_FIRST_ADMIN_EMAIL && config.DB_FIRST_ADMIN_PASSWORD) {
+    console.log("Creating the first admin user.");
+    const saltRounds: number = 10;
+    const passwordHash: string = await hash(config.DB_FIRST_ADMIN_PASSWORD, saltRounds);
+    const userDocument: IUserDocument = new User({
+      email: config.DB_FIRST_ADMIN_EMAIL,
+      passwordHash,
+      userType: "admin",
+      name: "First user",
+    });
+    await userDocument.save();
   }
 
   /*

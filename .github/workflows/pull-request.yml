@@ -1,0 +1,19 @@
+name: Continuous Integration
+on:
+  pull_request:
+    branches: [ "dev" ]
+jobs:
+  test_pull_request:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 16
+      - run: npm ci
+      - run: npm run test
+        env:
+          CI: true
+          DB_FIRST_ADMIN_EMAIL: ${{ secrets.DB_FIRST_ADMIN_EMAIL }}
+          DB_FIRST_ADMIN_PASSWORD: ${{ secrets.DB_FIRST_ADMIN_PASSWORD }}
+      - run: npm run build

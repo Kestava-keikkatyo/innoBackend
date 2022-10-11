@@ -81,6 +81,11 @@ export const getUserById = (req: Request, res: Response, next: NextFunction) => 
       }
 
       switch (body.user.userType) {
+        case "worker":
+          if (doc.userType === "agency") {
+            return res.status(200).send(doc);
+          }
+          break;
         case "agency":
           if (doc.userType === "worker") {
             return res.status(200).send(doc);
@@ -347,8 +352,11 @@ export const updateUserStatus = async (req: Request<{ userId: string }, IUser>, 
   const { params, body } = req;
   const { userId } = params;
   const { active } = body;
-
   try {
+    if (!userId) {
+      return res.status(400).send();
+    }
+
     const user: IUserDocument | null = await User.findByIdAndUpdate(
       { _id: userId },
       { active },
