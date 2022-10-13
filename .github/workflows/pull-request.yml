@@ -12,4 +12,8 @@ jobs:
           node-version: 16
       - run: npm ci
       - run: npm run test
+        env:
+          CI: true
+          DB_FIRST_ADMIN_EMAIL: ${{ secrets.DB_FIRST_ADMIN_EMAIL }}
+          DB_FIRST_ADMIN_PASSWORD: ${{ secrets.DB_FIRST_ADMIN_PASSWORD }}
       - run: npm run build
