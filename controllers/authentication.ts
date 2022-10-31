@@ -81,9 +81,9 @@ authRouter.post(
     const { body } = req;
 
     try {
-      const passwordLength: number = body.password ? body.password.length : 0;
+      const passwordLength = body.password ? body.password.length : 0;
       if (passwordLength < 8) {
-        return res.status(400).json({ message: "Password length less than 3 characters" });
+        return res.status(400).json({ message: "Password length less than 8 characters" });
       }
 
       if (!["worker", "business", "agency"].includes(body.userType)) {
