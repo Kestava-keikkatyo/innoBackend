@@ -14,9 +14,7 @@ export const checkDuplicateEmail = (
       return;
     }
     if (user) {
-      res
-        .status(409)
-        .json({ message: `Failed! ${req.body.email} is already registered!` });
+      res.status(409).json({ message: `Failed! ${req.body.email} is already registered!` });
       return;
     }
     next();
