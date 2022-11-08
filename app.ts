@@ -23,6 +23,7 @@ import feelingRouter from "./controllers/feeling";
 import User from "./models/User";
 import { IUserDocument } from "./objecttypes/modelTypes";
 import { hash } from "bcryptjs";
+import rentalWorkModelRouter from "./controllers/rentalWorkModel";
 
 export default async (useInMemoryDb: boolean) => {
   const app = express();
@@ -83,6 +84,7 @@ export default async (useInMemoryDb: boolean) => {
   app.use("/api/workRequest", workRequestRouter);
   app.use("/api/responsibility", responsibilityRouter);
   app.use("/api/feeling", feelingRouter);
+  app.use("/api/rentalWorkModel", rentalWorkModelRouter);
 
   app.use(unknownEndpoint);
   app.use(errorHandler);

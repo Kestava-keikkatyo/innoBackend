@@ -92,7 +92,7 @@ authRouter.post(
 
       const saltRounds: number = 10;
       const passwordHash: string = await hash(body.password, saltRounds);
-      let user: IUserDocument = new User({
+      const user: IUserDocument = new User({
         name: body.name,
         email: body.email,
         userType: body.userType,
@@ -103,21 +103,24 @@ authRouter.post(
       if (validationError) {
         return res.status(400).json({ message: validationError.message });
       }
-      return user.save(async (error: CallbackError, user: IUserDocument) => {
+
+      user.save(async (error: CallbackError, user: IUserDocument) => {
         if (error) {
           return res.status(500).json({ message: error.message });
         }
         if (!user) {
           return res.status(500).json({ message: "Unable to save user document" });
         }
-        const token: string = await TokenService.createToken(user);
-        return res.status(200).send({
-          token,
-          name: user.name,
-          email: user.email,
-          role: user.userType.toLowerCase(),
-          _id: user.id,
-        });
+        return user;
+      });
+
+      const token: string = await TokenService.createToken(user);
+      return res.status(200).send({
+        token,
+        name: user.name,
+        email: user.email,
+        role: user.userType.toLowerCase(),
+        _id: user.id,
       });
     } catch (exception) {
       return next(exception);

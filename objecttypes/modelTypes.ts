@@ -18,6 +18,29 @@ export interface IFeelingDocument extends Document, IFeeling {
   createdAt: Date;
 }
 
+// Typing for a workers rental work model
+export interface ISteps {
+  worker: IUserDocument["_id"];
+  customerContract: IStep;
+  orderingEmployee: IStep;
+  contractOfEmployment: IStep;
+  guidanceToWork: IStep;
+  workPerformance: IStep;
+  feedbackEvaluation: IStep;
+}
+
+export interface IStep {
+  responsibilities: boolean;
+  forms: boolean;
+  good_practices: boolean;
+}
+
+export interface IRentalWorkModelDocument extends Document, ISteps {
+  _id: Types.ObjectId;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 // Typings for Form's questions START
 export interface IComment {
   ordering: number;
@@ -225,6 +248,7 @@ export interface IUser {
   instructions: Array<string>;
   occupationalSafetyRules: Array<string>;
   notifications: Array<INotification>;
+  rentalWorkModel: ISteps;
 }
 
 // Used for typing results gotten from db calls.
