@@ -1,13 +1,6 @@
-import express, { NextFunction, Request, Response } from "express";
-import { hash } from "bcryptjs";
-import User from "../models/User";
-import { IUserDocument, IUser } from "../objecttypes/modelTypes";
-import { CallbackError } from "mongoose";
+import express from "express";
 import { checkDuplicateEmail } from "../utils/verifySignUp";
-import { IBodyLogin } from "../objecttypes/otherTypes";
-import bcrypt from "bcryptjs";
-import { tokenAuthentication } from "../middleware/authenticationMiddleware";
-import TokenService from "../services/TokenService";
+import { changePassword, logout, register, signIn, tokenAuthentication } from "../middleware/authenticationMiddleware";
 
 const authRouter = express.Router();
 
@@ -74,56 +67,7 @@ const authRouter = express.Router();
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-authRouter.post(
-  "/register",
-  checkDuplicateEmail,
-  async (req: Request<unknown, unknown, IUser>, res: Response, next: NextFunction) => {
-    const { body } = req;
-
-    try {
-      const passwordLength = body.password ? body.password.length : 0;
-      if (passwordLength < 8) {
-        return res.status(400).json({ message: "Password length less than 8 characters" });
-      }
-
-      if (!["worker", "business", "agency"].includes(body.userType)) {
-        return res.status(400).json({ message: "Unknown user type" });
-      }
-
-      const saltRounds: number = 10;
-      const passwordHash: string = await hash(body.password, saltRounds);
-      let user: IUserDocument = new User({
-        name: body.name,
-        email: body.email,
-        userType: body.userType,
-        category: body.category,
-        passwordHash,
-      });
-      const validationError = user.validateSync();
-      if (validationError) {
-        return res.status(400).json({ message: validationError.message });
-      }
-      return user.save(async (error: CallbackError, user: IUserDocument) => {
-        if (error) {
-          return res.status(500).json({ message: error.message });
-        }
-        if (!user) {
-          return res.status(500).json({ message: "Unable to save user document" });
-        }
-        const token: string = await TokenService.createToken(user);
-        return res.status(200).send({
-          token,
-          name: user.name,
-          email: user.email,
-          role: user.userType.toLowerCase(),
-          _id: user.id,
-        });
-      });
-    } catch (exception) {
-      return next(exception);
-    }
-  }
-);
+authRouter.post("/register", checkDuplicateEmail, register);
 
 /**
  * @openapi
@@ -175,34 +119,7 @@ authRouter.post(
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-authRouter.post("/signin", async (req: Request<unknown, unknown, IBodyLogin>, res: Response) => {
-  const { body } = req;
-
-  const user: IUserDocument | null = await User.findOne({
-    email: body.email,
-  });
-  const passwordCorrect: boolean =
-    user === null ? false : await bcrypt.compare(body.password, user.passwordHash as string);
-
-  if (!(user && passwordCorrect)) {
-    return res.status(401).json({ message: "Invalid email or password" });
-  }
-  if (user.active) {
-    const token: string = await TokenService.createToken(user);
-
-    return res.status(200).send({
-      token,
-      name: user.name,
-      email: user.email,
-      role: user.userType.toLowerCase(),
-      _id: user.id,
-    });
-  } else {
-    return res.status(403).json({
-      message: "This account has been blocked for security reasons",
-    });
-  }
-});
+authRouter.post("/signin", signIn);
 
 /**
  * @openapi
@@ -274,49 +191,8 @@ authRouter.post("/signin", async (req: Request<unknown, unknown, IBodyLogin>, re
  *             example:
  *               message: User not found
  */
-authRouter.put("/changePassword", tokenAuthentication, async (req: Request, res: Response, next: NextFunction) => {
-  const { body } = req;
-  try {
-    const user: IUserDocument = (await User.findById(res.locals.userId)) as IUserDocument;
+authRouter.put("/changePassword", tokenAuthentication, changePassword);
 
-    const currentPasswordCorrect: boolean = await bcrypt.compare(body.currentPassword, user.passwordHash as string);
-
-    if (!currentPasswordCorrect) {
-      return res.status(406).json({ message: "The current password is incorrect" });
-    }
-    if (body.currentPassword === body.newPassword) {
-      return res.status(406).json({
-        message: "The new password can not be as same as the current password",
-      });
-    }
-    if (!body.newPassword) {
-      return res.status(400).json({ message: "The new password can't be blank" });
-    }
-    const passwordLength: number = body.newPassword.length;
-    if (passwordLength < 8) {
-      return res.status(411).json({ message: "password length less than 8 characters" });
-    }
-    const saltRounds: number = 10;
-    let newPasswordHash = await hash(body.newPassword, saltRounds);
-
-    const updatePasswordField = {
-      passwordHash: newPasswordHash,
-    };
-    await user.update(updatePasswordField);
-    await user.save();
-
-    return res.status(200).send();
-  } catch (exception) {
-    return next(exception);
-  }
-});
-
-authRouter.post("/logout", async (req: Request, res: Response) => {
-  const token: string = req.headers["x-access-token"] as string;
-  if (token) {
-    await TokenService.deleteToken(token);
-  }
-  return res.status(200).send();
-});
+authRouter.post("/logout", logout);
 
 export default authRouter;

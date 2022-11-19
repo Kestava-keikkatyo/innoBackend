@@ -24,7 +24,8 @@
     ],
     "no-var": "error",
     "linebreak-style": ["error", "windows"],
-    
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": "error",
     "no-trailing-spaces": "error",
     "object-curly-spacing": ["error", "always"],
     "arrow-spacing": [

@@ -203,35 +203,50 @@ export interface IAgreementDocument extends Document, IAgreement {
   signed: Date;
 }
 
-// Used when we want to type docs given in req.body for example. For calls with {lean: true} option, use DocumentDefinition<IUserDocument> for the result's type
+export enum userType {
+  Worker = "worker",
+  Agency = "agency",
+  Business = "business",
+}
+
+// Used when we want to type docs given in req.body for example. For calls with
+// {lean: true} option, use DocumentDefinition<IUserDocument> for the result's type
+// TODO: Move user specific fields to the respective user type
 export interface IUser {
   name: string;
-  firstName: string;
-  lastName: string;
   email: string;
   password: string;
-  passwordHash?: string;
-  userType: string;
+  passwordHash: string;
+  userType: userType;
   active: boolean;
   street: string;
   zipCode: string;
   city: string;
   phoneNumber: string;
-  feelings: Array<IFeeling>;
-  licenses: Array<string>;
-  category: string;
-  website: string;
   videoUriId: string;
   instructions: Array<string>;
   occupationalSafetyRules: Array<string>;
   notifications: Array<INotification>;
 }
 
-// Used for typing results gotten from db calls.
-export interface IUserDocument extends Document, IUser {
-  _id: Types.ObjectId;
+export interface IWorker extends IUser {
+  licenses: Array<string>;
+  feelings: Array<IFeeling>;
+}
+
+export interface IAgency extends IUser {
+  website: string;
   category: string;
-  userType: string;
+}
+
+export interface IBusiness extends IUser {
+  website: string;
+  category: string;
+}
+
+// Used for typing results gotten from db calls.
+export interface IUserDocument extends Document, IWorker, IAgency, IBusiness {
+  _id: Types.ObjectId;
   createdAt: Date;
 }
 
