@@ -1,6 +1,7 @@
 import express from "express";
 import {
   isAdmin,
+  isAgency,
   isBusiness,
   isBusinessOrAdminOrAgency,
   isUser,
@@ -25,6 +26,7 @@ import {
   getUserByUserType,
   deleteUserNotification,
   getLatestJoinedWorkers,
+  getAllBusinesses,
 } from "../middleware/userMiddleware";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
 
@@ -596,6 +598,8 @@ userRouter.get("/workers/latest", tokenAuthentication, isBusinessOrAdminOrAgency
  *               message:  no agencies found
  */
 userRouter.get("/agencies", tokenAuthentication, isBusiness, getAllAgencies);
+
+userRouter.get("/businesses", tokenAuthentication, isAgency, getAllBusinesses);
 
 /**
  * Route for user of role worker to post feeling.
