@@ -185,6 +185,14 @@ export const Worker = User.discriminator<IUserDocument>(
         },
       },
     ],
+    agencies: {
+      type: [String],
+      required: false,
+    },
+    businesses: {
+      type: [String],
+      required: false,
+    },
   })
 );
 
@@ -203,6 +211,10 @@ export const Agency = User.discriminator<IUserDocument>(
     whoAmI: {
       type: String,
       default: "I am an agency",
+      required: false,
+    },
+    workers: {
+      type: [String],
       required: false,
     },
   })
@@ -225,11 +237,12 @@ export const Business = User.discriminator<IUserDocument>(
       default: "I am a business",
       required: false,
     },
+    workers: {
+      type: [String],
+      required: false,
+    },
   })
 );
 
 // "admin" is the userType from discriminatorKey
-export const Admin = User.discriminator<IUserDocument>(
-  "admin",
-  new Schema({})
-);
+export const Admin = User.discriminator<IUserDocument>("admin", new Schema({}));

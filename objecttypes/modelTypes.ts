@@ -232,16 +232,20 @@ export interface IUser {
 export interface IWorker extends IUser {
   licenses: Array<string>;
   feelings: Array<IFeeling>;
+  agencies: Array<string>;
+  businesses: Array<string>;
 }
 
 export interface IAgency extends IUser {
   website: string;
   category: string;
+  workers: Array<string>;
 }
 
 export interface IBusiness extends IUser {
   website: string;
   category: string;
+  workers: Array<string>;
 }
 
 // Used for typing results gotten from db calls.
