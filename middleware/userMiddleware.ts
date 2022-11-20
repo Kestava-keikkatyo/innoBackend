@@ -283,7 +283,7 @@ export const getAllAgencies = async (_req: Request, res: Response, next: NextFun
   try {
     const agencies: Array<IUserDocument> | null = await User.find({
       userType: "agency",
-    }).select("name email city category userType");
+    }); // .select("name email city category userType");
     if (agencies) {
       return res.status(200).json(agencies);
     }
