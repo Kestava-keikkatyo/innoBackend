@@ -1,12 +1,5 @@
 import express from "express";
-import {
-  isAdmin,
-  isBusiness,
-  isBusinessOrAdminOrAgency,
-  isUser,
-  isWorker,
-  isWorkerOrBusinessOrAgency,
-} from "../utils/authJwt";
+import { isAdmin, isBusinessOrAdminOrAgency, isUser, isWorker, isWorkerOrBusinessOrAgency } from "../utils/authJwt";
 import {
   deleteUser,
   getAllWorkers,
@@ -595,7 +588,7 @@ userRouter.get("/workers/latest", tokenAuthentication, isBusinessOrAdminOrAgency
  *             example:
  *               message:  no agencies found
  */
-userRouter.get("/agencies", tokenAuthentication, isBusiness, getAllAgencies);
+userRouter.get("/agencies", tokenAuthentication, isWorkerOrBusinessOrAgency, getAllAgencies);
 
 /**
  * Route for user of role worker to post feeling.
