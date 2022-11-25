@@ -588,6 +588,8 @@ userRouter.get("/workers/latest", tokenAuthentication, isBusinessOrAdminOrAgency
  *             example:
  *               message:  no agencies found
  */
+/* TODO: Revert to "isBusiness" after testing and add way for
+     worker to get agency and business the worker is part of */
 userRouter.get("/agencies", tokenAuthentication, isWorkerOrBusinessOrAgency, getAllAgencies);
 
 /**
