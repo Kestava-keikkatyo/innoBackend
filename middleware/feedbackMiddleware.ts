@@ -3,7 +3,22 @@ import FeedBack from "../models/FeedBack";
 import { IFeedbackDocument } from "../objecttypes/modelTypes";
 import { copyProperties, removeEmptyProperties } from "../utils/common";
 
-const updatableFields = ["heading", "message"];
+const updatableFields = [
+  "recipient",
+  "shift",
+  "shiftMessage",
+  "orientation",
+  "orientationMessage",
+  "reception",
+  "receptionMessage",
+  "appreciation",
+  "appreciationMessage",
+  "expectation",
+  "expectationMessage",
+  "additionalMessage",
+  "sender",
+];
+
 /**
  * Post a new feedback to database.
  * @param {Request} req - Express Request.
@@ -14,8 +29,9 @@ const updatableFields = ["heading", "message"];
 export const postFeedback = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { body } = req;
+    console.log("POST FEEDBACK");
+    console.log(body);
     const feedbackDocument: IFeedbackDocument = new FeedBack({
-      user: res.locals.userId,
       ...copyProperties(body, updatableFields),
     });
 
@@ -136,7 +152,7 @@ export const getFeedbackById = async (req: Request, res: Response, next: NextFun
  * @param {NextFunction} next
  * @returns All feedbacks
  */
-export const getAllFeddbacks = async (_req: Request, res: Response, next: NextFunction) => {
+export const getAllFeedbacks = async (_req: Request, res: Response, next: NextFunction) => {
   try {
     const feedbacks: IFeedbackDocument[] | null = await FeedBack.find({});
     if (feedbacks) {

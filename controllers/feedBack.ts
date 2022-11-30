@@ -3,7 +3,7 @@ import { isAdmin, isWorkerOrBusinessOrAgency } from "../utils/authJwt";
 import {
   postFeedback,
   getMyFeedbacks,
-  getAllFeddbacks,
+  getAllFeedbacks,
   updateFeedback,
   replyFeedback,
   getMyFeedbackById,
@@ -201,7 +201,7 @@ feedbackRouter.get("/received/any/:id", tokenAuthentication, isWorkerOrBusinessO
  *             example:
  *               message: No feedbacks found
  */
-feedbackRouter.get("/all", tokenAuthentication, isAdmin, getAllFeddbacks);
+feedbackRouter.get("/all", tokenAuthentication, isAdmin, getAllFeedbacks);
 
 /**
  * Route for user of role admin to get any posted feedback by its id
