@@ -60,7 +60,6 @@ const feedbackSchema = new Schema(
     },
     additionalMessage: {
       type: String,
-      required: true,
     },
   },
   { timestamps: true }
