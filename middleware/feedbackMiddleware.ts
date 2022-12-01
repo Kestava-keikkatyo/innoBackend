@@ -4,7 +4,8 @@ import { IFeedbackDocument } from "../objecttypes/modelTypes";
 import { copyProperties, removeEmptyProperties } from "../utils/common";
 
 const updatableFields = [
-  "recipient",
+  "recipientId",
+  "recipientName",
   "shift",
   "shiftMessage",
   "orientation",
@@ -16,7 +17,9 @@ const updatableFields = [
   "expectation",
   "expectationMessage",
   "additionalMessage",
-  "sender",
+  "senderId",
+  "senderName",
+  "anonymous",
 ];
 
 /**

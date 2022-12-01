@@ -4,13 +4,22 @@ import { IFeedbackDocument } from "../objecttypes/modelTypes";
 
 const feedbackSchema = new Schema(
   {
-    sender: {
+    senderId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       immutable: true,
     },
-    recipient: {
+    senderName: {
+      type: String,
+      ref: "User",
+      immutable: true,
+    },
+    recipientId: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    recipientName: {
+      type: String,
       ref: "User",
     },
     shift: {
@@ -60,6 +69,11 @@ const feedbackSchema = new Schema(
     },
     additionalMessage: {
       type: String,
+    },
+    anonymous: {
+      type: Boolean,
+      immutable: true,
+      required: true,
     },
   },
   { timestamps: true }
