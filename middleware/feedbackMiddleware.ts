@@ -71,6 +71,28 @@ export const getMyFeedbacks = async (_req: Request, res: Response, next: NextFun
 };
 
 /**
+ * Get own feedbacks.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns User's feedbacks
+ */
+export const getFeedbacksAppointedToMe = async (_req: Request, res: Response, next: NextFunction) => {
+  const id: string = res.locals.userId;
+  try {
+    const docs: IFeedbackDocument[] | null = await FeedBack.find({
+      recipientId: id,
+    });
+    if (!docs) {
+      return res.status(404).send({});
+    }
+    return res.status(200).send(docs);
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
  * Get user's feedback by id.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
