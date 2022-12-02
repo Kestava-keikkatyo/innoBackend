@@ -59,7 +59,7 @@ export const getMyFeedbacks = async (_req: Request, res: Response, next: NextFun
   const id: string = res.locals.userId;
   try {
     const docs: IFeedbackDocument[] | null = await FeedBack.find({
-      user: id,
+      senderId: id,
     });
     if (!docs) {
       return res.status(404).send({});
