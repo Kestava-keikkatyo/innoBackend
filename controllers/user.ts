@@ -27,6 +27,7 @@ import {
   deleteUserNotification,
   getLatestJoinedWorkers,
   getAllBusinesses,
+  assignWorkerToBusiness,
 } from "../middleware/userMiddleware";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
 
@@ -600,6 +601,8 @@ userRouter.get("/workers/latest", tokenAuthentication, isBusinessOrAdminOrAgency
 userRouter.get("/agencies", tokenAuthentication, isBusiness, getAllAgencies);
 
 userRouter.get("/businesses", tokenAuthentication, isAgency, getAllBusinesses);
+
+userRouter.put("/assign/:userId", tokenAuthentication, isAgency, assignWorkerToBusiness);
 
 /**
  * Route for user of role worker to post feeling.

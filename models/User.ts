@@ -185,14 +185,18 @@ export const Worker = User.discriminator<IUserDocument>(
         },
       },
     ],
-    agencies: {
-      type: [String],
-      required: false,
-    },
-    businesses: {
-      type: [String],
-      required: false,
-    },
+    agencies: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    businesses: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   })
 );
 
@@ -213,10 +217,12 @@ export const Agency = User.discriminator<IUserDocument>(
       default: "I am an agency",
       required: false,
     },
-    workers: {
-      type: [String],
-      required: false,
-    },
+    workers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   })
 );
 
@@ -237,10 +243,12 @@ export const Business = User.discriminator<IUserDocument>(
       default: "I am a business",
       required: false,
     },
-    workers: {
-      type: [String],
-      required: false,
-    },
+    workers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   })
 );
 

@@ -272,6 +272,47 @@ export const getAllBusinesses = async (_req: Request, res: Response, next: NextF
   }
 };
 
+export const assignWorkerToBusiness = async (
+  req: Request<{ userId: string }, string>,
+  res: Response,
+  next: NextFunction
+) => {
+  const { params, body } = req;
+  const { userId } = params;
+  const { businessId } = body;
+
+  console.log("ASSIGNING WORKER TO BUSINESS");
+  console.log("userId: ");
+  console.log(userId);
+  console.log("businessId: ");
+  console.log(businessId);
+
+  // Why no update?!?!
+  try {
+    const worker: any = await User.findByIdAndUpdate(
+      { _id: userId },
+      { $addToSet: { businesses: businessId } },
+      { new: true, runValidators: true, lean: true }
+    );
+    const business: any = await User.findByIdAndUpdate(
+      { _id: businessId },
+      { $addToSet: { workers: userId } },
+      { new: true, runValidators: true, lean: true }
+    );
+    if (worker && business) {
+      console.log(`WORKER with id ${userId} was updated!`);
+      console.log(worker);
+      console.log(worker.businesses);
+      console.log(`BUSINESS with id ${businessId} was updated!`);
+      console.log(business);
+      console.log(business.workers);
+    }
+    return res.status(worker && business ? 200 : 404).send();
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
 /**
  * Get all users of type Agency.
  * @param {Request} req - Express Request.
