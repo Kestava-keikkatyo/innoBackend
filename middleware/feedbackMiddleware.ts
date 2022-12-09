@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import FeedBack from "../models/FeedBack";
 import { IFeedbackDocument } from "../objecttypes/modelTypes";
-import { copyProperties, removeEmptyProperties } from "../utils/common";
+import { copyProperties } from "../utils/common";
 
 const updatableFields = [
   "recipientId",
@@ -197,18 +197,16 @@ export const getAllFeedbacks = async (_req: Request, res: Response, next: NextFu
  * @returns Updated feedback
  */
 export const updateFeedback = async (req: Request, res: Response, next: NextFunction) => {
-  const { params, body } = req;
-  const userId: string = res.locals.userId;
-  const id: string = params.id;
-
   try {
-    const updatedFeedback = removeEmptyProperties({
-      ...copyProperties(body, updatableFields),
-    });
+    const { body } = req;
+    console.log("UPDATE FEEDBACK");
+    console.log(body);
+    const filterableFields = ["recipientId", "recipientName", "senderId", "senderName"];
+    const cleanedFields = updatableFields.filter((field) => !filterableFields.includes(field));
 
     const feedback: IFeedbackDocument | null = await FeedBack.findOneAndUpdate(
-      { _id: id, user: userId },
-      updatedFeedback,
+      { _id: body.senderId },
+      { ...copyProperties(body, cleanedFields) },
       {
         new: true,
         runValidators: true,
