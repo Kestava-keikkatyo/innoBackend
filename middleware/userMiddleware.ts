@@ -289,14 +289,14 @@ export const assignWorkerToBusiness = async (
 
   // Why no update?!?!
   try {
-    const worker: any = await User.findByIdAndUpdate(
+    const worker: IUserDocument | null = await User.findByIdAndUpdate(
       { _id: userId },
-      { $addToSet: { businesses: businessId } },
+      { $push: { businesses: businessId.toString() } },
       { new: true, runValidators: true, lean: true }
     );
-    const business: any = await User.findByIdAndUpdate(
+    const business: IUserDocument | null = await User.findByIdAndUpdate(
       { _id: businessId },
-      { $addToSet: { workers: userId } },
+      { $push: { workers: userId.toString() } },
       { new: true, runValidators: true, lean: true }
     );
     if (worker && business) {
@@ -307,8 +307,10 @@ export const assignWorkerToBusiness = async (
       console.log(business);
       console.log(business.workers);
     }
+    console.log(`RETURNING 200? ${!!worker} && ${!!business}`);
     return res.status(worker && business ? 200 : 404).send();
   } catch (exception) {
+    console.log("EXCEPTION!!!!!!!");
     return next(exception);
   }
 };
