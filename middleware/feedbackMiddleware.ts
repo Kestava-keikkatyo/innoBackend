@@ -198,21 +198,18 @@ export const getAllFeedbacks = async (_req: Request, res: Response, next: NextFu
  */
 export const updateFeedback = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { body } = req;
-    console.log("UPDATE FEEDBACK");
-    console.log(body);
+    const { body, params } = req;
+    const feedbackId = params.id;
+
     const filterableFields = ["recipientId", "recipientName", "senderId", "senderName"];
     const cleanedFields = updatableFields.filter((field) => !filterableFields.includes(field));
 
-    const feedback: IFeedbackDocument | null = await FeedBack.findOneAndUpdate(
-      { _id: body.senderId },
+    const feedback: IFeedbackDocument | null = await FeedBack.findByIdAndUpdate(
+      { _id: feedbackId },
       { ...copyProperties(body, cleanedFields) },
-      {
-        new: true,
-        runValidators: true,
-        lean: true,
-      }
+      { new: true, runValidators: true, lean: true }
     );
+
     return res.status(feedback ? 200 : 404).send();
   } catch (exception) {
     return next(exception);
