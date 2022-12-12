@@ -2,6 +2,7 @@ import express from "express";
 import {
   isAdmin,
   isAgency,
+  isBusiness,
   isBusinessOrAdminOrAgency,
   isUser,
   isWorker,
@@ -26,6 +27,7 @@ import {
   deleteUserNotification,
   getLatestJoinedWorkers,
   getAllBusinesses,
+  getAllBusinessesAndAgencies,
 } from "../middleware/userMiddleware";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
 
@@ -596,11 +598,11 @@ userRouter.get("/workers/latest", tokenAuthentication, isBusinessOrAdminOrAgency
  *             example:
  *               message:  no agencies found
  */
-/* TODO: Revert to "isBusiness" after testing and add way for
-     worker to get agency and business the worker is part of */
-userRouter.get("/agencies", tokenAuthentication, isWorkerOrBusinessOrAgency, getAllAgencies);
+userRouter.get("/agencies", tokenAuthentication, isBusiness, getAllAgencies);
 
 userRouter.get("/businesses", tokenAuthentication, isAgency, getAllBusinesses);
+
+userRouter.get("/businessesAndAgencies", tokenAuthentication, isWorker, getAllBusinessesAndAgencies);
 
 /**
  * Route for user of role worker to post feeling.
