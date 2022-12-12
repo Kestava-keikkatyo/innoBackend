@@ -72,7 +72,6 @@ const feedbackSchema = new Schema(
     },
     anonymous: {
       type: Boolean,
-      immutable: true,
       required: true,
     },
   },
