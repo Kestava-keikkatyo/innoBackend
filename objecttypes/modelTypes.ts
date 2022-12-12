@@ -129,17 +129,28 @@ export interface INotificationDocument extends Document, INotification {
 }
 
 export interface IFeedback {
-  user: IUserDocument["_id"];
-  recipient: IUserDocument["_id"];
-  heading: String;
-  message: String;
-  reply: String;
-  replied: boolean;
+  senderId: IUserDocument["_id"];
+  senderName: IUserDocument["name"];
+  recipientId: IUserDocument["_id"];
+  recipientName: IUserDocument["name"];
+  shift: number;
+  shiftMessage: string;
+  orientation: number;
+  orientationMessage: string;
+  reception: number;
+  receptionMessage: string;
+  appreciation: number;
+  appreciationMessage: string;
+  expectation: number;
+  expectationMessage: string;
+  additionalMessage: string;
+  anonymous: boolean;
 }
 
 export interface IFeedbackDocument extends Document, IFeedback {
   _id: Types.ObjectId;
   createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface IReport {

@@ -1,9 +1,27 @@
 import { NextFunction, Request, Response } from "express";
 import FeedBack from "../models/FeedBack";
 import { IFeedbackDocument } from "../objecttypes/modelTypes";
-import { copyProperties, removeEmptyProperties } from "../utils/common";
+import { copyProperties } from "../utils/common";
 
-const updatableFields = ["heading", "message"];
+const updatableFields = [
+  "recipientId",
+  "recipientName",
+  "shift",
+  "shiftMessage",
+  "orientation",
+  "orientationMessage",
+  "reception",
+  "receptionMessage",
+  "appreciation",
+  "appreciationMessage",
+  "expectation",
+  "expectationMessage",
+  "additionalMessage",
+  "senderId",
+  "senderName",
+  "anonymous",
+];
+
 /**
  * Post a new feedback to database.
  * @param {Request} req - Express Request.
@@ -14,8 +32,9 @@ const updatableFields = ["heading", "message"];
 export const postFeedback = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { body } = req;
+    console.log("POST FEEDBACK");
+    console.log(body);
     const feedbackDocument: IFeedbackDocument = new FeedBack({
-      user: res.locals.userId,
       ...copyProperties(body, updatableFields),
     });
 
@@ -40,7 +59,29 @@ export const getMyFeedbacks = async (_req: Request, res: Response, next: NextFun
   const id: string = res.locals.userId;
   try {
     const docs: IFeedbackDocument[] | null = await FeedBack.find({
-      user: id,
+      senderId: id,
+    });
+    if (!docs) {
+      return res.status(404).send({});
+    }
+    return res.status(200).send(docs);
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
+ * Get own feedbacks.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns User's feedbacks
+ */
+export const getFeedbacksAppointedToMe = async (_req: Request, res: Response, next: NextFunction) => {
+  const id: string = res.locals.userId;
+  try {
+    const docs: IFeedbackDocument[] | null = await FeedBack.find({
+      recipientId: id,
     });
     if (!docs) {
       return res.status(404).send({});
@@ -136,7 +177,7 @@ export const getFeedbackById = async (req: Request, res: Response, next: NextFun
  * @param {NextFunction} next
  * @returns All feedbacks
  */
-export const getAllFeddbacks = async (_req: Request, res: Response, next: NextFunction) => {
+export const getAllFeedbacks = async (_req: Request, res: Response, next: NextFunction) => {
   try {
     const feedbacks: IFeedbackDocument[] | null = await FeedBack.find({});
     if (feedbacks) {
@@ -156,24 +197,19 @@ export const getAllFeddbacks = async (_req: Request, res: Response, next: NextFu
  * @returns Updated feedback
  */
 export const updateFeedback = async (req: Request, res: Response, next: NextFunction) => {
-  const { params, body } = req;
-  const userId: string = res.locals.userId;
-  const id: string = params.id;
-
   try {
-    const updatedFeedback = removeEmptyProperties({
-      ...copyProperties(body, updatableFields),
-    });
+    const { body, params } = req;
+    const feedbackId = params.id;
 
-    const feedback: IFeedbackDocument | null = await FeedBack.findOneAndUpdate(
-      { _id: id, user: userId },
-      updatedFeedback,
-      {
-        new: true,
-        runValidators: true,
-        lean: true,
-      }
+    const filterableFields = ["recipientId", "recipientName", "senderId", "senderName"];
+    const cleanedFields = updatableFields.filter((field) => !filterableFields.includes(field));
+
+    const feedback: IFeedbackDocument | null = await FeedBack.findByIdAndUpdate(
+      { _id: feedbackId },
+      { ...copyProperties(body, cleanedFields) },
+      { new: true, runValidators: true, lean: true }
     );
+
     return res.status(feedback ? 200 : 404).send();
   } catch (exception) {
     return next(exception);

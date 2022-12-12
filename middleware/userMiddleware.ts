@@ -273,6 +273,27 @@ export const getAllBusinesses = async (_req: Request, res: Response, next: NextF
 };
 
 /**
+ * Get all users of type Business.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns businesses
+ */
+export const getAllBusinessesAndAgencies = async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    const businesses: Array<IUserDocument> | null = await User.find({
+      userType: { $in: ["business", "agency"] },
+    });
+    if (businesses) {
+      return res.status(200).json(businesses);
+    }
+    return res.status(404).json({ message: "No businesses or agencies found!" });
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
  * Get all users of type Agency.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.

@@ -1,8 +1,8 @@
 import express from "express";
 import {
   isAdmin,
-  isBusiness,
   isAgency,
+  isBusiness,
   isBusinessOrAdminOrAgency,
   isUser,
   isWorker,
@@ -27,6 +27,7 @@ import {
   deleteUserNotification,
   getLatestJoinedWorkers,
   getAllBusinesses,
+  getAllBusinessesAndAgencies,
 } from "../middleware/userMiddleware";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
 
@@ -600,6 +601,8 @@ userRouter.get("/workers/latest", tokenAuthentication, isBusinessOrAdminOrAgency
 userRouter.get("/agencies", tokenAuthentication, isBusiness, getAllAgencies);
 
 userRouter.get("/businesses", tokenAuthentication, isAgency, getAllBusinesses);
+
+userRouter.get("/businessesAndAgencies", tokenAuthentication, isWorker, getAllBusinessesAndAgencies);
 
 /**
  * Route for user of role worker to post feeling.

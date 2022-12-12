@@ -3,10 +3,11 @@ import { isAdmin, isWorkerOrBusinessOrAgency } from "../utils/authJwt";
 import {
   postFeedback,
   getMyFeedbacks,
-  getAllFeddbacks,
+  getAllFeedbacks,
   updateFeedback,
   replyFeedback,
   getMyFeedbackById,
+  getFeedbacksAppointedToMe,
   getReceivedFeedbackById,
   getFeedbackById,
 } from "../middleware/feedbackMiddleware";
@@ -166,6 +167,48 @@ feedbackRouter.get("/my/any/:id", tokenAuthentication, isWorkerOrBusinessOrAgenc
  *             example:
  *               message: No received feedback was found
  */
+
+feedbackRouter.get("/appointedToMe", tokenAuthentication, isWorkerOrBusinessOrAgency, getFeedbacksAppointedToMe);
+
+/**
+ * Route for user of role worker, business or agency to get own received feedback by its id
+ * @openapi
+ * /feedback/received/any/{id}:
+ *   get:
+ *     summary: Route for user of role worker, business or agency to get own received feedback by its id
+ *     description: Must be logged in as a user of role worker, business or agency.
+ *     tags: [Feedback, Worker, Business, Agency]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *       - in: path
+ *         name: id
+ *         description: ID of the defined feedback.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 604021e581a9626810885657
+ *     responses:
+ *       "200":
+ *         description: Returns the defined feedback.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Feedback"
+ *       "404":
+ *         description: The feedback is not existing.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: No received feedback was found
+ */
+
 feedbackRouter.get("/received/any/:id", tokenAuthentication, isWorkerOrBusinessOrAgency, getReceivedFeedbackById);
 
 /**
@@ -201,7 +244,7 @@ feedbackRouter.get("/received/any/:id", tokenAuthentication, isWorkerOrBusinessO
  *             example:
  *               message: No feedbacks found
  */
-feedbackRouter.get("/all", tokenAuthentication, isAdmin, getAllFeddbacks);
+feedbackRouter.get("/all", tokenAuthentication, isAdmin, getAllFeedbacks);
 
 /**
  * Route for user of role admin to get any posted feedback by its id
