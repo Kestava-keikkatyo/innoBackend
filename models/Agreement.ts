@@ -8,18 +8,20 @@ const agreementSchema: Schema = new Schema({
     ref: "Creator",
     immutable: true,
   },
-  target: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Target",
-    immutable: true,
-  },
+  target: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Target",
+      immutable: true,
+    }
+  ],
   form: {
     type: Array,
     ref: "Form",
   },
   type: {
     type: String,
-    enum: ["request", "contract"],
+    enum: ["request", "contract","agency","employment"],
     default: "contract",
     required: true,
   },

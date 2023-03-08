@@ -202,7 +202,7 @@ export interface IJobDocument extends Document, IJob {
 
 export interface IAgreement {
   creator: IUserDocument["_id"];
-  target: IUserDocument["_id"];
+  target: Array<IUserDocument["_id"]>;
   form: Array<IFormDocument>[];
   type: string;
   status: string;

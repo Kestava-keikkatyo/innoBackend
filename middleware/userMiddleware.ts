@@ -82,7 +82,7 @@ export const getUserById = (req: Request, res: Response, next: NextFunction) => 
 
       switch (body.user.userType) {
         case "worker":
-          if (doc.userType === "agency") {
+          if (doc.userType === "agency" || doc.userType === "business") {
             return res.status(200).send(doc);
           }
           break;
