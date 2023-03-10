@@ -19,7 +19,7 @@ const agreementSchema: Schema = new Schema({
   },
   type: {
     type: String,
-    enum: ["request", "contract"],
+    enum: ["request", "contract", "agency", "employment"],
     default: "contract",
     required: true,
   },
