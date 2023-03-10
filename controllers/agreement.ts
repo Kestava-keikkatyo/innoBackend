@@ -10,7 +10,6 @@ import {
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
 import {
   isAgencyOrBusiness,
-  isWorkerOrBusiness,
   isWorkerOrBusinessOrAgency,
 } from "../utils/authJwt";
 
@@ -277,7 +276,7 @@ agreementRouter.put(
 agreementRouter.delete(
   "/delete/:id",
   tokenAuthentication,
-  isWorkerOrBusiness,
+  isWorkerOrBusinessOrAgency,
   deleteAgreement
 );
 
