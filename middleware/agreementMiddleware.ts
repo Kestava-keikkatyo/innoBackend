@@ -5,14 +5,15 @@ import { IAgreement, IAgreementDocument } from "../objecttypes/modelTypes";
 import User from "../models/User";
 import Form from "../models/Form";
 
-/**
+/*
+ * @deprecated This request cabability is not included in current iteration.
  * Post a new agreement to database.
  * Agreement type is 'request' if sent by Worker or Business and 'agreement' if sent by Agency.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next
  * @returns New agreement document
- */
+ 
 export const postAgreement = async (
   req: Request,
   res: Response,
@@ -53,6 +54,54 @@ export const postAgreement = async (
     return next(exception);
   }
 };
+*/
+
+/**
+ * Post a new agency agreement to database.
+ * Meant to be used by agencies.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns New agreement document
+ */
+export const postAgreement = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { body } = req;
+  try {
+    const agreementDocument: IAgreementDocument | null =
+      await Agreement.findOne({
+        target: body.target,
+        creator: body.user._id,
+        type: "agency",
+      });
+
+    if (agreementDocument) {
+      return res
+        .status(400)
+        .send({ error: "Agreement already exist" });
+    } else {
+      const agreementDocument: IAgreementDocument = new Agreement({
+        creator: body.user._id,
+        target: body.target,
+        type: body.type,
+        status: "pending",
+      });
+      const agreement = await agreementDocument.save();
+      if (!agreement) {
+        return res
+          .status(400)
+          .send({ error: "Failed to create an agreement!" });
+      }
+      return res.status(200).send(agreement);
+    }
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
 
 /**
  * Get agency's agreements.

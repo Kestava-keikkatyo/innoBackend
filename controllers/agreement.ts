@@ -276,7 +276,7 @@ agreementRouter.put(
 agreementRouter.delete(
   "/delete/:id",
   tokenAuthentication,
-  isAgencyOrBusiness,
+  isWorkerOrBusinessOrAgency,
   deleteAgreement
 );
 

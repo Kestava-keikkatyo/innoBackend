@@ -135,6 +135,10 @@ export const isAgencyOrBusiness = async (req: Request, res: Response, next: Next
   return doesUserExist(["business", "agency"], req, res, next);
 };
 
+export const isWorkerOrBusiness = async (req: Request, res: Response, next: NextFunction) => {
+  return doesUserExist(["worker", "business"], req, res, next);
+};
+
 export const isWorkerOrAdmin = async (req: Request, res: Response, next: NextFunction) => {
   return doesUserExist(["worker", "admin"], req, res, next);
 };
