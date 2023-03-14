@@ -13,7 +13,7 @@ import Form from "../models/Form";
  * @param {Response} res - Express Response.
  * @param {NextFunction} next
  * @returns New agreement document
- 
+
 export const postAgreement = async (
   req: Request,
   res: Response,
@@ -64,24 +64,17 @@ export const postAgreement = async (
  * @param {NextFunction} next
  * @returns New agreement document
  */
-export const postAgreement = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const postAgreement = async (req: Request, res: Response, next: NextFunction) => {
   const { body } = req;
   try {
-    const agreementDocument: IAgreementDocument | null =
-      await Agreement.findOne({
-        target: body.target,
-        creator: body.user._id,
-        type: "agency",
-      });
+    const agreementDocument: IAgreementDocument | null = await Agreement.findOne({
+      target: body.target,
+      creator: body.user._id,
+      type: "agency",
+    });
 
     if (agreementDocument) {
-      return res
-        .status(400)
-        .send({ error: "Agreement already exist" });
+      return res.status(400).send({ error: "Agreement already exist" });
     } else {
       const agreementDocument: IAgreementDocument = new Agreement({
         creator: body.user._id,
@@ -91,9 +84,7 @@ export const postAgreement = async (
       });
       const agreement = await agreementDocument.save();
       if (!agreement) {
-        return res
-          .status(400)
-          .send({ error: "Failed to create an agreement!" });
+        return res.status(400).send({ error: "Failed to create an agreement!" });
       }
       return res.status(200).send(agreement);
     }
@@ -102,7 +93,6 @@ export const postAgreement = async (
   }
 };
 
-
 /**
  * Get agency's agreements.
  * @param {Request} req - Express Request.
@@ -110,25 +100,18 @@ export const postAgreement = async (
  * @param {NextFunction} next
  * @returns User's agreements
  */
-export const getMyAgreements = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getMyAgreements = (req: Request, res: Response, next: NextFunction) => {
   const { body } = req;
   try {
-    Agreement.find(
-      { creator: body.user._id },
-      (error: CallbackError, docs: IAgreementDocument[]) => {
-        if (error) {
-          return res.status(500).json({ message: error.message });
-        }
-        if (!docs.length) {
-          return res.status(404).json({ message: "No agreements found!" });
-        }
-        return res.status(200).json(docs);
+    Agreement.find({ creator: body.user._id }, (error: CallbackError, docs: IAgreementDocument[]) => {
+      if (error) {
+        return res.status(500).json({ message: error.message });
       }
-    )
+      if (!docs.length) {
+        return res.status(404).json({ message: "No agreements found!" });
+      }
+      return res.status(200).json(docs);
+    })
       .populate("target", { name: 1 }, User)
       .populate("form", { title: 1 }, Form);
   } catch (exception) {
@@ -143,26 +126,19 @@ export const getMyAgreements = (
  * @param {NextFunction} next
  * @returns User's agreements
  */
-export const getTargetAgreements = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getTargetAgreements = (req: Request, res: Response, next: NextFunction) => {
   const { body } = req;
 
   try {
-    Agreement.find(
-      { target: body.user._id },
-      (error: CallbackError, docs: IAgreementDocument[]) => {
-        if (error) {
-          return res.status(500).json({ message: error.message });
-        }
-        if (!docs.length) {
-          return res.status(404).json({ message: "No agreements found!" });
-        }
-        return res.status(200).json(docs);
+    Agreement.find({ target: body.user._id }, (error: CallbackError, docs: IAgreementDocument[]) => {
+      if (error) {
+        return res.status(500).json({ message: error.message });
       }
-    ).populate("creator", { name: 1 }, User);
+      if (!docs.length) {
+        return res.status(404).json({ message: "No agreements found!" });
+      }
+      return res.status(200).json(docs);
+    }).populate("creator", { name: 1 }, User);
   } catch (exception) {
     return next(exception);
   }
@@ -175,27 +151,20 @@ export const getTargetAgreements = (
  * @param {NextFunction} next
  * @returns Agreement
  */
-export const getAgreementById = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getAgreementById = (req: Request, res: Response, next: NextFunction) => {
   const { params } = req;
   const id: string = params.id;
 
   try {
-    Agreement.findById(
-      id,
-      (error: CallbackError, doc: IAgreementDocument | null) => {
-        if (error) {
-          return res.status(500).json({ message: error.message });
-        }
-        if (!doc) {
-          return res.status(404).send({ message: `No agreements found!` });
-        }
-        return res.status(200).send(doc);
+    Agreement.findById(id, (error: CallbackError, doc: IAgreementDocument | null) => {
+      if (error) {
+        return res.status(500).json({ message: error.message });
       }
-    ).populate("user", {
+      if (!doc) {
+        return res.status(404).send({ message: `No agreements found!` });
+      }
+      return res.status(200).send(doc);
+    }).populate("user", {
       name: 1,
     });
   } catch (exception) {
@@ -210,22 +179,17 @@ export const getAgreementById = (
  * @param {NextFunction} next
  * @returns Updated agreement
  */
-export const updateAgreement = async (
-  req: Request<{ id: string }, IAgreement>,
-  res: Response,
-  next: NextFunction
-) => {
+export const updateAgreement = async (req: Request<{ id: string }, IAgreement>, res: Response, next: NextFunction) => {
   const { params, body } = req;
   const { id } = params;
   const { form } = body;
 
   try {
-    const agreement: IAgreementDocument | null =
-      await Agreement.findByIdAndUpdate(
-        id,
-        { form },
-        { new: true, runValidators: true, lean: true }
-      );
+    const agreement: IAgreementDocument | null = await Agreement.findByIdAndUpdate(
+      id,
+      { form },
+      { new: true, runValidators: true, lean: true }
+    );
     if (agreement) {
       console.log(`Agreement was updated successfuly!!`);
     }
@@ -263,12 +227,11 @@ export const signAgreement = async (
         return res.status(500).json("Wrong parameter given.");
     }
 
-    const agreement: IAgreementDocument | null =
-      await Agreement.findByIdAndUpdate(
-        id,
-        { status: status, signed: new Date() },
-        { new: true, runValidators: true, lean: true }
-      );
+    const agreement: IAgreementDocument | null = await Agreement.findByIdAndUpdate(
+      id,
+      { status: status, signed: new Date() },
+      { new: true, runValidators: true, lean: true }
+    );
     if (agreement) {
       console.log(`Agreement was signed!`);
     }
@@ -285,26 +248,19 @@ export const signAgreement = async (
  * @param {NextFunction} next
  * @returns Deleted agreement
  */
-export const deleteAgreement = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const deleteAgreement = async (req: Request, res: Response, next: NextFunction) => {
   const { params } = req;
   const { id } = params;
 
   try {
-    const agreement: IAgreementDocument | null =
-      await Agreement.findByIdAndDelete({
-        _id: id,
-      });
+    const agreement: IAgreementDocument | null = await Agreement.findByIdAndDelete({
+      _id: id,
+    });
 
     if (!agreement) {
       return res.status(404).send({ message: `Agreement  is not existing!` });
     } else {
-      return res
-        .status(200)
-        .send({ message: `Agreement was deleted successfuly!` });
+      return res.status(200).send({ message: `Agreement was deleted successfuly!` });
     }
   } catch (exception) {
     return next(exception);
