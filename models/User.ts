@@ -3,20 +3,15 @@ import { IUserDocument } from "../objecttypes/modelTypes";
 import mongoose, { Schema } from "mongoose";
 
 const userSchema: Schema = new Schema({
-  name: {
-    type: String,
-    minlength: 3,
-    required: [true, "User name required"],
-  },
   firstName: {
     type: String,
     minlength: 3,
-    required: false,
+    required: [true, "First name required"],
   },
   lastName: {
     type: String,
     minlength: 3,
-    required: false,
+    required: [true, "Last name required"],
   },
   userType: {
     type: String,
@@ -30,7 +25,7 @@ const userSchema: Schema = new Schema({
     immutable: true,
     validate: {
       validator: (value: string) => {
-        return /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(value);
+        return /^[\p{L}\p{N}.-]+@[\p{L}\p{N}.-]+\.[\p{L}]{2,}$/u.test(value);
       },
       message: (props: any) => `${props.value} is not a valid email address`,
     },

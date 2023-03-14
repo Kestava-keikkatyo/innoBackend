@@ -51,7 +51,8 @@ export default async (useInMemoryDb: boolean) => {
       email: config.DB_FIRST_ADMIN_EMAIL,
       passwordHash,
       userType: "admin",
-      name: "First user",
+      firstName: "First",
+      lastName: "User",
     });
     await userDocument.save();
   }

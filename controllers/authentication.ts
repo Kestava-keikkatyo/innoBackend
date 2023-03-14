@@ -93,7 +93,8 @@ authRouter.post(
       const saltRounds: number = 10;
       const passwordHash: string = await hash(body.password, saltRounds);
       let user: IUserDocument = new User({
-        name: body.name,
+        firstName: body.firstName,
+        lastName: body.lastName,
         email: body.email,
         userType: body.userType,
         category: body.category,
@@ -113,7 +114,8 @@ authRouter.post(
         const token: string = await TokenService.createToken(user);
         return res.status(200).send({
           token,
-          name: user.name,
+          firstName: user.firstName,
+          lastName: user.lastName,
           email: user.email,
           role: user.userType.toLowerCase(),
           _id: user.id,
@@ -192,7 +194,8 @@ authRouter.post("/signin", async (req: Request<unknown, unknown, IBodyLogin>, re
 
     return res.status(200).send({
       token,
-      name: user.name,
+      firstName: user.firstName,
+      lastName: user.lastName,
       email: user.email,
       role: user.userType.toLowerCase(),
       _id: user.id,

@@ -130,9 +130,11 @@ export interface INotificationDocument extends Document, INotification {
 
 export interface IFeedback {
   senderId: IUserDocument["_id"];
-  senderName: IUserDocument["name"];
+  senderFirstName: IUserDocument["firstName"];
+  senderLastName: IUserDocument["lastName"];
   recipientId: IUserDocument["_id"];
-  recipientName: IUserDocument["name"];
+  recipientFirstName: IUserDocument["firstName"];
+  recipientLastName: IUserDocument["lastName"];
   shift: number;
   shiftMessage: string;
   orientation: number;
@@ -216,7 +218,6 @@ export interface IAgreementDocument extends Document, IAgreement {
 
 // Used when we want to type docs given in req.body for example. For calls with {lean: true} option, use DocumentDefinition<IUserDocument> for the result's type
 export interface IUser {
-  name: string;
   firstName: string;
   lastName: string;
   email: string;

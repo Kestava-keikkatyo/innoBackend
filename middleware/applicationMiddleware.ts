@@ -12,11 +12,7 @@ const updatableFields = ["job", "explanation", "fileUrl", "status"];
  * @param {NextFunction} next
  * @returns New application document
  */
-export const postApplication = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const postApplication = async (req: Request, res: Response, next: NextFunction) => {
   const { body } = req;
   try {
     const applicationDocument: IApplicationDocument = new Application({
@@ -40,14 +36,9 @@ export const postApplication = async (
  * @param {NextFunction} next
  * @returns All applications
  */
-export const getAllApplications = async (
-  _req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getAllApplications = async (_req: Request, res: Response, next: NextFunction) => {
   try {
-    const applications: Array<IApplicationDocument> | null =
-      await Application.find({});
+    const applications: Array<IApplicationDocument> | null = await Application.find({});
     if (applications) {
       return res.status(200).json(applications);
     }
@@ -64,11 +55,7 @@ export const getAllApplications = async (
  * @param {NextFunction} next
  * @returns Application
  */
-export const getApplicationById = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getApplicationById = async (req: Request, res: Response, next: NextFunction) => {
   const { params } = req;
   const id: string = params.id;
 
@@ -94,11 +81,7 @@ export const getApplicationById = async (
  * @param {NextFunction} next
  * @returns user's applications
  */
-export const getAllMyApplications = async (
-  _req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getAllMyApplications = async (_req: Request, res: Response, next: NextFunction) => {
   const id: string = res.locals.userId;
   try {
     const docs: IApplicationDocument[] | null = await Application.find({
@@ -120,11 +103,7 @@ export const getAllMyApplications = async (
  * @param {NextFunction} next
  * @returns user's application
  */
-export const getMyApplication = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getMyApplication = async (req: Request, res: Response, next: NextFunction) => {
   const { params } = req;
   const userId: string = res.locals.userId;
   const id: string = params.id;
