@@ -5,7 +5,7 @@ import { IFeeling, IUser, IUserDocument } from "../objecttypes/modelTypes";
 import { hash } from "bcryptjs";
 import { copyProperties, removeEmptyProperties } from "../utils/common";
 
-const updatableFields = ["name", "email", "userType"];
+const updatableFields = ["firstName", "lastName", "email", "userType"];
 
 /**
  * Post a new user to database.
@@ -145,7 +145,7 @@ export const getUserNotifications = async (_req: Request, res: Response, next: N
       path: "notifications",
       populate: {
         path: "sender",
-        select: "name",
+        select: ["firstName", "lastName"],
       },
     });
     console.log("doc: ", doc);
@@ -196,7 +196,7 @@ export const getUserByUserType = async (req: Request, res: Response, next: NextF
 
     if (names != null || names == "") {
       users.filter((user) => {
-        return user.name.includes(names);
+        return user.firstName.includes(names) && user.lastName.includes(names);
       });
     }
 
@@ -273,6 +273,27 @@ export const getAllBusinesses = async (_req: Request, res: Response, next: NextF
 };
 
 /**
+ * Get all users of type Agency.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns agencies
+ */
+export const getAllAgencies = async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    const agencies: Array<IUserDocument> | null = await User.find({
+      userType: "agency",
+    });
+    if (agencies) {
+      return res.status(200).json(agencies);
+    }
+    return res.status(404).json({ message: "No agencies found!" });
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
  * Get all users of type Business.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
@@ -288,27 +309,6 @@ export const getAllBusinessesAndAgencies = async (_req: Request, res: Response, 
       return res.status(200).json(businesses);
     }
     return res.status(404).json({ message: "No businesses or agencies found!" });
-  } catch (exception) {
-    return next(exception);
-  }
-};
-
-/**
- * Get all users of type Agency.
- * @param {Request} req - Express Request.
- * @param {Response} res - Express Response.
- * @param {NextFunction} next
- * @returns agencies
- */
-export const getAllAgencies = async (_req: Request, res: Response, next: NextFunction) => {
-  try {
-    const agencies: Array<IUserDocument> | null = await User.find({
-      userType: "agency",
-    }).select("name email city category userType");
-    if (agencies) {
-      return res.status(200).json(agencies);
-    }
-    return res.status(404).json({ message: "No agencies found!" });
   } catch (exception) {
     return next(exception);
   }
@@ -404,9 +404,8 @@ export const updateUserProfile = async (req: Request<{ userId: string }, IUser>,
   const { userId } = params;
 
   const updatableFields = removeEmptyProperties({
-    name: body.name,
-    //firstName: body.firstName,
-    //lastName: body.lastName,
+    firstName: body.firstName,
+    lastName: body.lastName,
     email: body.email,
     street: body.street,
     zipCode: body.zipCode,
@@ -546,7 +545,6 @@ export const deleteUserFeeling = async (req: Request, res: Response, next: NextF
 
 export const getUserFeelingById = async (_req: Request, res: Response, next: NextFunction) => {
   const { params } = _req;
-  // const id: string = res.locals.userId;
   const feelingId: string = params.id;
 
   try {

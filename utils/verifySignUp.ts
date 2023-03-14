@@ -1,11 +1,7 @@
 import User from "../models/User";
 import { NextFunction, Request, Response } from "express";
 
-export const checkDuplicateEmail = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const checkDuplicateEmail = (req: Request, res: Response, next: NextFunction) => {
   User.findOne({
     email: req.body.email,
   }).exec((err, user) => {
