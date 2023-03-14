@@ -16,7 +16,8 @@ describe("authentication api integration tests", () => {
   });
 
   let workerUser: any = {
-    name: "worker",
+    firstName: "Working",
+    lastName: "Wayde",
     email: "worker@test.fi",
     password: "bambi123",
     userType: "worker",
@@ -63,7 +64,8 @@ describe("authentication api integration tests", () => {
   it("Register a new agency", () =>
     registerUser(
       {
-        name: "agency",
+        firstName: "Agency",
+        lastName: "Annie",
         email: "agency@test.fi",
         password: "bambi123",
         userType: "agency",
@@ -74,7 +76,8 @@ describe("authentication api integration tests", () => {
   it("Register a new business", () =>
     registerUser(
       {
-        name: "business",
+        firstName: "Business",
+        lastName: "Bob",
         email: "business@test.fi",
         password: "bambi123",
         userType: "business",
@@ -85,7 +88,8 @@ describe("authentication api integration tests", () => {
   it("Can't register an admin user", () =>
     registerUser(
       {
-        name: "admin",
+        firstName: "admin",
+        lastName: "admin",
         email: "admin@test.fi",
         password: "bambi123",
         userType: "admin",
@@ -108,7 +112,8 @@ describe("authentication api integration tests", () => {
   it("returns 400 when the password length is less than 8 characters", () =>
     registerUser(
       {
-        name: "agency1",
+        firstName: "Agency1",
+        lastName: "Annie1",
         email: "agency1@test.fi",
         password: "ba",
         userType: "agency",
@@ -119,7 +124,8 @@ describe("authentication api integration tests", () => {
   it("returns Unknown user type when user trys to register as an admin", () =>
     registerUser(
       {
-        name: "admin",
+        firstName: "admin",
+        lastName: "admin",
         email: "admin@test.fi",
         password: "bambi123",
         userType: "admin",
@@ -132,7 +138,8 @@ describe("authentication api integration tests", () => {
       .agent(app)
       .post("/api/authentication/register")
       .send({
-        name: "agency",
+        firstName: "Agency",
+        lastName: "Annie",
         email: "agency@test.fi",
         password: "bambi123",
         userType: "agency",
@@ -150,9 +157,10 @@ describe("authentication api integration tests", () => {
       StatusCodes.OK
     );
 
-    expect(response.body.name).toBe(workerUser.name);
+    expect(response.body.firstName).toBe(workerUser.firstName);
+    expect(response.body.lastName).toBe(workerUser.lastName);
     expect(response.body.role).toBe(workerUser.userType);
-    expect(Object.keys(response.body)).toEqual(["token", "name", "email", "role", "_id"]);
+    expect(Object.keys(response.body)).toEqual(["token", "firstName", "lastName", "email", "role", "_id"]);
 
     workerUser._id = response.body._id;
   });
@@ -230,7 +238,8 @@ describe("authentication api integration tests", () => {
   it("returns 200 when user logout and deletes user's token from database", async () => {
     await registerUser(
       {
-        name: "user",
+        firstName: "User",
+        lastName: "Uniform",
         email: "user@test.com",
         password: "user1234",
         userType: "worker",
@@ -253,7 +262,8 @@ describe("authentication api integration tests", () => {
   it("changing password checks", async () => {
     const response = await registerUser(
       {
-        name: "good luck",
+        firstName: "Good",
+        lastName: "Luck",
         email: "goodluck@test.com",
         password: "badluck123",
         userType: "agency",
@@ -290,7 +300,8 @@ describe("authentication api integration tests", () => {
   it("token checks", async () => {
     const response = await registerUser(
       {
-        name: "Token guy",
+        firstName: "Token",
+        lastName: "Guy",
         email: "tokenguy@test.com",
         password: "qwerty123",
         userType: "worker",
