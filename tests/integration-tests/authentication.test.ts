@@ -195,45 +195,45 @@ describe("authentication api integration tests", () => {
     );
   });
 
-  // it("can't login as inactive user", async () => {
-  //   const response = await signInUser(
-  //     {
-  //       email: "admin@nowhere.com",
-  //       password: "Fisherman",
-  //     },
-  //     StatusCodes.OK
-  //   );
+  it("can't login as inactive user", async () => {
+    const response = await signInUser(
+      {
+        email: "admin@nowhere.com",
+        password: "Fisherman",
+      },
+      StatusCodes.OK
+    );
 
-  //   // Confirm that login works before inactivating user
-  //   await signInUser(
-  //     {
-  //       email: workerUser.email,
-  //       password: workerUser.password,
-  //     },
-  //     StatusCodes.OK
-  //   );
+    // Confirm that login works before inactivating user
+    await signInUser(
+      {
+        email: workerUser.email,
+        password: workerUser.password,
+      },
+      StatusCodes.OK
+    );
 
-  //   // Inactivate user by admin user
-  //   await request
-  //     .agent(app)
-  //     .patch("/api/user/updateStatus/" + workerUser._id)
-  //     .send({
-  //       userId: workerUser._id,
-  //       active: false,
-  //     })
-  //     .set("x-access-token", response.body.token)
-  //     .set("Accept", "application/json")
-  //     .expect(StatusCodes.OK);
+    // Inactivate user by admin user
+    await request
+      .agent(app)
+      .patch("/api/user/updateStatus/" + workerUser._id)
+      .send({
+        userId: workerUser._id,
+        active: false,
+      })
+      .set("x-access-token", response.body.token)
+      .set("Accept", "application/json")
+      .expect(StatusCodes.OK);
 
-  //   // Confirm that user login doesn't work anymore
-  //   await signInUser(
-  //     {
-  //       email: workerUser.email,
-  //       password: workerUser.password,
-  //     },
-  //     StatusCodes.FORBIDDEN
-  //   );
-  // });
+    // Confirm that user login doesn't work anymore
+    await signInUser(
+      {
+        email: workerUser.email,
+        password: workerUser.password,
+      },
+      StatusCodes.FORBIDDEN
+    );
+  });
 
   it("returns 200 when user logout and deletes user's token from database", async () => {
     await registerUser(
