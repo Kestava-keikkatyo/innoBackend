@@ -7,7 +7,15 @@ const reportSchema = new Schema({
     type: String,
     required: true,
   },
+  title2: {
+    type: String,
+    required: true,
+  },
   details: {
+    type: String,
+    required: true,
+  },
+  details2: {
     type: String,
     required: true,
   },
@@ -42,7 +50,7 @@ const reportSchema = new Schema({
   agencyReply: {
     type: String,
     required: false,
-  },
+  }/*,
   fileUrl: {
     type: String,
     required: false,
@@ -50,7 +58,7 @@ const reportSchema = new Schema({
   fileType: {
     type: String,
     required: false,
-  },
+  }*/,
   createdAt: {
     type: Date,
     default: Date.now,

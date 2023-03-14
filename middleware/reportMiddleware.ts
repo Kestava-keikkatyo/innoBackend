@@ -21,10 +21,13 @@ export const postReport = async (req: Request, res: Response, next: NextFunction
       business: body.business,
       agency: body.agency,
       date: body.date,
+      type: body.type,
       title: body.title,
+      title2: body.title2,
       details: body.details,
-      fileUrl: body.fileUrl,
-      fileType: body.fileType,
+      details2: body.details2
+    //  fileUrl: body.fileUrl,
+    //  fileType: body.fileType,
     });
     const report = await reportDocument.save();
     if (!report) {
@@ -253,7 +256,7 @@ export const getReportsForReceiver = async (_req: Request, res: Response, next: 
   try {
     let reports;
 
-    switch (res.locals.decoded.role) {
+    switch (_req.body.user.userType) {
       case "business":
         reports = await Report.find({
           business: res.locals.userId,
