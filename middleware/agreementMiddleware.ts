@@ -3,7 +3,6 @@ import { CallbackError } from "mongoose";
 import Agreement from "../models/Agreement";
 import { IAgreement, IAgreementDocument } from "../objecttypes/modelTypes";
 import User from "../models/User";
-import Form from "../models/Form";
 
 /*
  * @deprecated This request cabability is not included in current iteration.
@@ -111,9 +110,7 @@ export const getMyAgreements = (req: Request, res: Response, next: NextFunction)
         return res.status(404).json({ message: "No agreements found!" });
       }
       return res.status(200).json(docs);
-    })
-      .populate("target", { name: 1 }, User)
-      .populate("form", { title: 1 }, Form);
+    }).populate("target", { email: 1 }, User);
   } catch (exception) {
     return next(exception);
   }
@@ -138,7 +135,7 @@ export const getTargetAgreements = (req: Request, res: Response, next: NextFunct
         return res.status(404).json({ message: "No agreements found!" });
       }
       return res.status(200).json(docs);
-    }).populate("creator", { name: 1 }, User);
+    }).populate("creator", { email: 1 }, User);
   } catch (exception) {
     return next(exception);
   }
