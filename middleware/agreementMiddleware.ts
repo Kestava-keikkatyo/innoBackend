@@ -120,6 +120,34 @@ export const getMyAgreements = (req: Request, res: Response, next: NextFunction)
 };
 
 /**
+ * Get agency's signed agreements.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns User's agreements
+ */
+export const getMySignedAgreements = (req: Request, res: Response, next: NextFunction) => {
+  const { body } = req;
+
+  try {
+    Agreement.find({ creator: body.user._id, signed: {$ne:null} }, (error: CallbackError, docs: IAgreementDocument[]) => {
+      if (error) {
+        return res.status(500).json({ message: error.message });
+      }
+      if (!docs.length) {
+        return res.status(404).json({ message: "No agreements found!" });
+      }
+
+      console.log(JSON.stringify(docs))
+      return res.status(200).json(docs);
+    })
+      .populate("target", { name: 1 }, User);
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
  * Get agreements user is target of.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
@@ -139,6 +167,32 @@ export const getTargetAgreements = (req: Request, res: Response, next: NextFunct
       }
       return res.status(200).json(docs);
     }).populate("creator", { name: 1 }, User);
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
+ * Get signed agreements user is target of.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns User's agreements
+ */
+export const getSignedTargetAgreements = (req: Request, res: Response, next: NextFunction) => {
+  const { body } = req;
+
+  try {
+    Agreement.find({ creator: body.user._id, signed: {$ne:null} }, (error: CallbackError, docs: IAgreementDocument[]) => {
+      if (error) {
+        return res.status(500).json({ message: error.message });
+      }
+      if (!docs.length) {
+        return res.status(404).json({ message: "No agreements found!" });
+      }   
+      return (res.status(200).json(docs));
+    }).populate("creator", { name: 1 }, User);
+
   } catch (exception) {
     return next(exception);
   }

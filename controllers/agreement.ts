@@ -6,10 +6,14 @@ import {
   signAgreement,
   updateAgreement,
   getTargetAgreements,
+  getMySignedAgreements,
+  getSignedTargetAgreements,
 } from "../middleware/agreementMiddleware";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
 import {
+  isAgency,
   isAgencyOrBusiness,
+  isWorkerOrBusiness,
   isWorkerOrBusinessOrAgency,
 } from "../utils/authJwt";
 
@@ -50,6 +54,115 @@ agreementRouter.get(
   isWorkerOrBusinessOrAgency,
   getMyAgreements
 );
+
+/**
+ * Route for agency to get their signed agreements.
+ * @openapi
+ * /agreement/signed/creator:
+ *   get:
+ *     summary: Route for agency to get their signed agreements where they are the creator.
+ *     description: Must be logged in as a user of type agency.
+ *     tags: [Agreement, Agency, Business, Worker]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     responses:
+ *       "200":
+ *         description: Agreement added. Returns added agreement object.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Agreement"
+ *       "500":
+ *         description: An error occurred. Either a problem with the database or middleware.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ */
+agreementRouter.get(
+  "/signed/creator",
+  tokenAuthentication,
+  isAgency,
+  getMySignedAgreements
+);
+
+/**
+ * Route for worker and business to get their signed agreements.
+ * @openapi
+ * /agreement/signed/target:
+ *   get:
+ *     summary: Route for business and worker to get their signed agreements where they are the target.
+ *     description: Must be logged in as a user of type business or worker.
+ *     tags: [Agreement, Business, Worker]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     responses:
+ *       "200":
+ *         description: Agreement added. Returns added agreement object.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Agreement"
+ *       "500":
+ *         description: An error occurred. Either a problem with the database or middleware.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ */
+agreementRouter.get(
+  "/signed/target",
+  tokenAuthentication,
+  isWorkerOrBusiness,
+  getSignedTargetAgreements
+);
+
+/**
+ * Route for worker and business to get their signed employment agreements.
+ * @openapi
+ * /agreement/signed/employment:
+ *   get:
+ *     summary: Route for business to get their signed agreements where they are the target.
+ *     description: Must be logged in as a user of type agency, business or worker.
+ *     tags: [Agreement, Agency, Business, Worker]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     responses:
+ *       "200":
+ *         description: Agreement added. Returns added agreement object.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/EmploymentAgreement"
+ *       "500":
+ *         description: An error occurred. Either a problem with the database or middleware.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ */
+agreementRouter.get(
+  "/signed/employment",
+  tokenAuthentication,
+  isWorkerOrBusiness,
+  getMySignedAgreements
+);
+
 
 /**
  * Route for agency and business to get their agreements.

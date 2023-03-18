@@ -1,9 +1,11 @@
 import { NextFunction, Request, Response } from "express";
-import { CallbackError } from "mongoose";
+import mongoose, { CallbackError } from "mongoose";
 import User from "../models/User";
-import { IFeeling, IUser, IUserDocument } from "../objecttypes/modelTypes";
+import { IAgreement, IEmploymentAgreement, IFeeling, IUser, IUserDocument } from "../objecttypes/modelTypes";
 import { hash } from "bcryptjs";
 import { copyProperties, removeEmptyProperties } from "../utils/common";
+import Agreement from "../models/Agreement";
+import EmploymentAgreement from "../models/EmploymentAgreement";
 
 const updatableFields = ["firstName", "lastName", "email", "userType"];
 
@@ -106,6 +108,113 @@ export const getUserById = (req: Request, res: Response, next: NextFunction) => 
     return next(exception);
   }
 };
+
+
+/**
+ * Get agency's user contacts.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns Array of users in JSON
+ */
+export const getAgencyContacts = async (req: Request, res: Response, next: NextFunction) => {
+  const { body } = req;
+  let users: Array<IUserDocument> = new Array<IUserDocument>();
+  try {
+    const agreements: Array<IAgreement> = await Agreement.find({ creator: body.user._id, status: "signed" }).lean()
+    for (const key in agreements) {
+        const contactIdStr = JSON.stringify(agreements[key].target._id).slice(1, -1)
+        const contactId = new mongoose.Types.ObjectId(contactIdStr)
+        let user: IUserDocument = await User.find({ _id : contactId}).lean();
+        users.push(user)
+    }
+    if (users) {
+        return res.status(200).json(users);
+    } else {
+      return res.status(404).json({ message: "No users found!" });
+    }
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
+ * Get business's user contacts.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns Array of users in JSON
+ */
+export const getBusinessContacts = async (req: Request, res: Response, next: NextFunction) => {
+  const { body } = req;
+  let users: Array<IUserDocument> = new Array<IUserDocument>();
+
+  try {
+    const agreements: Array<IAgreement> = await Agreement.find({ target: body.user._id, status: "signed" }).lean()
+    for (const key in agreements) {
+        const contactIdStr = JSON.stringify(agreements[key].creator._id).slice(1, -1)
+        const contactId = new mongoose.Types.ObjectId(contactIdStr)
+        let user: IUserDocument = await User.find({ _id : contactId}).lean();
+        users.push(user)
+    }
+
+    const employmentAgreements: Array<IEmploymentAgreement> = await EmploymentAgreement.find({ business: body.user._id, status: "signed" }).lean()
+    for (const key in employmentAgreements) {
+      const contactIdStr = JSON.stringify(employmentAgreements[key].worker._id).slice(1, -1)
+      const contactId = new mongoose.Types.ObjectId(contactIdStr)
+      let user: IUserDocument = await User.find({ _id : contactId}).lean();
+      users.push(user)
+    }
+
+    if (users) {
+        return res.status(200).json(users);
+    } else {
+      return res.status(404).json({ message: "No users found!" });
+    }
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
+ * Get worker's user contacts.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns Array of users in JSON
+ */
+export const getWorkerContacts = async (req: Request, res: Response, next: NextFunction) => {
+  const { body } = req;
+  let users: Array<IUserDocument> = new Array<IUserDocument>();
+
+  try {
+    const agreements: Array<IAgreement> = await Agreement.find({ target: body.user._id, status: "signed" }).lean()
+    for (const key in agreements) {
+        const contactIdStr = JSON.stringify(agreements[key].creator._id).slice(1, -1)
+        const contactId = new mongoose.Types.ObjectId(contactIdStr)
+        let user: IUserDocument = await User.find({ _id : contactId}).lean();
+        users.push(user)
+    }
+
+    const employmentAgreements: Array<IEmploymentAgreement> = await EmploymentAgreement.find({ worker: body.user._id, status: "signed" }).lean()
+
+    for (const key in employmentAgreements) {
+      const contactIdStr = JSON.stringify(employmentAgreements[key].business._id).slice(1, -1)
+      const contactId = new mongoose.Types.ObjectId(contactIdStr)
+      let user: IUserDocument = await User.find({ _id : contactId}).lean();
+      users.push(user)
+    }
+
+    if (users) {
+        return res.status(200).json(users);
+    } else {
+      return res.status(404).json({ message: "No users found!" });
+    }
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
 
 /**
  * Get users own information.

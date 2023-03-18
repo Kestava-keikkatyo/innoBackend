@@ -28,6 +28,9 @@ import {
   getLatestJoinedWorkers,
   getAllBusinesses,
   getAllBusinessesAndAgencies,
+  getAgencyContacts,
+  getBusinessContacts,
+  getWorkerContacts
 } from "../middleware/userMiddleware";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
 
@@ -150,6 +153,105 @@ userRouter.get("/allUsersForAdmin", tokenAuthentication, isAdmin, getAllUsers);
  *               $ref: "#/components/schemas/Error"
  */
 userRouter.get("/any/:id", tokenAuthentication, isUser, getUserById);
+
+/**
+ * Route to get agency's user contacts
+ * @openapi
+ * /user/agencyContacts:
+ *   get:
+ *     summary: Route to get agency's user contacts
+ *     description: Must be logged in as agency.
+ *     tags: [User, User]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     responses:
+ *       "200":
+ *         description: Returns the requested users.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/User"
+ *       "404":
+ *         description: No users found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Users not existing
+ */
+userRouter.get("/agencyContacts", tokenAuthentication, isAgency, getAgencyContacts);
+
+/**
+ * Route to get business's user contacts
+ * @openapi
+ * /user/businessContacts:
+ *   get:
+ *     summary: Route to get business's user contacts
+ *     description: Must be logged in as business.
+ *     tags: [User, User]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     responses:
+ *       "200":
+ *         description: Returns the requested users.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/User"
+ *       "404":
+ *         description: No users found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Users not existing
+ */
+userRouter.get("/businessContacts", tokenAuthentication, isBusiness, getBusinessContacts);
+
+/**
+ * Route to get worker's user contacts
+ * @openapi
+ * /user/workerContacts:
+ *   get:
+ *     summary: Route to get worker's user contacts
+ *     description: Must be logged in as worker.
+ *     tags: [User, User]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     responses:
+ *       "200":
+ *         description: Returns the requested users.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/User"
+ *       "404":
+ *         description: No users found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               message: Users not existing
+ */
+userRouter.get("/workerContacts", tokenAuthentication, isWorker, getWorkerContacts);
 
 /**
  * Route to get user info

@@ -2,17 +2,29 @@ import mongoose, { Schema } from "mongoose";
 import uniqueValidator from "mongoose-unique-validator";
 import { IAgreementDocument } from "../objecttypes/modelTypes";
 
-const agreementSchema: Schema = new Schema({
+const employmentAgreementSchema: Schema = new Schema({
   creator: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Creator",
     immutable: true,
   },
-  target:
-  {
+  worker: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Target",
+    ref: "Worker",
     immutable: true,
+  },
+  business: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Business",
+    immutable: true,
+  },
+  workerSigned: {
+    type: Date,
+    default: null,
+  },
+  businessSigned: {
+    type: Date,
+    default: null,
   },
   status: {
     type: String,
@@ -23,13 +35,9 @@ const agreementSchema: Schema = new Schema({
   createdAt: {
     type: Date,
     default: Date.now,
-  },
-  signed: {
-    type: Date,
-    default: null,
-  },
+  }
 });
 
-agreementSchema.plugin(uniqueValidator);
+employmentAgreementSchema.plugin(uniqueValidator);
 
-export default mongoose.model<IAgreementDocument>("Agreement", agreementSchema);
+export default mongoose.model<IAgreementDocument>("EmploymentAgreement", employmentAgreementSchema);
