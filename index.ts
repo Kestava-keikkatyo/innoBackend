@@ -14,3 +14,5 @@ import TokenService from "./services/TokenService";
     console.log(`API docs available at http://${config.IP}:${config.PORT}/api-docs`);
   });
 })();
+
+// This is a CI/CD test
