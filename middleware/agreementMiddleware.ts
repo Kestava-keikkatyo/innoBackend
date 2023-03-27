@@ -67,24 +67,22 @@ export const postAgreement = async (req: Request, res: Response, next: NextFunct
   const { body } = req;
   try {
     const agreementDocument: IAgreementDocument | null = await Agreement.findOne({
-      target: body.target,
-      creator: body.user._id,
-      type: "agency",
+      target: body.user,
+      creator: res.locals.creator,
     });
 
     if (agreementDocument) {
       return res.status(400).send({ error: "Agreement already exist" });
     } else {
       const agreementDocument: IAgreementDocument = new Agreement({
-        creator: body.user._id,
-        target: body.target,
-        type: body.type,
-        status: "pending",
+        target: body.user,
+        creator: res.locals.creator,
       });
       const agreement = await agreementDocument.save();
       if (!agreement) {
         return res.status(400).send({ error: "Failed to create an agreement!" });
       }
+      next();
       return res.status(200).send(agreement);
     }
   } catch (exception) {
@@ -127,7 +125,7 @@ export const getMySignedAgreements = (req: Request, res: Response, next: NextFun
   const { body } = req;
 
   try {
-    Agreement.find({ creator: body.user._id, signed: {$ne:null} }, (error: CallbackError, docs: IAgreementDocument[]) => {
+    Agreement.find({ creator: body.user._id, signed: { $ne: null } }, (error: CallbackError, docs: IAgreementDocument[]) => {
       if (error) {
         return res.status(500).json({ message: error.message });
       }
@@ -180,13 +178,13 @@ export const getSignedTargetAgreements = (req: Request, res: Response, next: Nex
   const { body } = req;
 
   try {
-    Agreement.find({ creator: body.user._id, signed: {$ne:null} }, (error: CallbackError, docs: IAgreementDocument[]) => {
+    Agreement.find({ creator: body.user._id, signed: { $ne: null } }, (error: CallbackError, docs: IAgreementDocument[]) => {
       if (error) {
         return res.status(500).json({ message: error.message });
       }
       if (!docs.length) {
         return res.status(404).json({ message: "No agreements found!" });
-      }   
+      }
       return (res.status(200).json(docs));
     }).populate("creator", { name: 1 }, User);
 

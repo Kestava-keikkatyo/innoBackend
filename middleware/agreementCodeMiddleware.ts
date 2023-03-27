@@ -17,6 +17,9 @@ export const findAgreementCode = async (req: Request, res: Response, next: NextF
     }
 
     res.locals.agreementCodeFound = true;
+    res.locals.creator = agreementCode.creator;
+
+    next()
   } catch (exception) {
     return next(exception);
   }
@@ -37,6 +40,7 @@ export const deleteAgreementCode = async (req: Request, res: Response, next: Nex
     }
 
     res.locals.deletedAgreementCode = deletedAgreementCode;
+    next()
   } catch (exception) {
     return next(exception);
   }
@@ -63,6 +67,7 @@ export const addAgreementCode = async (req: Request, res: Response, next: NextFu
     }
 
     res.locals.savedAgreementCode = savedAgreementCode;
+    next()
   } catch (exception) {
     return next(exception);
   }
