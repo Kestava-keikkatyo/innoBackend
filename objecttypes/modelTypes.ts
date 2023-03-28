@@ -157,7 +157,9 @@ export interface IFeedbackDocument extends Document, IFeedback {
 
 export interface IReport {
   title: String;
+  title2: String;
   details: String;
+  details2: String;
   date: Date;
   status: String;
   businessReply: String;
@@ -165,8 +167,8 @@ export interface IReport {
   user: IUserDocument["_id"];
   business?: IUserDocument["_id"];
   agency?: IUserDocument["_id"];
-  fileUrl: String;
-  fileType: String;
+ // fileUrl: String;
+ // fileType: String;
   businessArchived: String;
   agencyArchived: String;
   workerArchived: String;
@@ -218,13 +220,13 @@ export interface IEmploymentAgreement {
   creator: IUserDocument["_id"];
   worker: IUserDocument["_id"];
   business: IUserDocument["_id"];
-  workerSigned: Date;
-  businessSigned: Date;
   status: String;
 }
 
 export interface IEmploymentAgreementDocument extends Document, IEmploymentAgreement {
   _id: Types.ObjectId;
+  workerSigned?: Date;
+  businessSigned?: Date;
   createdAt?: Date;
 }
 
