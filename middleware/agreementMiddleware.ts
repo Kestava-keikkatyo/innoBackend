@@ -1,8 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import { CallbackError } from "mongoose";
 import Agreement from "../models/Agreement";
-import { IAgreement, IAgreementDocument } from "../objecttypes/modelTypes";
+import { IAgreement, IAgreementDocument, IEmploymentAgreementDocument } from "../objecttypes/modelTypes";
 import User from "../models/User";
+import EmploymentAgreement from "../models/EmploymentAgreement";
 
 /*
  * @deprecated This request cabability is not included in current iteration.
@@ -72,7 +73,7 @@ export const postAgreement = async (req: Request, res: Response, next: NextFunct
     });
 
     if (agreementDocument) {
-      return res.status(400).send({ error: "Agreement already exist" });
+      return res.status(400).send({ error: "Agreement already exists" });
     } else {
       const agreementDocument: IAgreementDocument = new Agreement({
         target: body.user,
@@ -85,6 +86,75 @@ export const postAgreement = async (req: Request, res: Response, next: NextFunct
       next();
       return res.status(200).send(agreement);
     }
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
+ * Post a new employment agreement to database.
+ * Meant to be used by agencies.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns New employment agreement document
+ */ 
+export const postEmploymentAgreement = async (req: Request, res: Response, next: NextFunction) => {
+  const { body } = req;
+  //console.log("BODY: " + JSON.stringify(body))
+  try {
+    const existingDocument: IEmploymentAgreementDocument | null = await EmploymentAgreement.findOne({
+      worker: body.worker,
+      business: body.business
+    });
+
+    if (existingDocument) {
+      return res.status(400).send({ error: "Agreement already exists" });
+    } else {
+      const empAgreementDocument: IEmploymentAgreementDocument = new EmploymentAgreement({
+        creator: body.user._id,
+        worker: body.worker,
+        business: body.business,
+        status: "pending"
+      });
+      const agreement = await empAgreementDocument.save();
+      if (!agreement) {
+        return res.status(400).send({ error: "Failed to create an agreement!" });
+      }
+      return res.status(200).send(agreement);
+    }
+  } catch (exception) {
+    return next(exception);
+  }
+}; 
+
+/**
+ * Get worker's or business's employment agreements.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns User's agreements
+ */
+export const getEmploymentAgreements = (req: Request, res: Response, next: NextFunction) => {
+  const { body } = req;
+
+  try {
+    EmploymentAgreement.find({ 
+      $or: 
+      [ { worker: body.user._id },
+        { business: body.user._id } ]
+      }
+      , (error: CallbackError, docs: IEmploymentAgreementDocument[]) => {
+      if (error) {
+        return res.status(500).json({ message: error.message });
+      }
+      if (!docs.length) {
+        return res.status(404).json({ message: "No agreements found!" });
+      }
+      return res.status(200).json(docs);
+    }).populate("creator", {companyName: 1}, User)
+    .populate("worker", { email: 1 }, User)
+    .populate("business", {companyName: 1}, User);
   } catch (exception) {
     return next(exception);
   }
@@ -132,8 +202,6 @@ export const getMySignedAgreements = (req: Request, res: Response, next: NextFun
       if (!docs.length) {
         return res.status(404).json({ message: "No agreements found!" });
       }
-
-      console.log(JSON.stringify(docs))
       return res.status(200).json(docs);
     })
       .populate("target", { name: 1 }, User);
@@ -161,7 +229,8 @@ export const getTargetAgreements = (req: Request, res: Response, next: NextFunct
         return res.status(404).json({ message: "No agreements found!" });
       }
       return res.status(200).json(docs);
-    }).populate("creator", { email: 1 }, User);
+    }).populate("creator", { companyName: 1 }, User)
+    .populate("target", { email: 1 }, User);
   } catch (exception) {
     return next(exception);
   }
@@ -307,9 +376,113 @@ export const deleteAgreement = async (req: Request, res: Response, next: NextFun
     });
 
     if (!agreement) {
-      return res.status(404).send({ message: `Agreement  is not existing!` });
+      return res.status(404).send({ message: `Agreement does not exist!` });
     } else {
-      return res.status(200).send({ message: `Agreement was deleted successfuly!` });
+      return res.status(200).send({ message: `Agreement was deleted successfully!` });
+    }
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
+ * Delete employment agreement by id.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns Deleted employment agreement
+ */
+export const deleteEmploymentAgreement = async (req: Request, res: Response, next: NextFunction) => {
+  const { params } = req;
+  const { id } = params;
+
+  try {
+    const agreement: IEmploymentAgreementDocument | null = await EmploymentAgreement.findByIdAndDelete({
+      _id: id,
+    });
+
+    if (!agreement) {
+      return res.status(404).send({ message: `Agreement does not exist!` });
+    } else {
+      return res.status(200).send({ message: `Agreement was deleted successfully!` });
+    }
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
+ * Sign employment agreement by id. 
+ * Checks also if both business and worker have signed the agreement, 
+ * and changes the status to "signed" if needed.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns Updated employment agreement
+ */
+export const signEmploymentAgreement = async (req: Request, res: Response, next: NextFunction) => {
+  const { body } = req;
+  const { params } = req
+  const { id } = params;
+
+  let agreement: IEmploymentAgreementDocument | null = await EmploymentAgreement.findById(id)
+
+  try {
+    if (agreement && body.user.userType === "worker" && !agreement.workerSigned) {
+      agreement.workerSigned = new Date()
+      if (agreement.businessSigned) {
+        agreement.status = "signed"
+      }
+      await EmploymentAgreement.findByIdAndUpdate(
+        id, 
+        { workerSigned: agreement.workerSigned, status: agreement.status },
+        { new: true, runValidators: true, lean: true }
+      ); 
+
+  } else if (agreement && body.user.userType === "business" && !agreement.businessSigned) {
+      agreement.businessSigned = new Date()
+      if (agreement.workerSigned) {
+        agreement.status = "signed"
+      }
+      await EmploymentAgreement.findByIdAndUpdate(
+      id, 
+      { businessSigned: agreement.businessSigned, status: agreement.status },
+      { new: true, runValidators: true, lean: true }
+    ); 
+  }
+
+  if (!agreement) {
+    return res.status(404).send({ message: `Agreement does not exist!` });
+  } else {
+    return res.status(200).send({ message: `Agreement was signed successfully!` });
+  }
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
+ * Reject employment agreement by id.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns Rejected employment agreement
+ */
+export const rejectEmploymentAgreement = async (req: Request, res: Response, next: NextFunction) => {
+  const { params } = req;
+  const { id } = params;
+
+  try {
+    const agreement: IEmploymentAgreementDocument | null = await EmploymentAgreement.findByIdAndUpdate(
+      id, 
+      { status: "rejected" },
+      { new: true, runValidators: true, lean: true }
+    )
+
+    if (!agreement) {
+      return res.status(404).send({ message: `Agreement does not exist!` });
+    } else {
+      return res.status(200).send({ message: `Agreement was rejected successfully!` });
     }
   } catch (exception) {
     return next(exception);

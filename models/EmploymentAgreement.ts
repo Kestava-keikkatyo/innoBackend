@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import uniqueValidator from "mongoose-unique-validator";
-import { IAgreementDocument } from "../objecttypes/modelTypes";
+import { IEmploymentAgreementDocument } from "../objecttypes/modelTypes";
 
 const employmentAgreementSchema: Schema = new Schema({
   creator: {
@@ -40,4 +40,4 @@ const employmentAgreementSchema: Schema = new Schema({
 
 employmentAgreementSchema.plugin(uniqueValidator);
 
-export default mongoose.model<IAgreementDocument>("EmploymentAgreement", employmentAgreementSchema);
+export default mongoose.model<IEmploymentAgreementDocument>("EmploymentAgreement", employmentAgreementSchema);
