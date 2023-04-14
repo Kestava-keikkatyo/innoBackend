@@ -13,6 +13,7 @@ import {
   rejectEmploymentAgreement,
   deleteEmploymentAgreement,
   signEmploymentAgreement,
+  getAgencysEmploymentAgreements,
 } from "../middleware/agreementMiddleware";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
 import {
@@ -293,10 +294,10 @@ agreementRouter.post(
  * Route for Worker and Business to fetch all their employment agreements
  * @openapi
  * /agreement/employment:
- *   post:
+ *   get:
  *     summary: Route for worker to fetch all his employment agreements.
- *     description: Must be logged in as a user of type worker or business.
- *     tags: [Agreement, Business, Worker]
+ *     description: Must be logged in as a user type of worker or business.
+ *     tags: [EmploymentAgreement, Business, Worker]
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -312,7 +313,7 @@ agreementRouter.post(
  *             $ref: "#/components/schemas/EmploymentAgreement"
  *     responses:
  *       "200":
- *         description: Employment agreement added. Returns added employment agreement object.
+ *         description: Employment agreement(s) found. Returns employment agreement objects.
  *         content:
  *           application/json:
  *             schema:
@@ -329,6 +330,48 @@ agreementRouter.get(
   tokenAuthentication,
   isWorkerOrBusiness,
   getEmploymentAgreements
+);
+
+/**
+ * Route for Agency to fetch all it's employment agreements
+ * @openapi
+ * /agreement/employment/agency:
+ *   get:
+ *     summary: Route for worker to fetch all his employment agreements.
+ *     description: Must be logged in as a user type of agency
+ *     tags: [EmploymentAgreement, Agency]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         description: The token you get when logging in is used here. Used to authenticate the user.
+ *         required: true
+ *         schema:
+ *           $ref: "#/components/schemas/AccessToken"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: "#/components/schemas/EmploymentAgreement"
+ *     responses:
+ *       "200":
+ *         description: Employment agreement(s) found. Returns employment agreement objects.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/EmploymentAgreement"
+ *       "500":
+ *         description: An error occurred. Either a problem with the database or middleware.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ */
+agreementRouter.get(
+  "/employment/agency",
+  tokenAuthentication,
+  isAgency,
+  getAgencysEmploymentAgreements
 );
 
 
