@@ -70,6 +70,7 @@ export const postAgreement = async (req: Request, res: Response, next: NextFunct
     const agreementDocument: IAgreementDocument | null = await Agreement.findOne({
       target: body.user,
       creator: res.locals.creator,
+      type: "agency"
     });
 
     if (agreementDocument) {
@@ -170,18 +171,18 @@ export const getAgencysEmploymentAgreements = (req: Request, res: Response, next
   const { body } = req;
   try {
     EmploymentAgreement.find(
-      { creator: body.user._id } 
+      { creator: body.user._id }
       , (error: CallbackError, docs: IEmploymentAgreementDocument[]) => {
-      if (error) {
-        return res.status(500).json({ message: error.message });
-      }
-      if (!docs.length) {
-        return res.status(404).json({ message: "No agreements found!" });
-      }
-      return res.status(200).json(docs);
-    }).populate("creator", {companyName: 1}, User)
-    .populate("worker", { email: 1 }, User)
-    .populate("business", {companyName: 1}, User);
+        if (error) {
+          return res.status(500).json({ message: error.message });
+        }
+        if (!docs.length) {
+          return res.status(404).json({ message: "No agreements found!" });
+        }
+        return res.status(200).json(docs);
+      }).populate("creator", { companyName: 1 }, User)
+      .populate("worker", { email: 1 }, User)
+      .populate("business", { companyName: 1 }, User);
   } catch (exception) {
     return next(exception);
   }
