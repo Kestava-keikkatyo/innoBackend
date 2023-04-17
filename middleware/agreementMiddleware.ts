@@ -160,6 +160,34 @@ export const getEmploymentAgreements = (req: Request, res: Response, next: NextF
 };
 
 /**
+ * Get agency's employment agreements.
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns User's agreements
+ */
+export const getAgencysEmploymentAgreements = (req: Request, res: Response, next: NextFunction) => {
+  const { body } = req;
+  try {
+    EmploymentAgreement.find(
+      { creator: body.user._id } 
+      , (error: CallbackError, docs: IEmploymentAgreementDocument[]) => {
+      if (error) {
+        return res.status(500).json({ message: error.message });
+      }
+      if (!docs.length) {
+        return res.status(404).json({ message: "No agreements found!" });
+      }
+      return res.status(200).json(docs);
+    }).populate("creator", {companyName: 1}, User)
+    .populate("worker", { email: 1 }, User)
+    .populate("business", {companyName: 1}, User);
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+/**
  * Get agency's agreements.
  * @param {Request} req - Express Request.
  * @param {Response} res - Express Response.
@@ -305,7 +333,7 @@ export const updateAgreement = async (req: Request<{ id: string }, IAgreement>, 
       { new: true, runValidators: true, lean: true }
     );
     if (agreement) {
-      console.log(`Agreement was updated successfuly!!`);
+      console.log(`Agreement was updated successfully!`);
     }
     return res.status(agreement ? 200 : 404).send();
   } catch (exception) {
@@ -420,6 +448,8 @@ export const signEmploymentAgreement = async (req: Request, res: Response, next:
   const { body } = req;
   const { params } = req
   const { id } = params;
+
+  console.log(JSON.stringify(body))
 
   let agreement: IEmploymentAgreementDocument | null = await EmploymentAgreement.findById(id)
 
