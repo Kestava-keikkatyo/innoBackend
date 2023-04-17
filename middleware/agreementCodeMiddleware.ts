@@ -40,7 +40,7 @@ export const deleteAgreementCode = async (req: Request, res: Response, next: Nex
     }
 
     res.locals.deletedAgreementCode = deletedAgreementCode;
-    next()
+    res.status(200).json({ message: "Agreement created and agreement code deleted successfully" });
   } catch (exception) {
     return next(exception);
   }
@@ -55,9 +55,9 @@ export const addAgreementCode = async (req: Request, res: Response, next: NextFu
     }
 
     const agreementCode = new AgreementCode({
-      code,
+      code: code,
       createdAt: new Date(),
-      creator: req.body.user._id
+      creator: req.body.userId
     });
 
     const savedAgreementCode = await agreementCode.save();
@@ -66,8 +66,7 @@ export const addAgreementCode = async (req: Request, res: Response, next: NextFu
       return res.status(400).json({ message: "Failed to create agreement code" });
     }
 
-    res.locals.savedAgreementCode = savedAgreementCode;
-    next()
+    res.status(200).json({ message: "Agreement code added successfully" });
   } catch (exception) {
     return next(exception);
   }

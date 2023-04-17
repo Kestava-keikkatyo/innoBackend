@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 import { IAgreementCode } from '../objecttypes/modelTypes';
 
 const agreementCodeSchema: Schema = new Schema({
