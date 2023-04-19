@@ -20,6 +20,7 @@ import topicRouter from "./controllers/topic";
 import workRequestRouter from "./controllers/workRequest";
 import responsibilityRouter from "./controllers/responsibility";
 import feelingRouter from "./controllers/feeling";
+import codeRouter from "./controllers/agreementCode";
 import User from "./models/User";
 import { IUserDocument } from "./objecttypes/modelTypes";
 import { hash } from "bcryptjs";
@@ -84,6 +85,7 @@ export default async (useInMemoryDb: boolean) => {
   app.use("/api/workRequest", workRequestRouter);
   app.use("/api/responsibility", responsibilityRouter);
   app.use("/api/feeling", feelingRouter);
+  app.use("/api/code", codeRouter);
 
   app.use(unknownEndpoint);
   app.use(errorHandler);

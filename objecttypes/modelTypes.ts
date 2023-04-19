@@ -44,7 +44,7 @@ export interface ITextareaQuestion extends IBaseQuestion {
   rows: number;
 }
 
-export interface ICheckboxQuestion extends IBaseQuestion {}
+export interface ICheckboxQuestion extends IBaseQuestion { }
 
 export interface ICheckboxGroupQuestion extends IBaseQuestion {
   options: Array<string>;
@@ -61,7 +61,7 @@ export interface IRadiobuttonGroupHorizontalQuestion extends IBaseQuestion {
   scaleOptionTitleRight: string;
 }
 
-export interface IContactInformationQuestion extends IBaseQuestion {}
+export interface IContactInformationQuestion extends IBaseQuestion { }
 
 export interface IDatePickerQuestion extends IBaseQuestion {
   isClosedTimeFrame: boolean;
@@ -114,7 +114,7 @@ export interface IFormDocument extends Document, IForm {
   createdAt: Date;
 }
 
-export interface FormModel<T extends Document> extends PaginateModel<T> {} // Used so Form.paginate has typing information
+export interface FormModel<T extends Document> extends PaginateModel<T> { } // Used so Form.paginate has typing information
 
 export interface INotification {
   sender: IUserDocument["_id"];
@@ -208,6 +208,12 @@ export interface IAgreement {
   creator: IUserDocument["_id"];
   target: IUserDocument["_id"];
   status: String;
+}
+
+export interface IAgreementCode {
+  creator: IUserDocument["_id"];
+  createdAt: Date;
+  code: String;
 }
 
 export interface IAgreementDocument extends Document, IAgreement {
