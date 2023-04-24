@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import FeedBack from "../models/FeedBack";
 import { IFeedbackDocument } from "../objecttypes/modelTypes";
-import { copyProperties } from "../utils/common";
+import { addUserNotification, copyProperties } from "../utils/common";
 
 const updatableFields = [
   "recipientId",
@@ -32,7 +32,7 @@ const updatableFields = [
 export const postFeedback = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { body } = req;
-    console.log("POST FEEDBACK");
+   // console.log("POST FEEDBACK" + JSON.stringify(body));
     console.log(body);
     const feedbackDocument: IFeedbackDocument = new FeedBack({
       ...copyProperties(body, updatableFields),
@@ -42,6 +42,15 @@ export const postFeedback = async (req: Request, res: Response, next: NextFuncti
     if (!feedback) {
       return res.status(400).send({ error: "Failed to create feedback!" });
     }
+    addUserNotification(
+      {
+        sender: res.locals.userId,
+        target: feedback._id,
+        targetDoc: "FeedBack",
+        type: "feedback_pending"
+      },
+      body.recipientId
+    );
     return res.status(200).send(feedback);
   } catch (exception) {
     return next(exception);
