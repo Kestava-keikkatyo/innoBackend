@@ -36,7 +36,7 @@ export const postWorkRequest = async (req: Request, res: Response, next: NextFun
         sender: res.locals.userId,
         target: workRequest._id,
         targetDoc: "WorkRequest",
-        type: "assignmet",
+        type: "assignment",
       },
       body.recipient
     );

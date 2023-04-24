@@ -108,7 +108,7 @@ const userSchema: Schema = new Schema({
       },
       type: {
         type: String,
-        enum: ["assignmet", "signature_pending", "form_pending", "application_pending", "feedback_pending", "reply"],
+        enum: ["assignment", "signature_pending", "form_pending", "application_pending", "feedback_pending", "reply"],
         required: true,
       },
       createdAt: {

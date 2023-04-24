@@ -4,6 +4,7 @@ import Agreement from "../models/Agreement";
 import { IAgreement, IAgreementDocument, IEmploymentAgreementDocument } from "../objecttypes/modelTypes";
 import User from "../models/User";
 import EmploymentAgreement from "../models/EmploymentAgreement";
+import { addUserNotification } from "../utils/common";
 
 /*
  * @deprecated This request cabability is not included in current iteration.
@@ -121,6 +122,25 @@ export const postEmploymentAgreement = async (req: Request, res: Response, next:
       if (!agreement) {
         return res.status(400).send({ error: "Failed to create an agreement!" });
       }
+      addUserNotification(
+        {
+          sender: res.locals.userId,
+          target: agreement._id,
+          targetDoc: "EmploymentAgreement",
+          type: "signature_pending"
+        },
+        body.worker
+      );
+      addUserNotification(
+        {
+          sender: res.locals.userId,
+          target: agreement._id,
+          targetDoc: "EmploymentAgreement",
+          type: "signature_pending"
+        },
+        body.business
+      );
+
       return res.status(200).send(agreement);
     }
   } catch (exception) {

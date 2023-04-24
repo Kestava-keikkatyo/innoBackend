@@ -119,8 +119,8 @@ export interface FormModel<T extends Document> extends PaginateModel<T> { } // U
 export interface INotification {
   sender: IUserDocument["_id"];
   target: Types.ObjectId;
-  targetDoc: "WorkRequest" | "Agreement" | "Form" | "Application" | "FeedBack";
-  type: "assignmet" | "signature_pending" | "form_pending" | "application_pending" | "feedback_pending" | "reply";
+  targetDoc: "WorkRequest" | "Agreement" | "EmploymentAgreement" | "Form" | "Application" | "FeedBack";
+  type: "assignment" | "signature_pending" | "form_pending" | "application_pending" | "feedback_pending" | "reply";
 }
 
 export interface INotificationDocument extends Document, INotification {
