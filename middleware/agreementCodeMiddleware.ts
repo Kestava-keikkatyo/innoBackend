@@ -133,12 +133,12 @@ function generateRandomCode(length: number): string {
 
 /**
  * Retrieve all agreement codes created by a user.
- * @param {Request} req - Express Request.
+ * @param {Request} _req - Express Request.
  * @param {Response} res - Express Response.
  * @param {NextFunction} next
  * @returns Agreement code documents created by the user
  */
-export const getAgreementCodesByCreator = async (req: Request, res: Response, next: NextFunction) => {
+export const getAgreementCodesByCreator = async (_req: Request, res: Response, next: NextFunction) => {
   try {
     // Get the user ID from res.locals
     const userId = res.locals.userId;
