@@ -173,7 +173,7 @@ export const getEmploymentAgreements = (req: Request, res: Response, next: NextF
         }
         return res.status(200).json(docs);
       }).populate("creator", { companyName: 1 }, User)
-      .populate("worker", { email: 1 }, User)
+      .populate("worker", { email: 1, firstName: 2, lastName: 3  }, User)
       .populate("business", { companyName: 1 }, User);
   } catch (exception) {
     return next(exception);
@@ -201,7 +201,7 @@ export const getAgencysEmploymentAgreements = (req: Request, res: Response, next
         }
         return res.status(200).json(docs);
       }).populate("creator", { companyName: 1 }, User)
-      .populate("worker", { email: 1 }, User)
+      .populate("worker", { email: 1, firstName: 2, lastName: 3 }, User)
       .populate("business", { companyName: 1 }, User);
   } catch (exception) {
     return next(exception);
