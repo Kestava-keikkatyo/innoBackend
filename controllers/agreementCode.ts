@@ -7,6 +7,7 @@ import {
   deleteAgreementCode,
   addAgreementCodes,
   getAgreementCodesByCreator,
+  updateMarkedValue,
 } from "../middleware/agreementCodeMiddleware";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
 import {
@@ -37,6 +38,13 @@ agreementCodeRouter.get(
   tokenAuthentication,
   isAgency,
   getAgreementCodesByCreator
+);
+
+agreementCodeRouter.put(
+  "/updateMarkedValue",
+  tokenAuthentication,
+  isAgency,
+  updateMarkedValue
 );
 
 export default agreementCodeRouter;

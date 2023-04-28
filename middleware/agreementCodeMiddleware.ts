@@ -174,7 +174,7 @@ export const updateMarkedValue = async (req: Request, res: Response, next: NextF
       return res.status(400).json({ message: "ID is required" });
     }
 
-    if (!marked) {
+    if (typeof marked === 'undefined') {
       return res.status(400).json({ message: "Marked value is required" });
     }
 
