@@ -120,7 +120,7 @@ export const postEmploymentAgreement = async (req: Request, res: Response, next:
       });
       const agreement = await empAgreementDocument.save();
       if (!agreement) {
-        return res.status(400).send({ error: "Failed to create an agreement!" });
+        return res.status(500).send({ error: "Failed to create an agreement!" });
       }
       addUserNotification(
         {

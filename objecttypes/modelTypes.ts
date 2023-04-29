@@ -241,6 +241,7 @@ export interface IUser {
   firstName: string;
   lastName: string;
   email: string;
+  companyName: string;
   password: string;
   passwordHash?: string;
   userType: string;

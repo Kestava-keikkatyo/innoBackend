@@ -5,12 +5,12 @@ import mongoose, { Schema } from "mongoose";
 const userSchema: Schema = new Schema({
   firstName: {
     type: String,
-    minlength: 3,
+    minlength: 2,
     required: [true, "First name required"],
   },
   lastName: {
     type: String,
-    minlength: 3,
+    minlength: 2,
     required: [true, "Last name required"],
   },
   userType: {
@@ -29,6 +29,11 @@ const userSchema: Schema = new Schema({
       },
       message: (props: any) => `${props.value} is not a valid email address`,
     },
+  },
+  companyName: {
+    type: String,
+    minlength: 3,
+    required: false,
   },
   passwordHash: {
     type: String,
