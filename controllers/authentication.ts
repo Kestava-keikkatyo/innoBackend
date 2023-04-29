@@ -98,6 +98,7 @@ authRouter.post(
         email: body.email,
         userType: body.userType,
         category: body.category,
+        companyName: body.companyName,
         passwordHash,
       });
       const validationError = user.validateSync();
