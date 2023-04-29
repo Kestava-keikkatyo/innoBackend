@@ -15,6 +15,11 @@ const agreementCodeSchema: Schema = new Schema({
     type: String,
     required: true,
     unique: true
+  },
+  marked: {
+    type: Boolean,
+    default: false,
+    required: true,
   }
 });
 
