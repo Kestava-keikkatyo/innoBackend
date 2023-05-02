@@ -173,7 +173,7 @@ export const getEmploymentAgreements = (req: Request, res: Response, next: NextF
         }
         return res.status(200).json(docs);
       }).populate("creator", { companyName: 1 }, User)
-      .populate("worker", { email: 1, firstName: 2, lastName: 3  }, User)
+      .populate("worker", { email: 1, firstName: 1, lastName: 1 }, User)
       .populate("business", { companyName: 1 }, User);
   } catch (exception) {
     return next(exception);
@@ -201,7 +201,7 @@ export const getAgencysEmploymentAgreements = (req: Request, res: Response, next
         }
         return res.status(200).json(docs);
       }).populate("creator", { companyName: 1 }, User)
-      .populate("worker", { email: 1, firstName: 2, lastName: 3 }, User)
+      .populate("worker", { email: 1, firstName: 1, lastName: 1 }, User)
       .populate("business", { companyName: 1 }, User);
   } catch (exception) {
     return next(exception);
@@ -226,7 +226,7 @@ export const getMyAgreements = (req: Request, res: Response, next: NextFunction)
         return res.status(404).json({ message: "No agreements found!" });
       }
       return res.status(200).json(docs);
-    }).populate("target", { email: 1 }, User);
+    }).populate("target", { email: 1, firstName: 1, lastName: 1, companyName: 1, category: 1, userType: 1 }, User);
   } catch (exception) {
     return next(exception);
   }
