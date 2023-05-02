@@ -125,7 +125,7 @@ export const getAgencyContacts = async (req: Request, res: Response, next: NextF
     for (const key in agreements) {
         const contactIdStr = JSON.stringify(agreements[key].target._id).slice(1, -1)
         const contactId = new mongoose.Types.ObjectId(contactIdStr)
-        let user = await User.find({ _id : contactId}).lean().select('_id userType email firstName lastName companyName')
+        let user = await User.find({ _id : contactId}).lean().select('_id userType email firstName lastName companyName category')
         users.push(user)
     }
     if (users) {
@@ -154,7 +154,7 @@ export const getBusinessContacts = async (req: Request, res: Response, next: Nex
     for (const key in agreements) {
         const contactIdStr = JSON.stringify(agreements[key].creator._id).slice(1, -1)
         const contactId = new mongoose.Types.ObjectId(contactIdStr)
-        const user = await User.find({ _id : contactId}).lean().select('_id userType email firstName lastName companyName')
+        const user = await User.find({ _id : contactId}).lean().select('_id userType email firstName lastName companyName category')
         users.push(user)
     }
 
@@ -162,7 +162,7 @@ export const getBusinessContacts = async (req: Request, res: Response, next: Nex
     for (const key in employmentAgreements) {
       const contactIdStr = JSON.stringify(employmentAgreements[key].worker._id).slice(1, -1)
       const contactId = new mongoose.Types.ObjectId(contactIdStr)
-      const user = await User.find({ _id : contactId}).lean().select('_id userType email firstName lastName companyName')
+      const user = await User.find({ _id : contactId}).lean().select('_id userType email firstName lastName companyName category')
       users.push(user)
     }
 
@@ -192,7 +192,7 @@ export const getWorkerContacts = async (req: Request, res: Response, next: NextF
     for (const key in agreements) {
         const contactIdStr = JSON.stringify(agreements[key].creator._id).slice(1, -1)
         const contactId = new mongoose.Types.ObjectId(contactIdStr)
-        const user = await User.find({ _id : contactId}).lean().select('_id userType email firstName lastName companyName')
+        const user = await User.find({ _id : contactId}).lean().select('_id userType email firstName lastName companyName category')
         users.push(user)
     }
 
@@ -201,7 +201,7 @@ export const getWorkerContacts = async (req: Request, res: Response, next: NextF
     for (const key in employmentAgreements) {
       const contactIdStr = JSON.stringify(employmentAgreements[key].business._id).slice(1, -1)
       const contactId = new mongoose.Types.ObjectId(contactIdStr)
-      const user = await User.find({ _id : contactId}).lean().select('_id userType email firstName lastName companyName')
+      const user = await User.find({ _id : contactId}).lean().select('_id userType email firstName lastName companyName category')
       users.push(user)
     }
 
