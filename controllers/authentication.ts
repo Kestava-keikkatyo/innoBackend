@@ -8,6 +8,7 @@ import { IBodyLogin } from "../objecttypes/otherTypes";
 import bcrypt from "bcryptjs";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
 import TokenService from "../services/TokenService";
+import { CloudWatchLogs } from "aws-sdk";
 
 const authRouter = express.Router();
 
@@ -310,6 +311,83 @@ authRouter.put("/changePassword", tokenAuthentication, async (req: Request, res:
     await user.save();
 
     return res.status(200).send();
+  } catch (exception) {
+    return next(exception);
+  }
+});
+
+/**
+ * This function should send out an email to the received email address.
+ * Instead of sending the 'resetLink' variable as a response, it should be send to the user supplied email using e.g. Nodemailer.
+ * Check the following links:
+ * https://nodemailer.com/about/
+ * https://mailtrap.io/blog/send-emails-with-nodejs/
+ */
+authRouter.post("/forgottenpassword", async (req: Request, res: Response, next: NextFunction) => {
+  const { body } = req;
+  try {
+    const user: IUserDocument | null = await User.findOne({
+      email: body.email,
+    });
+    if (user === null) {
+      return res.status(401).json({ message: "Email does not exist." });
+    } else if (user.active) {
+
+      // Commented lines are for testing in local environment.
+      // Server sends the password reset link as a response and following that link, password can be reset.
+
+      // const token: string = await TokenService.createToken(user);
+      // const resetLink = `http://localhost:3000/forgotpassword?token=${token}`;
+      // return res.status(200).json({ message: "Click this link to create a new password: ", resetLink });
+
+      return res.status(200).json({ message: "Email received." });
+    }
+  } catch (exception) {
+    return next(exception);
+  }
+});
+
+authRouter.put("/resetPassword", tokenAuthentication, async (req: Request, res: Response, next: NextFunction) => {
+  const { body } = req;
+  try {
+    const user: IUserDocument = (await User.findById(res.locals.userId)) as IUserDocument;
+
+    if (!body.newPassword) {
+      return res.status(400).json({ message: "The new password can't be blank" });
+    }
+    const passwordLength: number = body.newPassword.length;
+    if (passwordLength < 8) {
+      return res.status(411).json({ message: "password length less than 8 characters" });
+    }
+    const saltRounds: number = 10;
+    let newPasswordHash = await hash(body.newPassword, saltRounds);
+
+    const updatePasswordField = {
+      passwordHash: newPasswordHash,
+    };
+    await user.update(updatePasswordField);
+    await user.save();
+
+    return res.status(200).send();
+  } catch (exception) {
+    return next(exception);
+  }
+});
+
+/**
+ * Checks the database for the token that the user is using inside the password reset address.
+ * If token is not found, send error response and handle user redirect to error page in client side.
+ */
+authRouter.post("/verifytoken", async (req: Request, res: Response, next: NextFunction) => {
+  const { body } = req;
+  const token: string = body.token as string;
+  try {
+    const user = await TokenService.verify(token);
+    if (user === null) {
+      return res.status(401).json({ message: "Failed to authenticate token." });
+    } else if (user) {
+      return res.status(200).send();
+    }
   } catch (exception) {
     return next(exception);
   }
