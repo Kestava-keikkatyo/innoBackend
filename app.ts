@@ -24,6 +24,7 @@ import codeRouter from "./controllers/agreementCode";
 import User from "./models/User";
 import { IUserDocument } from "./objecttypes/modelTypes";
 import { hash } from "bcryptjs";
+import fileRouter from "./controllers/file";
 
 export default async (useInMemoryDb: boolean) => {
   const app = express();
@@ -86,6 +87,7 @@ export default async (useInMemoryDb: boolean) => {
   app.use("/api/responsibility", responsibilityRouter);
   app.use("/api/feeling", feelingRouter);
   app.use("/api/code", codeRouter);
+  app.use("/api/file", fileRouter);
 
   app.use(unknownEndpoint);
   app.use(errorHandler);
