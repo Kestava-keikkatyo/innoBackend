@@ -13,7 +13,7 @@ fileRouter.post("/", tokenAuthentication, addFile);
 
 fileRouter.delete("/:id", tokenAuthentication, deleteFile);
 
-fileRouter.get("/creator/:creator", tokenAuthentication, getFilesByCreator);
+fileRouter.get("/creator", tokenAuthentication, getFilesByCreator);
 
 fileRouter.get("/:id", tokenAuthentication, getFileById);
 
