@@ -6,10 +6,8 @@ const FileSchema: Schema = new Schema({
   description: { type: String, required: true },
   creator: { type: String, required: true },
   uploadDate: { type: Date, required: true },
-  file: {
-    data: Buffer,
-    contentType: String,
-  },
+  contentType: { type: String, required: true },
+  file: { type: Buffer, required: true },
 });
 
 const File = mongoose.model<IFileDocument>('File', FileSchema);

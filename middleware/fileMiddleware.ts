@@ -47,10 +47,8 @@ export async function addFile(req: MulterRequest, res: Response, next: NextFunct
         description,
         creator,
         uploadDate: new Date(), // Set the upload date to the current time
-        file: {
-          data: fileData,
-          contentType: file.mimetype,
-        },
+        contentType: file.mimetype,
+        file: fileData,
       });
 
       const savedFile = await newFile.save();
@@ -97,12 +95,19 @@ export async function getFilesByCreator(_req: Request, res: Response, next: Next
   }
 }
 
-export async function getFileById(req: Request, res: Response, next: NextFunction) {
+export async function getFileById(req: Request, res: Response) {
   try {
-    const fileId = req.params.id;
-    const file = await File.findById(fileId);
-    res.status(200).json(file);
-  } catch (exception) {
-    return next(exception);
+
+    const file = await File.findById(req.params.id);
+    if (file) {
+      res.setHeader('Content-Type', file.contentType.toString());
+      res.setHeader('Content-Disposition', `attachment; filename=${file.title}`);
+      res.send(file.file);
+    } else {
+      new Error("File not found");
+    }
+  } catch (error) {
+    console.error(error);
+    res.sendStatus(500);
   }
 }

@@ -333,10 +333,10 @@ export interface IResponsibilityDocument extends Document, IResponsibility {
 export type FileType = 'pdf' | 'mp4' | 'jpg';
 
 export interface IFileDocument extends Document {
-  title: string;
-  description: string;
-  creator: string;
-  uploadDate: Date;
-  fileType: FileType;
-  file: Buffer;
+  title: { type: String, required: true },
+  description: { type: String, required: true },
+  creator: { type: String, required: true },
+  uploadDate: { type: Date, required: true },
+  contentType: { type: String, required: true },
+  file: { type: Buffer, required: true },
 }
