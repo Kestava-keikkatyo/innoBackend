@@ -167,8 +167,8 @@ export interface IReport {
   user: IUserDocument["_id"];
   business?: IUserDocument["_id"];
   agency?: IUserDocument["_id"];
- // fileUrl: String;
- // fileType: String;
+  // fileUrl: String;
+  // fileType: String;
   businessArchived: String;
   agencyArchived: String;
   workerArchived: String;
@@ -328,4 +328,15 @@ export interface IResponsibility {
 export interface IResponsibilityDocument extends Document, IResponsibility {
   _id: Types.ObjectId;
   createdAt: Date;
+}
+
+export type FileType = 'pdf' | 'mp4' | 'jpg';
+
+export interface IFileDocument extends Document {
+  title: { type: String, required: true },
+  description: { type: String, required: true },
+  creator: { type: String, required: true },
+  uploadDate: { type: Date, required: true },
+  contentType: { type: String, required: true },
+  file: { type: Buffer, required: true },
 }
