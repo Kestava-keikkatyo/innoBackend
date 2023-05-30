@@ -1,7 +1,7 @@
 import express from "express";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
-import { getMyFeelings, postFeeling } from "../middleware/feelingMiddleware";
-import { isWorker } from "../utils/authJwt";
+import { getMyFeelings, postFeeling, getAllFeelings } from "../middleware/feelingMiddleware";
+import { isAgency, isWorker } from "../utils/authJwt";
 const feelingRouter = express.Router();
 
 /**
@@ -87,5 +87,8 @@ feelingRouter.post("/send/", tokenAuthentication, isWorker, postFeeling);
  *               message: No feelings found
  */
 feelingRouter.get("/my", tokenAuthentication, getMyFeelings);
+
+
+feelingRouter.get("/allFeelings", tokenAuthentication, isAgency, getAllFeelings);
 
 export default feelingRouter;

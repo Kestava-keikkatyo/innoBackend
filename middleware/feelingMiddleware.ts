@@ -4,13 +4,7 @@ import { IFeelingDocument } from "../objecttypes/modelTypes";
 import { copyProperties } from "../utils/common";
 
 const updatableFields = [
-  "comfortable",
-  "satisfied",
-  "energetic",
-  "enthusiastic",
-  "frustrated",
-  "stressed",
-  "anxious",
+  "feeling",
   "comment",
 ];
 
@@ -55,6 +49,30 @@ export const getMyFeelings = async (_req: Request, res: Response, next: NextFunc
       return res.status(404).send({});
     }
     return res.status(200).send(feelings);
+    //return res.status(200).send(feelings);
+  } catch (exception) {
+    return next(exception);
+  }
+};
+
+
+/**
+ * Get all feelings for feeling report
+ * @param {Request} req - Express Request.
+ * @param {Response} res - Express Response.
+ * @param {NextFunction} next
+ * @returns All feedbacks
+ */
+export const getAllFeelings = async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    const feelings: IFeelingDocument[] | null = await Feeling.find({
+
+    });
+    if (!feelings) {
+      return res.status(404).json({ message: "No feelings found!" });
+    }
+    return res.status(200).send(feelings);
+    //return res.status(200).json(feelings);
   } catch (exception) {
     return next(exception);
   }
