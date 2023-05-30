@@ -579,13 +579,7 @@ export const postUserFeeling = async (req: Request, res: Response, next: NextFun
 
   const myFeeling: IFeeling = {
     worker: res.locals.userId,
-    comfortable: body.comfortable,
-    satisfied: body.satisfied,
-    energetic: body.energetic,
-    enthusiastic: body.enthusiastic,
-    frustrated: body.frustrated,
-    stressed: body.stressed,
-    anxious: body.anxious,
+    feeling: body.feeling,
     comment: body.comment,
   };
   try {

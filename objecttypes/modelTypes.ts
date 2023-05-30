@@ -3,13 +3,7 @@ import { Document, PaginateModel, Types } from "mongoose";
 // Typing for a workers feeling object
 export interface IFeeling {
   worker: IUserDocument["_id"];
-  comfortable: number;
-  satisfied: number;
-  energetic: number;
-  enthusiastic: number;
-  frustrated: number;
-  stressed: number;
-  anxious: number;
+  feeling: number;
   comment?: string;
 }
 
