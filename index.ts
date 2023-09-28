@@ -4,7 +4,7 @@ import config from "./utils/config";
 import TokenService from "./services/TokenService";
 
 (async () => {
-  const server = http.createServer(await app(config.IS_LOCAL_DATABASE));
+  const server = http.createServer(await app());
 
   TokenService.scheduleCleanup();
 

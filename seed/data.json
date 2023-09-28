@@ -1,22 +1,25 @@
 {
-  "user": [
+  "users": [
     {
-      "email": "reem@test.com",
-      "name": "Reem",
-      "password": "reem123",
-      "userType": "worker"
+      "firstName": "Timo",
+      "lastName": "Työntekijä",
+      "userType": "worker",
+      "password": "salasana",
+      "email": "tt@tt.com"
     },
     {
-      "email": "jim@test.com",
-      "name": "Jim",
-      "password": "jim123",
-      "userType": "business"
+      "firstName": "Ykä",
+      "lastName": "Yrittäjä",
+      "userType": "business",
+      "password": "salasana",
+      "email": "bb@bb.com"
     },
     {
-      "email": "pam@test.com",
-      "name": "Pam",
-      "password": "pam123",
-      "userType": "agency"
+      "firstName": "Veera",
+      "lastName": "Virasto",
+      "userType": "agency",
+      "password": "salasana",
+      "email": "vv@vv.com"
     }
   ]
 }

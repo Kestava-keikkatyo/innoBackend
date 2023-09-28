@@ -5,36 +5,31 @@ import logger from "../utils/logger";
 import mongoose from "mongoose";
 import User from "../models/User";
 
-const getUserSchema = (user: any, hash: any) =>
-  new User({
-    name: user.name,
-    userType: user.userType,
-    email: user.email,
-    passwordHash: hash,
-  });
-
-const createUser = async (user: { email: string; name: string; password: string; userType?: string }) => {
+const createUser = async (user: {
+  firstName: string;
+  lastName: string;
+  userType: string;
+  password: string;
+  email: string;
+}) => {
   const saltRounds = 10;
   const passwordHash = await bcrypt.hash(user.password, saltRounds);
-  await getUserSchema(user, passwordHash).save();
+  await new User({ ...user, passwordHash }).save();
 };
-if (config.MONGODB_URI) {
-  mongoose
-    .connect(config.MONGODB_URI, {})
-    .then(() => {
-      logger.info("connected to MongoDB");
-    })
-    .catch((error) => {
-      logger.error("error connection to MongoDB:", error.message);
-    });
+
+if (!config.MONGODB_URI) {
+  throw new Error("Database url missing");
 }
+mongoose.connect(config.MONGODB_URI, (err) => {
+  throw err;
+});
 
-/**
- * TODO: Käyttäjien luomisen jälkeen halutaan disconnectaa
- */
-data.user.map((u) => createUser(u));
-
-// Promise.all(res).then(() => {
-//   logger.info("Database seeded. Disconnecting...")
-//   mongoose.disconnect()
-// })
+mongoose.connection.on("connected", async () => {
+  try {
+    await Promise.all(data.users.map((u) => createUser(u)));
+  } catch (error) {
+    logger.error("Error seeding the database:", error);
+  }
+  logger.info("Seeding completed successfully.");
+  mongoose.disconnect();
+});

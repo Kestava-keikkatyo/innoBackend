@@ -7,7 +7,7 @@ export default class IntegrationHelpers {
       return this.appInstance;
     }
 
-    this.appInstance = await app(true);
+    this.appInstance = await app();
     return this.appInstance;
   }
 }
