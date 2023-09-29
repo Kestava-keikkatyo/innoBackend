@@ -11,7 +11,7 @@
     "docker-cleanup": "docker system prune --volumes --force",
     "docs": "rm -rf docs && jsdoc -c jsdoc.json",
     "start": "cross-env NODE_ENV=production ts-node index.ts",
-    "test": "cross-env NODE_ENV=test jest --verbose --runInBand --coverage",
+    "test": "cross-env NODE_ENV=test jest --verbose --runInBand --coverage --bail",
     "test-docker": "docker-compose -f compose-test.yaml --env-file .env.test up --abort-on-container-exit",
     "seed": "cross-env NODE_ENV=development ts-node-dev ./seed/seeder.ts",
     "lint": "eslint .",
