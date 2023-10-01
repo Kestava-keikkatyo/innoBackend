@@ -1,7 +1,6 @@
 import express from "express";
 import cors from "cors";
-import mongoose, { ConnectOptions } from "mongoose";
-import { MongoMemoryServer } from "mongodb-memory-server";
+import mongoose from "mongoose";
 import config from "./utils/config";
 import uploadsRouter from "./controllers/uploads";
 import { errorHandler, requestLogger, unknownEndpoint } from "./utils/middleware";
@@ -26,21 +25,11 @@ import { IUserDocument } from "./objecttypes/modelTypes";
 import { hash } from "bcryptjs";
 import fileRouter from "./controllers/file";
 
-export default async (useInMemoryDb: boolean) => {
+export default async () => {
   const app = express();
-  let mongoDb: MongoMemoryServer | null = null;
 
-  // These options fix deprecation warnings
-  const options: ConnectOptions = {};
-
-  if (useInMemoryDb) {
-    mongoDb = await MongoMemoryServer.create();
-    const uri = mongoDb.getUri();
-    await mongoose.connect(uri, options);
-  } else {
-    info("connecting to", config.MONGODB_URI);
-    await mongoose.connect(config.MONGODB_URI || "URI_NOTFOUND", options);
-  }
+  info("connecting to", config.MONGODB_URI);
+  await mongoose.connect(config.MONGODB_URI || "URI_NOTFOUND", {});
 
   // Create the first admin user if User collection is empty
   const count = await User.count();
@@ -94,10 +83,6 @@ export default async (useInMemoryDb: boolean) => {
 
   app.addListener("close", async () => {
     await mongoose.connection.close();
-
-    if (mongoDb) {
-      mongoDb.stop().catch((e) => console.error(e));
-    }
   });
 
   return app;

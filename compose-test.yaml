@@ -1,0 +1,32 @@
+version: "3"
+services:
+  tests:
+    container_name: innobackend-test
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    # Only run tests once the test db is ready.
+    depends_on:
+      test-db:
+        condition: service_healthy
+    # Override default startup command of dev container
+    command: ["npm", "run", "test"]
+
+  test-db:
+    container_name: innobackend-test-db
+    image: mongo
+    restart: always
+    # Use temporary mount to not persist test data.
+    volumes:
+      - type: tmpfs
+        target: /data/db
+    # Healthcheck is needed so that the tests aren't run too soon.
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh test-db:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD}

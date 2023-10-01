@@ -1,19 +1,27 @@
 name: Continuous Integration
 on:
   pull_request:
-    branches: [ "dev" ]
+    branches: ["dev"]
 jobs:
-  test_pull_request:
+  Test-pull-request:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 16
-      - run: npm ci
-      - run: npm run test
-        env:
-          CI: true
-          DB_FIRST_ADMIN_EMAIL: ${{ secrets.DB_FIRST_ADMIN_EMAIL }}
-          DB_FIRST_ADMIN_PASSWORD: ${{ secrets.DB_FIRST_ADMIN_PASSWORD }}
-      - run: npm run build
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create .env.test file
+        run: |
+          echo "MONGODB_URI=mongodb://root:password@test-db" > .env.test
+          echo "MONGODB_USER=root" >> .env.test
+          echo "MONGODB_PASSWORD=password" >> .env.test
+          echo "DB_FIRST_ADMIN_EMAIL=admin@nowhere.com" >> .env.test
+          echo "DB_FIRST_ADMIN_PASSWORD=Fisherman" >> .env.test
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm run test-docker
+
+      - name: Build TypeScript
+        run: npm run build
