@@ -93,13 +93,19 @@ authRouter.post(
 
       const saltRounds: number = 10;
       const passwordHash: string = await hash(body.password, saltRounds);
+      let tempCompanyName = null;
+      let tempCategory = null;
+      if (["business", "agency"].includes(body.userType)) {
+        tempCompanyName = body.companyName;
+        tempCategory = body.category;
+      }
       let user: IUserDocument = new User({
         firstName: body.firstName,
         lastName: body.lastName,
         email: body.email,
         userType: body.userType,
-        category: body.category,
-        companyName: body.companyName,
+        category: tempCategory,
+        companyName: tempCompanyName,
         passwordHash,
       });
       const validationError = user.validateSync();
@@ -332,7 +338,6 @@ authRouter.post("/forgottenpassword", async (req: Request, res: Response, next: 
     if (user === null) {
       return res.status(401).json({ message: "Email does not exist." });
     } else if (user.active) {
-
       // Commented lines are for testing in local environment.
       // Server sends the password reset link as a response and following that link, password can be reset.
 
