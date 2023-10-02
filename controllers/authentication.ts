@@ -98,8 +98,8 @@ authRouter.post(
         lastName: body.lastName,
         email: body.email,
         userType: body.userType,
-        category: body.category,
-        companyName: body.companyName,
+        category: body.category || null,
+        companyName: body.companyName || null,
         passwordHash,
       });
       const validationError = user.validateSync();
@@ -332,7 +332,6 @@ authRouter.post("/forgottenpassword", async (req: Request, res: Response, next: 
     if (user === null) {
       return res.status(401).json({ message: "Email does not exist." });
     } else if (user.active) {
-
       // Commented lines are for testing in local environment.
       // Server sends the password reset link as a response and following that link, password can be reset.
 
