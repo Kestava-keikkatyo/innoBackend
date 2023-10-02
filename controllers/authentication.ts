@@ -98,8 +98,8 @@ authRouter.post(
         lastName: body.lastName,
         email: body.email,
         userType: body.userType,
-        category: tempCategory,
-        companyName: tempCompanyName,
+        category: body.category || null,
+        companyName: body.companyName || null,
         passwordHash,
       });
       const validationError = user.validateSync();
