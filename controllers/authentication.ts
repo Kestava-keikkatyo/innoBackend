@@ -93,12 +93,6 @@ authRouter.post(
 
       const saltRounds: number = 10;
       const passwordHash: string = await hash(body.password, saltRounds);
-      let tempCompanyName = null;
-      let tempCategory = null;
-      if (["business", "agency"].includes(body.userType)) {
-        tempCompanyName = body.companyName;
-        tempCategory = body.category;
-      }
       let user: IUserDocument = new User({
         firstName: body.firstName,
         lastName: body.lastName,
