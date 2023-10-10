@@ -201,7 +201,6 @@ export const archiveReport = async (
 
   try {
     let report;
-    console.log(body.userType + "hö");
     switch (body.userType) {
       case "business":
         report = await Report.findOneAndUpdate(
