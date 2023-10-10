@@ -196,13 +196,13 @@ export const archiveReport = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { params } = req;
+  const { params, body } = req;
   const { id, archived } = params;
 
   try {
     let report;
-
-    switch (res.locals.decoded.role) {
+    console.log(body.userType + "hö");
+    switch (body.userType) {
       case "business":
         report = await Report.findOneAndUpdate(
           { _id: id, business: res.locals.userId },
