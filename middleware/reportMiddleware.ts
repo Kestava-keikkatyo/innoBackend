@@ -25,9 +25,9 @@ export const postReport = async (req: Request, res: Response, next: NextFunction
       title: body.title,
       title2: body.title2,
       details: body.details,
-      details2: body.details2
-    //  fileUrl: body.fileUrl,
-    //  fileType: body.fileType,
+      details2: body.details2,
+      //  fileUrl: body.fileUrl,
+      //  fileType: body.fileType,
     });
     const report = await reportDocument.save();
     if (!report) {
@@ -158,8 +158,7 @@ export const replyReport = async (req: Request<{ id: string }, IReport>, res: Re
   //console.log('reportMiddleware: replyReport: body:', body)
   try {
     let report;
-
-    switch (res.locals.decoded.role) {
+    switch (body.userType) {
       case "business":
         report = await Report.findOneAndUpdate(
           { _id: id, business: res.locals.userId },
@@ -197,13 +196,12 @@ export const archiveReport = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { params } = req;
+  const { params, body } = req;
   const { id, archived } = params;
 
   try {
     let report;
-
-    switch (res.locals.decoded.role) {
+    switch (body.userType) {
       case "business":
         report = await Report.findOneAndUpdate(
           { _id: id, business: res.locals.userId },
