@@ -95,6 +95,16 @@ export async function getFilesByCreator(_req: Request, res: Response, next: Next
   }
 }
 
+export async function getFilesById(_req: Request, res: Response, next: NextFunction) {
+  try {
+    const creator = _req.params.id;
+    const files = await File.find({ creator }, { file: 0 });
+    res.status(200).json(files);
+  } catch (exception) {
+    return next(exception);
+  }
+}
+
 export async function getFileById(req: Request, res: Response) {
   try {
     const file = await File.findById(req.params.id);

@@ -1,3 +1,4 @@
+
 import { NextFunction, Request, Response } from "express";
 import mongoose, { CallbackError } from "mongoose";
 import User from "../models/User";
@@ -212,12 +213,20 @@ export const getWorkerContacts = async (req: Request, res: Response, next: NextF
     }).lean();
 
     for (const key in employmentAgreements) {
-      const contactIdStr = JSON.stringify(employmentAgreements[key].business._id).slice(1, -1);
-      const contactId = new mongoose.Types.ObjectId(contactIdStr);
-      const user = await User.find({ _id: contactId })
+      const businessIdStr = JSON.stringify(employmentAgreements[key].business._id).slice(1, -1);
+      const businessId = new mongoose.Types.ObjectId(businessIdStr);
+      const businessUser = await User.find({ _id: businessId })
         .lean()
         .select("_id userType email firstName lastName companyName category");
-      users.push(user);
+
+      const agencyIdStr = JSON.stringify(employmentAgreements[key].creator._id).slice(1, -1);
+      const agencyId = new mongoose.Types.ObjectId(agencyIdStr);
+      const agencyUser = await User.find({ _id: agencyId })
+        .lean()
+        .select("_id userType email firstName lastName companyName category");
+
+      users.push(businessUser);
+      users.push(agencyUser);
     }
 
     if (users) {
