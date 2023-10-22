@@ -1,1433 +1,1277 @@
 {
-	"info": {
-		"_postman_id": "c25b8c71-7dc5-4b3b-ab7d-732e6df5adf8",
-		"name": "KestavaKeikkatyo v12",
-		"description": "Apukutsut, joilla voi testata backendin toimivuutta. ",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-	},
-	"item": [
-		{
-			"name": "Log in",
-			"item": [
-				{
-					"name": "Log in as jarmo-business",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"const user = pm.response.json();\r",
-									"\r",
-									"pm.test(\"Has properties\", function () {\r",
-									"    pm.expect(user).to.have.property('email');\r",
-									"    pm.expect(user).to.have.property('token');\r",
-									"    pm.expect(user).to.have.property('role');\r",
-									"});\r",
-									"\r",
-									"if (pm.test(\"Has properties\")) {\r",
-									"    pm.globals.set('innoToken', user.token);\r",
-									"    pm.globals.set('role', user.role);\r",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"email\": \"jarmo@test.com\",\r\n    \"password\": \"jarmo123\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{url}}login/business",
-							"host": [
-								"{{url}}login"
-							],
-							"path": [
-								"business"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Log in as jarmo-agency",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"const user = pm.response.json();\r",
-									"\r",
-									"pm.test(\"Has properties\", function () {\r",
-									"    pm.expect(user).to.have.property('email');\r",
-									"    pm.expect(user).to.have.property('token');\r",
-									"    pm.expect(user).to.have.property('role');\r",
-									"});\r",
-									"\r",
-									"if (pm.test(\"Has properties\")) {\r",
-									"    pm.globals.set('innoToken', user.token);\r",
-									"    pm.globals.set('role', user.role);\r",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"email\": \"jarmo@test.com\",\r\n    \"password\": \"jarmo123\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{url}}login/agency",
-							"host": [
-								"{{url}}login"
-							],
-							"path": [
-								"agency"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Log in as jarmo-worker",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"const user = pm.response.json();\r",
-									"\r",
-									"pm.test(\"Has properties\", function () {\r",
-									"    pm.expect(user).to.have.property('email');\r",
-									"    pm.expect(user).to.have.property('token');\r",
-									"    pm.expect(user).to.have.property('role');\r",
-									"});\r",
-									"\r",
-									"if (pm.test(\"Has properties\")) {\r",
-									"    pm.globals.set('innoToken', user.token);\r",
-									"    pm.globals.set('role', user.role);\r",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"email\": \"jarmo@test.com\",\r\n    \"password\": \"jarmo123\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{url}}login/worker",
-							"host": [
-								"{{url}}login"
-							],
-							"path": [
-								"worker"
-							]
-						}
-					},
-					"response": []
-				}
-			],
-			"description": "Calls to routes in login.js"
-		},
-		{
-			"name": "Worker calls",
-			"item": [
-				{
-					"name": "Register worker",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"const user = pm.response.json();\r",
-									"\r",
-									"pm.test(\"Has properties\", function () {\r",
-									"    pm.expect(user).to.have.property('email');\r",
-									"    pm.expect(user).to.have.property('token');\r",
-									"});\r",
-									"\r",
-									"if (pm.test(\"Has properties\")) {\r",
-									"    pm.globals.set('innoToken', user.token);\r",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"email\": \"jarmo@test.com\",\r\n    \"name\": \"jarmo-worker\",\r\n    \"password\": \"jarmo123\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{url}}workers",
-							"host": [
-								"{{url}}workers"
-							]
-						},
-						"description": "Returns response.body: \n{ token, name: user.name, email: user.email, role: \"worker\" }\n\nrequest.body requirements: \n{name: \"name\", email: \"email\", password: \"password\"}\n\nUser registration.\n\nReturns a token that is used for user log in."
-					},
-					"response": []
-				},
-				{
-					"name": "Get info (worker)",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "x-access-token",
-								"value": "{{innoToken}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{url}}workers/me",
-							"host": [
-								"{{url}}workers"
-							],
-							"path": [
-								"me"
-							]
-						},
-						"description": "* Returns response.body: { The found Worker object }\n* Requires user logged in as a Worker"
-					},
-					"response": []
-				},
-				{
-					"name": "Update info (worker)",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "x-access-token",
-								"value": "{{innoToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"password\": \"jarmo123\",\r\n    \"name\": \"jarmo-worker\",\r\n    \"phonenumber\": \"1234\",\r\n    \"licenses\": []\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{url}}workers",
-							"host": [
-								"{{url}}workers"
-							]
-						},
-						"description": "* Returns response.body: { The found Worker object }\n* Update own info as Worker.\n* Requires User logged in as a Worker. \n* request.body OPTIONAL: Properties as per User model.\n\nYou can have all the fields, or only some of them, or even no body at all, but in that case use GET on /api/users/me."
-					},
-					"response": []
-				},
-				{
-					"name": "Get workers (agency)",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "x-access-token",
-								"value": "{{innoToken}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{url}}workers?name=worker",
-							"host": [
-								"{{url}}workers"
-							],
-							"query": [
-								{
-									"key": "name",
-									"value": "worker"
-								}
-							]
-						},
-						"description": "* Returns response.body: { List of users }\n* Requires User logged in as an Agency. request.query.name: Worker name to be searched\n* Retrieves all workers that have a matching name pattern."
-					},
-					"response": []
-				}
-			],
-			"description": "Calls to the routes in users.js."
-		},
-		{
-			"name": "Business calls",
-			"item": [
-				{
-					"name": "Register business",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"email\": \"jarmo@test.com\",\r\n    \"name\": \"jarmo-business\",\r\n    \"password\": \"jarmo123\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{url}}businesses",
-							"host": [
-								"{{url}}businesses"
-							]
-						},
-						"description": "* Returns response.body: { token, name: savedBusiness.name, email: savedBusiness.email, role: \"business\" }\n* request.body requirements: {name: \"name\", email: \"email\", password: \"password\"}\n* Route to create a new Business account."
-					},
-					"response": []
-				},
-				{
-					"name": "Get info (business)",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "x-access-token",
-								"value": "{{innoToken}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{url}}businesses/me",
-							"host": [
-								"{{url}}businesses"
-							],
-							"path": [
-								"me"
-							]
-						},
-						"description": "* Returns response.body: { The found Business object }\n* Requires user logged in as a Business\n* Route to get Business information"
-					},
-					"response": []
-				},
-				{
-					"name": "Update info (business)",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "x-access-token",
-								"value": "{{innoToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n  \"password\": \"jarmo123\",\r\n  \"name\": \"jarmo-business\",\r\n  \"securityOfficer\": \"Jarmo Turvamies\",\r\n  \"phonenumber\": \"1234\",\r\n  \"address\": \"Yritystie 69\",\r\n  \"postnumber\": \"00920\",\r\n  \"city\": \"Turku\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{url}}businesses",
-							"host": [
-								"{{url}}businesses"
-							]
-						},
-						"description": "* Returns response.body: { The updated Business object }\n* Requires user must be logged in as Business. request.body OPTIONAL: {property: \"value\", ....}. Properties need to match those of Business model in database.\n* Route to update Business information."
-					},
-					"response": []
-				},
-				{
-					"name": "Get workers (business)",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "x-access-token",
-								"value": "{{innoToken}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{url}}businesses?name=jarmo",
-							"host": [
-								"{{url}}businesses"
-							],
-							"query": [
-								{
-									"key": "name",
-									"value": "jarmo"
-								}
-							]
-						},
-						"description": "Route for agency to search for businesses by name"
-					},
-					"response": []
-				}
-			],
-			"description": "Calls to routes in businesses.js"
-		},
-		{
-			"name": "Agency calls",
-			"item": [
-				{
-					"name": "Register agency",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"email\": \"jarmo@test.com\",\r\n    \"name\": \"jarmo-agency\",\r\n    \"password\": \"jarmo123\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{url}}agencies",
-							"host": [
-								"{{url}}agencies"
-							]
-						},
-						"description": "* Returns a token that is used for user log in.\n* Request requirements:\n* Body.email, Body.name, Body.password"
-					},
-					"response": []
-				},
-				{
-					"name": "Get  info (agency)",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "x-access-token",
-								"value": "{{innoToken}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{url}}agencies/me",
-							"host": [
-								"{{url}}agencies"
-							],
-							"path": [
-								"me"
-							]
-						},
-						"description": "Get agency info as agency"
-					},
-					"response": []
-				},
-				{
-					"name": "Update info (agency)",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "x-access-token",
-								"value": "{{innoToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n  \"password\": \"jarmo123\",\r\n  \"name\": \"jarmo-agency\",\r\n  \"securityOfficer\": \"Jarmo Turvamies\",\r\n  \"phonenumber\": \"1234\",\r\n  \"address\": \"Kivakuja 5K 105\",\r\n  \"postnumber\": \"00920\",\r\n  \"city\": \"Helsinki\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{url}}agencies",
-							"host": [
-								"{{url}}agencies"
-							]
-						},
-						"description": "Update agency info"
-					},
-					"response": []
-				}
-			],
-			"description": "Calls to routes in agencies.js"
-		},
-		{
-			"name": "Feelings meter calls",
-			"item": [
-				{
-					"name": "Add new feeling to user",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "x-access-token",
-								"value": "{{innoToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"value\": 3,\r\n    \"note\": \"Hyvä päivä. Oli ihan mukavaa :)\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{url}}feelings",
-							"host": [
-								"{{url}}feelings"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get feelings (worker)",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "x-access-token",
-								"value": "{{innoToken}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{url}}feelings?page=1&limit=10",
-							"host": [
-								"{{url}}feelings"
-							],
-							"query": [
-								{
-									"key": "page",
-									"value": "1"
-								},
-								{
-									"key": "limit",
-									"value": "10"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get worker feelings (agency/business)",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "x-access-token",
-								"value": "{{innoToken}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{url}}feelings/:workerId?page=1&limit=10",
-							"host": [
-								"{{url}}feelings"
-							],
-							"path": [
-								":workerId"
-							],
-							"query": [
-								{
-									"key": "page",
-									"value": "1"
-								},
-								{
-									"key": "limit",
-									"value": "10"
-								}
-							],
-							"variable": [
-								{
-									"key": "workerId",
-									"value": "6018012a88b8375630a6a3c4"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Delete feeling",
-					"request": {
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "x-access-token",
-								"value": "{{innoToken}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{url}}feelings/:feelingId",
-							"host": [
-								"{{url}}feelings"
-							],
-							"path": [
-								":feelingId"
-							],
-							"variable": [
-								{
-									"key": "feelingId",
-									"value": "602438c5d95c272d6067a8b0"
-								}
-							]
-						}
-					},
-					"response": []
-				}
-			],
-			"description": "Calls to routes in feelings.js"
-		},
-		{
-			"name": "Workcontracts calls",
-			"item": [
-				{
-					"name": "Get work contract",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "x-access-token",
-								"value": "{{innoToken}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{url}}workcontracts/:contractId",
-							"host": [
-								"{{url}}workcontracts"
-							],
-							"path": [
-								":contractId"
-							],
-							"variable": [
-								{
-									"key": "contractId",
-									"value": "6064882520b7fe3d90e11dc0"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get all work contracts with token",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "x-access-token",
-								"value": "{{innoToken}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{url}}workcontracts/?page=1&limit=2",
-							"host": [
-								"{{url}}workcontracts"
-							],
-							"path": [
-								""
-							],
-							"query": [
-								{
-									"key": "page",
-									"value": "1"
-								},
-								{
-									"key": "limit",
-									"value": "2"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Create work contract",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "x-access-token",
-								"value": "{{innoToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{   \r\n    \"businessId\": \"604525079834a302fc7af171\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{url}}workcontracts",
-							"host": [
-								"{{url}}workcontracts"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "(Deprecated) Delete work contract",
-					"request": {
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "x-access-token",
-								"value": "{{innoToken}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{url}}workcontracts/:contractId",
-							"host": [
-								"{{url}}workcontracts"
-							],
-							"path": [
-								":contractId"
-							],
-							"variable": [
-								{
-									"key": "contractId",
-									"value": "6031b0d5527eec3080f51bb3"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "New contract",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "x-access-token",
-								"value": "{{innoToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"workerCount\": \"1\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{url}}workcontracts/:contractId/new",
-							"host": [
-								"{{url}}workcontracts"
-							],
-							"path": [
-								":contractId",
-								"new"
-							],
-							"variable": [
-								{
-									"key": "contractId",
-									"value": "607494398080220c54045935"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Add user to contract",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "x-access-token",
-								"value": "{{innoToken}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{url}}workcontracts/:contractId/:contractsId/add",
-							"host": [
-								"{{url}}workcontracts"
-							],
-							"path": [
-								":contractId",
-								":contractsId",
-								"add"
-							],
-							"variable": [
-								{
-									"key": "contractId",
-									"value": "607494398080220c54045935"
-								},
-								{
-									"key": "contractsId",
-									"value": "607dab8810a6754678d9ee69"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Accept contract",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "x-access-token",
-								"value": "{{innoToken}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{url}}workcontracts/:contractId/:contractsId/accept",
-							"host": [
-								"{{url}}workcontracts"
-							],
-							"path": [
-								":contractId",
-								":contractsId",
-								"accept"
-							],
-							"variable": [
-								{
-									"key": "contractId",
-									"value": "6064882520b7fe3d90e11dc0"
-								},
-								{
-									"key": "contractsId",
-									"value": "607dab8810a6754678d9ee69"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Accept Workers",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "x-access-token",
-								"value": "{{innoToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"workersArray\": [ \"606b3154d40fe8473c5570c0\" ]\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{url}}workcontracts/:contractId/:contractsId/acceptWorkers",
-							"host": [
-								"{{url}}workcontracts"
-							],
-							"path": [
-								":contractId",
-								":contractsId",
-								"acceptWorkers"
-							],
-							"variable": [
-								{
-									"key": "contractId",
-									"value": "607494398080220c54045935"
-								},
-								{
-									"key": "contractsId",
-									"value": "607dab8810a6754678d9ee69"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Revert Workers",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "x-access-token",
-								"value": "{{innoToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"workersArray\": [ \"606b3154d40fe8473c5570c0\" ]\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{url}}workcontracts/:contractId/:contractsId/revertWorkers",
-							"host": [
-								"{{url}}workcontracts"
-							],
-							"path": [
-								":contractId",
-								":contractsId",
-								"revertWorkers"
-							],
-							"variable": [
-								{
-									"key": "contractId",
-									"value": "607494398080220c54045935"
-								},
-								{
-									"key": "contractsId",
-									"value": "607dab8810a6754678d9ee69"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Decline Workers",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "x-access-token",
-								"value": "{{innoToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"workersArray\": [ \"606b3154d40fe8473c5570c0\" ]\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{url}}workcontracts/:contractId/:contractsId/declineWorkers",
-							"host": [
-								"{{url}}workcontracts"
-							],
-							"path": [
-								":contractId",
-								":contractsId",
-								"declineWorkers"
-							],
-							"variable": [
-								{
-									"key": "contractId",
-									"value": "607494398080220c54045935"
-								},
-								{
-									"key": "contractsId",
-									"value": "607dab8810a6754678d9ee69"
-								}
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Businesscontract calls",
-			"item": [
-				{
-					"name": "Get business contract",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "x-access-token",
-								"value": "{{innoToken}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{url}}businesscontracts/:businessContractId",
-							"host": [
-								"{{url}}businesscontracts"
-							],
-							"path": [
-								":businessContractId"
-							],
-							"variable": [
-								{
-									"key": "businessContractId",
-									"value": "60244e2c4188da4a1441c3f9"
-								}
-							]
-						},
-						"description": "* Returns response.body: { businessContract: TheWholeBusinessContractObject }\n* Requires user logged in as a participant of this specific BusinessContract. body requirements: body.role = \"agency\" / \"business\" / \"worker\"\n* Route for getting one specific businessContract"
-					},
-					"response": []
-				},
-				{
-					"name": "Get all business contracts with token",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "x-access-token",
-								"value": "{{innoToken}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{url}}businesscontracts",
-							"host": [
-								"{{url}}businesscontracts"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Create BusinessContract",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "x-access-token",
-								"value": "{{innoToken}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{url}}businesscontracts/",
-							"host": [
-								"{{url}}businesscontracts"
-							],
-							"path": [
-								""
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Add worker or business to BusinessContract",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "x-access-token",
-								"value": "{{innoToken}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{url}}businesscontracts/:businessContractId/add",
-							"host": [
-								"{{url}}businesscontracts"
-							],
-							"path": [
-								":businessContractId",
-								"add"
-							],
-							"variable": [
-								{
-									"key": "businessContractId",
-									"value": "60746f994dab9037108bdc3f"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Accept BusinessContract",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "x-access-token",
-								"value": "{{innoToken}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{url}}businesscontracts/:businessContractId/:userId/accept",
-							"host": [
-								"{{url}}businesscontracts"
-							],
-							"path": [
-								":businessContractId",
-								":userId",
-								"accept"
-							],
-							"variable": [
-								{
-									"key": "businessContractId",
-									"value": "607489e7f53c1b1c34299af2"
-								},
-								{
-									"key": "userId",
-									"value": "604525079834a302fc7af171"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Decline BusinessContract",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "x-access-token",
-								"value": "{{innoToken}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{url}}businesscontracts/:businessContractId/:userId/decline",
-							"host": [
-								"{{url}}businesscontracts"
-							],
-							"path": [
-								":businessContractId",
-								":userId",
-								"decline"
-							],
-							"variable": [
-								{
-									"key": "businessContractId",
-									"value": ""
-								},
-								{
-									"key": "userId",
-									"value": ""
-								}
-							]
-						}
-					},
-					"response": []
-				}
-			],
-			"description": "Calls to routes in businesscontracts.js"
-		},
-		{
-			"name": "Form calls",
-			"item": [
-				{
-					"name": "Add form",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "x-access-token",
-								"value": "{{innoToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"title\": \"Tyytyväisyyskysely\",\r\n    \"description\": \"Tyytyväisyyskysely työntekijöille\",\r\n    \"isPublic\": true,\r\n    \"questions\": {\r\n        \"comment\": [{\r\n            \"ordering\": 0,\r\n            \"questionTitle\": \"Vastaa mahdollisimman rehellisesti\"\r\n        }, {\r\n            \"ordering\": 7,\r\n            \"questionTitle\": \"Kiitos vastauksistasi!\"\r\n        }],\r\n        \"text\": [{\r\n            \"ordering\": 1,\r\n            \"questionTitle\": \"Nimi\",\r\n            \"questionSubTitle\": \"Anna koko nimi muodossa Etunimi Sukunimi\",\r\n            \"optional\": false,\r\n            \"answerMaxLength\": 100,\r\n            \"answerMinLength\": 10\r\n        }],\r\n        \"textarea\": [{\r\n            \"ordering\": 2,\r\n            \"questionTitle\": \"Kymysys 1\",\r\n            \"questionSubTitle\": \"Feelikset just ny?\",\r\n            \"optional\": true,\r\n            \"answerMaxLength\": 1000,\r\n            \"answerMinLength\": 10\r\n        }],\r\n        \"checkbox\": [{\r\n            \"ordering\": 3,\r\n            \"questionTitle\": \"Kymysys 2\",\r\n            \"questionSubTitle\": \"Huono päivä?\",\r\n            \"optional\": false\r\n        }, {\r\n            \"ordering\": 8,\r\n            \"questionTitle\": \"Suostun jakamaan tietoni bla bla bla\",\r\n            \"optional\": true\r\n        }],\r\n        \"checkbox_group\": [{\r\n            \"ordering\": 4,\r\n            \"questionTitle\": \"Kymysys 3\",\r\n            \"questionSubTitle\": \"Mitkä näistä asioista on totta?\",\r\n            \"options\": [\r\n                \"Vaihtoehto 1\",\r\n                \"Vaihtoehto 2\",\r\n                \"Vaihtoehto 3\",\r\n                \"Vaihtoehto jne...\"\r\n            ],\r\n            \"optional\": true\r\n        }],\r\n        \"radiobutton_group\": [{\r\n            \"ordering\": 5,\r\n            \"questionTitle\": \"Kymysys 4\",\r\n            \"questionSubTitle\": \"Mikä näistä kuvaa parhaiten tilannettasi?\",\r\n            \"options\": [\r\n                \"Vaihtoehto 1\",\r\n                \"Vaihtoehto 2\",\r\n                \"Vaihtoehto jne...\"\r\n            ],\r\n            \"optional\": true\r\n        }],\r\n        \"radiobutton_group_horizontal\": [{\r\n            \"ordering\": 6,\r\n            \"questionTitle\": \"Kymysys 5\",\r\n            \"questionSubTitle\": \"Kuinka paljon tämä kuvaa tilannettasi?\",\r\n            \"scale\": 5,\r\n            \"scaleOptionTitleLeft\": \"Eri mieltä\",\r\n            \"scaleOptionTitleCenter\": \"Ei eri eikä samaa mieltä\",\r\n            \"scaleOptionTitleRight\": \"Samaa mieltä\",\r\n            \"options\": [\"Statement1\", \"Statement2\", \"jne...\"],\r\n            \"optional\": true\r\n        }],\r\n        \"contactInformation\": [{\r\n            \"ordering\": 9,\r\n            \"name\": \"Anna nimi\",\r\n            \"email\": \"Anna sähköposti\",\r\n            \"phoneNumber\": \"Anna puhelinnumero\",\r\n            \"optional\": false\r\n        }],\r\n        \"datePicker\": [{\r\n            \"ordering\": 10,\r\n            \"questionTitle\": \"Anna syntymäpäiväsi :)\",\r\n            \"questionSubTitle\": \"Tätä tietoa ei jaeta kenellekkään muulle\",\r\n            \"isClosedTimeFrame\": false\r\n        }],\r\n        \"timePicker\": [{\r\n            \"ordering\": 11,\r\n            \"questionTitle\": \"Tapaamisen aika\",\r\n            \"isClosedTimeFrame\": true\r\n        }]\r\n    }\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{url}}forms",
-							"host": [
-								"{{url}}forms"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get my forms (agency/business)",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "x-access-token",
-								"value": "{{innoToken}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{url}}forms/me?page=1&limit=10",
-							"host": [
-								"{{url}}forms"
-							],
-							"path": [
-								"me"
-							],
-							"query": [
-								{
-									"key": "page",
-									"value": "1"
-								},
-								{
-									"key": "limit",
-									"value": "10"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get public forms (agency/business)",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "x-access-token",
-								"value": "{{innoToken}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{url}}forms?page=1&limit=10",
-							"host": [
-								"{{url}}forms"
-							],
-							"query": [
-								{
-									"key": "page",
-									"value": "1"
-								},
-								{
-									"key": "limit",
-									"value": "10"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Delete form (agency/business)",
-					"request": {
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "x-access-token",
-								"value": "{{innoToken}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{url}}forms/:formId",
-							"host": [
-								"{{url}}forms"
-							],
-							"path": [
-								":formId"
-							],
-							"variable": [
-								{
-									"key": "formId",
-									"value": "603998a7633dba00b867a9b9"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Update form (agency/business)",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "x-access-token",
-								"value": "{{innoToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n        \"questions\": {\r\n            \"comment\": [\r\n                {\r\n                    \"_id\": \"604021e581a9626810885658\",\r\n                    \"ordering\": 0,\r\n                    \"questionTitle\": \"Vastaa mahdollisimman rehellisesti\"\r\n                },\r\n                {\r\n                    \"_id\": \"604021e581a9626810885659\",\r\n                    \"ordering\": 6,\r\n                    \"questionTitle\": \"Kiitos vastauksistasi!\"\r\n                }\r\n            ],\r\n            \"text\": [\r\n                {\r\n                    \"_id\": \"604021e581a962681088565a\",\r\n                    \"ordering\": 1,\r\n                    \"questionTitle\": \"Nimi\",\r\n                    \"questionSubTitle\": \"Anna koko nimi muodossa Etunimi Sukunimi\",\r\n                    \"optional\": false,\r\n                    \"answerMaxLength\": 100,\r\n                    \"answerMinLength\": 10\r\n                }\r\n            ],\r\n            \"textarea\": [\r\n                {\r\n                    \"_id\": \"604021e581a962681088565b\",\r\n                    \"ordering\": 2,\r\n                    \"questionTitle\": \"Kymysys 1\",\r\n                    \"questionSubTitle\": \"Feelikset just ny?\",\r\n                    \"optional\": true,\r\n                    \"answerMaxLength\": 1000,\r\n                    \"answerMinLength\": 10\r\n                }\r\n            ],\r\n            \"checkbox\": [],\r\n            \"checkbox_group\": [\r\n                {\r\n                    \"options\": [\r\n                        \"Vaihtoehto 1\",\r\n                        \"Vaihtoehto 2\",\r\n                        \"Vaihtoehto 3\",\r\n                        \"Vaihtoehto jne...\"\r\n                    ],\r\n                    \"_id\": \"604021e581a962681088565d\",\r\n                    \"ordering\": 3,\r\n                    \"questionTitle\": \"Kymysys 2\",\r\n                    \"questionSubTitle\": \"Mitkä näistä asioista on totta?\",\r\n                    \"optional\": true\r\n                }\r\n            ],\r\n            \"radiobutton_group\": [\r\n                {\r\n                    \"options\": [\r\n                        \"Vaihtoehto 1\",\r\n                        \"Vaihtoehto 2\",\r\n                        \"Vaihtoehto jne...\"\r\n                    ],\r\n                    \"_id\": \"604021e581a962681088565e\",\r\n                    \"ordering\": 4,\r\n                    \"questionTitle\": \"Kymysys 3\",\r\n                    \"questionSubTitle\": \"Mikä näistä kuvaa parhaiten tilannettasi?\",\r\n                    \"optional\": true\r\n                }\r\n            ],\r\n            \"radiobutton_group_horizontal\": [\r\n                {\r\n                    \"options\": [\r\n                        \"Statement1\",\r\n                        \"Statement2\",\r\n                        \"jne...\"\r\n                    ],\r\n                    \"_id\": \"604021e581a962681088565f\",\r\n                    \"ordering\": 5,\r\n                    \"questionTitle\": \"Kymysys 4\",\r\n                    \"questionSubTitle\": \"Kuinka paljon tämä kuvaa tilannettasi?\",\r\n                    \"scale\": 5,\r\n                    \"scaleOptionTitleLeft\": \"Eri mieltä\",\r\n                    \"scaleOptionTitleCenter\": \"Ei eri eikä samaa mieltä\",\r\n                    \"scaleOptionTitleRight\": \"Samaa mieltä\",\r\n                    \"optional\": true\r\n                }\r\n            ]\r\n        },\r\n        \"title\": \"Tyytyväisyyskysely\",\r\n        \"isPublic\": false,\r\n        \"createdAt\": \"2021-03-03T23:55:17.683Z\",\r\n        \"description\": \"Tyytyväisyyskysely työntekijöille\",\r\n        \"id\": \"604021e581a9626810885657\"\r\n    }",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{url}}forms/:formId",
-							"host": [
-								"{{url}}forms"
-							],
-							"path": [
-								":formId"
-							],
-							"variable": [
-								{
-									"key": "formId",
-									"value": "604021e581a9626810885657"
-								}
-							]
-						},
-						"description": "Give the full modified object in the body when updating. This makes sure you won't make a mistake somewhere and delete something by accident."
-					},
-					"response": []
-				},
-				{
-					"name": "Get form by id",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{url}}forms/:formId",
-							"host": [
-								"{{url}}forms"
-							],
-							"path": [
-								":formId"
-							],
-							"variable": [
-								{
-									"key": "formId",
-									"value": "604021e581a9626810885657"
-								}
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Report calls",
-			"item": [
-				{
-					"name": "Post new report",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "x-access-token",
-								"value": "{{innoToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"workTitle\": \"Work Title\",\r\n \"businessAsHandler\": \"60b4ea83628f2f36480f5d24\",\r\n \"agencyAsHandler\": \"60b4ea97628f2f36480f5d25\",\r\n \"details\": \"Report details\",\r\n \"date\": \"3/8/2021, 12:09:22\",\r\n \"fileUrl\": \"url\",\r\n     \r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{url}}reports",
-							"host": [
-								"{{url}}reports"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get reports (agency/business)",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "x-access-token",
-								"value": "{{innoToken}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{url}}reports",
-							"host": [
-								"{{url}}reports"
-							]
-						}
-					},
-					"response": []
-				}
-			],
-			"description": "Calls to routes in reports.js"
-		}
-	],
-	"event": [
-		{
-			"listen": "prerequest",
-			"script": {
-				"type": "text/javascript",
-				"exec": [
-					""
-				]
-			}
-		},
-		{
-			"listen": "test",
-			"script": {
-				"type": "text/javascript",
-				"exec": [
-					""
-				]
-			}
-		}
-	],
-	"variable": [
-		{
-			"key": "url",
-			"value": "http://localhost:3001/api/"
-		}
-	]
+  "info": {
+    "_postman_id": "c25b8c71-7dc5-4b3b-ab7d-732e6df5adf8",
+    "name": "KestavaKeikkatyo v12",
+    "description": "Apukutsut, joilla voi testata backendin toimivuutta. ",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Log in",
+      "item": [
+        {
+          "name": "Log in as jarmo-business",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const user = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"Has properties\", function () {\r",
+                  "    pm.expect(user).to.have.property('email');\r",
+                  "    pm.expect(user).to.have.property('token');\r",
+                  "    pm.expect(user).to.have.property('role');\r",
+                  "});\r",
+                  "\r",
+                  "if (pm.test(\"Has properties\")) {\r",
+                  "    pm.globals.set('innoToken', user.token);\r",
+                  "    pm.globals.set('role', user.role);\r",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"jarmo@test.com\",\r\n    \"password\": \"jarmo123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}login/business",
+              "host": ["{{url}}login"],
+              "path": ["business"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Log in as jarmo-agency",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const user = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"Has properties\", function () {\r",
+                  "    pm.expect(user).to.have.property('email');\r",
+                  "    pm.expect(user).to.have.property('token');\r",
+                  "    pm.expect(user).to.have.property('role');\r",
+                  "});\r",
+                  "\r",
+                  "if (pm.test(\"Has properties\")) {\r",
+                  "    pm.globals.set('innoToken', user.token);\r",
+                  "    pm.globals.set('role', user.role);\r",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"jarmo@test.com\",\r\n    \"password\": \"jarmo123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}login/agency",
+              "host": ["{{url}}login"],
+              "path": ["agency"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Log in as jarmo-worker",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const user = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"Has properties\", function () {\r",
+                  "    pm.expect(user).to.have.property('email');\r",
+                  "    pm.expect(user).to.have.property('token');\r",
+                  "    pm.expect(user).to.have.property('role');\r",
+                  "});\r",
+                  "\r",
+                  "if (pm.test(\"Has properties\")) {\r",
+                  "    pm.globals.set('innoToken', user.token);\r",
+                  "    pm.globals.set('role', user.role);\r",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"jarmo@test.com\",\r\n    \"password\": \"jarmo123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}login/worker",
+              "host": ["{{url}}login"],
+              "path": ["worker"]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Calls to routes in login.js"
+    },
+    {
+      "name": "Worker calls",
+      "item": [
+        {
+          "name": "Register worker",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const user = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"Has properties\", function () {\r",
+                  "    pm.expect(user).to.have.property('email');\r",
+                  "    pm.expect(user).to.have.property('token');\r",
+                  "});\r",
+                  "\r",
+                  "if (pm.test(\"Has properties\")) {\r",
+                  "    pm.globals.set('innoToken', user.token);\r",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"jarmo@test.com\",\r\n    \"name\": \"jarmo-worker\",\r\n    \"password\": \"jarmo123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}workers",
+              "host": ["{{url}}workers"]
+            },
+            "description": "Returns response.body: \n{ token, name: user.name, email: user.email, role: \"worker\" }\n\nrequest.body requirements: \n{name: \"name\", email: \"email\", password: \"password\"}\n\nUser registration.\n\nReturns a token that is used for user log in."
+          },
+          "response": []
+        },
+        {
+          "name": "Get info (worker)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-access-token",
+                "value": "{{innoToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}workers/me",
+              "host": ["{{url}}workers"],
+              "path": ["me"]
+            },
+            "description": "* Returns response.body: { The found Worker object }\n* Requires user logged in as a Worker"
+          },
+          "response": []
+        },
+        {
+          "name": "Update info (worker)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "x-access-token",
+                "value": "{{innoToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"password\": \"jarmo123\",\r\n    \"name\": \"jarmo-worker\",\r\n    \"phonenumber\": \"1234\",\r\n    \"licenses\": []\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}workers",
+              "host": ["{{url}}workers"]
+            },
+            "description": "* Returns response.body: { The found Worker object }\n* Update own info as Worker.\n* Requires User logged in as a Worker. \n* request.body OPTIONAL: Properties as per User model.\n\nYou can have all the fields, or only some of them, or even no body at all, but in that case use GET on /api/users/me."
+          },
+          "response": []
+        },
+        {
+          "name": "Get workers (agency)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-access-token",
+                "value": "{{innoToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}workers?name=worker",
+              "host": ["{{url}}workers"],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "worker"
+                }
+              ]
+            },
+            "description": "* Returns response.body: { List of users }\n* Requires User logged in as an Agency. request.query.name: Worker name to be searched\n* Retrieves all workers that have a matching name pattern."
+          },
+          "response": []
+        }
+      ],
+      "description": "Calls to the routes in users.js."
+    },
+    {
+      "name": "Business calls",
+      "item": [
+        {
+          "name": "Register business",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"jarmo@test.com\",\r\n    \"name\": \"jarmo-business\",\r\n    \"password\": \"jarmo123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}businesses",
+              "host": ["{{url}}businesses"]
+            },
+            "description": "* Returns response.body: { token, name: savedBusiness.name, email: savedBusiness.email, role: \"business\" }\n* request.body requirements: {name: \"name\", email: \"email\", password: \"password\"}\n* Route to create a new Business account."
+          },
+          "response": []
+        },
+        {
+          "name": "Get info (business)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-access-token",
+                "value": "{{innoToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}businesses/me",
+              "host": ["{{url}}businesses"],
+              "path": ["me"]
+            },
+            "description": "* Returns response.body: { The found Business object }\n* Requires user logged in as a Business\n* Route to get Business information"
+          },
+          "response": []
+        },
+        {
+          "name": "Update info (business)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "x-access-token",
+                "value": "{{innoToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"password\": \"jarmo123\",\r\n  \"name\": \"jarmo-business\",\r\n  \"securityOfficer\": \"Jarmo Turvamies\",\r\n  \"phonenumber\": \"1234\",\r\n  \"address\": \"Yritystie 69\",\r\n  \"postnumber\": \"00920\",\r\n  \"city\": \"Turku\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}businesses",
+              "host": ["{{url}}businesses"]
+            },
+            "description": "* Returns response.body: { The updated Business object }\n* Requires user must be logged in as Business. request.body OPTIONAL: {property: \"value\", ....}. Properties need to match those of Business model in database.\n* Route to update Business information."
+          },
+          "response": []
+        },
+        {
+          "name": "Get workers (business)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-access-token",
+                "value": "{{innoToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}businesses?name=jarmo",
+              "host": ["{{url}}businesses"],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "jarmo"
+                }
+              ]
+            },
+            "description": "Route for agency to search for businesses by name"
+          },
+          "response": []
+        }
+      ],
+      "description": "Calls to routes in businesses.js"
+    },
+    {
+      "name": "Agency calls",
+      "item": [
+        {
+          "name": "Register agency",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"jarmo@test.com\",\r\n    \"name\": \"jarmo-agency\",\r\n    \"password\": \"jarmo123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}agencies",
+              "host": ["{{url}}agencies"]
+            },
+            "description": "* Returns a token that is used for user log in.\n* Request requirements:\n* Body.email, Body.name, Body.password"
+          },
+          "response": []
+        },
+        {
+          "name": "Get  info (agency)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-access-token",
+                "value": "{{innoToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}agencies/me",
+              "host": ["{{url}}agencies"],
+              "path": ["me"]
+            },
+            "description": "Get agency info as agency"
+          },
+          "response": []
+        },
+        {
+          "name": "Update info (agency)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "x-access-token",
+                "value": "{{innoToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"password\": \"jarmo123\",\r\n  \"name\": \"jarmo-agency\",\r\n  \"securityOfficer\": \"Jarmo Turvamies\",\r\n  \"phonenumber\": \"1234\",\r\n  \"address\": \"Kivakuja 5K 105\",\r\n  \"postnumber\": \"00920\",\r\n  \"city\": \"Helsinki\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}agencies",
+              "host": ["{{url}}agencies"]
+            },
+            "description": "Update agency info"
+          },
+          "response": []
+        }
+      ],
+      "description": "Calls to routes in agencies.js"
+    },
+    {
+      "name": "Feelings meter calls",
+      "item": [
+        {
+          "name": "Add new feeling to user",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-access-token",
+                "value": "{{innoToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"value\": 3,\r\n    \"note\": \"Hyvä päivä. Oli ihan mukavaa :)\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}feelings",
+              "host": ["{{url}}feelings"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get feelings (worker)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-access-token",
+                "value": "{{innoToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}feelings?page=1&limit=10",
+              "host": ["{{url}}feelings"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get worker feelings (agency/business)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-access-token",
+                "value": "{{innoToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}feelings/:workerId?page=1&limit=10",
+              "host": ["{{url}}feelings"],
+              "path": [":workerId"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "workerId",
+                  "value": "6018012a88b8375630a6a3c4"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete feeling",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-access-token",
+                "value": "{{innoToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}feelings/:feelingId",
+              "host": ["{{url}}feelings"],
+              "path": [":feelingId"],
+              "variable": [
+                {
+                  "key": "feelingId",
+                  "value": "602438c5d95c272d6067a8b0"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Calls to routes in feelings.js"
+    },
+    {
+      "name": "Workcontracts calls",
+      "item": [
+        {
+          "name": "Get work contract",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-access-token",
+                "value": "{{innoToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}workcontracts/:contractId",
+              "host": ["{{url}}workcontracts"],
+              "path": [":contractId"],
+              "variable": [
+                {
+                  "key": "contractId",
+                  "value": "6064882520b7fe3d90e11dc0"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get all work contracts with token",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-access-token",
+                "value": "{{innoToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}workcontracts/?page=1&limit=2",
+              "host": ["{{url}}workcontracts"],
+              "path": [""],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "2"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create work contract",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-access-token",
+                "value": "{{innoToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{   \r\n    \"businessId\": \"604525079834a302fc7af171\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}workcontracts",
+              "host": ["{{url}}workcontracts"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "(Deprecated) Delete work contract",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-access-token",
+                "value": "{{innoToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}workcontracts/:contractId",
+              "host": ["{{url}}workcontracts"],
+              "path": [":contractId"],
+              "variable": [
+                {
+                  "key": "contractId",
+                  "value": "6031b0d5527eec3080f51bb3"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "New contract",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "x-access-token",
+                "value": "{{innoToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"workerCount\": \"1\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}workcontracts/:contractId/new",
+              "host": ["{{url}}workcontracts"],
+              "path": [":contractId", "new"],
+              "variable": [
+                {
+                  "key": "contractId",
+                  "value": "607494398080220c54045935"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add user to contract",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "x-access-token",
+                "value": "{{innoToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}workcontracts/:contractId/:contractsId/add",
+              "host": ["{{url}}workcontracts"],
+              "path": [":contractId", ":contractsId", "add"],
+              "variable": [
+                {
+                  "key": "contractId",
+                  "value": "607494398080220c54045935"
+                },
+                {
+                  "key": "contractsId",
+                  "value": "607dab8810a6754678d9ee69"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Accept contract",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "x-access-token",
+                "value": "{{innoToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}workcontracts/:contractId/:contractsId/accept",
+              "host": ["{{url}}workcontracts"],
+              "path": [":contractId", ":contractsId", "accept"],
+              "variable": [
+                {
+                  "key": "contractId",
+                  "value": "6064882520b7fe3d90e11dc0"
+                },
+                {
+                  "key": "contractsId",
+                  "value": "607dab8810a6754678d9ee69"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Accept Workers",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "x-access-token",
+                "value": "{{innoToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"workersArray\": [ \"606b3154d40fe8473c5570c0\" ]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}workcontracts/:contractId/:contractsId/acceptWorkers",
+              "host": ["{{url}}workcontracts"],
+              "path": [":contractId", ":contractsId", "acceptWorkers"],
+              "variable": [
+                {
+                  "key": "contractId",
+                  "value": "607494398080220c54045935"
+                },
+                {
+                  "key": "contractsId",
+                  "value": "607dab8810a6754678d9ee69"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Revert Workers",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "x-access-token",
+                "value": "{{innoToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"workersArray\": [ \"606b3154d40fe8473c5570c0\" ]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}workcontracts/:contractId/:contractsId/revertWorkers",
+              "host": ["{{url}}workcontracts"],
+              "path": [":contractId", ":contractsId", "revertWorkers"],
+              "variable": [
+                {
+                  "key": "contractId",
+                  "value": "607494398080220c54045935"
+                },
+                {
+                  "key": "contractsId",
+                  "value": "607dab8810a6754678d9ee69"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Decline Workers",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "x-access-token",
+                "value": "{{innoToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"workersArray\": [ \"606b3154d40fe8473c5570c0\" ]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}workcontracts/:contractId/:contractsId/declineWorkers",
+              "host": ["{{url}}workcontracts"],
+              "path": [":contractId", ":contractsId", "declineWorkers"],
+              "variable": [
+                {
+                  "key": "contractId",
+                  "value": "607494398080220c54045935"
+                },
+                {
+                  "key": "contractsId",
+                  "value": "607dab8810a6754678d9ee69"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Businesscontract calls",
+      "item": [
+        {
+          "name": "Get business contract",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-access-token",
+                "value": "{{innoToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}businesscontracts/:businessContractId",
+              "host": ["{{url}}businesscontracts"],
+              "path": [":businessContractId"],
+              "variable": [
+                {
+                  "key": "businessContractId",
+                  "value": "60244e2c4188da4a1441c3f9"
+                }
+              ]
+            },
+            "description": "* Returns response.body: { businessContract: TheWholeBusinessContractObject }\n* Requires user logged in as a participant of this specific BusinessContract. body requirements: body.role = \"agency\" / \"business\" / \"worker\"\n* Route for getting one specific businessContract"
+          },
+          "response": []
+        },
+        {
+          "name": "Get all business contracts with token",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-access-token",
+                "value": "{{innoToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}businesscontracts",
+              "host": ["{{url}}businesscontracts"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create BusinessContract",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-access-token",
+                "value": "{{innoToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}businesscontracts/",
+              "host": ["{{url}}businesscontracts"],
+              "path": [""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add worker or business to BusinessContract",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "x-access-token",
+                "value": "{{innoToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}businesscontracts/:businessContractId/add",
+              "host": ["{{url}}businesscontracts"],
+              "path": [":businessContractId", "add"],
+              "variable": [
+                {
+                  "key": "businessContractId",
+                  "value": "60746f994dab9037108bdc3f"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Accept BusinessContract",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "x-access-token",
+                "value": "{{innoToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}businesscontracts/:businessContractId/:userId/accept",
+              "host": ["{{url}}businesscontracts"],
+              "path": [":businessContractId", ":userId", "accept"],
+              "variable": [
+                {
+                  "key": "businessContractId",
+                  "value": "607489e7f53c1b1c34299af2"
+                },
+                {
+                  "key": "userId",
+                  "value": "604525079834a302fc7af171"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Decline BusinessContract",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "x-access-token",
+                "value": "{{innoToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}businesscontracts/:businessContractId/:userId/decline",
+              "host": ["{{url}}businesscontracts"],
+              "path": [":businessContractId", ":userId", "decline"],
+              "variable": [
+                {
+                  "key": "businessContractId",
+                  "value": ""
+                },
+                {
+                  "key": "userId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Calls to routes in businesscontracts.js"
+    },
+    {
+      "name": "Form calls",
+      "item": [
+        {
+          "name": "Add form",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-access-token",
+                "value": "{{innoToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"title\": \"Tyytyväisyyskysely\",\r\n    \"description\": \"Tyytyväisyyskysely työntekijöille\",\r\n    \"isPublic\": true,\r\n    \"questions\": {\r\n        \"comment\": [{\r\n            \"ordering\": 0,\r\n            \"questionTitle\": \"Vastaa mahdollisimman rehellisesti\"\r\n        }, {\r\n            \"ordering\": 7,\r\n            \"questionTitle\": \"Kiitos vastauksistasi!\"\r\n        }],\r\n        \"text\": [{\r\n            \"ordering\": 1,\r\n            \"questionTitle\": \"Nimi\",\r\n            \"questionSubTitle\": \"Anna koko nimi muodossa Etunimi Sukunimi\",\r\n            \"optional\": false,\r\n            \"answerMaxLength\": 100,\r\n            \"answerMinLength\": 10\r\n        }],\r\n        \"textarea\": [{\r\n            \"ordering\": 2,\r\n            \"questionTitle\": \"Kymysys 1\",\r\n            \"questionSubTitle\": \"Feelikset just ny?\",\r\n            \"optional\": true,\r\n            \"answerMaxLength\": 1000,\r\n            \"answerMinLength\": 10\r\n        }],\r\n        \"checkbox\": [{\r\n            \"ordering\": 3,\r\n            \"questionTitle\": \"Kymysys 2\",\r\n            \"questionSubTitle\": \"Huono päivä?\",\r\n            \"optional\": false\r\n        }, {\r\n            \"ordering\": 8,\r\n            \"questionTitle\": \"Suostun jakamaan tietoni bla bla bla\",\r\n            \"optional\": true\r\n        }],\r\n        \"checkbox_group\": [{\r\n            \"ordering\": 4,\r\n            \"questionTitle\": \"Kymysys 3\",\r\n            \"questionSubTitle\": \"Mitkä näistä asioista on totta?\",\r\n            \"options\": [\r\n                \"Vaihtoehto 1\",\r\n                \"Vaihtoehto 2\",\r\n                \"Vaihtoehto 3\",\r\n                \"Vaihtoehto jne...\"\r\n            ],\r\n            \"optional\": true\r\n        }],\r\n        \"radiobutton_group\": [{\r\n            \"ordering\": 5,\r\n            \"questionTitle\": \"Kymysys 4\",\r\n            \"questionSubTitle\": \"Mikä näistä kuvaa parhaiten tilannettasi?\",\r\n            \"options\": [\r\n                \"Vaihtoehto 1\",\r\n                \"Vaihtoehto 2\",\r\n                \"Vaihtoehto jne...\"\r\n            ],\r\n            \"optional\": true\r\n        }],\r\n        \"radiobutton_group_horizontal\": [{\r\n            \"ordering\": 6,\r\n            \"questionTitle\": \"Kymysys 5\",\r\n            \"questionSubTitle\": \"Kuinka paljon tämä kuvaa tilannettasi?\",\r\n            \"scale\": 5,\r\n            \"scaleOptionTitleLeft\": \"Eri mieltä\",\r\n            \"scaleOptionTitleCenter\": \"Ei eri eikä samaa mieltä\",\r\n            \"scaleOptionTitleRight\": \"Samaa mieltä\",\r\n            \"options\": [\"Statement1\", \"Statement2\", \"jne...\"],\r\n            \"optional\": true\r\n        }],\r\n        \"contactInformation\": [{\r\n            \"ordering\": 9,\r\n            \"name\": \"Anna nimi\",\r\n            \"email\": \"Anna sähköposti\",\r\n            \"phoneNumber\": \"Anna puhelinnumero\",\r\n            \"optional\": false\r\n        }],\r\n        \"datePicker\": [{\r\n            \"ordering\": 10,\r\n            \"questionTitle\": \"Anna syntymäpäiväsi :)\",\r\n            \"questionSubTitle\": \"Tätä tietoa ei jaeta kenellekkään muulle\",\r\n            \"isClosedTimeFrame\": false\r\n        }],\r\n        \"timePicker\": [{\r\n            \"ordering\": 11,\r\n            \"questionTitle\": \"Tapaamisen aika\",\r\n            \"isClosedTimeFrame\": true\r\n        }]\r\n    }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}forms",
+              "host": ["{{url}}forms"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get my forms (agency/business)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-access-token",
+                "value": "{{innoToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}forms/me?page=1&limit=10",
+              "host": ["{{url}}forms"],
+              "path": ["me"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get public forms (agency/business)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-access-token",
+                "value": "{{innoToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}forms?page=1&limit=10",
+              "host": ["{{url}}forms"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete form (agency/business)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-access-token",
+                "value": "{{innoToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}forms/:formId",
+              "host": ["{{url}}forms"],
+              "path": [":formId"],
+              "variable": [
+                {
+                  "key": "formId",
+                  "value": "603998a7633dba00b867a9b9"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update form (agency/business)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "x-access-token",
+                "value": "{{innoToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n        \"questions\": {\r\n            \"comment\": [\r\n                {\r\n                    \"_id\": \"604021e581a9626810885658\",\r\n                    \"ordering\": 0,\r\n                    \"questionTitle\": \"Vastaa mahdollisimman rehellisesti\"\r\n                },\r\n                {\r\n                    \"_id\": \"604021e581a9626810885659\",\r\n                    \"ordering\": 6,\r\n                    \"questionTitle\": \"Kiitos vastauksistasi!\"\r\n                }\r\n            ],\r\n            \"text\": [\r\n                {\r\n                    \"_id\": \"604021e581a962681088565a\",\r\n                    \"ordering\": 1,\r\n                    \"questionTitle\": \"Nimi\",\r\n                    \"questionSubTitle\": \"Anna koko nimi muodossa Etunimi Sukunimi\",\r\n                    \"optional\": false,\r\n                    \"answerMaxLength\": 100,\r\n                    \"answerMinLength\": 10\r\n                }\r\n            ],\r\n            \"textarea\": [\r\n                {\r\n                    \"_id\": \"604021e581a962681088565b\",\r\n                    \"ordering\": 2,\r\n                    \"questionTitle\": \"Kymysys 1\",\r\n                    \"questionSubTitle\": \"Feelikset just ny?\",\r\n                    \"optional\": true,\r\n                    \"answerMaxLength\": 1000,\r\n                    \"answerMinLength\": 10\r\n                }\r\n            ],\r\n            \"checkbox\": [],\r\n            \"checkbox_group\": [\r\n                {\r\n                    \"options\": [\r\n                        \"Vaihtoehto 1\",\r\n                        \"Vaihtoehto 2\",\r\n                        \"Vaihtoehto 3\",\r\n                        \"Vaihtoehto jne...\"\r\n                    ],\r\n                    \"_id\": \"604021e581a962681088565d\",\r\n                    \"ordering\": 3,\r\n                    \"questionTitle\": \"Kymysys 2\",\r\n                    \"questionSubTitle\": \"Mitkä näistä asioista on totta?\",\r\n                    \"optional\": true\r\n                }\r\n            ],\r\n            \"radiobutton_group\": [\r\n                {\r\n                    \"options\": [\r\n                        \"Vaihtoehto 1\",\r\n                        \"Vaihtoehto 2\",\r\n                        \"Vaihtoehto jne...\"\r\n                    ],\r\n                    \"_id\": \"604021e581a962681088565e\",\r\n                    \"ordering\": 4,\r\n                    \"questionTitle\": \"Kymysys 3\",\r\n                    \"questionSubTitle\": \"Mikä näistä kuvaa parhaiten tilannettasi?\",\r\n                    \"optional\": true\r\n                }\r\n            ],\r\n            \"radiobutton_group_horizontal\": [\r\n                {\r\n                    \"options\": [\r\n                        \"Statement1\",\r\n                        \"Statement2\",\r\n                        \"jne...\"\r\n                    ],\r\n                    \"_id\": \"604021e581a962681088565f\",\r\n                    \"ordering\": 5,\r\n                    \"questionTitle\": \"Kymysys 4\",\r\n                    \"questionSubTitle\": \"Kuinka paljon tämä kuvaa tilannettasi?\",\r\n                    \"scale\": 5,\r\n                    \"scaleOptionTitleLeft\": \"Eri mieltä\",\r\n                    \"scaleOptionTitleCenter\": \"Ei eri eikä samaa mieltä\",\r\n                    \"scaleOptionTitleRight\": \"Samaa mieltä\",\r\n                    \"optional\": true\r\n                }\r\n            ]\r\n        },\r\n        \"title\": \"Tyytyväisyyskysely\",\r\n        \"isPublic\": false,\r\n        \"createdAt\": \"2021-03-03T23:55:17.683Z\",\r\n        \"description\": \"Tyytyväisyyskysely työntekijöille\",\r\n        \"id\": \"604021e581a9626810885657\"\r\n    }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}forms/:formId",
+              "host": ["{{url}}forms"],
+              "path": [":formId"],
+              "variable": [
+                {
+                  "key": "formId",
+                  "value": "604021e581a9626810885657"
+                }
+              ]
+            },
+            "description": "Give the full modified object in the body when updating. This makes sure you won't make a mistake somewhere and delete something by accident."
+          },
+          "response": []
+        },
+        {
+          "name": "Get form by id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}forms/:formId",
+              "host": ["{{url}}forms"],
+              "path": [":formId"],
+              "variable": [
+                {
+                  "key": "formId",
+                  "value": "604021e581a9626810885657"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Report calls",
+      "item": [
+        {
+          "name": "Post new report",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-access-token",
+                "value": "{{innoToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"workTitle\": \"Work Title\",\r\n \"businessAsHandler\": \"60b4ea83628f2f36480f5d24\",\r\n \"agencyAsHandler\": \"60b4ea97628f2f36480f5d25\",\r\n \"details\": \"Report details\",\r\n \"date\": \"3/8/2021, 12:09:22\",\r\n \"fileUrl\": \"url\",\r\n     \r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}reports",
+              "host": ["{{url}}reports"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get reports (agency/business)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-access-token",
+                "value": "{{innoToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}reports",
+              "host": ["{{url}}reports"]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Calls to routes in reports.js"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [""]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [""]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "url",
+      "value": "http://localhost:3001/api/"
+    }
+  ]
 }

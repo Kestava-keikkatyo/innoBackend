@@ -16,12 +16,7 @@ import {
   getAgencysEmploymentAgreements,
 } from "../middleware/agreementMiddleware";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
-import {
-  isAgency,
-  isAgencyOrBusiness,
-  isWorkerOrBusiness,
-  isWorkerOrBusinessOrAgency,
-} from "../utils/authJwt";
+import { isAgency, isAgencyOrBusiness, isWorkerOrBusiness, isWorkerOrBusinessOrAgency } from "../utils/authJwt";
 
 const agreementRouter = express.Router();
 
@@ -54,12 +49,7 @@ const agreementRouter = express.Router();
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-agreementRouter.get(
-  "/",
-  tokenAuthentication,
-  isWorkerOrBusinessOrAgency,
-  getMyAgreements
-);
+agreementRouter.get("/", tokenAuthentication, isWorkerOrBusinessOrAgency, getMyAgreements);
 
 /**
  * Route for agency to get their signed agreements.
@@ -90,12 +80,7 @@ agreementRouter.get(
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-agreementRouter.get(
-  "/signed/creator",
-  tokenAuthentication,
-  isAgency,
-  getMySignedAgreements
-);
+agreementRouter.get("/signed/creator", tokenAuthentication, isAgency, getMySignedAgreements);
 
 /**
  * Route for worker and business to get their signed agreements.
@@ -126,12 +111,7 @@ agreementRouter.get(
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-agreementRouter.get(
-  "/signed/target",
-  tokenAuthentication,
-  isWorkerOrBusiness,
-  getSignedTargetAgreements
-);
+agreementRouter.get("/signed/target", tokenAuthentication, isWorkerOrBusiness, getSignedTargetAgreements);
 
 /**
  * Route for worker and business to get their signed employment agreements.
@@ -162,13 +142,7 @@ agreementRouter.get(
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-agreementRouter.get(
-  "/employment/signed",
-  tokenAuthentication,
-  isWorkerOrBusiness,
-  getMySignedAgreements
-);
-
+agreementRouter.get("/employment/signed", tokenAuthentication, isWorkerOrBusiness, getMySignedAgreements);
 
 /**
  * Route for agency and business to get their agreements.
@@ -199,12 +173,7 @@ agreementRouter.get(
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-agreementRouter.get(
-  "/target",
-  tokenAuthentication,
-  isWorkerOrBusinessOrAgency,
-  getTargetAgreements
-);
+agreementRouter.get("/target", tokenAuthentication, isWorkerOrBusinessOrAgency, getTargetAgreements);
 
 /**
  * Route for agency and business to add a new agreement. Agreement object is given in body according to its schema model.
@@ -241,12 +210,7 @@ agreementRouter.get(
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-agreementRouter.post(
-  "/",
-  tokenAuthentication,
-  isWorkerOrBusinessOrAgency,
-  postAgreement
-);
+agreementRouter.post("/", tokenAuthentication, isWorkerOrBusinessOrAgency, postAgreement);
 
 /**
  * Route for agency to add a new employment agreement.
@@ -283,12 +247,7 @@ agreementRouter.post(
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-agreementRouter.post(
-  "/employment",
-  tokenAuthentication,
-  isAgency,
-  postEmploymentAgreement
-);
+agreementRouter.post("/employment", tokenAuthentication, isAgency, postEmploymentAgreement);
 
 /**
  * Route for Worker and Business to fetch all their employment agreements
@@ -325,12 +284,7 @@ agreementRouter.post(
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-agreementRouter.get(
-  "/employment",
-  tokenAuthentication,
-  isWorkerOrBusiness,
-  getEmploymentAgreements
-);
+agreementRouter.get("/employment", tokenAuthentication, isWorkerOrBusiness, getEmploymentAgreements);
 
 /**
  * Route for Agency to fetch all it's employment agreements
@@ -367,13 +321,7 @@ agreementRouter.get(
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-agreementRouter.get(
-  "/employment/agency",
-  tokenAuthentication,
-  isAgency,
-  getAgencysEmploymentAgreements
-);
-
+agreementRouter.get("/employment/agency", tokenAuthentication, isAgency, getAgencysEmploymentAgreements);
 
 /**
  * Route for agency and business to sign or reject agreement.
@@ -426,12 +374,7 @@ agreementRouter.get(
  *             example:
  *               message: No agreement found!
  */
-agreementRouter.put(
-  "/sign/:id/:status",
-  tokenAuthentication,
-  isWorkerOrBusinessOrAgency,
-  signAgreement
-);
+agreementRouter.put("/sign/:id/:status", tokenAuthentication, isWorkerOrBusinessOrAgency, signAgreement);
 
 /**
  * Route for worker and business to sign employment agreement.
@@ -477,12 +420,7 @@ agreementRouter.put(
  *             example:
  *               message: No agreement found!
  */
-agreementRouter.put(
-  "/employment/sign/:id",
-  tokenAuthentication,
-  isWorkerOrBusinessOrAgency,
-  signEmploymentAgreement
-);
+agreementRouter.put("/employment/sign/:id", tokenAuthentication, isWorkerOrBusinessOrAgency, signEmploymentAgreement);
 
 /**
  * Route for worker and business to refuse employment agreement.
@@ -579,12 +517,7 @@ agreementRouter.put(
  *             example:
  *               message: No agreement found!
  */
-agreementRouter.put(
-  "/update/:id",
-  tokenAuthentication,
-  isAgencyOrBusiness,
-  updateAgreement
-);
+agreementRouter.put("/update/:id", tokenAuthentication, isAgencyOrBusiness, updateAgreement);
 
 /**
  * Route for agency, worker and business to delete own agreement
@@ -620,12 +553,7 @@ agreementRouter.put(
  *             example:
  *               message: No agreement was found with the requested ID
  */
-agreementRouter.delete(
-  "/delete/:id",
-  tokenAuthentication,
-  isWorkerOrBusinessOrAgency,
-  deleteAgreement
-);
+agreementRouter.delete("/delete/:id", tokenAuthentication, isWorkerOrBusinessOrAgency, deleteAgreement);
 
 /**
  * Route for agency, worker and business to delete own employment agreement

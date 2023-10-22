@@ -10,10 +10,7 @@ import {
   getPublicForms,
   getFormByPublic,
 } from "../middleware/formMiddleware";
-import {
-  isAgencyOrBusiness,
-  isWorkerOrBusinessOrAgency,
-} from "../utils/authJwt";
+import { isAgencyOrBusiness, isWorkerOrBusinessOrAgency } from "../utils/authJwt";
 
 const formRouter = express.Router();
 
@@ -91,12 +88,7 @@ formRouter.post("/", tokenAuthentication, isAgencyOrBusiness, postForm);
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-formRouter.get(
-  "/common/",
-  tokenAuthentication,
-  isAgencyOrBusiness,
-  getFormByCommon
-);
+formRouter.get("/common/", tokenAuthentication, isAgencyOrBusiness, getFormByCommon);
 
 /**
  * Route for user of role agency or business to get public forms
@@ -135,12 +127,7 @@ formRouter.get(
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-formRouter.get(
-  "/public",
-  tokenAuthentication,
-  isAgencyOrBusiness,
-  getFormByPublic
-);
+formRouter.get("/public", tokenAuthentication, isAgencyOrBusiness, getFormByPublic);
 
 /**
  * Route for user of role agency or business to get their own forms
@@ -227,12 +214,7 @@ formRouter.get("/myForm", tokenAuthentication, isAgencyOrBusiness, getMyForms);
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-formRouter.get(
-  "/myForm/:id",
-  tokenAuthentication,
-  isWorkerOrBusinessOrAgency,
-  getFormById
-);
+formRouter.get("/myForm/:id", tokenAuthentication, isWorkerOrBusinessOrAgency, getFormById);
 
 /**
  * Route for user of role agency or business to update own form.
@@ -278,12 +260,7 @@ formRouter.get(
  *             example:
  *               message: No form found
  */
-formRouter.put(
-  "/update/:id",
-  tokenAuthentication,
-  isAgencyOrBusiness,
-  updateForm
-);
+formRouter.put("/update/:id", tokenAuthentication, isAgencyOrBusiness, updateForm);
 
 /**
  * Route for user of type agency or business to get public forms
@@ -322,12 +299,7 @@ formRouter.put(
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-formRouter.get(
-  "/public/",
-  tokenAuthentication,
-  isAgencyOrBusiness,
-  getPublicForms
-);
+formRouter.get("/public/", tokenAuthentication, isAgencyOrBusiness, getPublicForms);
 
 /**
  * Route for user of type agency or agency or business to delete form
@@ -363,11 +335,6 @@ formRouter.get(
  *             example:
  *               message: No form was found with the requested ID {formId}
  */
-formRouter.delete(
-  "/delete/:id",
-  tokenAuthentication,
-  isAgencyOrBusiness,
-  deleteForm
-);
+formRouter.delete("/delete/:id", tokenAuthentication, isAgencyOrBusiness, deleteForm);
 
 export default formRouter;

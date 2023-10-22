@@ -35,7 +35,7 @@ const employmentAgreementSchema: Schema = new Schema({
   createdAt: {
     type: Date,
     default: Date.now,
-  }
+  },
 });
 
 employmentAgreementSchema.plugin(uniqueValidator);

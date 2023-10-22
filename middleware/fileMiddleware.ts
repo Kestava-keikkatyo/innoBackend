@@ -1,11 +1,11 @@
-import { Request, Response, NextFunction } from 'express';
-import multer, { diskStorage } from 'multer';
-import fs from 'fs';
-import path from 'path';
+import { Request, Response, NextFunction } from "express";
+import multer, { diskStorage } from "multer";
+import fs from "fs";
+import path from "path";
 import File from "../models/File";
 
 // Create 'uploads' directory if it doesn't exist
-const dir = './uploads';
+const dir = "./uploads";
 if (!fs.existsSync(dir)) {
   fs.mkdirSync(dir);
 }
@@ -16,8 +16,9 @@ interface MulterRequest extends Request {
 }
 
 const storage = diskStorage({
-  destination: function (_, __, cb) {  // _ represents unused req, __ represents unused file
-    cb(null, 'uploads/');
+  destination: function (_, __, cb) {
+    // _ represents unused req, __ represents unused file
+    cb(null, "uploads/");
   },
   filename: function (_, file, cb) {
     cb(null, Date.now() + path.extname(file.originalname));
@@ -27,7 +28,7 @@ const storage = diskStorage({
 const upload = multer({ storage: storage });
 
 export async function addFile(req: MulterRequest, res: Response, next: NextFunction) {
-  upload.single('file')(req, res, async (err) => {
+  upload.single("file")(req, res, async (err) => {
     if (err instanceof Error) {
       return next(err);
     }
@@ -63,7 +64,6 @@ export async function addFile(req: MulterRequest, res: Response, next: NextFunct
   });
 }
 
-
 export async function deleteFile(req: Request, res: Response, next: NextFunction) {
   try {
     const fileId = req.params.id;
@@ -97,11 +97,10 @@ export async function getFilesByCreator(_req: Request, res: Response, next: Next
 
 export async function getFileById(req: Request, res: Response) {
   try {
-
     const file = await File.findById(req.params.id);
     if (file) {
-      res.setHeader('Content-Type', file.contentType.toString());
-      res.setHeader('Content-Disposition', `attachment; filename=${file.title}`);
+      res.setHeader("Content-Type", file.contentType.toString());
+      res.setHeader("Content-Disposition", `attachment; filename=${file.title}`);
       res.send(file.file);
     } else {
       new Error("File not found");

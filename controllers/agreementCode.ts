@@ -1,7 +1,5 @@
 import express from "express";
-import {
-  postAgreement,
-} from "../middleware/agreementMiddleware";
+import { postAgreement } from "../middleware/agreementMiddleware";
 import {
   findAgreementCode,
   deleteAgreementCode,
@@ -10,10 +8,7 @@ import {
   updateMarkedValue,
 } from "../middleware/agreementCodeMiddleware";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
-import {
-  isAgency,
-  isWorkerOrBusiness,
-} from "../utils/authJwt";
+import { isAgency, isWorkerOrBusiness } from "../utils/authJwt";
 
 const agreementCodeRouter = express.Router();
 
@@ -26,25 +21,10 @@ agreementCodeRouter.post(
   deleteAgreementCode
 );
 
-agreementCodeRouter.post(
-  "/addCodes",
-  tokenAuthentication,
-  isAgency,
-  addAgreementCodes
-);
+agreementCodeRouter.post("/addCodes", tokenAuthentication, isAgency, addAgreementCodes);
 
-agreementCodeRouter.get(
-  "/getAgreementCodesByCreator",
-  tokenAuthentication,
-  isAgency,
-  getAgreementCodesByCreator
-);
+agreementCodeRouter.get("/getAgreementCodesByCreator", tokenAuthentication, isAgency, getAgreementCodesByCreator);
 
-agreementCodeRouter.put(
-  "/updateMarkedValue",
-  tokenAuthentication,
-  isAgency,
-  updateMarkedValue
-);
+agreementCodeRouter.put("/updateMarkedValue", tokenAuthentication, isAgency, updateMarkedValue);
 
 export default agreementCodeRouter;

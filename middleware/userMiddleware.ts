@@ -109,7 +109,6 @@ export const getUserById = (req: Request, res: Response, next: NextFunction) => 
   }
 };
 
-
 /**
  * Get agency's user contacts.
  * @param {Request} req - Express Request.
@@ -121,15 +120,17 @@ export const getAgencyContacts = async (req: Request, res: Response, next: NextF
   const { body } = req;
   let users: any[] = new Array<IUserDocument>();
   try {
-    const agreements: Array<IAgreement> = await Agreement.find({ creator: body.user._id, status: "signed" }).lean()
+    const agreements: Array<IAgreement> = await Agreement.find({ creator: body.user._id, status: "signed" }).lean();
     for (const key in agreements) {
-        const contactIdStr = JSON.stringify(agreements[key].target._id).slice(1, -1)
-        const contactId = new mongoose.Types.ObjectId(contactIdStr)
-        let user = await User.find({ _id : contactId}).lean().select('_id userType email firstName lastName companyName category')
-        users.push(user)
+      const contactIdStr = JSON.stringify(agreements[key].target._id).slice(1, -1);
+      const contactId = new mongoose.Types.ObjectId(contactIdStr);
+      let user = await User.find({ _id: contactId })
+        .lean()
+        .select("_id userType email firstName lastName companyName category");
+      users.push(user);
     }
     if (users) {
-        return res.status(200).json(users);
+      return res.status(200).json(users);
     } else {
       return res.status(404).json({ message: "No users found!" });
     }
@@ -150,24 +151,31 @@ export const getBusinessContacts = async (req: Request, res: Response, next: Nex
   let users: any[] = new Array<IUserDocument>();
 
   try {
-    const agreements: Array<IAgreement> = await Agreement.find({ target: body.user._id, status: "signed" }).lean()
+    const agreements: Array<IAgreement> = await Agreement.find({ target: body.user._id, status: "signed" }).lean();
     for (const key in agreements) {
-        const contactIdStr = JSON.stringify(agreements[key].creator._id).slice(1, -1)
-        const contactId = new mongoose.Types.ObjectId(contactIdStr)
-        const user = await User.find({ _id : contactId}).lean().select('_id userType email firstName lastName companyName category')
-        users.push(user)
+      const contactIdStr = JSON.stringify(agreements[key].creator._id).slice(1, -1);
+      const contactId = new mongoose.Types.ObjectId(contactIdStr);
+      const user = await User.find({ _id: contactId })
+        .lean()
+        .select("_id userType email firstName lastName companyName category");
+      users.push(user);
     }
 
-    const employmentAgreements: Array<IEmploymentAgreement> = await EmploymentAgreement.find({ business: body.user._id, status: "signed" }).lean()
+    const employmentAgreements: Array<IEmploymentAgreement> = await EmploymentAgreement.find({
+      business: body.user._id,
+      status: "signed",
+    }).lean();
     for (const key in employmentAgreements) {
-      const contactIdStr = JSON.stringify(employmentAgreements[key].worker._id).slice(1, -1)
-      const contactId = new mongoose.Types.ObjectId(contactIdStr)
-      const user = await User.find({ _id : contactId}).lean().select('_id userType email firstName lastName companyName category')
-      users.push(user)
+      const contactIdStr = JSON.stringify(employmentAgreements[key].worker._id).slice(1, -1);
+      const contactId = new mongoose.Types.ObjectId(contactIdStr);
+      const user = await User.find({ _id: contactId })
+        .lean()
+        .select("_id userType email firstName lastName companyName category");
+      users.push(user);
     }
 
     if (users) {
-        return res.status(200).json(users);
+      return res.status(200).json(users);
     } else {
       return res.status(404).json({ message: "No users found!" });
     }
@@ -188,25 +196,32 @@ export const getWorkerContacts = async (req: Request, res: Response, next: NextF
   let users: any[] = new Array<IUserDocument>();
 
   try {
-    const agreements: Array<IAgreement> = await Agreement.find({ target: body.user._id, status: "signed" }).lean()
+    const agreements: Array<IAgreement> = await Agreement.find({ target: body.user._id, status: "signed" }).lean();
     for (const key in agreements) {
-        const contactIdStr = JSON.stringify(agreements[key].creator._id).slice(1, -1)
-        const contactId = new mongoose.Types.ObjectId(contactIdStr)
-        const user = await User.find({ _id : contactId}).lean().select('_id userType email firstName lastName companyName category')
-        users.push(user)
+      const contactIdStr = JSON.stringify(agreements[key].creator._id).slice(1, -1);
+      const contactId = new mongoose.Types.ObjectId(contactIdStr);
+      const user = await User.find({ _id: contactId })
+        .lean()
+        .select("_id userType email firstName lastName companyName category");
+      users.push(user);
     }
 
-    const employmentAgreements: Array<IEmploymentAgreement> = await EmploymentAgreement.find({ worker: body.user._id, status: "signed" }).lean()
+    const employmentAgreements: Array<IEmploymentAgreement> = await EmploymentAgreement.find({
+      worker: body.user._id,
+      status: "signed",
+    }).lean();
 
     for (const key in employmentAgreements) {
-      const contactIdStr = JSON.stringify(employmentAgreements[key].business._id).slice(1, -1)
-      const contactId = new mongoose.Types.ObjectId(contactIdStr)
-      const user = await User.find({ _id : contactId}).lean().select('_id userType email firstName lastName companyName category')
-      users.push(user)
+      const contactIdStr = JSON.stringify(employmentAgreements[key].business._id).slice(1, -1);
+      const contactId = new mongoose.Types.ObjectId(contactIdStr);
+      const user = await User.find({ _id: contactId })
+        .lean()
+        .select("_id userType email firstName lastName companyName category");
+      users.push(user);
     }
 
     if (users) {
-        return res.status(200).json(users);
+      return res.status(200).json(users);
     } else {
       return res.status(404).json({ message: "No users found!" });
     }
@@ -214,7 +229,6 @@ export const getWorkerContacts = async (req: Request, res: Response, next: NextF
     return next(exception);
   }
 };
-
 
 /**
  * Get users own information.

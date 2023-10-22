@@ -30,7 +30,7 @@ import {
   getAllBusinessesAndAgencies,
   getAgencyContacts,
   getBusinessContacts,
-  getWorkerContacts
+  getWorkerContacts,
 } from "../middleware/userMiddleware";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
 

@@ -2,5 +2,5 @@
   "doubleQuote": false,
   "printWidth": 120,
   "prettier.requireConfig": true,
-  "endOfLine":"auto"
+  "endOfLine": "crlf"
 }

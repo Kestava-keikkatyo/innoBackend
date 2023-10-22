@@ -85,12 +85,7 @@ applicationRouter.post("/", tokenAuthentication, isWorker, postApplication);
  *             example:
  *               message:No application was found
  */
-applicationRouter.get(
-  "/any/:id",
-  tokenAuthentication,
-  isAgency,
-  getApplicationById
-);
+applicationRouter.get("/any/:id", tokenAuthentication, isAgency, getApplicationById);
 
 /**
  * Route for workers to get their own applications
@@ -125,12 +120,7 @@ applicationRouter.get(
  *             example:
  *               message: No applications found
  */
-applicationRouter.get(
-  "/myApplications",
-  tokenAuthentication,
-  isWorker,
-  getAllMyApplications
-);
+applicationRouter.get("/myApplications", tokenAuthentication, isWorker, getAllMyApplications);
 
 /**
  * Route for user of role worker to get own application by its id
@@ -170,11 +160,6 @@ applicationRouter.get(
  *             example:
  *               message: No appliaction was found
  */
-applicationRouter.get(
-  "/my/:id",
-  tokenAuthentication,
-  isWorker,
-  getMyApplication
-);
+applicationRouter.get("/my/:id", tokenAuthentication, isWorker, getMyApplication);
 
 export default applicationRouter;

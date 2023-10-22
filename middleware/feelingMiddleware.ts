@@ -3,10 +3,7 @@ import Feeling from "../models/Feeling";
 import { IFeelingDocument } from "../objecttypes/modelTypes";
 import { copyProperties } from "../utils/common";
 
-const updatableFields = [
-  "feeling",
-  "comment",
-];
+const updatableFields = ["feeling", "comment"];
 
 /**
  * Post worker's feeling to database.
@@ -55,7 +52,6 @@ export const getMyFeelings = async (_req: Request, res: Response, next: NextFunc
   }
 };
 
-
 /**
  * Get all feelings for feeling report
  * @param {Request} req - Express Request.
@@ -65,9 +61,7 @@ export const getMyFeelings = async (_req: Request, res: Response, next: NextFunc
  */
 export const getAllFeelings = async (_req: Request, res: Response, next: NextFunction) => {
   try {
-    const feelings: IFeelingDocument[] | null = await Feeling.find({
-
-    });
+    const feelings: IFeelingDocument[] | null = await Feeling.find({});
     if (!feelings) {
       return res.status(404).json({ message: "No feelings found!" });
     }

@@ -1,11 +1,6 @@
 import express from "express";
 import { tokenAuthentication } from "../middleware/authenticationMiddleware";
-import {
-  addFile,
-  deleteFile,
-  getFilesByCreator,
-  getFileById,
-} from "../middleware/fileMiddleware";
+import { addFile, deleteFile, getFilesByCreator, getFileById } from "../middleware/fileMiddleware";
 
 const fileRouter = express.Router();
 

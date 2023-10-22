@@ -1,16 +1,11 @@
 {
-    "source": {
-      "include": [
-        "controllers",
-        "utils"
-      ]
-    },
-    "plugins": [
-      "plugins/markdown"
-    ],
-    "opts": {
-      "destination": "docs",
-      "recurse": true,
-      "readme": "README.md"
-    }
+  "source": {
+    "include": ["controllers", "utils"]
+  },
+  "plugins": ["plugins/markdown"],
+  "opts": {
+    "destination": "docs",
+    "recurse": true,
+    "readme": "README.md"
   }
+}

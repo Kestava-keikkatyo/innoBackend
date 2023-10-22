@@ -1,11 +1,5 @@
 import express from "express";
-import {
-  isAdmin,
-  isAgencyOrBusiness,
-  isUser,
-  isWorker,
-  isWorkerOrBusinessOrAgency,
-} from "../utils/authJwt";
+import { isAdmin, isAgencyOrBusiness, isUser, isWorker, isWorkerOrBusinessOrAgency } from "../utils/authJwt";
 import {
   archiveReport,
   getAllReports,
@@ -221,12 +215,7 @@ reportRouter.get("/allReports", tokenAuthentication, isAdmin, getAllReports);
  *             example:
  *               message: No report found
  */
-reportRouter.put(
-  "/reply/:id",
-  tokenAuthentication,
-  isAgencyOrBusiness,
-  replyReport
-);
+reportRouter.put("/reply/:id", tokenAuthentication, isAgencyOrBusiness, replyReport);
 
 /**
  * Route for user of type agency or business to archive a report.
@@ -279,12 +268,7 @@ reportRouter.put(
  *             example:
  *               message: No report found
  */
-reportRouter.put(
-  "/archive/:id/:archived",
-  tokenAuthentication,
-  isWorkerOrBusinessOrAgency,
-  archiveReport
-);
+reportRouter.put("/archive/:id/:archived", tokenAuthentication, isWorkerOrBusinessOrAgency, archiveReport);
 
 /**
  * Route for user of type agency or business to get all the sent reports.
@@ -319,11 +303,6 @@ reportRouter.put(
  *             example:
  *               message: No reports found
  */
-reportRouter.get(
-  "/receivedReports",
-  tokenAuthentication,
-  isAgencyOrBusiness,
-  getReportsForReceiver
-);
+reportRouter.get("/receivedReports", tokenAuthentication, isAgencyOrBusiness, getReportsForReceiver);
 
 export default reportRouter;

@@ -26,7 +26,7 @@ export const findAgreementCode = async (req: Request, res: Response, next: NextF
     res.locals.agreementCodeFound = true;
     res.locals.creator = agreementCode.creator;
 
-    next()
+    next();
   } catch (exception) {
     return next(exception);
   }
@@ -86,7 +86,9 @@ export const addAgreementCodes = async (req: Request, res: Response, next: NextF
     const codesToCreate = Math.min(numberOfCodes, remainingCodes);
 
     if (codesToCreate <= 0) {
-      return res.status(400).json({ message: "Maximum allowed number of agreement codes per user (" + maxAllowedCodesPerUser + ") has been reached" });
+      return res.status(400).json({
+        message: "Maximum allowed number of agreement codes per user (" + maxAllowedCodesPerUser + ") has been reached",
+      });
     }
 
     const newAgreementCodes = [];
@@ -97,7 +99,7 @@ export const addAgreementCodes = async (req: Request, res: Response, next: NextF
       const agreementCode = new AgreementCode({
         code: code,
         createdAt: new Date(),
-        creator: userId
+        creator: userId,
       });
 
       const savedAgreementCode = await agreementCode.save();
@@ -113,7 +115,7 @@ export const addAgreementCodes = async (req: Request, res: Response, next: NextF
   } catch (exception) {
     return next(exception);
   }
-}
+};
 
 /**
 
@@ -122,8 +124,8 @@ Generate a random alphanumerical code with the specified length.
 @returns Random alphanumerical code
 */
 function generateRandomCode(length: number): string {
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
+  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
   for (let i = 0; i < length; i++) {
     result += characters.charAt(Math.floor(Math.random() * characters.length));
   }
@@ -174,11 +176,11 @@ export const updateMarkedValue = async (req: Request, res: Response, next: NextF
       return res.status(400).json({ message: "ID is required" });
     }
 
-    if (typeof marked === 'undefined') {
+    if (typeof marked === "undefined") {
       return res.status(400).json({ message: "Marked value is required" });
     }
 
-    if (typeof marked !== 'boolean') {
+    if (typeof marked !== "boolean") {
       return res.status(400).json({ message: "Marked value must be a boolean" });
     }
 
