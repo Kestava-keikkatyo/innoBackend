@@ -8,8 +8,7 @@ const agreementSchema: Schema = new Schema({
     ref: "Creator",
     immutable: true,
   },
-  target:
-  {
+  target: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Target",
     immutable: true,

@@ -32,7 +32,7 @@ const updatableFields = [
 export const postFeedback = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { body } = req;
-   // console.log("POST FEEDBACK" + JSON.stringify(body));
+    // console.log("POST FEEDBACK" + JSON.stringify(body));
     console.log(body);
     const feedbackDocument: IFeedbackDocument = new FeedBack({
       ...copyProperties(body, updatableFields),
@@ -47,7 +47,7 @@ export const postFeedback = async (req: Request, res: Response, next: NextFuncti
         sender: res.locals.userId,
         target: feedback._id,
         targetDoc: "FeedBack",
-        type: "feedback_pending"
+        type: "feedback_pending",
       },
       body.recipientId
     );
