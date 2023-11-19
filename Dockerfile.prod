@@ -1,0 +1,29 @@
+FROM node:20-alpine AS deps
+# Create app directory in container
+WORKDIR /app
+# Copy only package.json and package-lock.json first to leverage Docker cache
+COPY package*.json ./
+# Install production dependencies
+RUN npm install --omit=dev
+
+FROM node:20-alpine AS runner
+WORKDIR /app
+COPY --from=deps /app/node_modules/ node_modules/
+COPY --from=deps /app/package*.json .
+# Copy only necessary files for production (avoiding unnecessary files for production)
+COPY utils/ utils/
+COPY services/ services/
+COPY seed/ seed/
+COPY objecttypes/ objecttypes/
+COPY models/ models/
+COPY middleware/ middleware/
+COPY controllers/ controllers/
+
+COPY app.ts .
+COPY index.ts .
+COPY tsconfig.json .
+# Used by app.ts in a dev environment. Only needed as an import
+COPY doc/generateSwaggerDoc.ts doc/
+
+# Define startup command for production
+ENTRYPOINT [ "npm", "run", "start" ]
