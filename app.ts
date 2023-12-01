@@ -61,9 +61,6 @@ export default async () => {
   app.use(express.json());
   app.use(requestLogger);
 
-  app.use("/", (req, res) => {
-    res.status(200).json({ message: "OK" });
-  });
   app.use("/api/uploads", uploadsRouter);
   app.use("/api/feedback", feedbackRouter);
   process.env.NODE_ENV === "development" && app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
@@ -80,7 +77,7 @@ export default async () => {
   app.use("/api/feeling", feelingRouter);
   app.use("/api/code", codeRouter);
   app.use("/api/file", fileRouter);
-  app.use("/", (req, res) => {
+  app.use("/healthcheck", (req, res) => {
     res.status(200).json({ message: "OK" });
   });
 
