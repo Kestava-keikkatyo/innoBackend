@@ -63,7 +63,7 @@ export default async () => {
 
   app.use("/api/uploads", uploadsRouter);
   app.use("/api/feedback", feedbackRouter);
-  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+  process.env.NODE_ENV === "development" && app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
   app.use("/api/job", jobRouter);
   app.use("/api/authentication", authRouter);
   app.use("/api/user", userRouter);
