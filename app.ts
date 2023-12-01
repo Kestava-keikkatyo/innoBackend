@@ -80,6 +80,9 @@ export default async () => {
   app.use("/api/feeling", feelingRouter);
   app.use("/api/code", codeRouter);
   app.use("/api/file", fileRouter);
+  app.use("/", (req, res) => {
+    res.status(200).json({ message: "OK" });
+  });
 
   app.use(unknownEndpoint);
   app.use(errorHandler);
