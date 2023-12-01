@@ -1,19 +1,26 @@
 /* eslint-disable no-unused-vars */
 import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
-import * as ecs from "aws-cdk-lib/aws-ecs";
-import * as ecsp from "aws-cdk-lib/aws-ecs-patterns";
-// import * as sqs from 'aws-cdk-lib/aws-sqs';
+import { createVPC } from "./vpc";
+import { createECS } from "./ecs";
 
 export class CloudStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    // The code that defines your stack goes here
+    const vpc = createVPC(this);
 
-    // example resource
-    // const queue = new sqs.Queue(this, 'CloudQueue', {
-    //   visibilityTimeout: cdk.Duration.seconds(300)
-    // });
+    /*const { dbCredentials, dbCluster } = createCluster({
+      stack: this,
+      vpc,
+    });*/
+
+    createECS({
+      stack: this,
+      vpc,
+    });
+
+    //dbCluster.connections.allowFrom(ecsSG, Port.allTcp());
+    //loadBalancedFargateService.service.connections.allowFrom(dbCluster, Port.allTcp());
   }
 }
