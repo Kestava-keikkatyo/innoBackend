@@ -40,3 +40,8 @@ jobs:
           docker build -f Dockerfile.prod -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+          # Redeploy container service with newest image. Use first cluster and service found.
+          export CLUSTER_ARN=$(aws ecs list-clusters --query "clusterArns[0]" --output text)
+          export SERVICE_ARN=$(aws ecs list-services --cluster $CLUSTER_ARN --query "serviceArns[0]" --output text)
+          aws ecs update-service --force-new-deployment --service $SERVICE_ARN --cluster $CLUSTER_ARN
