@@ -24,6 +24,7 @@ import User from "./models/User";
 import { IUserDocument } from "./objecttypes/modelTypes";
 import { hash } from "bcryptjs";
 import fileRouter from "./controllers/file";
+import formsRouter from "./controllers/forms";
 
 export default async () => {
   const app = express();
@@ -77,6 +78,7 @@ export default async () => {
   app.use("/api/feeling", feelingRouter);
   app.use("/api/code", codeRouter);
   app.use("/api/file", fileRouter);
+  app.use("/api/forms", formsRouter);
   app.use("/healthcheck", (req, res) => {
     res.status(200).json({ message: "OK" });
   });
